@@ -1,9 +1,11 @@
 # H100 Ubuntu Installation - Lessons Learned & Next Steps
 
 **Date:** February 9, 2026  
+**Updated:** February 11, 2026  
 **System:** H100 Training Server  
 **Hostname:** ai2ct2  
-**Current OS:** Ubuntu 20.04.1 LTS (Legacy Server)
+~~**Current OS:** Ubuntu 20.04.1 LTS (Legacy Server)~~  
+**Current OS:** Ubuntu 22.04.5 LTS (Fresh Install - Feb 11, 2026)
 
 ---
 
@@ -42,32 +44,50 @@
 ## Current System Status
 
 ### Hardware
-- **CPU:** Unknown (not checked yet)
-- **RAM:** 878.69 GB
+- ~~**CPU:** Unknown (not checked yet)~~
+- **CPU:** Intel Xeon Platinum 8581V (120 threads)
+- ~~**RAM:** 878.69 GB~~
+- **RAM:** 1.0 TiB
 - **Storage:** 
-  - `/dev/nvme0n1` - 960.2 GB (OS installed here, 0.4% used)
+  - `/dev/nvme0n1` - 960.2 GB (OS installed here, ~~0.4%~~ 2% used)
   - `/dev/nvme1n1` - 15.4 TB (unused)
   - `/dev/nvme2n1` - 15.4 TB (unused)
-- **GPU:** NVIDIA H100 NVL (not yet configured)
+- ~~**GPU:** NVIDIA H100 NVL (not yet configured)~~
+- **GPU:** NVIDIA H100 NVL (94 GB VRAM) — Driver 580.126.09 installed, upgrading to 580.126.16
 
 ### Network Configuration
 - **Interface in use:** eno1
 - **MAC Address:** `3c:ec:ef:e3:14:ae`
-- **Status:** Interface is UP, but no network connectivity (MAC not whitelisted yet)
+- ~~**Status:** Interface is UP, but no network connectivity (MAC not whitelisted yet)~~
+- **Status:** ✅ Network is UP and fully connected. IP assigned: `172.24.254.24`
 - **Additional interface:** eno2 (MAC: `3c:ec:ef:e3:14:af`)
 
 ### Software Status
-- **OS:** Ubuntu 20.04.1 LTS (GNU/Linux 5.4.0-42-generic x86_64)
+- ~~**OS:** Ubuntu 20.04.1 LTS (GNU/Linux 5.4.0-42-generic x86_64)~~
+- **OS:** Ubuntu 22.04.5 LTS (GNU/Linux 5.15.0-170-generic x86_64)
 - **User account:** t2user
-- **SSH Server:** ❌ NOT INSTALLED (openssh-server missing)
-- **NVIDIA Drivers:** ❌ Not installed
-- **CUDA:** ❌ Not installed
-- **Python environment:** ❌ Not configured
+- ~~**SSH Server:** ❌ NOT INSTALLED (openssh-server missing)~~
+- **SSH Server:** ✅ Installed & running (password auth enabled, SSH key auth also configured)
+- ~~**NVIDIA Drivers:** ❌ Not installed~~
+- **NVIDIA Drivers:** ✅ 580.126.09 installed (upgrading to 580.126.16 in progress)
+- ~~**CUDA:** ❌ Not installed~~
+- **CUDA:** ⚠️ Driver reports CUDA 13.0 capability, but `nvcc` (CUDA Toolkit) NOT yet installed
+- ~~**Python environment:** ❌ Not configured~~
+- **Python environment:** ⚠️ Python 3.10.12 present, but `pip` not yet installed. No conda.
+- **Git:** ✅ 2.34.1 installed
+- **Docker:** ❌ Not installed
+- **NVIDIA Container Toolkit:** ❌ Not installed
 - **Isaac Sim:** ❌ Not installed
 
 ### Pending Actions
-- ⏳ **MAC address whitelisting:** Submitted to Justin Whitten (2026-02-09)
-- ⏳ **Static IP assignment:** Waiting for IT to provide IP address
+- ~~⏳ **MAC address whitelisting:** Submitted to Justin Whitten (2026-02-09)~~
+- ✅ **MAC address whitelisted** — Completed
+- ~~⏳ **Static IP assignment:** Waiting for IT to provide IP address~~
+- ✅ **IP assigned:** `172.24.254.24`
+- ⏳ **NVIDIA driver upgrade:** 580.126.09 → 580.126.16 (DKMS rebuild in progress as of Feb 11)
+- ⏳ **CUDA Toolkit installation:** Pending
+- ⏳ **Docker + NVIDIA Container Toolkit:** Pending
+- ⏳ **pip / Miniconda installation:** Pending
 
 ---
 
@@ -120,13 +140,17 @@
 
 ### Phase 2: Install OpenSSH Server
 
-```bash
-sudo apt update
-sudo apt install openssh-server
-sudo systemctl enable ssh
-sudo systemctl start ssh
-sudo systemctl status ssh
-```
+~~```bash~~
+~~sudo apt update~~
+~~sudo apt install openssh-server~~
+~~sudo systemctl enable ssh~~
+~~sudo systemctl start ssh~~
+~~sudo systemctl status ssh~~
+~~```~~
+
+> ✅ **COMPLETED (Feb 11, 2026):** OpenSSH server was pre-installed with Ubuntu 22.04.  
+> SSH key auth configured from Windows laptop. Password auth also enabled for team access.  
+> Access via: `ssh t2user@172.24.254.24` with password `!QAZ@WSX3edc4rfv`
 
 **Test SSH access** (from another machine on CMU network or VPN):
 ```bash
@@ -141,12 +165,17 @@ ssh-copy-id t2user@172.24.254.XX
 
 ### Phase 3: System Updates
 
-```bash
-sudo apt update
-sudo apt upgrade -y
-sudo apt dist-upgrade -y
-sudo reboot
-```
+~~```bash~~
+~~sudo apt update~~
+~~sudo apt upgrade -y~~
+~~sudo apt dist-upgrade -y~~
+~~sudo reboot~~
+~~```~~
+
+> ⏳ **IN PROGRESS (Feb 11, 2026):** `apt update` completed. `apt upgrade` installed 2 packages.  
+> `apt dist-upgrade` encountered a dpkg file conflict with `libnvidia-compute-580` overwriting  
+> a file from `libnvidia-common-580`. Running `apt-get --fix-broken -o Dpkg::Options::='--force-overwrite'`  
+> to resolve. DKMS kernel module rebuild in progress.
 
 ### Phase 4: Install Development Tools
 
@@ -167,23 +196,25 @@ sudo apt install -y \
 
 ### Phase 5: Install NVIDIA Drivers
 
-**Check current GPU status:**
-```bash
-lspci | grep -i nvidia
-```
+~~**Check current GPU status:**~~
+~~```bash~~
+~~lspci | grep -i nvidia~~
+~~```~~
 
-**Install NVIDIA drivers (version 575.x to match other H100 boxes):**
-```bash
-# Add NVIDIA driver repository
-sudo add-apt-repository ppa:graphics-drivers/ppa
-sudo apt update
+~~**Install NVIDIA drivers (version 575.x to match other H100 boxes):**~~
+~~```bash~~
+~~# Add NVIDIA driver repository~~
+~~sudo add-apt-repository ppa:graphics-drivers/ppa~~
+~~sudo apt update~~
+~~# Install specific driver version~~
+~~sudo apt install -y nvidia-driver-575~~
+~~# Reboot to load driver~~
+~~sudo reboot~~
+~~```~~
 
-# Install specific driver version
-sudo apt install -y nvidia-driver-575
-
-# Reboot to load driver
-sudo reboot
-```
+> ✅ **UPDATE (Feb 11, 2026):** Ubuntu 22.04 fresh install came with NVIDIA driver **580.126.09** pre-installed  
+> (from the NVIDIA CUDA repo). Driver is being upgraded to **580.126.16** via system update.  
+> No need to manually add PPA or install driver-575.
 
 **Verify installation:**
 ```bash
@@ -191,24 +222,30 @@ nvidia-smi
 ```
 
 Should show:
-- Driver Version: 575.x
-- CUDA Version: 12.9
+- ~~Driver Version: 575.x~~
+- **Driver Version: 580.126.16**
+- ~~CUDA Version: 12.9~~
+- **CUDA Version: 13.0**
 - GPU: NVIDIA H100 NVL
 
-### Phase 6: Install CUDA Toolkit 12.9
+### Phase 6: Install CUDA Toolkit ~~12.9~~ 13.0
 
 ```bash
 # Download CUDA keyring
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
+~~wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb~~
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 
 # Update and install CUDA
 sudo apt update
-sudo apt install -y cuda-toolkit-12-9
+~~sudo apt install -y cuda-toolkit-12-9~~
+sudo apt install -y cuda-toolkit
 
 # Add to PATH
-echo 'export PATH=/usr/local/cuda-12.9/bin:$PATH' >> ~/.bashrc
-echo 'export LD_LIBRARY_PATH=/usr/local/cuda-12.9/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
+~~echo 'export PATH=/usr/local/cuda-12.9/bin:$PATH' >> ~/.bashrc~~
+~~echo 'export LD_LIBRARY_PATH=/usr/local/cuda-12.9/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc~~
+echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
 source ~/.bashrc
 
 # Verify installation
@@ -356,9 +393,11 @@ tail -f training.log  # if you're logging to file
 - Version control all training code and configs
 
 ### Network Access
-- **On campus:** Direct access via 172.24.254.XX
+- **On campus:** Direct access via ~~172.24.254.XX~~ `172.24.254.24`
 - **From home:** Must be on CMU VPN first, then SSH
 - **Switch location:** 172.24.254.23 (dedicated switch with available ports)
+- **SSH command:** `ssh t2user@172.24.254.24`
+- **Password:** `!QAZ@WSX3edc4rfv`
 
 ### Training Data Storage
 - **OS Drive:** 960GB (keep this for OS and software only)
@@ -433,7 +472,8 @@ lsmod | grep nvidia
 dmesg | grep -i nvidia
 
 # Reinstall driver
-sudo apt install --reinstall nvidia-driver-575
+~~sudo apt install --reinstall nvidia-driver-575~~
+sudo apt install --reinstall nvidia-driver-580
 sudo reboot
 ```
 
@@ -458,17 +498,21 @@ python script.py --headless --enable-extension omni.isaac.sim --/app/window/enab
 
 Current progress:
 
-- [x] Ubuntu 20.04.1 LTS installed
+- [x] ~~Ubuntu 20.04.1 LTS installed~~
+- [x] **Ubuntu 22.04.5 LTS installed (fresh install Feb 11, 2026)**
 - [x] System boots successfully
 - [x] MAC address identified and submitted for whitelisting
-- [ ] MAC address whitelisted by IT
-- [ ] Static IP assigned and configured
-- [ ] Network connectivity verified
-- [ ] OpenSSH server installed
-- [ ] SSH access working remotely
-- [ ] System fully updated
-- [ ] NVIDIA drivers installed
+- [x] MAC address whitelisted by IT ✅
+- [x] ~~Static IP assigned and configured~~ IP: `172.24.254.24` ✅
+- [x] Network connectivity verified ✅
+- [x] OpenSSH server installed ✅ (pre-installed with 22.04)
+- [x] SSH access working remotely ✅ (password + key auth)
+- [ ] System fully updated ⏳ (NVIDIA driver upgrade in progress)
+- [x] NVIDIA drivers installed ✅ (580.126.09, upgrading to .16)
 - [ ] CUDA toolkit installed
+- [ ] Docker installed
+- [ ] NVIDIA Container Toolkit installed
+- [ ] pip / Miniconda installed
 - [ ] Python environment configured
 - [ ] Isaac Sim dependencies installed
 - [ ] Repository cloned
@@ -478,5 +522,6 @@ Current progress:
 
 ---
 
-**Last Updated:** February 9, 2026  
-**Next Action:** Wait for MAC whitelisting confirmation from Justin Whitten
+**Last Updated:** February 11, 2026  
+~~**Next Action:** Wait for MAC whitelisting confirmation from Justin Whitten~~  
+**Next Action:** Complete NVIDIA driver upgrade, then install CUDA Toolkit, Docker, and NVIDIA Container Toolkit
