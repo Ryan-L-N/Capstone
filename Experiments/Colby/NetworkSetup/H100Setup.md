@@ -53,7 +53,8 @@
   - `/dev/nvme1n1` - 15.4 TB (unused)
   - `/dev/nvme2n1` - 15.4 TB (unused)
 - ~~**GPU:** NVIDIA H100 NVL (not yet configured)~~
-- **GPU:** NVIDIA H100 NVL (94 GB VRAM) — Driver 580.126.09 installed, upgrading to 580.126.16
+- ~~**GPU:** NVIDIA H100 NVL (94 GB VRAM) — Driver 580.126.09 installed, upgrading to 580.126.16~~
+- **GPU:** NVIDIA H100 NVL (94 GB VRAM) — Driver 580.126.16 packages installed + DKMS built. **Reboot required** to load new kernel modules.
 
 ### Network Configuration
 - **Interface in use:** eno1
@@ -69,7 +70,8 @@
 - ~~**SSH Server:** ❌ NOT INSTALLED (openssh-server missing)~~
 - **SSH Server:** ✅ Installed & running (password auth enabled, SSH key auth also configured)
 - ~~**NVIDIA Drivers:** ❌ Not installed~~
-- **NVIDIA Drivers:** ✅ 580.126.09 installed (upgrading to 580.126.16 in progress)
+- ~~**NVIDIA Drivers:** ✅ 580.126.09 installed (upgrading to 580.126.16 in progress)~~
+- **NVIDIA Drivers:** ✅ 580.126.16 packages installed & DKMS kernel modules built. **Needs reboot** to verify via `nvidia-smi`.
 - ~~**CUDA:** ❌ Not installed~~
 - **CUDA:** ⚠️ Driver reports CUDA 13.0 capability, but `nvcc` (CUDA Toolkit) NOT yet installed
 - ~~**Python environment:** ❌ Not configured~~
@@ -84,8 +86,10 @@
 - ✅ **MAC address whitelisted** — Completed
 - ~~⏳ **Static IP assignment:** Waiting for IT to provide IP address~~
 - ✅ **IP assigned:** `172.24.254.24`
-- ⏳ **NVIDIA driver upgrade:** 580.126.09 → 580.126.16 (DKMS rebuild in progress as of Feb 11)
-- ⏳ **CUDA Toolkit installation:** Pending
+- ~~⏳ **NVIDIA driver upgrade:** 580.126.09 → 580.126.16 (DKMS rebuild in progress as of Feb 11)~~
+- ✅ **NVIDIA driver upgrade:** 580.126.16 packages installed, DKMS modules built & signed. `nvidia-persistenced` had systemd warnings (non-critical). **Server needs reboot.**
+- ⏳ **Post-reboot verification:** Run `nvidia-smi` to confirm driver 580.126.16 loaded, then `sudo dpkg --configure -a` and `sudo apt autoremove`
+- ⏳ **CUDA Toolkit installation:** Pending (after reboot)
 - ⏳ **Docker + NVIDIA Container Toolkit:** Pending
 - ⏳ **pip / Miniconda installation:** Pending
 
@@ -172,10 +176,17 @@ ssh-copy-id t2user@172.24.254.XX
 ~~sudo reboot~~
 ~~```~~
 
-> ⏳ **IN PROGRESS (Feb 11, 2026):** `apt update` completed. `apt upgrade` installed 2 packages.  
-> `apt dist-upgrade` encountered a dpkg file conflict with `libnvidia-compute-580` overwriting  
-> a file from `libnvidia-common-580`. Running `apt-get --fix-broken -o Dpkg::Options::='--force-overwrite'`  
-> to resolve. DKMS kernel module rebuild in progress.
+> ~~⏳ **IN PROGRESS (Feb 11, 2026):** `apt update` completed. `apt upgrade` installed 2 packages.~~  
+> ~~`apt dist-upgrade` encountered a dpkg file conflict with `libnvidia-compute-580` overwriting~~  
+> ~~a file from `libnvidia-common-580`. Running `apt-get --fix-broken -o Dpkg::Options::='--force-overwrite'`~~  
+> ~~to resolve. DKMS kernel module rebuild in progress.~~
+>
+> ✅ **RESOLVED (Feb 11, 2026):** All system updates completed.  
+> The dpkg conflict was resolved with `sudo apt-get install -y -o Dpkg::Options::='--force-overwrite' --fix-broken`.  
+> 15 NVIDIA packages upgraded/installed (580.126.16), DKMS kernel modules built & signed for 5.15.0-170-generic.  
+> `nvidia-persistenced` service threw systemd warnings ("Transport endpoint is not connected") — this is a  
+> non-critical systemd/DBus issue that should clear after reboot.  
+> **Next step:** `sudo reboot`, then verify with `nvidia-smi`.
 
 ### Phase 4: Install Development Tools
 
@@ -213,7 +224,8 @@ sudo apt install -y \
 ~~```~~
 
 > ✅ **UPDATE (Feb 11, 2026):** Ubuntu 22.04 fresh install came with NVIDIA driver **580.126.09** pre-installed  
-> (from the NVIDIA CUDA repo). Driver is being upgraded to **580.126.16** via system update.  
+> (from the NVIDIA CUDA repo). ~~Driver is being upgraded to **580.126.16** via system update.~~  
+> Driver **580.126.16** packages fully installed & DKMS modules built. **Reboot required** to load.  
 > No need to manually add PPA or install driver-575.
 
 **Verify installation:**
@@ -507,8 +519,10 @@ Current progress:
 - [x] Network connectivity verified ✅
 - [x] OpenSSH server installed ✅ (pre-installed with 22.04)
 - [x] SSH access working remotely ✅ (password + key auth)
-- [ ] System fully updated ⏳ (NVIDIA driver upgrade in progress)
-- [x] NVIDIA drivers installed ✅ (580.126.09, upgrading to .16)
+- [x] ~~System fully updated ⏳ (NVIDIA driver upgrade in progress)~~
+- [x] System updates applied ✅ (all packages installed, **reboot needed**)
+- [x] ~~NVIDIA drivers installed ✅ (580.126.09, upgrading to .16)~~
+- [x] NVIDIA drivers installed ✅ (580.126.16 packages + DKMS, **reboot to verify**)
 - [ ] CUDA toolkit installed
 - [ ] Docker installed
 - [ ] NVIDIA Container Toolkit installed
@@ -522,6 +536,16 @@ Current progress:
 
 ---
 
-**Last Updated:** February 11, 2026  
+**Last Updated:** February 11, 2026 (evening)  
 ~~**Next Action:** Wait for MAC whitelisting confirmation from Justin Whitten~~  
-**Next Action:** Complete NVIDIA driver upgrade, then install CUDA Toolkit, Docker, and NVIDIA Container Toolkit
+~~**Next Action:** Complete NVIDIA driver upgrade, then install CUDA Toolkit, Docker, and NVIDIA Container Toolkit~~  
+**Next Action (for Colby):**
+1. `sudo reboot` the server
+2. Verify `nvidia-smi` shows driver **580.126.16** and GPU detected
+3. Run `sudo dpkg --configure -a` to finalize any pending package configs
+4. Run `sudo apt autoremove` to clean up unused packages
+5. Install CUDA Toolkit (see Phase 6)
+6. Install pip: `sudo apt install -y python3-pip`
+7. Install Docker + NVIDIA Container Toolkit
+8. Install Miniconda
+9. Install Isaac Sim / Isaac Lab
