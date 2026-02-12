@@ -87,7 +87,11 @@
 - ~~**NVIDIA Container Toolkit:** ❌ Not installed~~
 - ~~**NVIDIA Container Toolkit:** ✅ Installed. Runtime configured in `/etc/docker/daemon.json`. ⚠️ Docker restart caused `dockerd` to enter D-state (uninterruptible sleep) — **server reboot required** to clear (Feb 12, 2026).~~
 - **NVIDIA Container Toolkit:** ✅ Installed & working. Runtime configured in `/etc/docker/daemon.json`. D-state issue resolved by reboot.
-- **Isaac Sim:** ⏳ Installing...
+- ~~**Isaac Sim:** ⏳ Installing...~~
+- **Isaac Sim:** ✅ **5.1.0** installed via pip in conda env `env_isaaclab` (Python 3.11.14)
+- **Isaac Lab:** ✅ **0.54.3** installed from source at `/home/t2user/IsaacLab`
+- **PyTorch:** ✅ **2.7.0+cu126** — CUDA enabled, sees H100 NVL
+- **RL Frameworks:** ✅ rl_games, rsl_rl, sb3, skrl, robomimic installed
 
 ### Pending Actions
 - ~~⏳ **MAC address whitelisting:** Submitted to Justin Whitten (2026-02-09)~~
@@ -113,7 +117,12 @@
 - ✅ **GPU-in-Docker test:** `nvidia-smi` runs inside `nvidia/cuda:12.8.0-base-ubuntu22.04` container — H100 visible (Feb 12)
 - ~~⏳ **apt autoremove:** Pending~~
 - ✅ **apt autoremove:** Completed (Feb 12)
-- ⏳ **Isaac Sim / Isaac Lab installation:** In progress
+- ~~⏳ **Isaac Sim / Isaac Lab installation:** In progress~~
+- ✅ **Isaac Sim 5.1.0** installed in conda env `env_isaaclab` (Python 3.11.14) (Feb 12)
+- ✅ **Isaac Lab 0.54.3** cloned & installed at `/home/t2user/IsaacLab` (Feb 12)
+- ✅ **PyTorch 2.7.0+cu126** — CUDA enabled, H100 detected (Feb 12)
+- ✅ **RL frameworks** installed: rl_games, rsl_rl, sb3, skrl, robomimic (Feb 12)
+- ✅ **EULA accepted** via `OMNI_KIT_ACCEPT_EULA=YES` in `.bashrc` (Feb 12)
 
 ---
 
@@ -596,29 +605,34 @@ Current progress:
 - [x] Miniconda **25.11.1** installed ✅ (`/home/t2user/miniconda3`)
 - [x] ~~GPU-in-Docker test (`docker run --gpus all ... nvidia-smi`)~~
 - [x] GPU-in-Docker test ✅ — H100 visible inside container
-- [ ] Python environment configured (`conda create -n env_isaaclab python=3.11`)
-- [ ] Isaac Sim dependencies installed
-- [ ] Repository cloned
+- [x] ~~Python environment configured (`conda create -n env_isaaclab python=3.11`)~~
+- [x] Conda env `env_isaaclab` (Python 3.11.14) ✅
+- [x] ~~Isaac Sim dependencies installed~~
+- [x] Isaac Sim **5.1.0** + Isaac Lab **0.54.3** installed ✅
+- [x] ~~Repository cloned~~
+- [x] Isaac Lab cloned at `/home/t2user/IsaacLab` ✅
 - [ ] RAID array configured (optional)
 - [ ] Test training run completed
 - [ ] Full training session initiated
 
 ---
 
-**Last Updated:** February 12, 2026 (evening)  
+**Last Updated:** February 12, 2026 (evening — final)  
 ~~**Next Action:** Wait for MAC whitelisting confirmation from Justin Whitten~~  
 ~~**Next Action:** Complete NVIDIA driver upgrade, then install CUDA Toolkit, Docker, and NVIDIA Container Toolkit~~  
-**Next Action (for Colby):**
+**All prerequisites and Isaac Sim/Lab installation COMPLETE.** See `Isaac_on_H-100.md` for usage guide.
+
+**Completed (for Colby):**
 1. ~~`sudo reboot` the server~~ ✅
-2. ~~Verify `nvidia-smi` shows driver **580.126.16** and GPU detected~~ ✅ Verified Feb 12
+2. ~~Verify `nvidia-smi` shows driver **580.126.16** and GPU detected~~ ✅
 3. ~~Run `sudo dpkg --configure -a` to finalize any pending package configs~~ ✅
-4. ~~Run `sudo apt autoremove` to clean up unused packages~~ ✅ Completed Feb 12
-5. ~~Install CUDA Toolkit (see Phase 6)~~ ✅ CUDA 13.1 installed Feb 12
-6. ~~Install pip: `sudo apt install -y python3-pip`~~ ✅ pip 22.0.2 installed Feb 12
-7. ~~Install Docker + NVIDIA Container Toolkit~~ ✅ Docker 29.2.1 + NVIDIA CTK installed Feb 12
-8. ~~Verify Docker after reboot~~ ✅ Docker active, GPU-in-Docker verified Feb 12
-9. ~~Install Miniconda~~ ✅ Miniconda 25.11.1 installed Feb 12
-10. **Install Isaac Sim / Isaac Lab** ⏳ In progress...
+4. ~~Run `sudo apt autoremove` to clean up unused packages~~ ✅
+5. ~~Install CUDA Toolkit (see Phase 6)~~ ✅ CUDA 13.1
+6. ~~Install pip: `sudo apt install -y python3-pip`~~ ✅ pip 22.0.2
+7. ~~Install Docker + NVIDIA Container Toolkit~~ ✅ Docker 29.2.1 + NVIDIA CTK
+8. ~~Verify Docker after reboot~~ ✅ GPU-in-Docker verified
+9. ~~Install Miniconda~~ ✅ Miniconda 25.11.1
+10. ~~Install Isaac Sim / Isaac Lab~~ ✅ Isaac Sim 5.1.0 + Isaac Lab 0.54.3
 
 **Isaac Sim Installation Steps (current):**
 ```bash
