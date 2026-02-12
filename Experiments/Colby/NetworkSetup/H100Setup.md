@@ -1,7 +1,7 @@
 # H100 Ubuntu Installation - Lessons Learned & Next Steps
 
 **Date:** February 9, 2026  
-**Updated:** February 11, 2026  
+**Updated:** February 12, 2026  
 **System:** H100 Training Server  
 **Hostname:** ai2ct2  
 ~~**Current OS:** Ubuntu 20.04.1 LTS (Legacy Server)~~  
@@ -54,7 +54,8 @@
   - `/dev/nvme2n1` - 15.4 TB (unused)
 - ~~**GPU:** NVIDIA H100 NVL (not yet configured)~~
 - ~~**GPU:** NVIDIA H100 NVL (94 GB VRAM) — Driver 580.126.09 installed, upgrading to 580.126.16~~
-- **GPU:** NVIDIA H100 NVL (94 GB VRAM) — Driver 580.126.16 packages installed + DKMS built. **Reboot required** to load new kernel modules.
+- ~~**GPU:** NVIDIA H100 NVL (94 GB VRAM) — Driver 580.126.16 packages installed + DKMS built. **Reboot required** to load new kernel modules.~~
+- **GPU:** NVIDIA H100 NVL (95830 MiB / ~94 GB VRAM) — Driver **580.126.16** verified working via `nvidia-smi` (Feb 12, 2026)
 
 ### Network Configuration
 - **Interface in use:** eno1
@@ -71,15 +72,22 @@
 - **SSH Server:** ✅ Installed & running (password auth enabled, SSH key auth also configured)
 - ~~**NVIDIA Drivers:** ❌ Not installed~~
 - ~~**NVIDIA Drivers:** ✅ 580.126.09 installed (upgrading to 580.126.16 in progress)~~
-- **NVIDIA Drivers:** ✅ 580.126.16 packages installed & DKMS kernel modules built. **Needs reboot** to verify via `nvidia-smi`.
+- ~~**NVIDIA Drivers:** ✅ 580.126.16 packages installed & DKMS kernel modules built. **Needs reboot** to verify via `nvidia-smi`.~~
+- **NVIDIA Drivers:** ✅ **580.126.16** — Verified working after reboot (Feb 12, 2026)
 - ~~**CUDA:** ❌ Not installed~~
-- **CUDA:** ⚠️ Driver reports CUDA 13.0 capability, but `nvcc` (CUDA Toolkit) NOT yet installed
+- ~~**CUDA:** ⚠️ Driver reports CUDA 13.0 capability, but `nvcc` (CUDA Toolkit) NOT yet installed~~
+- **CUDA:** ✅ CUDA Toolkit **13.1** installed (`nvcc V13.1.115`) at `/usr/local/cuda-13.1`. PATH configured in `.bashrc`.
 - ~~**Python environment:** ❌ Not configured~~
-- **Python environment:** ⚠️ Python 3.10.12 present, but `pip` not yet installed. No conda.
+- ~~**Python environment:** ⚠️ Python 3.10.12 present, but `pip` not yet installed. No conda.~~
+- ~~**Python environment:** ⚠️ Python 3.10.12 + pip 22.0.2 installed. No conda/Miniconda yet.~~
+- **Python environment:** ✅ Python 3.10.12 + pip 22.0.2 + **Miniconda 25.11.1** at `/home/t2user/miniconda3`
 - **Git:** ✅ 2.34.1 installed
-- **Docker:** ❌ Not installed
-- **NVIDIA Container Toolkit:** ❌ Not installed
-- **Isaac Sim:** ❌ Not installed
+- ~~**Docker:** ❌ Not installed~~
+- **Docker:** ✅ Docker **29.2.1** installed & running. GPU passthrough verified (`--gpus all` works).
+- ~~**NVIDIA Container Toolkit:** ❌ Not installed~~
+- ~~**NVIDIA Container Toolkit:** ✅ Installed. Runtime configured in `/etc/docker/daemon.json`. ⚠️ Docker restart caused `dockerd` to enter D-state (uninterruptible sleep) — **server reboot required** to clear (Feb 12, 2026).~~
+- **NVIDIA Container Toolkit:** ✅ Installed & working. Runtime configured in `/etc/docker/daemon.json`. D-state issue resolved by reboot.
+- **Isaac Sim:** ⏳ Installing...
 
 ### Pending Actions
 - ~~⏳ **MAC address whitelisting:** Submitted to Justin Whitten (2026-02-09)~~
@@ -87,11 +95,25 @@
 - ~~⏳ **Static IP assignment:** Waiting for IT to provide IP address~~
 - ✅ **IP assigned:** `172.24.254.24`
 - ~~⏳ **NVIDIA driver upgrade:** 580.126.09 → 580.126.16 (DKMS rebuild in progress as of Feb 11)~~
-- ✅ **NVIDIA driver upgrade:** 580.126.16 packages installed, DKMS modules built & signed. `nvidia-persistenced` had systemd warnings (non-critical). **Server needs reboot.**
-- ⏳ **Post-reboot verification:** Run `nvidia-smi` to confirm driver 580.126.16 loaded, then `sudo dpkg --configure -a` and `sudo apt autoremove`
-- ⏳ **CUDA Toolkit installation:** Pending (after reboot)
-- ⏳ **Docker + NVIDIA Container Toolkit:** Pending
-- ⏳ **pip / Miniconda installation:** Pending
+- ~~✅ **NVIDIA driver upgrade:** 580.126.16 packages installed, DKMS modules built & signed. `nvidia-persistenced` had systemd warnings (non-critical). **Server needs reboot.**~~
+- ✅ **NVIDIA driver upgrade:** 580.126.16 verified working after reboot (Feb 12)
+- ~~⏳ **Post-reboot verification:** Run `nvidia-smi` to confirm driver 580.126.16 loaded, then `sudo dpkg --configure -a` and `sudo apt autoremove`~~
+- ✅ **Post-reboot verification:** `nvidia-smi` confirmed driver 580.126.16, H100 NVL 95830 MiB (Feb 12)
+- ~~⏳ **CUDA Toolkit installation:** Pending (after reboot)~~
+- ✅ **CUDA Toolkit 13.1** installed via `sudo apt install -y cuda-toolkit-13-1` (Feb 12)
+- ~~⏳ **Docker + NVIDIA Container Toolkit:** Pending~~
+- ✅ **Docker 29.2.1** installed (Feb 12)
+- ~~✅ **NVIDIA Container Toolkit** installed & configured (Feb 12). ⚠️ Docker restart caused stuck `dockerd` process — **reboot in progress**~~
+- ✅ **NVIDIA Container Toolkit** installed & working (Feb 12). D-state resolved after reboot.
+- ~~⏳ **pip / Miniconda installation:** Pending~~
+- ✅ **pip 22.0.2** installed + build-essential, python3-venv, curl, wget, htop, tmux, screen, net-tools (Feb 12)
+- ~~⏳ **Miniconda installation:** Pending~~
+- ✅ **Miniconda 25.11.1** installed at `/home/t2user/miniconda3` (Feb 12)
+- ~~⏳ **GPU-in-Docker test:** Pending (after reboot clears stuck dockerd)~~
+- ✅ **GPU-in-Docker test:** `nvidia-smi` runs inside `nvidia/cuda:12.8.0-base-ubuntu22.04` container — H100 visible (Feb 12)
+- ~~⏳ **apt autoremove:** Pending~~
+- ✅ **apt autoremove:** Completed (Feb 12)
+- ⏳ **Isaac Sim / Isaac Lab installation:** In progress
 
 ---
 
@@ -205,6 +227,9 @@ sudo apt install -y \
     net-tools
 ```
 
+> ✅ **COMPLETED (Feb 12, 2026):** All dev tools installed including build-essential, python3-pip (22.0.2),
+> python3-venv, curl, wget, htop, tmux, screen, net-tools. gcc 11.4.0 confirmed.
+
 ### Phase 5: Install NVIDIA Drivers
 
 ~~**Check current GPU status:**~~
@@ -240,7 +265,7 @@ Should show:
 - **CUDA Version: 13.0**
 - GPU: NVIDIA H100 NVL
 
-### Phase 6: Install CUDA Toolkit ~~12.9~~ 13.0
+### Phase 6: Install CUDA Toolkit ~~12.9~~ ~~13.0~~ 13.1
 
 ```bash
 # Download CUDA keyring
@@ -251,7 +276,8 @@ sudo dpkg -i cuda-keyring_1.1-1_all.deb
 # Update and install CUDA
 sudo apt update
 ~~sudo apt install -y cuda-toolkit-12-9~~
-sudo apt install -y cuda-toolkit
+~~sudo apt install -y cuda-toolkit~~
+sudo apt install -y cuda-toolkit-13-1
 
 # Add to PATH
 ~~echo 'export PATH=/usr/local/cuda-12.9/bin:$PATH' >> ~/.bashrc~~
@@ -264,7 +290,41 @@ source ~/.bashrc
 nvcc --version
 ```
 
-### Phase 7: Install Vulkan for Headless Rendering
+> ✅ **COMPLETED (Feb 12, 2026):** CUDA Toolkit 13.1 installed. `nvcc V13.1.115` confirmed.
+> Installed at `/usr/local/cuda-13.1` (symlinked from `/usr/local/cuda`).
+> PATH and LD_LIBRARY_PATH added to `~/.bashrc`.
+
+### Phase 7: Install Docker & NVIDIA Container Toolkit
+
+```bash
+# Install Docker
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Install NVIDIA Container Toolkit
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# Configure Docker runtime for NVIDIA
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# Test GPU access in Docker
+sudo docker run --rm --gpus all nvidia/cuda:13.0.1-base-ubuntu22.04 nvidia-smi
+```
+
+> ✅ **COMPLETED (Feb 12, 2026):** Docker 29.2.1 installed. NVIDIA Container Toolkit installed.
+> Runtime configured in `/etc/docker/daemon.json` (nvidia runtime added).
+> ⚠️ `dockerd` entered D-state (uninterruptible sleep) during `systemctl restart docker` —
+> this is a kernel-level stuck process that cannot be killed with SIGKILL.
+> **Server reboot required** to clear the stuck process. Docker will start clean after reboot.
+> GPU-in-Docker test pending post-reboot.
+
+### Phase 8: Install Vulkan for Headless Rendering
 
 ```bash
 sudo apt install -y vulkan-tools libvulkan1 mesa-vulkan-drivers
@@ -277,7 +337,7 @@ echo 'export OMNI_KIT_ALLOW_ROOT=1' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### Phase 8: Set Up Python Environment for Isaac Sim
+### Phase 9: Set Up Python Environment for Isaac Sim
 
 ```bash
 # Clone your team's repository
@@ -294,7 +354,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Phase 9: Configure RAID 0 for Training Data (Optional)
+### Phase 10: Configure RAID 0 for Training Data (Optional)
 
 **Create RAID 0 array with the two 15.4TB NVMe drives:**
 ```bash
@@ -333,7 +393,7 @@ df -h /mnt/training_data
 
 Should show ~30TB available space.
 
-### Phase 10: Test Isaac Sim Headless Training
+### Phase 11: Test Isaac Sim Headless Training
 
 ```bash
 # Activate virtual environment
@@ -347,7 +407,7 @@ python scripts/train.py --headless --num_epochs 10
 watch -n 1 nvidia-smi
 ```
 
-### Phase 11: Set Up Long-Running Training Sessions
+### Phase 12: Set Up Long-Running Training Sessions
 
 **Install screen for persistent sessions:**
 ```bash
@@ -520,14 +580,23 @@ Current progress:
 - [x] OpenSSH server installed ✅ (pre-installed with 22.04)
 - [x] SSH access working remotely ✅ (password + key auth)
 - [x] ~~System fully updated ⏳ (NVIDIA driver upgrade in progress)~~
-- [x] System updates applied ✅ (all packages installed, **reboot needed**)
+- [x] System updates applied ✅ (all packages installed, ~~**reboot needed**~~ **rebooted & verified Feb 12**)
 - [x] ~~NVIDIA drivers installed ✅ (580.126.09, upgrading to .16)~~
-- [x] NVIDIA drivers installed ✅ (580.126.16 packages + DKMS, **reboot to verify**)
-- [ ] CUDA toolkit installed
-- [ ] Docker installed
-- [ ] NVIDIA Container Toolkit installed
-- [ ] pip / Miniconda installed
-- [ ] Python environment configured
+- [x] ~~NVIDIA drivers installed ✅ (580.126.16 packages + DKMS, **reboot to verify**)~~
+- [x] NVIDIA drivers ✅ **580.126.16** verified working (Feb 12, 2026)
+- [x] ~~CUDA toolkit installed~~
+- [x] CUDA Toolkit **13.1** installed ✅ (`nvcc V13.1.115`)
+- [x] ~~Docker installed~~
+- [x] Docker **29.2.1** installed ✅
+- [x] ~~NVIDIA Container Toolkit installed~~
+- [x] NVIDIA Container Toolkit installed & configured ✅ (⚠️ reboot needed to clear stuck dockerd)
+- [x] ~~pip / Miniconda installed~~
+- [x] pip **22.0.2** + build-essential + dev tools installed ✅
+- [x] ~~Miniconda installed~~
+- [x] Miniconda **25.11.1** installed ✅ (`/home/t2user/miniconda3`)
+- [x] ~~GPU-in-Docker test (`docker run --gpus all ... nvidia-smi`)~~
+- [x] GPU-in-Docker test ✅ — H100 visible inside container
+- [ ] Python environment configured (`conda create -n env_isaaclab python=3.11`)
 - [ ] Isaac Sim dependencies installed
 - [ ] Repository cloned
 - [ ] RAID array configured (optional)
@@ -536,16 +605,67 @@ Current progress:
 
 ---
 
-**Last Updated:** February 11, 2026 (evening)  
+**Last Updated:** February 12, 2026 (evening)  
 ~~**Next Action:** Wait for MAC whitelisting confirmation from Justin Whitten~~  
 ~~**Next Action:** Complete NVIDIA driver upgrade, then install CUDA Toolkit, Docker, and NVIDIA Container Toolkit~~  
 **Next Action (for Colby):**
-1. `sudo reboot` the server
-2. Verify `nvidia-smi` shows driver **580.126.16** and GPU detected
-3. Run `sudo dpkg --configure -a` to finalize any pending package configs
-4. Run `sudo apt autoremove` to clean up unused packages
-5. Install CUDA Toolkit (see Phase 6)
-6. Install pip: `sudo apt install -y python3-pip`
-7. Install Docker + NVIDIA Container Toolkit
-8. Install Miniconda
-9. Install Isaac Sim / Isaac Lab
+1. ~~`sudo reboot` the server~~ ✅
+2. ~~Verify `nvidia-smi` shows driver **580.126.16** and GPU detected~~ ✅ Verified Feb 12
+3. ~~Run `sudo dpkg --configure -a` to finalize any pending package configs~~ ✅
+4. ~~Run `sudo apt autoremove` to clean up unused packages~~ ✅ Completed Feb 12
+5. ~~Install CUDA Toolkit (see Phase 6)~~ ✅ CUDA 13.1 installed Feb 12
+6. ~~Install pip: `sudo apt install -y python3-pip`~~ ✅ pip 22.0.2 installed Feb 12
+7. ~~Install Docker + NVIDIA Container Toolkit~~ ✅ Docker 29.2.1 + NVIDIA CTK installed Feb 12
+8. ~~Verify Docker after reboot~~ ✅ Docker active, GPU-in-Docker verified Feb 12
+9. ~~Install Miniconda~~ ✅ Miniconda 25.11.1 installed Feb 12
+10. **Install Isaac Sim / Isaac Lab** ⏳ In progress...
+
+**Isaac Sim Installation Steps (current):**
+```bash
+# 1. Create conda environment with Python 3.11 (required by Isaac Sim 5.1.0)
+source ~/miniconda3/etc/profile.d/conda.sh
+conda create -n env_isaaclab python=3.11 -y
+conda activate env_isaaclab
+
+# 2. Install Isaac Sim
+pip install "isaacsim[all,extscache]==5.1.0" --extra-index-url https://pypi.nvidia.com
+
+# 3. Install PyTorch with CUDA support
+pip install -U torch==2.7.0 torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128
+
+# 4. Clone and install Isaac Lab
+git clone git@github.com:isaac-sim/IsaacLab.git
+cd IsaacLab
+./isaaclab.sh --install
+
+# 5. Verify
+isaacsim
+```
+
+---
+
+## Known Issues & Workarounds
+
+### Boot Fixes Applied (Feb 12, 2026)
+- **`systemd-networkd-wait-online.service`** was blocking login prompt for 2+ minutes. Fixed:
+  ```bash
+  sudo systemctl disable systemd-networkd-wait-online.service
+  sudo systemctl mask systemd-networkd-wait-online.service
+  ```
+- **Swap partition** referenced in `/etc/fstab` didn't exist, causing boot hang. Fixed:
+  ```bash
+  # Commented out the swap line in /etc/fstab
+  ```
+
+### Docker D-State Issue (Feb 12, 2026) — RESOLVED
+- After running `sudo nvidia-ctk runtime configure --runtime=docker` and `sudo systemctl restart docker`,
+  the `dockerd` process entered D-state (uninterruptible sleep). This is a kernel-level state that cannot
+  be cleared even with `kill -9`. Only a full server reboot will resolve it.
+- **Resolved:** Server rebooted, Docker started cleanly, GPU-in-Docker verified working.
+  `sudo docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu22.04 nvidia-smi` shows H100 inside container.
+
+### SSH Stability (Feb 12, 2026)
+- **CRITICAL: Only ONE SSH session at a time.** Running multiple parallel SSH sessions (or SSH + paramiko)
+  has caused the server to become completely unresponsive, requiring physical hard reboots.
+- Use `ssh t2user@172.24.254.24` with single commands, or use the paramiko-based `h100_run.py` script
+  from the Capstone Project directory for reliable single-session execution.
