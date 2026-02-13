@@ -1,0 +1,14 @@
+envs=8192
+exit_code=0
+                       Computation: 36447 steps/s (collection: 5.122s, learning 0.273s)
+Training time: 59.03 seconds
+                    Iteration time: 5.39s
+--- GPU Peaks ---
+peak_gpu_util=65%
+peak_vram=10240MiB
+peak_temp=49C
+peak_power=171.38W
+--- CPU Peaks ---
+peak_cpu_util=%
+--- RAM Peaks ---
+peak_ram_used=1031732MiB

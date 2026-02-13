@@ -1,0 +1,8 @@
+envs=4096
+exit_code=0
+wall_time=117.52s
+Training time: 85.11 seconds
+peak_gpu_util=93.0%
+peak_vram=5465.0MiB
+peak_temp=68.0C
+peak_power=38.44W
