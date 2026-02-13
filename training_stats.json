@@ -1,0 +1,19 @@
+{
+  "episode_stats": {
+    "episode_count": 1,
+    "success_count": 0,
+    "completion_times": [],
+    "points_scores": [
+      0.0
+    ],
+    "moving_avg_time": []
+  },
+  "config": {
+    "initial_points": 500,
+    "time_penalty": 1.0,
+    "success_bonus": 250,
+    "speed_bonus": 10.0,
+    "min_speed": 1.0,
+    "max_speed": 2.0
+  }
+}
