@@ -127,36 +127,38 @@ def main():
     build_environment(args.env, stage, None)
 
     # ── 6. Load policy and spawn robot ──────────────────────────────────
-    print(f"Loading {args.policy} policy...")
+    print(f"Loading {args.policy} policy...", flush=True)
+
+    from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
 
     if args.policy == "flat":
-        from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
         spot = SpotFlatTerrainPolicy(
             prim_path="/World/Spot",
             name="Spot",
-            position=Gf.Vec3d(*SPAWN_POSITION),
+            position=np.array(SPAWN_POSITION),
         )
     else:
-        from spot_rough_terrain_policy import SpotRoughTerrainPolicy
         # Rough needs flat as base for shared articulation
-        from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
-        spot_flat = SpotFlatTerrainPolicy(
+        spot = SpotFlatTerrainPolicy(
             prim_path="/World/Spot",
             name="Spot",
-            position=Gf.Vec3d(*SPAWN_POSITION),
+            position=np.array(SPAWN_POSITION),
         )
-        world.scene.add(spot_flat)
-        world.reset()
-        spot_flat.initialize()
-        spot = SpotRoughTerrainPolicy(flat_policy=spot_flat)
+
+    # Start physics timeline
+    world.reset()
+
+    # Initialize inside first physics step (per official quadruped_example.py)
+    world.step(render=not headless)
+    spot.initialize()
+    spot.post_reset()
+
+    if args.policy == "rough":
+        from spot_rough_terrain_policy import SpotRoughTerrainPolicy
+        spot = SpotRoughTerrainPolicy(flat_policy=spot)
         spot.initialize()
 
-    if args.policy == "flat":
-        world.scene.add(spot)
-        world.reset()
-        spot.initialize()
-
-    print("Robot loaded and initialized.")
+    print("Robot loaded and initialized.", flush=True)
 
     # ── 7. Create navigation and metrics ────────────────────────────────
     waypoint_follower = WaypointFollower()
@@ -164,7 +166,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     # ── 8. Stabilization period ─────────────────────────────────────────
-    print("Stabilizing robot...")
+    print("Stabilizing robot...", flush=True)
     for _ in range(STABILIZE_STEPS):
         spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
         world.step(render=not headless)

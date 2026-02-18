@@ -10,29 +10,29 @@
 
 Run `scripts/debug_5iter.sh` before each production run. Document every issue found.
 
-### Iteration 1 — [DATE]
-- **Environment tested:**
-- **Policy tested:**
-- **Issue found:**
-- **Root cause:**
-- **Fix applied:**
-- **Verified fix:** [ ] Yes / [ ] No
+### Iteration 1 — 2026-02-18
+- **Environment tested:** Friction
+- **Policy tested:** Flat
+- **Issue found:** `AttributeError: 'SpotFlatTerrainPolicy' object has no attribute 'name'`
+- **Root cause:** `world.scene.add(spot)` — SpotFlatTerrainPolicy is not a scene object
+- **Fix applied:** Removed `world.scene.add()`, use `np.array()` for position instead of `Gf.Vec3d()`
+- **Verified fix:** [x] Yes
 
-### Iteration 2 — [DATE]
-- **Environment tested:**
-- **Policy tested:**
-- **Issue found:**
-- **Root cause:**
-- **Fix applied:**
-- **Verified fix:** [ ] Yes / [ ] No
+### Iteration 2 — 2026-02-18
+- **Environment tested:** Friction
+- **Policy tested:** Flat
+- **Issue found:** Robot legs don't move (idle collapse)
+- **Root cause:** `initialize()` called before physics was running; needed to follow official `quadruped_example.py` pattern (init inside first physics callback)
+- **Fix applied:** Moved `initialize()` + `post_reset()` into first physics callback
+- **Verified fix:** [x] Yes
 
-### Iteration 3 — [DATE]
-- **Environment tested:**
-- **Policy tested:**
-- **Issue found:**
-- **Root cause:**
-- **Fix applied:**
-- **Verified fix:** [ ] Yes / [ ] No
+### Iteration 3 — 2026-02-18
+- **Environment tested:** Friction
+- **Policy tested:** Flat
+- **Issue found:** `UnboundLocalError: cannot access local variable 'drive_mode_idx'`
+- **Root cause:** Missing `nonlocal drive_mode_idx` in `on_physics_step()` closure
+- **Fix applied:** Added `drive_mode_idx` to `nonlocal` declaration
+- **Verified fix:** [x] Yes — robot walks, Xbox responds, 5.5min session with 0 errors
 
 ### Iteration 4 — [DATE]
 - **Environment tested:**
@@ -102,6 +102,48 @@ Importing `omni.isaac` before creating `SimulationApp` causes silent failures.
 
 Height scan grid: `resolution=0.1, size=[1.6, 1.0]` = 17x11 = 187 points (includes endpoints).
 
+### SpotFlatTerrainPolicy Is NOT a Scene Object
+
+`SpotFlatTerrainPolicy` inherits `PolicyController → BaseController`, NOT a scene object.
+
+- **WRONG:** `world.scene.add(spot)` → `AttributeError: no attribute 'name'`
+- **CORRECT:** Just instantiate and initialize — no `scene.add()` needed
+
+The constructor (`__init__`) already places the USD on stage via `define_prim()` + `AddReference()`.
+
+### Initialize Robot Inside First Physics Step
+
+Per the official `quadruped_example.py`, the robot must be initialized AFTER physics is running:
+
+```python
+spot = SpotFlatTerrainPolicy(prim_path="/World/Spot", name="Spot", position=np.array([0, 0, 0.6]))
+world.reset()  # Start physics timeline
+
+# Option A: Initialize on first physics callback (official pattern)
+def on_physics_step(step_size):
+    if not physics_ready:
+        spot.initialize()
+        spot.post_reset()
+        physics_ready = True
+        return
+    spot.forward(step_size, cmd)
+
+# Option B: Initialize after one physics step
+world.step(render=False)
+spot.initialize()
+spot.post_reset()
+```
+
+- **Must call `post_reset()` after `initialize()`**
+- Position uses `np.array([x,y,z])`, NOT `Gf.Vec3d()`
+- `spot.robot` is the `SingleArticulation` (access pose, velocities, etc.)
+
+### Python Closure Nonlocal in Physics Callbacks
+
+Variables modified inside `on_physics_step()` that are defined in the outer scope
+MUST be declared `nonlocal`. Otherwise Python treats them as local and raises:
+`UnboundLocalError: cannot access local variable 'X' where it is not associated with a value`
+
 ### Deployment Checklist
 
 - [ ] Observation vector: 235 dims (48 proprio + 187 height_scan)
@@ -115,6 +157,9 @@ Height scan grid: `resolution=0.1, size=[1.6, 1.0]` = 17x11 = 187 points (includ
 - [ ] DOF order: type-grouped (all hx, all hy, all kn)
 - [ ] CUDA tensors for ArticulationView setters
 - [ ] Friction combine mode: "multiply"
+- [ ] No `world.scene.add()` for SpotFlatTerrainPolicy
+- [ ] `post_reset()` after `initialize()`
+- [ ] All `nonlocal` declarations in physics callbacks
 
 ---
 

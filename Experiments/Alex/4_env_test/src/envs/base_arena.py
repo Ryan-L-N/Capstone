@@ -83,26 +83,25 @@ def add_robot(world, stage, policy_type="flat"):
     Returns:
         spot: Policy wrapper instance with .forward(dt, cmd) interface
     """
-    from pxr import Gf
+    import numpy as np
 
     if policy_type == "flat":
         from spot_flat_terrain_policy import SpotFlatTerrainPolicy
         spot = SpotFlatTerrainPolicy(
             prim_path="/World/Spot",
             name="spot",
-            position=Gf.Vec3d(*SPAWN_POSITION),
+            position=np.array(SPAWN_POSITION),
         )
     elif policy_type == "rough":
         from spot_rough_terrain_policy import SpotRoughTerrainPolicy
         spot = SpotRoughTerrainPolicy(
             prim_path="/World/Spot",
             name="spot",
-            position=Gf.Vec3d(*SPAWN_POSITION),
+            position=np.array(SPAWN_POSITION),
         )
     else:
         raise ValueError(f"Unknown policy type: {policy_type}. Use 'flat' or 'rough'.")
 
-    world.scene.add(spot)
     return spot
 
 

@@ -31,6 +31,7 @@ Usage:
 Reuses patterns from:
 - ARL_DELIVERY/04_Teleop_System/spot_teleop.py (Xbox mapping, drive modes, FPV)
 - ARL_DELIVERY/02_Obstacle_Course/spot_obstacle_course.py (gait switching)
+- isaacsim.examples.interactive/quadruped/quadruped_example.py (init pattern)
 """
 
 # ── 0. Parse args BEFORE any Isaac imports ──────────────────────────────
@@ -74,7 +75,7 @@ from envs.base_arena import quat_to_yaw
 # ── Constants ───────────────────────────────────────────────────────────
 DEADZONE = 0.12
 GAIT_SWITCH_STABILIZE = 25  # 0.5 seconds at 50Hz
-STABILIZE_TIME = 2.0  # seconds
+STABILIZE_STEPS = 100       # 2 seconds at 50Hz
 
 DRIVE_MODES = ["MANUAL", "SMOOTH", "PATROL", "AUTO-NAV"]
 SPEED_PROFILES = {
@@ -112,11 +113,11 @@ def apply_deadzone(value, threshold=DEADZONE):
 
 
 def main():
-    print(f"\n{'='*60}")
-    print(f"  Capstone Teleop — {args.env.capitalize()}")
-    print(f"  Device: {args.device}")
-    print(f"  Controls: WASD/Stick=move, G/RB=gait, R/Y=reset, ESC=exit")
-    print(f"{'='*60}\n")
+    print(f"\n{'='*60}", flush=True)
+    print(f"  Capstone Teleop — {args.env.capitalize()}", flush=True)
+    print(f"  Device: {args.device}", flush=True)
+    print(f"  Controls: WASD/Stick=move, G/RB=gait, R/Y=reset, ESC=exit", flush=True)
+    print(f"{'='*60}\n", flush=True)
 
     # ── 3. Create World ─────────────────────────────────────────────────
     world = World(
@@ -140,33 +141,26 @@ def main():
     UsdGeom.Xformable(light.GetPrim()).AddRotateXYZOp().Set(Gf.Vec3f(-45, 0, 0))
 
     # ── 4. Build environment ────────────────────────────────────────────
-    print(f"Building {args.env} environment...")
+    print(f"Building {args.env} environment...", flush=True)
     build_environment(args.env, stage, None)
 
-    # ── 5. Load both policies ───────────────────────────────────────────
+    # ── 5. Create SpotFlatTerrainPolicy (follows official quadruped_example.py) ──
     from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
 
+    print("Loading Spot flat terrain policy...", flush=True)
     spot_flat = SpotFlatTerrainPolicy(
         prim_path="/World/Spot",
         name="Spot",
-        position=Gf.Vec3d(*SPAWN_POSITION),
+        position=np.array(SPAWN_POSITION),
     )
-    world.scene.add(spot_flat)
-    world.reset()
-    spot_flat.initialize()
 
-    spot_rough = None
-    try:
-        from spot_rough_terrain_policy import SpotRoughTerrainPolicy
-        spot_rough = SpotRoughTerrainPolicy(flat_policy=spot_flat)
-        spot_rough.initialize()
-        print("[GAIT] Both flat and rough policies loaded")
-    except Exception as e:
-        print(f"[GAIT] Rough policy unavailable: {e}")
-        print("[GAIT] Running with flat policy only")
+    # Reset world to start physics timeline
+    world.reset()
+    print("World reset complete.", flush=True)
 
     # ── 6. State variables ──────────────────────────────────────────────
     spot = spot_flat
+    spot_rough = None
     gait_idx = 0  # 0 = flat, 1 = rough
     drive_mode_idx = 0
     smoother = VelocitySmoother(alpha=0.3)
@@ -174,6 +168,8 @@ def main():
     sim_time = 0.0
     estop = False
     running = True
+    physics_ready = False
+    stabilize_counter = 0
 
     # Keyboard state
     key_state = {
@@ -184,21 +180,20 @@ def main():
         "selfright": False, "fpv": False,
     }
 
-    # ── 7. Xbox controller setup ────────────────────────────────────────
+    # ── 7. Xbox controller setup (always try to detect) ─────────────────
     joystick = None
-    if args.device == "xbox":
-        try:
-            import pygame
-            pygame.init()
-            pygame.joystick.init()
-            if pygame.joystick.get_count() > 0:
-                joystick = pygame.joystick.Joystick(0)
-                joystick.init()
-                print(f"[XBOX] Controller found: {joystick.get_name()}")
-            else:
-                print("[XBOX] No controller found — falling back to keyboard")
-        except ImportError:
-            print("[XBOX] pygame not available — using keyboard")
+    try:
+        import pygame
+        pygame.init()
+        pygame.joystick.init()
+        if pygame.joystick.get_count() > 0:
+            joystick = pygame.joystick.Joystick(0)
+            joystick.init()
+            print(f"[XBOX] Controller found: {joystick.get_name()}", flush=True)
+        else:
+            print("[XBOX] No controller found — using keyboard", flush=True)
+    except ImportError:
+        print("[XBOX] pygame not available — using keyboard", flush=True)
 
     # ── 8. Keyboard handler ─────────────────────────────────────────────
     input_iface = carb.input.acquire_input_interface()
@@ -221,41 +216,61 @@ def main():
         elif key == carb.input.KeyboardInput.D:
             key_state["right"] = pressed
         elif key == carb.input.KeyboardInput.G and pressed:
-            # Cycle gait
             if spot_rough is not None:
                 gait_idx = 1 - gait_idx
                 gait_switch_timer = GAIT_SWITCH_STABILIZE
                 gait_name = "ROUGH" if gait_idx == 1 else "FLAT"
-                print(f"[GAIT] Switched to {gait_name}")
+                print(f"[GAIT] Switched to {gait_name}", flush=True)
         elif key == carb.input.KeyboardInput.R and pressed:
             key_state["reset"] = True
         elif key == carb.input.KeyboardInput.LEFT_SHIFT and pressed:
             drive_mode_idx = (drive_mode_idx + 1) % len(DRIVE_MODES)
-            print(f"[MODE] {DRIVE_MODES[drive_mode_idx]}")
+            print(f"[MODE] {DRIVE_MODES[drive_mode_idx]}", flush=True)
         elif key == carb.input.KeyboardInput.SPACE and pressed:
             estop = not estop
-            print(f"[E-STOP] {'ENGAGED' if estop else 'RELEASED'}")
+            print(f"[E-STOP] {'ENGAGED' if estop else 'RELEASED'}", flush=True)
         elif key == carb.input.KeyboardInput.ESCAPE and pressed:
             running = False
         elif key == carb.input.KeyboardInput.X and pressed:
             key_state["selfright"] = not key_state["selfright"]
-            print(f"[SELFRIGHT] {'ON' if key_state['selfright'] else 'OFF'}")
+            print(f"[SELFRIGHT] {'ON' if key_state['selfright'] else 'OFF'}", flush=True)
 
         return True
 
     input_iface.subscribe_to_keyboard_events(keyboard, on_key_event)
 
-    # ── 9. Stabilize ────────────────────────────────────────────────────
-    print("Stabilizing robot...")
-    for _ in range(100):
-        spot_flat.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
-        world.step(render=True)
-    sim_time = 2.0
-    print("Ready! Use WASD to move, G to switch gait, ESC to exit.\n")
-
-    # ── 10. Physics callback ────────────────────────────────────────────
+    # ── 9. Physics callback (follows official quadruped_example.py init pattern) ──
     def on_physics_step(step_size):
-        nonlocal spot, gait_idx, gait_switch_timer, sim_time
+        nonlocal spot, spot_rough, gait_idx, gait_switch_timer, sim_time
+        nonlocal physics_ready, stabilize_counter, drive_mode_idx
+
+        # ── First-time initialization (inside physics step, per official example) ──
+        if not physics_ready:
+            physics_ready = True
+            print("Initializing Spot policy...", flush=True)
+            spot_flat.initialize()
+            spot_flat.post_reset()
+
+            # Try loading rough policy
+            try:
+                from spot_rough_terrain_policy import SpotRoughTerrainPolicy
+                spot_rough = SpotRoughTerrainPolicy(flat_policy=spot_flat)
+                spot_rough.initialize()
+                print("[GAIT] Both flat and rough policies loaded", flush=True)
+            except Exception as e:
+                print(f"[GAIT] Rough policy unavailable: {e}", flush=True)
+                print("[GAIT] Running with flat policy only", flush=True)
+
+            print("Stabilizing robot...", flush=True)
+            return
+
+        # ── Stabilization period ──
+        if stabilize_counter < STABILIZE_STEPS:
+            stabilize_counter += 1
+            spot_flat.forward(step_size, np.array([0.0, 0.0, 0.0]))
+            if stabilize_counter == STABILIZE_STEPS:
+                print("Ready! Use WASD to move, G to switch gait, ESC to exit.", flush=True)
+            return
 
         sim_time += step_size
 
@@ -289,7 +304,7 @@ def main():
             smoother.reset()
             if hasattr(spot, 'post_reset'):
                 spot.post_reset()
-            print("  >> Robot reset to start!")
+            print("  >> Robot reset to start!", flush=True)
             spot.forward(step_size, np.array([0.0, 0.0, 0.0]))
             return
 
@@ -309,15 +324,14 @@ def main():
                 vx_raw = -apply_deadzone(joystick.get_axis(1))
                 wz_raw = -apply_deadzone(joystick.get_axis(0))
 
-                # Xbox buttons
-                if joystick.get_button(4):  # LB = FPV toggle
-                    pass  # FPV camera toggle handled elsewhere
-                if joystick.get_button(5):  # RB = gait switch
-                    pass  # Handled via event
+                # A button = cycle drive mode
+                if joystick.get_button(0):
+                    drive_mode_idx = (drive_mode_idx + 1) % len(DRIVE_MODES)
+                    print(f"[MODE] {DRIVE_MODES[drive_mode_idx]}", flush=True)
             except Exception:
                 pass
 
-        # Keyboard input (additive)
+        # Keyboard input (additive — always active as fallback)
         if key_state["forward"]:
             vx_raw = 1.0
         elif key_state["backward"]:
@@ -346,15 +360,16 @@ def main():
 
     world.add_physics_callback("teleop", on_physics_step)
 
-    # ── 11. Main render loop ────────────────────────────────────────────
+    # ── 10. Main render loop ────────────────────────────────────────────
+    print("Starting simulation loop...", flush=True)
     try:
         while simulation_app.is_running() and running:
             world.step(render=True)
     except KeyboardInterrupt:
-        print("\nInterrupted by user.")
+        print("\nInterrupted by user.", flush=True)
 
-    # ── 12. Cleanup ─────────────────────────────────────────────────────
-    print("Closing simulation...")
+    # ── 11. Cleanup ─────────────────────────────────────────────────────
+    print("Closing simulation...", flush=True)
     if joystick is not None:
         import pygame
         pygame.quit()
