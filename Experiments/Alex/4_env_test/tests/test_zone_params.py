@@ -1,7 +1,10 @@
 """Tests for zone_params.py — validates zone specifications for all 4 environments."""
 
 import pytest
-from configs.zone_params import ZONE_PARAMS, ZONE_LENGTH, ARENA_WIDTH, ARENA_LENGTH, NUM_ZONES, BOULDER_SHAPES
+from configs.zone_params import (
+    ZONE_PARAMS, ZONE_LENGTH, ARENA_WIDTH, ARENA_LENGTH, NUM_ZONES,
+    BOULDER_SHAPES, get_stair_elevation,
+)
 
 
 ENVS = ["friction", "grass", "boulder", "stairs"]
@@ -126,3 +129,44 @@ class TestStairsZones:
     def test_consistent_step_count(self):
         for z in ZONE_PARAMS["stairs"]:
             assert z["num_steps"] == 33
+
+
+class TestGetStairElevation:
+    def test_origin_is_zero(self):
+        assert get_stair_elevation(0.0) == pytest.approx(0.0)
+
+    def test_negative_x(self):
+        assert get_stair_elevation(-5.0) == pytest.approx(0.0)
+
+    def test_zone1_end(self):
+        """Zone 1: 33 steps × 0.03m = 0.99m."""
+        elev = get_stair_elevation(10.0)
+        assert elev == pytest.approx(0.99, abs=0.01)
+
+    def test_zone2_end(self):
+        """Zone 2: 0.99 + 33 × 0.08 = 3.63m."""
+        elev = get_stair_elevation(20.0)
+        assert elev == pytest.approx(3.63, abs=0.01)
+
+    def test_zone5_end(self):
+        """Full arena: 0.99+2.64+4.29+5.94+7.59 = 21.45m."""
+        elev = get_stair_elevation(50.0)
+        assert elev == pytest.approx(21.45, abs=0.01)
+
+    def test_mid_zone1(self):
+        """At x=1.5m in zone 1: 5 steps × 0.03m = 0.15m."""
+        elev = get_stair_elevation(1.5)
+        assert elev == pytest.approx(0.15, abs=0.01)
+
+    def test_monotonically_increasing(self):
+        """Elevation should never decrease as X increases."""
+        prev = 0.0
+        for x in range(0, 501):
+            elev = get_stair_elevation(x / 10.0)
+            assert elev >= prev, f"Elevation decreased at x={x/10.0}"
+            prev = elev
+
+    def test_beyond_arena(self):
+        """Past x=50m should return max elevation."""
+        elev = get_stair_elevation(60.0)
+        assert elev == pytest.approx(21.45, abs=0.01)

@@ -149,13 +149,17 @@ class SpotRoughTerrainPolicy:
     # ------------------------------------------------------------------
     # Construction
     # ------------------------------------------------------------------
-    def __init__(self, flat_policy, checkpoint_path=None):
+    def __init__(self, flat_policy, checkpoint_path=None, ground_height_fn=None):
         """
         Args:
             flat_policy:       Initialised SpotFlatTerrainPolicy whose .robot
                                articulation is shared.
             checkpoint_path:   Path to RSL-RL checkpoint (.pt).
                                Defaults to the 48h 30k-iteration rough model.
+            ground_height_fn:  Optional callable(x_pos) -> ground_z.
+                               When provided, enables analytical height scanning
+                               so the policy can "see" terrain (e.g. stairs).
+                               When None, height scan is filled with 0.0 (flat).
         """
         # Share the existing robot — no new articulation
         self.robot = flat_policy.robot
@@ -174,7 +178,19 @@ class SpotRoughTerrainPolicy:
         self._knee_indices    = []             # set in initialize()
         self._hip_indices     = []             # set in initialize()
 
-        # Height scan = 0.0 (flat ground default, see _cast_height_rays)
+        # Ground height function for analytical height scanning
+        self._ground_height_fn = ground_height_fn
+
+        # Pre-compute scan grid offsets (body-frame, rotated by yaw at runtime)
+        # Training config: GridPatternCfg(resolution=0.1, size=[1.6, 1.0])
+        # Grid is 17 (X) × 11 (Y) = 187 points centered on body
+        xs = np.linspace(-SCAN_SIZE_X / 2, SCAN_SIZE_X / 2, SCAN_NX)
+        ys = np.linspace(-SCAN_SIZE_Y / 2, SCAN_SIZE_Y / 2, SCAN_NY)
+        gx, gy = np.meshgrid(xs, ys, indexing='ij')  # (17, 11)
+        self._scan_offsets_x = gx.ravel()  # (187,)
+        self._scan_offsets_y = gy.ravel()  # (187,)
+
+        # Height scan buffer
         self._height_scan = np.full(SCAN_N, SCAN_FILL_VAL, dtype=np.float32)
 
     # ------------------------------------------------------------------
@@ -211,21 +227,56 @@ class SpotRoughTerrainPolicy:
     # Height scanner
     # ------------------------------------------------------------------
     def _cast_height_rays(self):
-        """Return 187-dim height scan for flat ground assumption.
+        """Compute 187-dim height scan matching Isaac Lab's RayCaster.
 
-        Empirically verified (Feb 2026): Isaac Lab's height_scan() produces
-        values near 0.0 on flat ground (range [-0.00, 0.15], mean 0.004).
-        The formula is: sensor_z - hit_z - 0.5, where the 20m sensor offset
-        is subtracted internally before the observation is computed.
+        Training config (rough_env_cfg.py:412-420):
+            RayCasterCfg(
+                prim_path="{ENV_REGEX_NS}/Robot/body",
+                offset=OffsetCfg(pos=(0.0, 0.0, 20.0)),
+                ray_alignment="yaw",
+                pattern_cfg=GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
+            )
 
-        Without a standalone raycaster, we fill with 0.0 = flat ground.
-        The policy still walks via proprioception; it just can't see terrain
-        ahead. For full terrain awareness, implement PhysX scene queries here.
+        Formula: height_scan = base_z - ground_z_at_ray_point - 0.5
+        Clipped to [-1.0, 1.0].
+
+        When ground_height_fn is provided (e.g. stairs), computes analytical
+        height scan by querying terrain elevation at each grid point.
+        When None, returns 0.0 (flat ground assumption).
 
         Returns:
-            np.ndarray (187,): all 0.0, matching flat ground in training.
+            np.ndarray (187,): height scan values, clipped to [-1, 1].
         """
-        return np.full(SCAN_N, SCAN_FILL_VAL, dtype=np.float32)
+        if self._ground_height_fn is None:
+            return np.full(SCAN_N, SCAN_FILL_VAL, dtype=np.float32)
+
+        # Get robot world pose
+        pos, quat = self.robot.get_world_pose()
+        base_x = float(pos[0])
+        base_y = float(pos[1])
+        base_z = float(pos[2])
+
+        # Extract yaw for rotating the scan grid (ray_alignment="yaw")
+        w, x, y, z = float(quat[0]), float(quat[1]), float(quat[2]), float(quat[3])
+        siny = 2.0 * (w * z + x * y)
+        cosy = 1.0 - 2.0 * (y * y + z * z)
+        yaw = np.arctan2(siny, cosy)
+        cos_yaw = np.cos(yaw)
+        sin_yaw = np.sin(yaw)
+
+        # Rotate scan grid offsets by yaw and add robot position
+        world_x = base_x + cos_yaw * self._scan_offsets_x - sin_yaw * self._scan_offsets_y
+        # world_y not needed — stairs only vary along X axis
+
+        # Query ground elevation at each ray point
+        scan = np.empty(SCAN_N, dtype=np.float32)
+        for i in range(SCAN_N):
+            ground_z = self._ground_height_fn(float(world_x[i]))
+            scan[i] = base_z - ground_z - 0.5
+
+        # Clip to training range [-1.0, 1.0]
+        np.clip(scan, -1.0, 1.0, out=scan)
+        return scan
 
     # ------------------------------------------------------------------
     # Observation
@@ -333,9 +384,13 @@ class SpotRoughTerrainPolicy:
             print(f"[ROUGH] Hip DOFs: {self._hip_indices}  "
                   f"Knee DOFs: {self._knee_indices}")
 
-        # Height scan: 0.0 (flat ground default)
-        print(f"[ROUGH] Height scan: fill={SCAN_FILL_VAL} "
-              f"({SCAN_N} dims, flat ground default)")
+        # Height scan mode
+        if self._ground_height_fn is not None:
+            print(f"[ROUGH] Height scan: ANALYTICAL ({SCAN_N} dims, "
+                  f"terrain-aware via ground_height_fn)")
+        else:
+            print(f"[ROUGH] Height scan: fill={SCAN_FILL_VAL} "
+                  f"({SCAN_N} dims, flat ground default)")
 
         # Store training actuator gains for switching
         self._training_stiffness = TRAINING_STIFFNESS

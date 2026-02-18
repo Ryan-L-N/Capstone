@@ -52,16 +52,20 @@ def _get_zone(x_pos):
 class MetricsCollector:
     """Accumulates per-step data and exports per-episode metrics to JSONL."""
 
-    def __init__(self, output_dir, env_name, policy_name):
+    def __init__(self, output_dir, env_name, policy_name, ground_height_fn=None):
         """
         Args:
             output_dir: Directory for JSONL output files
             env_name: Environment name (friction, grass, boulder, stairs)
             policy_name: Policy name (flat, rough)
+            ground_height_fn: Optional callable(x_pos) -> ground_z.
+                For stairs, returns the expected stair surface height at x.
+                For flat environments, defaults to lambda x: 0.0.
         """
         self.output_dir = output_dir
         self.env_name = env_name
         self.policy_name = policy_name
+        self._ground_height_fn = ground_height_fn or (lambda x: 0.0)
         self.episodes = []
 
         # Per-episode buffers (reset each episode)
@@ -111,7 +115,13 @@ class MetricsCollector:
         self._step_count += 1
         x, y, z = float(root_pos[0]), float(root_pos[1]), float(root_pos[2])
         self._positions.append((x, y, z))
-        self._heights.append(z)
+
+        # Compute height relative to expected ground surface.
+        # On flat envs ground_height_fn returns 0.0 (same as before).
+        # On stairs it returns the stair surface elevation at this X.
+        ground_z = self._ground_height_fn(x)
+        height_above_ground = z - ground_z
+        self._heights.append(height_above_ground)
 
         # Extract euler angles
         roll, pitch, yaw = quat_to_euler(root_quat)
@@ -140,8 +150,10 @@ class MetricsCollector:
         if self._completion_time is None and x >= COMPLETION_X:
             self._completion_time = sim_time
 
-        # Check fall
-        if not self._fall_detected and z < FALL_THRESHOLD:
+        # Check fall — uses height RELATIVE to local ground surface.
+        # On stairs at z=8m with ground_z=7.5m, height_above_ground=0.5m (standing).
+        # If robot collapses, height_above_ground drops below 0.15m → fall detected.
+        if not self._fall_detected and height_above_ground < FALL_THRESHOLD:
             self._fall_detected = True
             self._fall_location = x
             self._fall_zone = _get_zone(x) + 1  # 1-indexed

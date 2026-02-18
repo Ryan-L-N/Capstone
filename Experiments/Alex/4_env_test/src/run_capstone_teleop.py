@@ -71,6 +71,10 @@ from configs.eval_cfg import PHYSICS_DT, RENDERING_DT, SPAWN_POSITION
 from envs import build_environment
 from envs.base_arena import quat_to_yaw
 
+# Stairs-specific ground elevation for analytical height scanning
+if args.env == "stairs":
+    from configs.zone_params import get_stair_elevation
+
 
 # ── Constants ───────────────────────────────────────────────────────────
 DEADZONE = 0.12
@@ -257,7 +261,11 @@ def main():
             # Try loading rough policy
             try:
                 from spot_rough_terrain_policy import SpotRoughTerrainPolicy
-                spot_rough = SpotRoughTerrainPolicy(flat_policy=spot_flat)
+                ground_fn = get_stair_elevation if args.env == "stairs" else None
+                spot_rough = SpotRoughTerrainPolicy(
+                    flat_policy=spot_flat,
+                    ground_height_fn=ground_fn,
+                )
                 spot_rough.initialize()
                 print("[GAIT] Both flat and rough policies loaded", flush=True)
             except Exception as e:

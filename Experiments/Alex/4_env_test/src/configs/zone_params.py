@@ -52,3 +52,42 @@ BOULDER_SHAPES = {
     "D12": {"name": "dodecahedron", "weight": 0.25},
     "D20": {"name": "icosahedron", "weight": 0.25},
 }
+
+
+def get_stair_elevation(x_pos):
+    """Compute expected stair surface height at a given X position.
+
+    Walks through stair zones cumulatively — each zone's base elevation
+    starts where the previous zone ended (steps chain upward).
+
+    Args:
+        x_pos: Robot X position in meters (0-50m arena).
+
+    Returns:
+        float: Expected ground surface height (Z) in meters.
+    """
+    zones = ZONE_PARAMS["stairs"]
+    cumulative_height = 0.0
+
+    for zone in zones:
+        x_start = zone["x_start"]
+        x_end = zone["x_end"]
+        step_height = zone["step_height"]
+        step_depth = zone["step_depth"]
+        num_steps = zone["num_steps"]
+
+        if x_pos < x_start:
+            return cumulative_height
+
+        if x_pos >= x_end:
+            # Past this zone — add all steps
+            cumulative_height += step_height * num_steps
+            continue
+
+        # Within this zone — compute partial elevation
+        local_x = x_pos - x_start
+        steps_climbed = min(int(local_x / step_depth), num_steps)
+        cumulative_height += step_height * steps_climbed
+        return cumulative_height
+
+    return cumulative_height

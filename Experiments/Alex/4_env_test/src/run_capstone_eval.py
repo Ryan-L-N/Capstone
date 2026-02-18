@@ -89,6 +89,10 @@ from metrics.collector import MetricsCollector
 if args.env == "grass":
     from envs.grass_env import get_velocity_scale
 
+# Stairs-specific ground elevation function
+if args.env == "stairs":
+    from configs.zone_params import get_stair_elevation
+
 
 # ── Constants ───────────────────────────────────────────────────────────
 STABILIZE_STEPS = 100  # 2 seconds at 50 Hz
@@ -153,16 +157,25 @@ def main():
     spot.initialize()
     spot.post_reset()
 
+    # Ground height function for stairs (used by both metrics and height scanner)
+    ground_fn = get_stair_elevation if args.env == "stairs" else None
+
     if args.policy == "rough":
         from spot_rough_terrain_policy import SpotRoughTerrainPolicy
-        spot = SpotRoughTerrainPolicy(flat_policy=spot)
+        spot = SpotRoughTerrainPolicy(
+            flat_policy=spot,
+            ground_height_fn=ground_fn,
+        )
         spot.initialize()
 
     print("Robot loaded and initialized.", flush=True)
 
     # ── 7. Create navigation and metrics ────────────────────────────────
     waypoint_follower = WaypointFollower()
-    metrics_collector = MetricsCollector(args.output_dir, args.env, args.policy)
+    metrics_collector = MetricsCollector(
+        args.output_dir, args.env, args.policy,
+        ground_height_fn=ground_fn,
+    )
     os.makedirs(args.output_dir, exist_ok=True)
 
     # ── 8. Stabilization period ─────────────────────────────────────────
