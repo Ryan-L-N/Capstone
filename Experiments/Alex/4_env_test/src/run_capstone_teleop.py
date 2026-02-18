@@ -171,6 +171,9 @@ def main():
     physics_ready = False
     stabilize_counter = 0
 
+    # Xbox button debounce (True = was pressed last frame)
+    xbox_prev = {"A": False, "Y": False, "RB": False, "Back": False}
+
     # Keyboard state
     key_state = {
         "forward": False, "backward": False,
@@ -242,7 +245,7 @@ def main():
     # ── 9. Physics callback (follows official quadruped_example.py init pattern) ──
     def on_physics_step(step_size):
         nonlocal spot, spot_rough, gait_idx, gait_switch_timer, sim_time
-        nonlocal physics_ready, stabilize_counter, drive_mode_idx
+        nonlocal physics_ready, stabilize_counter, drive_mode_idx, estop
 
         # ── First-time initialization (inside physics step, per official example) ──
         if not physics_ready:
@@ -324,10 +327,39 @@ def main():
                 vx_raw = -apply_deadzone(joystick.get_axis(1))
                 wz_raw = -apply_deadzone(joystick.get_axis(0))
 
-                # A button = cycle drive mode
-                if joystick.get_button(0):
+                # Button reads (debounced — trigger on press, not hold)
+                btn_a = joystick.get_button(0)       # A
+                btn_y = joystick.get_button(3)       # Y
+                btn_rb = joystick.get_button(5)      # RB
+                btn_back = joystick.get_button(6)    # Back
+
+                # Y = Reset position
+                if btn_y and not xbox_prev["Y"]:
+                    key_state["reset"] = True
+
+                # RB = Cycle gait (FLAT <-> ROUGH)
+                if btn_rb and not xbox_prev["RB"]:
+                    if spot_rough is not None:
+                        gait_idx = 1 - gait_idx
+                        gait_switch_timer = GAIT_SWITCH_STABILIZE
+                        gait_name = "ROUGH" if gait_idx == 1 else "FLAT"
+                        print(f"[GAIT] Switched to {gait_name}", flush=True)
+
+                # A = Cycle drive mode
+                if btn_a and not xbox_prev["A"]:
                     drive_mode_idx = (drive_mode_idx + 1) % len(DRIVE_MODES)
                     print(f"[MODE] {DRIVE_MODES[drive_mode_idx]}", flush=True)
+
+                # Back = E-stop toggle
+                if btn_back and not xbox_prev["Back"]:
+                    estop = not estop
+                    print(f"[E-STOP] {'ENGAGED' if estop else 'RELEASED'}", flush=True)
+
+                # Update debounce state
+                xbox_prev["A"] = btn_a
+                xbox_prev["Y"] = btn_y
+                xbox_prev["RB"] = btn_rb
+                xbox_prev["Back"] = btn_back
             except Exception:
                 pass
 
