@@ -15,9 +15,9 @@ This document defines a rigorous comparative evaluation between two Boston Dynam
 **Research Question:** Does the rough terrain policy (trained with height scan perception and terrain curriculum) significantly outperform the flat terrain baseline across diverse real-world-analog terrain challenges?
 
 **Test Scale:**
-- 4 environments x 2 policies x 1,000 episodes = **8,000 total evaluation episodes**
-- All episodes run headless on H100 with 512 parallel environments per batch
-- Estimated wall-clock time: **1-1.5 hours**
+- **Headless:** 4 environments x 2 policies x 1,000 episodes = **8,000 statistical episodes** (512 parallel envs, ~1-1.5 hours)
+- **Rendered:** 4 environments x 2 policies x 10 episodes = **80 visualization episodes** (5 parallel envs with video capture, ~3.5-4 hours)
+- **Total:** 8,080 episodes, estimated wall-clock time: **~5-5.5 hours**
 
 ---
 
@@ -93,7 +93,7 @@ All four environments share a common arena format:
 
 ### 3.1 Environment 1: Friction Surface
 
-**Purpose:** Test locomotion stability across friction coefficients ranging from oil-slicked steel to 60-grit sandpaper. Isolates the robot's ability to maintain traction without terrain obstacles.
+**Purpose:** Test locomotion stability across decreasing friction coefficients, starting from 60-grit sandpaper and degrading to oil-slicked steel. The robot begins on familiar high-friction terrain and faces progressively harder traction challenges. Isolates the robot's ability to maintain traction without terrain obstacles.
 
 **Terrain geometry:** Flat ground plane (no elevation changes)
 
@@ -101,11 +101,11 @@ All four environments share a common arena format:
 
 | Zone | X Range | Surface Type | mu_static | mu_dynamic | Real-World Analog |
 |------|---------|-------------|-----------|-----------|-------------------|
-| 1 | 0-10m | Ultra-low friction | 0.05 | 0.02 | Oil on polished steel |
-| 2 | 10-20m | Low friction | 0.15 | 0.08 | Wet ice |
+| 1 | 0-10m | Very high friction | 0.90 | 0.80 | 60-grit sandpaper |
+| 2 | 10-20m | High friction | 0.60 | 0.50 | Dry rubber on concrete |
 | 3 | 20-30m | Medium friction | 0.35 | 0.25 | Wet concrete |
-| 4 | 30-40m | High friction | 0.60 | 0.50 | Dry rubber on concrete |
-| 5 | 40-50m | Very high friction | 0.90 | 0.80 | 60-grit sandpaper |
+| 4 | 30-40m | Low friction | 0.15 | 0.08 | Wet ice |
+| 5 | 40-50m | Ultra-low friction | 0.05 | 0.02 | Oil on polished steel |
 
 #### Isaac Sim Implementation
 
@@ -151,10 +151,11 @@ def create_friction_zone(stage, zone_idx, x_start, mu_s, mu_d):
 
 #### Expected Challenges
 
-- **Zone 1 (oil):** Both policies expected to struggle. mu=0.05 provides almost no traction — any lateral force causes sliding. The robot's feet will slip on nearly every step.
-- **Zone 2 (wet ice):** Flat policy likely fails here. Rough policy may adapt via conservative stepping.
+- **Zone 1 (sandpaper):** Both policies trained in this friction range (0.5-1.25), should perform well. Provides a warm-up zone.
+- **Zone 2 (dry rubber):** Still within training distribution. Both policies should handle comfortably.
 - **Zone 3 (wet concrete):** Moderate challenge. mu=0.35 is below training range (0.5-1.25), so both policies encounter out-of-distribution friction.
-- **Zones 4-5:** Both policies trained in this friction range, should perform well.
+- **Zone 4 (wet ice):** Flat policy likely fails here. Rough policy may adapt via conservative stepping.
+- **Zone 5 (oil):** Both policies expected to struggle. mu=0.05 provides almost no traction — any lateral force causes sliding. The robot's feet will slip on nearly every step.
 
 #### Effective Friction Calculation
 
@@ -168,11 +169,11 @@ Robot foot friction (from training randomization): mu_static = 0.5-1.25, mu_dyna
 
 | Zone | mu_ground | mu_robot (avg=0.875) | mu_effective |
 |------|-----------|---------------------|-------------|
-| 1 | 0.05 | 0.875 | 0.044 |
-| 2 | 0.15 | 0.875 | 0.131 |
+| 1 | 0.90 | 0.875 | 0.788 |
+| 2 | 0.60 | 0.875 | 0.525 |
 | 3 | 0.35 | 0.875 | 0.306 |
-| 4 | 0.60 | 0.875 | 0.525 |
-| 5 | 0.90 | 0.875 | 0.788 |
+| 4 | 0.15 | 0.875 | 0.131 |
+| 5 | 0.05 | 0.875 | 0.044 |
 
 ---
 
@@ -270,58 +271,182 @@ Even Zone 5 total resistance (~50 N) is well within Spot's ~200 N forward thrust
 
 ---
 
-### 3.3 Environment 3: Boulder Field
+### 3.3 Environment 3: Unstructured Boulder Field
 
-**Purpose:** Test traversal over unstructured terrain with irregularly shaped obstacles. Uses tetrahedral shapes to simulate natural boulders. Tests the rough policy's height scan advantage for obstacle detection and foot placement.
+**Purpose:** Test traversal over unstructured terrain with irregularly shaped polyhedral obstacles. Uses a mixed distribution of four dice-like polyhedra (D8, D10, D12, D20) to create unstable, unpredictable gravel surfaces. The shape variety prevents the robot from learning a single stepping strategy and tests the rough policy's height scan advantage for obstacle detection and foot placement.
 
-**Terrain geometry:** Flat ground with tetrahedral mesh obstacles of increasing size
+**Terrain geometry:** Flat ground with mixed polyhedral mesh obstacles of increasing size
+
+#### Shape Distribution
+
+Each zone contains an equal 25% mix of four polyhedral shapes:
+
+| Shape | Polyhedron | Faces | Vertices | Edges | Face Type | Rolling Behavior |
+|-------|-----------|-------|----------|-------|-----------|-----------------|
+| D8 | Octahedron | 8 | 6 | 12 | Equilateral triangles | Sharp peaks, tips easily — most unstable underfoot |
+| D10 | Pentagonal trapezohedron | 10 | 12 | 20 | Kite-shaped quads | Asymmetric, unpredictable roll direction |
+| D12 | Dodecahedron | 12 | 20 | 30 | Regular pentagons | Moderate stability, tends to settle on flat faces |
+| D20 | Icosahedron | 20 | 12 | 30 | Equilateral triangles | Near-spherical, rolls freely — hardest to stand on |
+
+The combination creates terrain where no two footfalls encounter the same geometry, forcing the policy to generalize across contact surfaces.
 
 #### Zone Specifications
 
-| Zone | X Range | Tetrahedron Edge Length | Height (approx) | Density | Count (per zone) | Real-World Analog |
-|------|---------|------------------------|-----------------|---------|-----------------|-------------------|
-| 1 | 0-10m | 3-5 cm | 2-4 cm | 15/m² | ~4,500 | Gravel / pebbles |
-| 2 | 10-20m | 10-15 cm | 8-12 cm | 8/m² | ~2,400 | River rocks |
-| 3 | 20-30m | 25-35 cm | 20-29 cm | 4/m² | ~1,200 | Large rocks |
-| 4 | 30-40m | 50-70 cm | 41-57 cm | 2/m² | ~600 | Small boulders |
-| 5 | 40-50m | 80-120 cm | 65-98 cm | 1/m² | ~300 | Large boulders |
+| Zone | X Range | Edge Length | Height (approx) | Density | Count (per zone) | Real-World Analog |
+|------|---------|-----------|-----------------|---------|-----------------|-------------------|
+| 1 | 0-10m | 3-5 cm | 2-5 cm | 15/m² | ~4,500 | Gravel / pebbles |
+| 2 | 10-20m | 10-15 cm | 8-15 cm | 8/m² | ~2,400 | River rocks |
+| 3 | 20-30m | 25-35 cm | 20-35 cm | 4/m² | ~1,200 | Large rocks |
+| 4 | 30-40m | 50-70 cm | 40-70 cm | 2/m² | ~600 | Small boulders |
+| 5 | 40-50m | 80-120 cm | 65-120 cm | 1/m² | ~300 | Large boulders |
 
-#### Tetrahedron Geometry
-
-A regular tetrahedron with edge length `a` has:
-- Height: `h = a * sqrt(2/3)` (~0.816a)
-- 4 vertices, 4 triangular faces
-- Volume: `V = a^3 / (6*sqrt(2))`
+#### Polyhedron Geometry Definitions
 
 ```python
-def create_tetrahedron(stage, path, edge_length, position, rotation):
-    """Create a tetrahedral trimesh at the given position."""
-    a = edge_length
-    h = a * np.sqrt(2.0 / 3.0)
+import numpy as np
 
-    # Regular tetrahedron vertices (centered at origin, base on ground)
-    vertices = np.array([
-        [ a/2,           0,       0],
-        [-a/2,           0,       0],
-        [   0,  a*np.sqrt(3)/2,   0],
-        [   0,  a*np.sqrt(3)/6,   h],
-    ], dtype=np.float32)
+# ─── Golden ratio (used by D12 and D20) ───
+PHI = (1.0 + np.sqrt(5.0)) / 2.0
 
-    # 4 triangular faces (CCW winding)
-    face_indices = np.array([
-        0, 1, 2,  # base triangle
-        0, 1, 3,  # front face
-        1, 2, 3,  # left face
-        0, 2, 3,  # right face
-    ], dtype=np.int32)
+def _unit_verts(verts):
+    """Normalize vertices so the longest axis spans 1.0, then scale by edge_length."""
+    v = np.array(verts, dtype=np.float32)
+    v -= v.mean(axis=0)  # center at origin
+    v /= np.abs(v).max()  # normalize to [-1, 1]
+    return v
 
-    face_counts = np.array([3, 3, 3, 3], dtype=np.int32)
+
+# ─── D8: Octahedron (8 triangular faces, 6 vertices) ───
+def octahedron_mesh(edge_length):
+    """Regular octahedron scaled to given edge length."""
+    verts = _unit_verts([
+        [ 1,  0,  0], [-1,  0,  0],
+        [ 0,  1,  0], [ 0, -1,  0],
+        [ 0,  0,  1], [ 0,  0, -1],
+    ]) * edge_length * 0.707  # circumradius = a/sqrt(2)
+
+    faces = [
+        [0, 2, 4], [2, 1, 4], [1, 3, 4], [3, 0, 4],  # top 4
+        [0, 3, 5], [3, 1, 5], [1, 2, 5], [2, 0, 5],  # bottom 4
+    ]
+    return verts, faces
+
+
+# ─── D10: Pentagonal Trapezohedron (10 kite faces, 12 vertices) ───
+def trapezohedron_mesh(edge_length):
+    """Pentagonal trapezohedron (standard D10 shape)."""
+    # Top and bottom apex
+    top = [0, 0,  1.0]
+    bot = [0, 0, -1.0]
+
+    # Two rings of 5 vertices, offset by 36 degrees
+    upper_ring, lower_ring = [], []
+    for i in range(5):
+        angle_u = 2 * np.pi * i / 5
+        angle_l = 2 * np.pi * (i + 0.5) / 5
+        upper_ring.append([np.cos(angle_u) * 0.85, np.sin(angle_u) * 0.85,  0.30])
+        lower_ring.append([np.cos(angle_l) * 0.85, np.sin(angle_l) * 0.85, -0.30])
+
+    verts = _unit_verts([top] + upper_ring + lower_ring + [bot]) * edge_length * 0.6
+    # top=0, upper=1-5, lower=6-10, bot=11
+
+    faces = []
+    for i in range(5):
+        u0 = 1 + i
+        u1 = 1 + (i + 1) % 5
+        l0 = 6 + i
+        l1 = 6 + (i + 1) % 5
+        faces.append([0, u0, l0])       # top kite upper
+        faces.append([0, l0, u1])       # top kite lower
+        faces.append([11, l0, u0])      # bot kite upper
+        faces.append([11, u1, l0])      # bot kite lower
+    # Simplified to triangulated kites (20 tris from 10 kite faces)
+    return verts, faces
+
+
+# ─── D12: Dodecahedron (12 pentagonal faces, 20 vertices) ───
+def dodecahedron_mesh(edge_length):
+    """Regular dodecahedron scaled to given edge length."""
+    # 20 vertices from cube + rectangle coordinates
+    raw = []
+    for s1 in (-1, 1):
+        for s2 in (-1, 1):
+            for s3 in (-1, 1):
+                raw.append([s1, s2, s3])
+    for s1 in (-1, 1):
+        for s2 in (-1, 1):
+            raw.append([0, s1 * PHI, s2 / PHI])
+            raw.append([s1 / PHI, 0, s2 * PHI])
+            raw.append([s1 * PHI, s2 / PHI, 0])
+
+    verts = _unit_verts(raw) * edge_length * 0.75
+
+    # Pentagonal faces triangulated (3 triangles per pentagon = 36 tris)
+    # Use convexHull approximation in PhysX instead of explicit face winding
+    # (see collision setup below)
+    faces = _convex_hull_faces(verts)
+    return verts, faces
+
+
+# ─── D20: Icosahedron (20 triangular faces, 12 vertices) ───
+def icosahedron_mesh(edge_length):
+    """Regular icosahedron scaled to given edge length."""
+    raw = []
+    for s in (-1, 1):
+        raw.append([0,  s,  PHI])
+        raw.append([0,  s, -PHI])
+        raw.append([ PHI, 0,  s])
+        raw.append([-PHI, 0,  s])
+        raw.append([ s,  PHI, 0])
+        raw.append([ s, -PHI, 0])
+
+    verts = _unit_verts(raw) * edge_length * 0.525  # circumradius ≈ 0.951a
+
+    faces = [
+        [0, 4, 8], [0, 8, 6], [0, 6, 10], [0, 10, 2], [0, 2, 4],
+        [3, 4, 2], [3, 8, 4], [3, 6, 8], [3, 10, 6], [3, 2, 10],
+        [1, 5, 9], [1, 9, 7], [1, 7, 11], [1, 11, 5], [1, 5, 9],
+        [5, 4, 9], [9, 8, 7], [7, 6, 11], [11, 10, 5], [5, 2, 4],
+    ]
+    return verts, faces
+
+
+def _convex_hull_faces(verts):
+    """Compute triangulated convex hull faces via scipy."""
+    from scipy.spatial import ConvexHull
+    hull = ConvexHull(verts)
+    return hull.simplices.tolist()
+
+
+# ─── Shape registry ───
+SHAPE_GENERATORS = {
+    "D8":  octahedron_mesh,
+    "D10": trapezohedron_mesh,
+    "D12": dodecahedron_mesh,
+    "D20": icosahedron_mesh,
+}
+```
+
+#### USD Mesh Creation
+
+```python
+def create_polyhedron(stage, path, shape_name, edge_length, position, rotation):
+    """Create a polyhedral trimesh obstacle at the given position."""
+    gen_fn = SHAPE_GENERATORS[shape_name]
+    verts, faces = gen_fn(edge_length)
+
+    # Flatten face indices for USD
+    face_indices = []
+    face_counts = []
+    for f in faces:
+        face_indices.extend(f)
+        face_counts.append(len(f))
 
     # Create USD mesh
     mesh = UsdGeom.Mesh.Define(stage, path)
-    mesh.GetPointsAttr().Set(vertices.tolist())
-    mesh.GetFaceVertexIndicesAttr().Set(face_indices.tolist())
-    mesh.GetFaceVertexCountsAttr().Set(face_counts.tolist())
+    mesh.GetPointsAttr().Set(verts.tolist())
+    mesh.GetFaceVertexIndicesAttr().Set(face_indices)
+    mesh.GetFaceVertexCountsAttr().Set(face_counts)
 
     # Position and rotation
     xform = UsdGeom.XformCommonAPI(mesh)
@@ -330,54 +455,60 @@ def create_tetrahedron(stage, path, edge_length, position, rotation):
                      Gf.Rotation(Gf.Vec3d(0, 1, 0), rotation[1]) *
                      Gf.Rotation(Gf.Vec3d(0, 0, 1), rotation[2]))
 
-    # Physics: static rigid body with collision
+    # Physics: static rigid body with convex hull collision
     UsdPhysics.CollisionAPI.Apply(mesh.GetPrim())
     mesh_collision = UsdPhysics.MeshCollisionAPI.Apply(mesh.GetPrim())
     mesh_collision.CreateApproximationAttr("convexHull")
 
-    # High mass so boulders don't move
+    # Kinematic = immovable
     rb = UsdPhysics.RigidBodyAPI.Apply(mesh.GetPrim())
-    rb.CreateKinematicEnabledAttr(True)  # Kinematic = immovable
+    rb.CreateKinematicEnabledAttr(True)
 ```
 
 #### Zone Generation
 
 ```python
+SHAPE_NAMES = ["D8", "D10", "D12", "D20"]  # 25% each
+
 def populate_boulder_zone(stage, zone_idx, x_start, edge_range, density, seed):
-    """Scatter tetrahedra across a 30m x 10m zone."""
+    """Scatter mixed polyhedra across a 30m x 10m zone."""
     np.random.seed(seed + zone_idx)
     zone_area = 30.0 * 10.0  # m²
     count = int(zone_area * density)
 
     for i in range(count):
+        # Select shape: 25% each of D8, D10, D12, D20
+        shape = SHAPE_NAMES[i % 4]
+
         edge = np.random.uniform(edge_range[0], edge_range[1])
         x = x_start + np.random.uniform(0, 10.0)
         y = np.random.uniform(0, 30.0)
         z = 0.0  # sitting on ground
 
-        # Random rotation for natural appearance
+        # Random rotation for natural appearance (uniform SO(3))
         rot = (np.random.uniform(0, 360),
                np.random.uniform(0, 360),
                np.random.uniform(0, 360))
 
-        path = f"/World/BoulderField/Zone_{zone_idx}/tetra_{i}"
-        create_tetrahedron(stage, path, edge, (x, y, z), rot)
+        path = f"/World/BoulderField/Zone_{zone_idx}/{shape}_{i}"
+        create_polyhedron(stage, path, shape, edge, (x, y, z), rot)
 ```
 
 #### Performance Optimization
 
-- **Zone 1 (~4,500 tetrahedra):** Use collision group to batch small objects. Consider `convexDecomposition` approximation for complex rotated shapes.
+- **Vertex counts per shape:** D8 (6 verts), D10 (12 verts), D12 (20 verts), D20 (12 verts) — avg ~12.5 verts/shape
+- **Zone 1 (~4,500 shapes):** Use collision group batching. `convexHull` approximation keeps solver cost low regardless of shape complexity.
 - **Zones 3-5 (~2,100 total):** Larger but fewer objects, standard collision handling.
 - **Total mesh count:** ~9,000 across all zones. For 512 parallel envs, each env gets its own instance. GPU PhysX handles this via instanced collision.
-- **Memory estimate:** ~9,000 meshes x 4 vertices x 12 bytes = ~0.4 MB geometry per env. At 512 envs: ~200 MB (fits in H100 80GB).
+- **Memory estimate:** ~9,000 meshes x ~12.5 avg vertices x 12 bytes = ~1.4 MB geometry per env. At 512 envs: ~700 MB (fits in H100 80GB).
 
 #### Expected Challenges
 
-- **Zone 1:** Gravel provides rough but traversable surface. Both policies should manage. Small stones may cause foot vibration.
-- **Zone 2:** River rocks at 10-15cm start interfering with foot placement. Rough policy's height scan should help.
-- **Zone 3:** Rocks at 25-35cm are near Spot's 12cm foot clearance target. Rough policy's higher clearance weight (2.0 vs 0.5) is critical.
-- **Zone 4:** Boulders at 50-70cm exceed Spot's leg reach. Must step over or navigate between.
-- **Zone 5:** 80-120cm boulders are at or above Spot's hip height (~50cm). Expected to be impassable for both policies — this zone tests graceful failure.
+- **Zone 1:** Mixed gravel provides rough but traversable surface. D20 pebbles roll underfoot causing micro-instability. Both policies should manage.
+- **Zone 2:** River rocks at 10-15cm start interfering with foot placement. D8 octahedra create sharp peaks that destabilize contact. Rough policy's height scan should help.
+- **Zone 3:** Rocks at 25-35cm are near Spot's 12cm foot clearance target. D10 trapezohedra create unpredictable asymmetric contacts. Rough policy's higher clearance weight (2.0 vs 0.5) is critical.
+- **Zone 4:** Boulders at 50-70cm exceed Spot's leg reach. D12 dodecahedra settle on flat pentagonal faces but create cliff-like edges between them. Must step over or navigate between.
+- **Zone 5:** 80-120cm boulders are at or above Spot's hip height (~50cm). The mix of D20 (near-spherical) and D8 (sharp-peaked) creates maximally unstructured terrain. Expected to be impassable for both policies — this zone tests graceful failure.
 
 ---
 
@@ -782,20 +913,162 @@ echo "=== All evaluations complete. Results in $OUTPUT_DIR ==="
 
 | Phase | Wall-Clock Time |
 |-------|----------------|
+| **Headless Statistical Runs** | |
 | Environment build (per env) | ~30-60 seconds |
 | Policy loading | ~5 seconds |
 | 512-env batch (120s sim) | ~3-5 minutes at 30-50x real-time |
 | Per policy/env (2 batches) | ~8-12 minutes |
-| **Total (8 combinations)** | **~60-90 minutes** |
+| Headless subtotal (8 combinations) | ~60-90 minutes |
 | Post-processing & summary | ~5 minutes |
-| **Grand total** | **~1-1.5 hours** |
+| **Rendered Visualization Runs** | |
+| Per rendered episode (5 envs, 120s sim) | ~2-3 minutes at ~1x real-time |
+| Per policy/env (10 episodes) | ~25-30 minutes |
+| Rendered subtotal (8 combinations) | ~3.5-4 hours |
+| **Grand total (headless + rendered)** | **~5-5.5 hours** |
 
-### 6.5 Checkpointing and Fault Tolerance
+### 6.5 Rendered Visualization Runs
+
+In addition to the 8,000 headless statistical episodes, run **10 rendered iterations with 5 parallel environments** per policy/environment combination to capture visual footage of robot behavior.
+
+#### Visualization Configuration
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| Parallel envs | 5 | Small enough for clear visual, all visible at once |
+| Episodes (iterations) | 10 | Enough to capture representative successes and failures |
+| Rendering | **Enabled** (not headless) | Full Isaac Sim viewport rendering |
+| Resolution | 1920x1080 | Standard HD for documentation/presentation |
+| Capture format | MP4 video + PNG key frames | Video for review, stills for reports |
+| Camera | Follow-cam + fixed overhead | Two perspectives per run |
+| Total rendered runs | 2 policies x 4 envs x 10 episodes = **80 rendered episodes** |
+
+#### Camera Setup
+
+Two simultaneous camera views per run:
+
+1. **Follow Camera:** Tracks the center robot (env index 0), positioned at 45-degree rear-quarter angle, 3m distance. Shows gait detail, foot placement, and obstacle interaction up close.
+2. **Overhead Camera:** Fixed top-down view of the full 30m x 50m arena. Shows all 5 robots progressing through zones simultaneously. Useful for comparing traversal patterns.
+
+```python
+# Camera configuration for rendered runs
+from isaaclab.envs import ViewerCfg
+
+# Follow cam (rear-quarter, 3m back and 2m up)
+viewer_follow = ViewerCfg(
+    eye=(−3.0, 2.0, 2.0),    # relative offset behind robot
+    origin_type="env",         # track robot env
+    env_index=0,
+    asset_name="robot",
+)
+
+# Overhead cam (fixed, looking down at arena center)
+overhead_cam_pos = (25.0, 15.0, 40.0)   # centered at x=25m, y=15m, 40m up
+overhead_cam_target = (25.0, 15.0, 0.0)  # looking straight down
+```
+
+#### Video Capture
+
+```python
+# Isaac Sim video recording (runs within rendered mode)
+from omni.isaac.core.utils.extensions import enable_extension
+enable_extension("omni.kit.capture")
+
+import omni.kit.capture
+capture = omni.kit.capture.Capture()
+capture.start(
+    output_path=f"results/video/{env}_{policy}_ep{episode:02d}.mp4",
+    fps=30,
+    resolution=(1920, 1080),
+)
+# ... run episode ...
+capture.stop()
+```
+
+#### Key Frame Extraction
+
+Automatically capture PNG snapshots at zone boundaries (x = 0, 10, 20, 30, 40, 50m) and at fall events:
+
+```python
+def capture_keyframes(root_pos, episode_id, env_name, policy_name, step):
+    """Save PNG at zone transitions and falls."""
+    x = root_pos[0, 0].item()  # env 0 x-position
+    zone = int(x / 10.0)
+
+    # Capture at zone entry (within 0.5m of boundary)
+    zone_boundary = zone * 10.0
+    if abs(x - zone_boundary) < 0.5 and zone not in captured_zones:
+        save_viewport_png(f"results/frames/{env_name}_{policy_name}_ep{episode_id}_zone{zone}.png")
+        captured_zones.add(zone)
+
+    # Capture at fall event
+    if root_pos[0, 2].item() < 0.15:
+        save_viewport_png(f"results/frames/{env_name}_{policy_name}_ep{episode_id}_fall_x{x:.1f}.png")
+```
+
+#### Execution Commands
+
+```bash
+# Rendered visualization runs (NOT headless — requires display or virtual framebuffer)
+
+POLICIES=("flat" "rough")
+ENVS=("friction" "grass" "boulder" "stairs")
+OUTPUT_DIR="results/capstone_visual_$(date +%Y%m%d_%H%M%S)"
+
+mkdir -p $OUTPUT_DIR/video $OUTPUT_DIR/frames
+
+for policy in "${POLICIES[@]}"; do
+    for env in "${ENVS[@]}"; do
+        echo "=== Rendered: policy=$policy env=$env ==="
+        ./isaaclab.sh -p run_capstone_eval.py \
+            --num_envs 5 \
+            --policy $policy \
+            --env $env \
+            --num_episodes 10 \
+            --output_dir $OUTPUT_DIR \
+            --render \
+            --capture_video \
+            --capture_keyframes
+        echo "=== Completed visual: policy=$policy env=$env ==="
+    done
+done
+```
+
+#### Timing Estimate
+
+| Phase | Wall-Clock Time |
+|-------|----------------|
+| Per rendered episode (120s sim, ~1x real-time with rendering) | ~2-3 minutes |
+| Per policy/env (10 episodes) | ~25-30 minutes |
+| **Total (8 combinations)** | **~3.5-4 hours** |
+
+#### Output Structure
+
+```
+results/
+├── capstone_eval_*/          # Headless statistical results (8,000 episodes)
+│   ├── *.jsonl
+│   └── summary.csv
+└── capstone_visual_*/        # Rendered visualization results (80 episodes)
+    ├── video/
+    │   ├── friction_flat_ep00.mp4
+    │   ├── friction_flat_ep01.mp4
+    │   ├── ...
+    │   └── stairs_rough_ep09.mp4
+    └── frames/
+        ├── friction_flat_ep00_zone0.png
+        ├── friction_flat_ep00_zone1.png
+        ├── friction_flat_ep00_fall_x14.3.png
+        ├── ...
+        └── stairs_rough_ep09_zone4.png
+```
+
+### 6.6 Checkpointing and Fault Tolerance
 
 - Results saved after each batch (512 episodes) to prevent data loss
 - Each JSONL file is append-mode — can resume if a batch fails
 - GPU utilization logged via `nvidia-smi` every 10 seconds to CSV
 - If an env crashes, the batch script continues to the next combination
+- Rendered runs are independent — a crash in one does not affect others
 
 ---
 
