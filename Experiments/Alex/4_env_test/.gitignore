@@ -1,0 +1,38 @@
+# Results data (large, generated at runtime)
+results/**/*.jsonl
+results/**/*.csv
+results/**/*.png
+results/**/*.mp4
+results/**/*.jpg
+results/rendered/
+!results/.gitkeep
+!results/debug/.gitkeep
+!results/plots/.gitkeep
+
+# Policy checkpoints (large binary files)
+checkpoints/*.pt
+checkpoints/*.pth
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+
+# Isaac Sim / Omniverse
+*.usd.tmp
+*.usda.tmp
+_isaac_sim_*
+.thumbs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
