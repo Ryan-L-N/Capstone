@@ -118,6 +118,66 @@ Height scan grid: `resolution=0.1, size=[1.6, 1.0]` = 17x11 = 187 points (includ
 
 ---
 
+## Local Development Setup (Windows)
+
+### Installation Paths
+- **Miniconda:** `C:\miniconda3\`
+- **Isaac Lab conda env:** `C:\miniconda3\envs\isaaclab311\` (Python 3.11.14)
+- **IsaacLab repo:** `C:\IsaacLab\` (launcher: `isaaclab.bat` / `isaaclab.sh`)
+- **Isaac Sim version:** 5.1.0.0 (pip-installed in isaaclab311)
+- **Isaac Lab version:** 0.54.2
+- **PyTorch:** 2.7.0+cu128
+- **GPU:** NVIDIA RTX 2000 Ada Generation Laptop GPU
+- **pygame:** 2.6.1 (Xbox controller support)
+
+### How to Run Locally
+
+**Step 1: Activate the conda environment**
+```
+conda activate isaaclab311
+```
+
+**Step 2: Run teleop (friction example)**
+```
+cd "C:\Users\Gabriel Santiago\OneDrive\Desktop\Capstone Project\Capstone\Experiments\Alex\4_env_test"
+python src/run_capstone_teleop.py --env friction --device xbox
+```
+
+Or using the IsaacLab launcher:
+```
+C:\IsaacLab\isaaclab.bat -p "C:\Users\Gabriel Santiago\OneDrive\Desktop\Capstone Project\Capstone\Experiments\Alex\4_env_test\src\run_capstone_teleop.py" --env friction --device xbox
+```
+
+**Step 3: Run evaluation (rendered, small batch)**
+```
+python src/run_capstone_eval.py --env friction --policy flat --num_episodes 5 --rendered --output_dir results/debug/
+```
+
+### Available Environments
+```
+--env friction    # Decreasing friction zones (easiest to visualize)
+--env grass       # Increasing stalk density + drag
+--env boulder     # Mixed polyhedra fields
+--env stairs      # Ascending steps
+```
+
+### Xbox Controller
+- Plug in Xbox controller via USB before launching
+- pygame 2.6.1 detects it automatically
+- Falls back to keyboard (WASD) if no controller found
+- 12% deadzone applied to joystick inputs
+
+### EULA for Local Headless Runs
+```
+set OMNI_KIT_ACCEPT_EULA=YES
+```
+Or in PowerShell:
+```
+$env:OMNI_KIT_ACCEPT_EULA="YES"
+```
+
+---
+
 ## H100 Server Notes
 
 ### CRLF Line Endings
