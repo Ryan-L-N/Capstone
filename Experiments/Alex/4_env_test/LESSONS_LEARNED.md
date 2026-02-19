@@ -34,21 +34,25 @@ Run `scripts/debug_5iter.sh` before each production run. Document every issue fo
 - **Fix applied:** Added `drive_mode_idx` to `nonlocal` declaration
 - **Verified fix:** [x] Yes — robot walks, Xbox responds, 5.5min session with 0 errors
 
-### Iteration 4 — [DATE]
-- **Environment tested:**
-- **Policy tested:**
-- **Issue found:**
-- **Root cause:**
-- **Fix applied:**
-- **Verified fix:** [ ] Yes / [ ] No
+### Iteration 4 — 2026-02-19 (H100 Full Debug)
+- **Environment tested:** ALL 4 (friction, grass, boulder, stairs)
+- **Policy tested:** ALL 2 (flat, rough) — 8 combos total
+- **Result:** All 8 passed (5 episodes each, ~34 min total)
+- **Timing per combo:** 239-292s (includes Isaac Sim startup + 5 episodes)
+- **Issue found:** None — all combos ran cleanly in headless mode
+- **Notes:**
+  - H100 conda env = `env_isaaclab` (not `isaaclab311`)
+  - ~41s per episode (flat policies TIMEOUT at zone 2, ~12m progress)
+  - Rough policies also TIMEOUT at zone 2, ~10-11m progress
+  - GPU VRAM: ~4 GB per run (96 GB available)
 
-### Iteration 5 — [DATE]
-- **Environment tested:**
-- **Policy tested:**
-- **Issue found:**
-- **Root cause:**
-- **Fix applied:**
-- **Verified fix:** [ ] Yes / [ ] No
+### Iteration 5 — 2026-02-19 (Production Attempt)
+- **Environment tested:** friction (flat) — first combo of 8
+- **Policy tested:** flat
+- **Issue found:** Isaac Sim startup hangs after killing screen session mid-run
+- **Root cause:** Killing `screen -X quit` left zombie (PID 941461, Z state) and D-state processes. Zombie held 4GB GPU memory. New Isaac Sim processes hang on `nvidia-smi -q` during startup.
+- **Fix applied:** Added "Never Kill Isaac Sim Mid-Run" lesson. Server required physical power cycle.
+- **Prevention:** Always use Ctrl-C inside screen, never `screen -X quit`
 
 ---
 
@@ -240,8 +244,16 @@ $env:OMNI_KIT_ACCEPT_EULA="YES"
 - Already in `.bashrc` but not available in non-interactive SSH
 
 ### Correct Conda Environment
-- Use `isaaclab311` (Python 3.11) — NOT `isaaclab` (Python 3.13)
+- **Local (Windows):** `isaaclab311` (Python 3.11)
+- **H100 server:** `env_isaaclab` (Python 3.11)
+- Scripts use fallback: `conda activate env_isaaclab 2>/dev/null || conda activate isaaclab311`
 - Isaac Sim 5.1.0 requires Python 3.11
+
+### Never Kill Isaac Sim Mid-Run via Screen Quit
+- **Problem:** Killing a `screen` session (`screen -X quit`) while Isaac Sim is running leaves zombie (Z) and D-state (uninterruptible sleep) processes that hold GPU memory.
+- **Impact:** D-state processes cannot be killed (`kill -9` has no effect). The zombie holds GPU memory, and new Isaac Sim instances fail to initialize (`nvidia-smi -q` hangs during startup). `nvidia-smi --gpu-reset` also hangs. Even `sudo reboot` can hang indefinitely waiting for D-state processes.
+- **Fix:** Always use `Ctrl-C` inside screen to gracefully shutdown SimulationApp, or let the run complete naturally. If you must abort: attach to the screen (`screen -r`), send `Ctrl-C`, wait for "Simulation App Shutting Down", then exit.
+- **Recovery:** If D-state processes are stuck, the only fix is a **physical power cycle** (IPMI/BMC or power button). Software reboot will hang.
 
 ### GPU Performance
 - GPU temp: 34C idle -> ~49C at 8,192 envs
