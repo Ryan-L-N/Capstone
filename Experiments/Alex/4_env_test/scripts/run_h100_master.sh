@@ -87,28 +87,31 @@ for POLICY in "${POLICIES[@]}"; do
 
         COMBO_START=$(date +%s)
 
-        # 300s timeout: generous for 5 episodes (~3.5 min + startup)
-        if timeout 300 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
+        # 420s timeout; --foreground kills process group; -k 30 sends SIGKILL
+        # NOTE: No pipe to tee — pipes prevent timeout from killing grandchild Python.
+        if timeout --foreground -k 30 420 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
             --num_episodes "$DEBUG_EPISODES" \
             --policy "$POLICY" \
             --env "$ENV" \
             --output_dir "$DEBUG_DIR" \
-            2>&1 | tee "$LOG_FILE"; then
+            > "$LOG_FILE" 2>&1; then
 
             COMBO_END=$(date +%s)
             COMBO_TIME=$(( COMBO_END - COMBO_START ))
             echo "  PASSED: $COMBO (${COMBO_TIME}s)"
             DEBUG_RESULTS+=("PASS: $COMBO (${COMBO_TIME}s)")
+            tail -8 "$LOG_FILE" | grep -E "ep[0-9]|Saved|Evaluation|Exiting" || true
         else
             COMBO_END=$(date +%s)
             COMBO_TIME=$(( COMBO_END - COMBO_START ))
             echo "  FAILED: $COMBO (exit code $?, ${COMBO_TIME}s)"
             DEBUG_RESULTS+=("FAIL: $COMBO (${COMBO_TIME}s)")
             DEBUG_FAILED=$((DEBUG_FAILED + 1))
+            tail -5 "$LOG_FILE" || true
         fi
-        # Clean up any lingering processes between combos
-        pkill -f "run_capstone_eval.py.*--env $ENV.*--policy $POLICY" 2>/dev/null || true
-        sleep 2
+        # Kill ANY lingering processes (broad match — arg order varies)
+        pkill -f "run_capstone_eval" 2>/dev/null || true
+        sleep 5
         echo ""
     done
 done
@@ -168,19 +171,21 @@ for POLICY in "${POLICIES[@]}"; do
 
         COMBO_START=$(date +%s)
 
-        # 7200s (2hr) timeout: generous for 100 episodes (~70 min + startup)
-        if timeout 7200 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
+        # 7200s (2hr) timeout; --foreground kills process group; -k 30 SIGKILL
+        # NOTE: No pipe to tee — pipes prevent timeout from killing grandchild Python.
+        if timeout --foreground -k 30 7200 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
             --num_episodes "$PROD_EPISODES" \
             --policy "$POLICY" \
             --env "$ENV" \
             --output_dir "$PROD_OUTPUT" \
-            2>&1 | tee "$LOG_FILE"; then
+            > "$LOG_FILE" 2>&1; then
 
             COMBO_END=$(date +%s)
             COMBO_TIME=$(( COMBO_END - COMBO_START ))
             COMBO_MIN=$(( COMBO_TIME / 60 ))
             echo "  PASSED: $COMBO (${COMBO_MIN}min)"
             PROD_RESULTS+=("PASS: $COMBO (${COMBO_MIN}min)")
+            tail -8 "$LOG_FILE" | grep -E "ep[0-9]|Saved|Evaluation|Exiting" || true
         else
             COMBO_END=$(date +%s)
             COMBO_TIME=$(( COMBO_END - COMBO_START ))
@@ -188,10 +193,11 @@ for POLICY in "${POLICIES[@]}"; do
             echo "  FAILED: $COMBO (exit code $?, ${COMBO_MIN}min)"
             PROD_RESULTS+=("FAIL: $COMBO (${COMBO_MIN}min)")
             PROD_FAILED=$((PROD_FAILED + 1))
+            tail -5 "$LOG_FILE" || true
         fi
-        # Clean up any lingering processes between combos
-        pkill -f "run_capstone_eval.py.*--env $ENV.*--policy $POLICY" 2>/dev/null || true
-        sleep 2
+        # Kill ANY lingering processes (broad match — arg order varies)
+        pkill -f "run_capstone_eval" 2>/dev/null || true
+        sleep 5
         echo ""
     done
 done

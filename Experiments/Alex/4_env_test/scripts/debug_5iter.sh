@@ -56,16 +56,23 @@ echo ""
 
 cd ~/IsaacLab 2>/dev/null || cd "$PROJECT_DIR"
 
-# Timeout safety net: 300s (5 min) is generous for 5 episodes (~3.5 min)
-timeout 300 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
+LOG_FILE="$OUTPUT_DIR/debug_${ENV}_${POLICY}_${TIMESTAMP}.log"
+
+# Timeout safety net: 420s (7 min) generous for 5 episodes (~4 min + startup)
+# NOTE: No pipe to tee — pipes prevent timeout from killing grandchild Python.
+# --foreground kills entire process group; -k 30 sends SIGKILL after 30s grace.
+timeout --foreground -k 30 420 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
     --num_episodes "$NUM_EPISODES" \
     --policy "$POLICY" \
     --env "$ENV" \
     --output_dir "$OUTPUT_DIR" \
-    2>&1 | tee "$OUTPUT_DIR/debug_${ENV}_${POLICY}_${TIMESTAMP}.log"
+    > "$LOG_FILE" 2>&1
 
-# Clean up any lingering processes
-pkill -f "run_capstone_eval.py.*--env $ENV.*--policy $POLICY" 2>/dev/null || true
+# Show key output lines
+tail -10 "$LOG_FILE" | grep -E "ep[0-9]|Saved|Evaluation|Exiting|ERROR" || true
+
+# Clean up any lingering processes (broad match — arg order varies)
+pkill -f "run_capstone_eval" 2>/dev/null || true
 
 echo ""
 echo "============================================"
