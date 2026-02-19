@@ -37,10 +37,10 @@ echo "============================================"
 # Source conda if available (needed for non-interactive SSH)
 if command -v conda &>/dev/null; then
     eval "$(conda shell.bash hook)"
-    conda activate isaaclab311
+    conda activate env_isaaclab 2>/dev/null || conda activate isaaclab311
 elif [ -f "/home/t2user/miniconda3/bin/conda" ]; then
     eval "$(/home/t2user/miniconda3/bin/conda shell.bash hook)"
-    conda activate isaaclab311
+    conda activate env_isaaclab 2>/dev/null || conda activate isaaclab311
 fi
 
 # EULA acceptance for headless mode
