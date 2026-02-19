@@ -1,4 +1,4 @@
-"""Staircase environment — ascending steps with recovery platforms.
+"""Staircase environment — ascending steps with smooth zone transitions.
 
 Zone layout (increasing step height):
   Zone 1 (0-10m):  3cm steps,  30cm tread, 33 steps  — Access ramp
@@ -7,14 +7,14 @@ Zone layout (increasing step height):
   Zone 4 (30-40m): 18cm steps, 30cm tread, 33 steps  — Steep commercial
   Zone 5 (40-50m): 23cm steps, 30cm tread, 33 steps  — Maximum challenge
 
-2m flat platforms between zones for stabilization/recovery.
+Zone boundaries use 5 transition steps with linearly interpolated riser heights.
 Stairs span full 30m width (Y-axis).
 
 Reuses patterns from:
 - ARL_DELIVERY/02_Obstacle_Course/spot_obstacle_course.py (create_steps)
 """
 
-from configs.zone_params import ZONE_PARAMS, ARENA_WIDTH
+from configs.zone_params import ZONE_PARAMS, ARENA_WIDTH, ZONE_LENGTH, TRANSITION_STEPS
 
 
 def _create_step_material(stage):
@@ -43,11 +43,14 @@ def _create_step_material(stage):
 
 
 def create_stair_zone(stage, zone_path, step_height, step_depth, num_steps,
-                      width, base_elevation, mat_path):
+                      width, base_elevation, mat_path, prev_step_height=None):
     """Create ascending stairs as stacked box prims.
 
     Each step is a solid cube from z=0 up to cumulative height,
     so there are no hollow gaps underneath.
+
+    If prev_step_height is given, the first TRANSITION_STEPS steps use
+    linearly interpolated riser heights to smooth the zone boundary.
 
     Args:
         stage: USD stage
@@ -58,6 +61,7 @@ def create_stair_zone(stage, zone_path, step_height, step_depth, num_steps,
         width: Width of stairs (Y-axis) in meters
         base_elevation: Starting elevation (top of previous zone)
         mat_path: Physics material prim path
+        prev_step_height: Previous zone's step height (None for zone 1)
 
     Returns:
         float: Final elevation at top of stairs (for chaining zones)
@@ -69,13 +73,20 @@ def create_stair_zone(stage, zone_path, step_height, step_depth, num_steps,
     current_z = base_elevation
 
     for s in range(num_steps):
+        # Determine this step's riser height
+        if prev_step_height is not None and s < TRANSITION_STEPS:
+            frac = (s + 1) / (TRANSITION_STEPS + 1)
+            riser = prev_step_height + (step_height - prev_step_height) * frac
+        else:
+            riser = step_height
+
         step_path = f"{zone_path}/step_{s}"
         cube = UsdGeom.Cube.Define(stage, step_path)
         cube.GetSizeAttr().Set(1.0)
 
         # X position: base + step index * depth + half depth
         step_x = s * step_depth + step_depth / 2.0
-        current_z += step_height
+        current_z += riser
         # Center of cube at half the total height from ground
         step_z = current_z / 2.0
 
@@ -92,41 +103,30 @@ def create_stair_zone(stage, zone_path, step_height, step_depth, num_steps,
         binding = UsdShade.MaterialBindingAPI.Apply(prim)
         binding.Bind(UsdShade.Material.Get(stage, mat_path))
 
+    # Fill gap at end of zone (33 × 0.30 = 9.9m, zone is 10m)
+    gap = ZONE_LENGTH - num_steps * step_depth
+    if gap > 0.001:
+        fill_path = f"{zone_path}/fill"
+        fill = UsdGeom.Cube.Define(stage, fill_path)
+        fill.GetSizeAttr().Set(1.0)
+        fill_x = num_steps * step_depth + gap / 2.0
+        fill_z = current_z / 2.0
+        xf = UsdGeom.Xformable(fill.GetPrim())
+        xf.AddTranslateOp().Set(Gf.Vec3d(fill_x, width / 2.0, fill_z))
+        xf.AddScaleOp().Set(Gf.Vec3d(gap, width, current_z))
+        fill.GetDisplayColorAttr().Set([Gf.Vec3f(0.55, 0.55, 0.52)])
+        p = fill.GetPrim()
+        UsdPhysics.CollisionAPI.Apply(p)
+        b = UsdShade.MaterialBindingAPI.Apply(p)
+        b.Bind(UsdShade.Material.Get(stage, mat_path))
+
     return current_z
-
-
-def _create_platform(stage, path, x_center, width, elevation, mat_path):
-    """Create a flat recovery platform between stair zones.
-
-    Args:
-        stage: USD stage
-        path: Prim path
-        x_center: Center X position
-        width: Y-axis width
-        elevation: Top surface height
-        mat_path: Physics material prim path
-    """
-    from pxr import UsdGeom, UsdPhysics, UsdShade, Gf
-
-    cube = UsdGeom.Cube.Define(stage, path)
-    cube.GetSizeAttr().Set(1.0)
-
-    xf = UsdGeom.Xformable(cube.GetPrim())
-    xf.AddTranslateOp().Set(Gf.Vec3d(x_center, width / 2.0, elevation / 2.0))
-    xf.AddScaleOp().Set(Gf.Vec3d(2.0, width, elevation))
-
-    cube.GetDisplayColorAttr().Set([Gf.Vec3f(0.50, 0.50, 0.48)])
-
-    prim = cube.GetPrim()
-    UsdPhysics.CollisionAPI.Apply(prim)
-    binding = UsdShade.MaterialBindingAPI.Apply(prim)
-    binding.Bind(UsdShade.Material.Get(stage, mat_path))
 
 
 def create_stairs_environment(stage, cfg=None):
     """Build the staircase environment.
 
-    Creates 5 zones of ascending stairs with 2m recovery platforms between zones.
+    Creates 5 zones of ascending stairs with smooth transition steps at boundaries.
     Each zone chains its base_elevation from the previous zone's final height.
 
     Args:
@@ -145,6 +145,7 @@ def create_stairs_environment(stage, cfg=None):
     mat_path = _create_step_material(stage)
 
     base_elevation = 0.0
+    prev_step_height = None
 
     for zone in zones:
         zone_idx = zone["zone"]
@@ -165,20 +166,14 @@ def create_stairs_environment(stage, cfg=None):
         )
 
         # Create steps within the zone (local coordinates)
+        # prev_step_height enables transition ramp at zone boundaries
         final_elevation = create_stair_zone(
             stage, zone_path, step_height, step_depth, num_steps,
-            ARENA_WIDTH, base_elevation, mat_path
+            ARENA_WIDTH, base_elevation, mat_path,
+            prev_step_height=prev_step_height,
         )
 
-        # Create recovery platform after this zone (between zones)
-        if zone_idx < len(zones):
-            platform_x = zone["x_end"] - 1.0  # 2m platform centered at zone boundary
-            platform_path = f"{root}/platform_{zone_idx}"
-            _create_platform(
-                stage, platform_path, platform_x, ARENA_WIDTH,
-                final_elevation, mat_path
-            )
-
+        prev_step_height = step_height
         base_elevation = final_elevation
 
     print(f"  Stairs environment: {len(zones)} zones")

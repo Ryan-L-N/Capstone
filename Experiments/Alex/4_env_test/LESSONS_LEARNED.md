@@ -263,7 +263,19 @@ _(To be filled during debug iterations)_
 _(To be filled during debug iterations)_
 
 ### Staircase Environment
-_(To be filled during debug iterations)_
+
+**Zone boundary walls from platforms (FIXED 2026-02-18)**
+- **Problem:** 2m "recovery platforms" between zones created visible walls. Each platform was a solid cube from z=0 to the zone's full cumulative height, but its leading edge overlapped with steps that were much shorter — creating a ~20cm+ vertical wall face at each zone boundary.
+- **Fix:** Removed platforms entirely. Replaced with 5 transition steps at the start of zones 2-5 that linearly interpolate riser heights from the previous zone to the current zone. Also added 0.1m fill cubes at zone ends (33 steps × 0.30m = 9.9m < 10.0m zone width).
+- **Key numbers:**
+  - `TRANSITION_STEPS = 5`, fractions 1/6 through 5/6
+  - Max riser increment at boundaries: `(curr_h - prev_h) / 6` ≈ 8.3mm
+  - Total elevation: 20.95m (was 21.45m without transitions)
+  - Both USD geometry (`stairs_env.py`) and elevation function (`zone_params.py:get_stair_elevation()`) use the same transition logic
+
+**Floating-point precision in elevation calculations**
+- **Problem:** Adding step_height in a loop (0.03 × 33 = 0.9900000000000007) vs multiplication (0.03 * 33 = 0.99) caused `test_monotonically_increasing` to fail — elevation appeared to decrease at zone boundaries.
+- **Fix:** Use multiplication (`step_height * steps_climbed`) for non-transition steps, not a per-step accumulation loop.
 
 ---
 

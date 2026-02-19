@@ -13,6 +13,7 @@ ZONE_LENGTH = 10.0  # meters per zone
 ARENA_WIDTH = 30.0  # meters (Y-axis)
 ARENA_LENGTH = 50.0  # meters (X-axis)
 NUM_ZONES = 5
+TRANSITION_STEPS = 5  # gradual height ramp at start of zones 2-5
 
 ZONE_PARAMS = {
     "friction": [
@@ -54,11 +55,26 @@ BOULDER_SHAPES = {
 }
 
 
+def _transition_riser(prev_h, curr_h, step_idx):
+    """Riser height for a transition step (linear interpolation).
+
+    With TRANSITION_STEPS=5, fractions are 1/6, 2/6, ..., 5/6 of the way
+    from prev_h to curr_h, so the maximum jump between any two
+    consecutive steps is (curr_h - prev_h) / 6.
+    """
+    frac = (step_idx + 1) / (TRANSITION_STEPS + 1)
+    return prev_h + (curr_h - prev_h) * frac
+
+
 def get_stair_elevation(x_pos):
     """Compute expected stair surface height at a given X position.
 
     Walks through stair zones cumulatively — each zone's base elevation
     starts where the previous zone ended (steps chain upward).
+
+    Zones 2-5 have 5 transition steps at their start whose riser heights
+    linearly ramp from the previous zone's step_height to the current one,
+    smoothing out the height jump at zone boundaries.
 
     Args:
         x_pos: Robot X position in meters (0-50m arena).
@@ -68,6 +84,7 @@ def get_stair_elevation(x_pos):
     """
     zones = ZONE_PARAMS["stairs"]
     cumulative_height = 0.0
+    prev_step_height = None
 
     for zone in zones:
         x_start = zone["x_start"]
@@ -81,13 +98,27 @@ def get_stair_elevation(x_pos):
 
         if x_pos >= x_end:
             # Past this zone — add all steps
-            cumulative_height += step_height * num_steps
+            if prev_step_height is not None:
+                for t in range(TRANSITION_STEPS):
+                    cumulative_height += _transition_riser(prev_step_height, step_height, t)
+                cumulative_height += step_height * (num_steps - TRANSITION_STEPS)
+            else:
+                cumulative_height += step_height * num_steps
+            prev_step_height = step_height
             continue
 
         # Within this zone — compute partial elevation
         local_x = x_pos - x_start
         steps_climbed = min(int(local_x / step_depth), num_steps)
-        cumulative_height += step_height * steps_climbed
+
+        if prev_step_height is not None and steps_climbed > 0:
+            n_trans = min(steps_climbed, TRANSITION_STEPS)
+            for s in range(n_trans):
+                cumulative_height += _transition_riser(prev_step_height, step_height, s)
+            cumulative_height += step_height * (steps_climbed - n_trans)
+        else:
+            cumulative_height += step_height * steps_climbed
+
         return cumulative_height
 
     return cumulative_height

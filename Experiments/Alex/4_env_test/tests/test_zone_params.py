@@ -3,7 +3,7 @@
 import pytest
 from configs.zone_params import (
     ZONE_PARAMS, ZONE_LENGTH, ARENA_WIDTH, ARENA_LENGTH, NUM_ZONES,
-    BOULDER_SHAPES, get_stair_elevation,
+    BOULDER_SHAPES, TRANSITION_STEPS, get_stair_elevation,
 )
 
 
@@ -139,19 +139,19 @@ class TestGetStairElevation:
         assert get_stair_elevation(-5.0) == pytest.approx(0.0)
 
     def test_zone1_end(self):
-        """Zone 1: 33 steps × 0.03m = 0.99m."""
+        """Zone 1: 33 steps × 0.03m = 0.99m (no transitions for first zone)."""
         elev = get_stair_elevation(10.0)
         assert elev == pytest.approx(0.99, abs=0.01)
 
     def test_zone2_end(self):
-        """Zone 2: 0.99 + 33 × 0.08 = 3.63m."""
+        """Zone 2: 0.99 + 5 transition steps + 28 × 0.08 = 3.505m."""
         elev = get_stair_elevation(20.0)
-        assert elev == pytest.approx(3.63, abs=0.01)
+        assert elev == pytest.approx(3.505, abs=0.01)
 
     def test_zone5_end(self):
-        """Full arena: 0.99+2.64+4.29+5.94+7.59 = 21.45m."""
+        """Full arena with transition steps: ~20.95m."""
         elev = get_stair_elevation(50.0)
-        assert elev == pytest.approx(21.45, abs=0.01)
+        assert elev == pytest.approx(20.95, abs=0.01)
 
     def test_mid_zone1(self):
         """At x=1.5m in zone 1: 5 steps × 0.03m = 0.15m."""
@@ -169,4 +169,17 @@ class TestGetStairElevation:
     def test_beyond_arena(self):
         """Past x=50m should return max elevation."""
         elev = get_stair_elevation(60.0)
-        assert elev == pytest.approx(21.45, abs=0.01)
+        assert elev == pytest.approx(20.95, abs=0.01)
+
+    def test_transition_steps_exist(self):
+        assert TRANSITION_STEPS == 5
+
+    def test_zone_boundary_smooth(self):
+        """Step height at zone 1→2 boundary should be smaller than zone 2's step_height."""
+        # Elevation at x=10.0 (last step of zone 1)
+        elev_before = get_stair_elevation(10.0)
+        # First step of zone 2 (transition step, riser < 0.08m)
+        elev_after = get_stair_elevation(10.3)
+        riser = elev_after - elev_before
+        zone2_step_h = ZONE_PARAMS["stairs"][1]["step_height"]  # 0.08
+        assert riser < zone2_step_h, f"First step in zone 2 is {riser:.4f}m, not smoothed"
