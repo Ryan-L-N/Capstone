@@ -23,7 +23,7 @@ POLICIES=("flat" "rough")
 ENVIRONMENTS=("friction" "grass" "boulder" "stairs")
 
 DEBUG_EPISODES=5
-PROD_EPISODES=1000
+PROD_EPISODES=100
 PROD_OUTPUT="$PROJECT_DIR/results/full_${TIMESTAMP}"
 
 # --- Environment setup ---
