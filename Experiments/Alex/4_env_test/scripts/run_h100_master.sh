@@ -87,7 +87,8 @@ for POLICY in "${POLICIES[@]}"; do
 
         COMBO_START=$(date +%s)
 
-        if ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
+        # 300s timeout: generous for 5 episodes (~3.5 min + startup)
+        if timeout 300 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
             --num_episodes "$DEBUG_EPISODES" \
             --policy "$POLICY" \
             --env "$ENV" \
@@ -105,6 +106,9 @@ for POLICY in "${POLICIES[@]}"; do
             DEBUG_RESULTS+=("FAIL: $COMBO (${COMBO_TIME}s)")
             DEBUG_FAILED=$((DEBUG_FAILED + 1))
         fi
+        # Clean up any lingering processes between combos
+        pkill -f "run_capstone_eval.py.*--env $ENV.*--policy $POLICY" 2>/dev/null || true
+        sleep 2
         echo ""
     done
 done
@@ -164,7 +168,8 @@ for POLICY in "${POLICIES[@]}"; do
 
         COMBO_START=$(date +%s)
 
-        if ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
+        # 7200s (2hr) timeout: generous for 100 episodes (~70 min + startup)
+        if timeout 7200 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
             --num_episodes "$PROD_EPISODES" \
             --policy "$POLICY" \
             --env "$ENV" \
@@ -184,6 +189,9 @@ for POLICY in "${POLICIES[@]}"; do
             PROD_RESULTS+=("FAIL: $COMBO (${COMBO_MIN}min)")
             PROD_FAILED=$((PROD_FAILED + 1))
         fi
+        # Clean up any lingering processes between combos
+        pkill -f "run_capstone_eval.py.*--env $ENV.*--policy $POLICY" 2>/dev/null || true
+        sleep 2
         echo ""
     done
 done

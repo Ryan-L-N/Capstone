@@ -72,8 +72,11 @@ for POLICY in "${POLICIES[@]}"; do
 
         cd ~/IsaacLab 2>/dev/null || cd "$PROJECT_DIR"
 
-        if ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
-            --num_envs "$NUM_ENVS" \
+        # Use timeout to prevent Isaac Sim shutdown hangs from blocking
+        # the entire pipeline.  600s = 10 min safety margin per combo.
+        # The os._exit(0) fix in run_capstone_eval.py should prevent
+        # hangs, but this is a belt-and-suspenders safety net.
+        if timeout 600 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
             --num_episodes "$NUM_EPISODES" \
             --policy "$POLICY" \
             --env "$ENV" \
@@ -81,8 +84,12 @@ for POLICY in "${POLICIES[@]}"; do
             2>&1 | tee "$LOG_FILE"; then
             echo "  PASSED: ${ENV}_${POLICY}"
         else
-            echo "  FAILED: ${ENV}_${POLICY} (exit code $?)"
+            EXIT_CODE=$?
+            echo "  FAILED: ${ENV}_${POLICY} (exit code $EXIT_CODE)"
             FAILED=$((FAILED + 1))
+            # Kill any lingering Isaac Sim processes from this combo
+            pkill -f "run_capstone_eval.py.*--env $ENV.*--policy $POLICY" 2>/dev/null || true
+            sleep 5
         fi
     done
 done

@@ -56,13 +56,16 @@ echo ""
 
 cd ~/IsaacLab 2>/dev/null || cd "$PROJECT_DIR"
 
-./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
-    --num_envs "$NUM_ENVS" \
+# Timeout safety net: 300s (5 min) is generous for 5 episodes (~3.5 min)
+timeout 300 ./isaaclab.sh -p "$PROJECT_DIR/src/run_capstone_eval.py" --headless \
     --num_episodes "$NUM_EPISODES" \
     --policy "$POLICY" \
     --env "$ENV" \
     --output_dir "$OUTPUT_DIR" \
     2>&1 | tee "$OUTPUT_DIR/debug_${ENV}_${POLICY}_${TIMESTAMP}.log"
+
+# Clean up any lingering processes
+pkill -f "run_capstone_eval.py.*--env $ENV.*--policy $POLICY" 2>/dev/null || true
 
 echo ""
 echo "============================================"

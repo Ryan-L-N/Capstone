@@ -54,6 +54,22 @@ Run `scripts/debug_5iter.sh` before each production run. Document every issue fo
 - **Fix applied:** Added "Never Kill Isaac Sim Mid-Run" lesson. Server required physical power cycle.
 - **Prevention:** Always use Ctrl-C inside screen, never `screen -X quit`
 
+### Iteration 6 — 2026-02-19 (Zombie Process Fix)
+- **Environment tested:** friction (flat) — revalidation after fix
+- **Policy tested:** flat
+- **Issue found:** `simulation_app.close()` causes D-state zombie after every run
+- **Root cause:** PhysX/CUDA driver teardown deadlocks in kernel — unkillable even by SIGKILL
+- **Fix applied:** 3-layer defense:
+  1. `os._exit(0)` replaces `simulation_app.close()` in `run_capstone_eval.py`
+  2. Signal handler (SIGINT/SIGTERM) saves metrics then `os._exit(0)`
+  3. Shell scripts: `timeout` + `pkill -f` safety nets in all 3 scripts
+- **Files modified:**
+  - `src/run_capstone_eval.py` — signal handler + os._exit(0)
+  - `scripts/debug_5iter.sh` — timeout 300 + pkill cleanup
+  - `scripts/run_full_eval.sh` — timeout 600 + pkill cleanup
+  - `scripts/run_h100_master.sh` — timeout 300/7200 + pkill cleanup
+- **Verified fix:** [ ] Pending H100 revalidation
+
 ---
 
 ## Critical Deployment Notes
@@ -249,11 +265,20 @@ $env:OMNI_KIT_ACCEPT_EULA="YES"
 - Scripts use fallback: `conda activate env_isaaclab 2>/dev/null || conda activate isaaclab311`
 - Isaac Sim 5.1.0 requires Python 3.11
 
-### Never Kill Isaac Sim Mid-Run via Screen Quit
-- **Problem:** Killing a `screen` session (`screen -X quit`) while Isaac Sim is running leaves zombie (Z) and D-state (uninterruptible sleep) processes that hold GPU memory.
-- **Impact:** D-state processes cannot be killed (`kill -9` has no effect). The zombie holds GPU memory, and new Isaac Sim instances fail to initialize (`nvidia-smi -q` hangs during startup). `nvidia-smi --gpu-reset` also hangs. Even `sudo reboot` can hang indefinitely waiting for D-state processes.
-- **Fix:** Always use `Ctrl-C` inside screen to gracefully shutdown SimulationApp, or let the run complete naturally. If you must abort: attach to the screen (`screen -r`), send `Ctrl-C`, wait for "Simulation App Shutting Down", then exit.
+### Never Call `simulation_app.close()` — Use `os._exit(0)` Instead
+- **Problem:** `SimulationApp.close()` triggers GPU driver cleanup that enters a kernel-level D-state (uninterruptible sleep). The process becomes unkillable — `kill -9`, `Ctrl-C`, `SIGTERM` all fail. The zombie holds GPU memory (~4.5 GB), blocks `nvidia-smi --gpu-reset`, and even `sudo reboot` can hang indefinitely.
+- **Root cause:** PhysX/CUDA driver teardown sequence deadlocks in the kernel. This is an NVIDIA driver bug, not application code.
+- **Fix (3-layer defense):**
+  1. **Code:** Replace `simulation_app.close()` with `os._exit(0)` at the end of `run_capstone_eval.py`. All data is already saved at this point, so skipping Python cleanup is safe.
+  2. **Signal handler:** `SIGINT`/`SIGTERM` handler saves pending metrics via `_metrics_collector_ref.save()` then calls `os._exit(0)`. This makes `Ctrl-C` and `kill` safe.
+  3. **Shell scripts:** `timeout` wrapper (300s debug, 7200s production) + `pkill -f` cleanup between combos. Belt-and-suspenders safety net.
 - **Recovery:** If D-state processes are stuck, the only fix is a **physical power cycle** (IPMI/BMC or power button). Software reboot will hang.
+- **Discovered:** 2026-02-19, friction_flat debug run. PID 3091 entered D-state after 5 episodes completed successfully. Required physical server reboot.
+
+### Never Kill Isaac Sim Mid-Run via Screen Quit
+- **Problem:** Killing a `screen` session (`screen -X quit`) while Isaac Sim is running leaves zombie (Z) and D-state processes that hold GPU memory.
+- **Impact:** Same D-state issue as above — unkillable, blocks GPU reset and reboot.
+- **Fix:** Always use `Ctrl-C` inside screen (now safe with signal handler), or let the run complete naturally. If you must abort: attach to the screen (`screen -r`), send `Ctrl-C`, wait for "[SHUTDOWN] Force-exiting", then exit.
 
 ### GPU Performance
 - GPU temp: 34C idle -> ~49C at 8,192 envs

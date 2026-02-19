@@ -26,9 +26,38 @@ Reuses patterns from:
 
 # ── 0. Parse args BEFORE any Isaac imports ──────────────────────────────
 import argparse
+import signal
 import sys
 import os
 import time
+
+
+# ── Signal handler for graceful Ctrl-C shutdown ─────────────────────────
+# Isaac Sim's SimulationApp.close() can hang in GPU driver cleanup,
+# leaving unkillable D-state zombie processes.  This handler saves any
+# pending metrics and exits immediately via os._exit() to avoid that.
+_metrics_collector_ref = None  # set in main() so handler can save data
+
+
+def _graceful_shutdown(signum, frame):
+    """Handle SIGINT/SIGTERM: save data and force-exit."""
+    sig_name = signal.Signals(signum).name
+    print(f"\n[SHUTDOWN] Caught {sig_name} — saving data and exiting...",
+          flush=True)
+    if _metrics_collector_ref is not None:
+        try:
+            _metrics_collector_ref.save()
+            print("[SHUTDOWN] Metrics saved.", flush=True)
+        except Exception as e:
+            print(f"[SHUTDOWN] Warning: could not save metrics: {e}",
+                  flush=True)
+    print("[SHUTDOWN] Force-exiting (skipping SimulationApp.close).",
+          flush=True)
+    os._exit(0)
+
+
+signal.signal(signal.SIGINT, _graceful_shutdown)
+signal.signal(signal.SIGTERM, _graceful_shutdown)
 
 parser = argparse.ArgumentParser(description="Capstone 4-environment evaluation")
 parser.add_argument("--env", type=str, required=True,
@@ -178,6 +207,10 @@ def main():
     )
     os.makedirs(args.output_dir, exist_ok=True)
 
+    # Wire up signal handler so Ctrl-C / kill can save pending data
+    global _metrics_collector_ref
+    _metrics_collector_ref = metrics_collector
+
     # ── 8. Stabilization period ─────────────────────────────────────────
     print("Stabilizing robot...", flush=True)
     for _ in range(STABILIZE_STEPS):
@@ -284,7 +317,15 @@ def main():
     print(f"{'='*60}\n")
 
     # ── 11. Cleanup ─────────────────────────────────────────────────────
-    simulation_app.close()
+    # NOTE: simulation_app.close() is intentionally skipped.
+    # It triggers GPU driver cleanup that can hang indefinitely in a
+    # kernel-level D-state, creating unkillable zombie processes that
+    # block subsequent runs and may require a physical server reboot.
+    # All data is already saved above, so os._exit(0) is safe.
+    # See LESSONS_LEARNED.md "Never Kill Isaac Sim Mid-Run" for details.
+    print("Exiting (skipping SimulationApp.close to avoid GPU hang).",
+          flush=True)
+    os._exit(0)
 
 
 if __name__ == "__main__":
