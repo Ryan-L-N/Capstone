@@ -222,7 +222,7 @@ def plot_progress_boxplots(episodes, output_dir):
             eps = groups.get((env, policy), [])
             data.append([e["progress"] for e in eps])
             labels.append(policy.capitalize())
-        ax.boxplot(data, labels=labels)
+        ax.boxplot(data, tick_labels=labels)
         ax.set_title(env.capitalize())
         ax.set_ylabel("Progress (m)")
 

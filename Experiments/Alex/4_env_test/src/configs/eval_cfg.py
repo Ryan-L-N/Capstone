@@ -12,7 +12,7 @@ CONTROL_DT = 1.0 / 50.0        # 50 Hz control (decimation = 10)
 DECIMATION = 10
 
 # --- Episode ---
-EPISODE_TIMEOUT = 120.0         # seconds per episode
+EPISODE_TIMEOUT = 600.0         # seconds per episode
 MAX_CONTROL_STEPS = int(EPISODE_TIMEOUT / CONTROL_DT)  # 6000
 FALL_THRESHOLD = 0.15           # meters — base height below this = fall
 COMPLETION_X = 49.0             # meters — x >= this = completed
