@@ -1,0 +1,2365 @@
+Starting kit application with the following args:  ['C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim\\exts\\isaacsim.simulation_app\\isaacsim\\simulation_app\\simulation_app.py', 'C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim\\apps/isaacsim.exp.base.python.kit', '--/app/tokens/exe-path=C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim\\kit', '--/persistent/app/viewport/displayOptions=3094', '--/rtx/materialDb/syncLoads=True', '--/rtx/hydra/materialSyncLoads=True', '--/omni.kit.plugin/syncUsdLoads=True', '--/app/renderer/resolution/width=1920', '--/app/renderer/resolution/height=1080', '--/app/window/width=1440', '--/app/window/height=900', '--/renderer/multiGpu/enabled=True', '--/app/fastShutdown=True', '--/app/installSignalHandlers=0', '--ext-folder', 'C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim/exts', '--ext-folder', 'C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim/apps', '--/physics/cudaDevice=0', '--/plugins/carb.tasking.plugin/threadCount=22', '--/plugins/omni.tbb.globalcontrol/maxThreadCount=22', '--portable', '--no-window', '--/app/window/hideUi=1']
+Passing the following args to the base kit application:  ['--headless', '--num_episodes', '100', '--policy', 'rough', '--env', 'friction', '--output_dir', 'C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/parallel_2026-02-21_08-24-21']
+[Info] [carb] Logging to file: c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim Python/5.1/kit_20260221_131401.log
+2026-02-21T18:14:01Z [39ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\3ccdcd92-f8ab-4a0a-a189-815350e620b6.dmp'
+2026-02-21T18:14:01Z [60ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\47ec0a47-b3c3-426a-8745-bdda09069319.dmp'
+2026-02-21T18:14:01Z [80ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\2cf1286c-59b5-4eed-bc07-697b99970a9e.dmp'
+2026-02-21T18:14:01Z [104ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\5a33d78b-bf55-474d-871f-d06bb2f4d658.dmp'
+2026-02-21T18:14:01Z [118ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\fbce512d-9d7e-434f-b1dc-1a1a791d4fe0.dmp'
+2026-02-21T18:14:01Z [118ms] [Warning] [carb.crashreporter-breakpad.plugin] Failed to parse toml file 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1/04192272-b39e-444e-a5bc-29660df52f57.dmp.toml': c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1/04192272-b39e-444e-a5bc-29660df52f57.dmp.toml could not be opened for parsing
+2026-02-21T18:14:01Z [118ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1/04192272-b39e-444e-a5bc-29660df52f57.dmp'
+2026-02-21T18:14:01Z [134ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\73d71a0e-427c-4863-9469-c62ecaf6830c.dmp'
+[0.599s] [ext: omni.kit.async_engine-0.0.3] startup
+[0.967s] [ext: omni.metrics.core-0.0.3] startup
+[0.969s] [ext: omni.client.lib-1.1.0] startup
+[0.992s] [ext: omni.blobkey-1.1.2] startup
+[0.993s] [ext: omni.stats-1.0.1] startup
+[0.996s] [ext: omni.datastore-0.0.0] startup
+[0.998s] [ext: omni.client-1.3.0] startup
+2026-02-21T18:14:02Z [914ms] [Warning] [carb.omniclient.plugin]  29412: OmniHub: ThreadId(03) Hub encountered error. Trying to reconnect to Hub. retry_reason="Hub failed to launch: Io(\"operation would block\")"
+[1.042s] [ext: omni.ujitso.default-1.0.0] startup
+[1.048s] [ext: omni.hsscclient-1.1.2] startup
+[1.097s] [ext: omni.gpu_foundation.shadercache.vulkan-1.0.0] startup
+[1.109s] [ext: omni.assets.plugins-0.0.0] startup
+[1.113s] [ext: omni.gpu_foundation-0.0.0] startup
+[1.143s] [ext: carb.windowing.plugins-1.0.0] startup
+[1.247s] [ext: omni.kit.renderer.init-0.0.0] startup
+[1.251s] [ext: omni.materialx.libs-1.0.7] startup
+[1.273s] [ext: omni.usd.config-1.0.6] startup
+[1.291s] [ext: omni.gpucompute.plugins-0.0.0] startup
+[1.295s] [ext: omni.usd.libs-1.0.1] startup
+[1.405s] [ext: omni.mdl-56.0.3] startup
+[2.031s] [ext: omni.iray.libs-0.0.0] startup
+[2.061s] [ext: omni.mdl.neuraylib-0.2.12] startup
+[2.098s] [ext: omni.kit.usd.mdl-1.1.5] startup
+[2.232s] [ext: omni.kit.pipapi-0.0.0] startup
+[2.234s] [ext: omni.services.pip_archive-0.16.0] startup
+[2.235s] [ext: omni.kit.loop-isaac-1.3.7] startup
+[2.238s] [ext: omni.kit.test-2.0.1] startup
+[2.623s] [ext: omni.kit.telemetry-0.5.2] startup
+[2.643s] [ext: omni.appwindow-1.1.10] startup
+[2.649s] [ext: omni.kit.renderer.core-1.1.0] startup
+[2.667s] [ext: omni.kit.renderer.capture-0.0.0] startup
+[2.679s] [ext: omni.kit.renderer.imgui-2.0.5] startup
+[2.701s] [ext: omni.ui-2.27.1] startup
+[2.719s] [ext: omni.kit.mainwindow-1.0.3] startup
+[2.723s] [ext: carb.audio-0.1.0] startup
+[2.725s] [ext: omni.uiaudio-1.0.0] startup
+[2.728s] [ext: omni.kit.uiapp-0.0.0] startup
+[2.728s] [ext: omni.usd.schema.metrics.assembler-107.3.1] startup
+[2.757s] [ext: omni.usd.schema.omniscripting-1.0.0] startup
+[2.787s] [ext: omni.usd.schema.anim-0.0.0] startup
+[2.861s] [ext: omni.usd.schema.geospatial-0.0.0] startup
+[2.970s] [ext: omni.usd.schema.semantics-0.0.0] startup
+[2.993s] [ext: omni.anim.behavior.schema-107.3.0] startup
+[3.032s] [ext: omni.usd.schema.physx-107.3.26] startup
+[3.079s] [ext: omni.usd.schema.audio-0.0.0] startup
+[3.111s] [ext: isaacsim.robot.schema-3.6.0] startup
+[3.150s] [ext: omni.usd_resolver-1.0.0] startup
+[3.162s] [ext: omni.usd.core-1.5.3] startup
+[3.164s] [ext: omni.usd.schema.omni_lens_distortion-0.0.0] startup
+[3.217s] [ext: omni.usd.schema.omnigraph-1.0.0] startup
+[3.253s] [ext: omni.graph.exec-0.9.6] startup
+[3.255s] [ext: omni.kit.actions.core-1.0.0] startup
+[3.263s] [ext: omni.kit.usd_undo-0.1.8] startup
+[3.265s] [ext: omni.kit.exec.core-0.13.4] startup
+[3.272s] [ext: omni.kit.commands-1.4.10] startup
+[3.283s] [ext: omni.kit.window.popup_dialog-2.0.24] startup
+[3.292s] [ext: omni.activity.core-1.0.3] startup
+[3.296s] [ext: omni.resourcemonitor-107.0.1] startup
+[3.302s] [ext: omni.timeline-1.0.14] startup
+[3.307s] [ext: omni.kit.widget.nucleus_connector-2.0.1] startup
+[3.313s] [ext: usdrt.scenegraph-7.6.1] startup
+[3.393s] [ext: omni.kit.audiodeviceenum-1.0.2] startup
+[3.400s] [ext: omni.hydra.usdrt_delegate-7.5.1] startup
+[3.415s] [ext: omni.hydra.scene_delegate-0.3.4] startup
+[3.420s] [ext: omni.usd-1.13.10] startup
+2026-02-21T18:14:04Z [3,339ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+2026-02-21T18:14:04Z [3,340ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+[3.517s] [ext: omni.inspect-1.0.2] startup
+[3.524s] [ext: omni.kit.notification_manager-1.0.10] startup
+[3.529s] [ext: omni.graph.core-2.184.5] startup
+[3.550s] [ext: isaacsim.core.deprecation_manager-0.2.7] startup
+[3.552s] [ext: omni.anim.navigation.schema-107.3.3] startup
+[3.578s] [ext: omni.kit.asset_converter-5.0.17] startup
+[3.592s] [ext: omni.usd.schema.isaac-3.0.5] startup
+[3.592s] [ext: omni.usd.schema.omni_sensors-0.0.0] startup
+[3.611s] [ext: omni.usd.schema.flow-107.1.1] startup
+[3.629s] [ext: omni.usd.schema.render_settings.rtx-0.0.0] startup
+[3.649s] [ext: omni.anim.graph.schema-107.3.3] startup
+[3.678s] [ext: omni.graph.tools-1.79.2] startup
+[3.808s] [ext: omni.graph-1.141.2] startup
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 573.44        | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA RTX 2000 Ada Generation.. | Yes: 0 |     | 7960    MB | 10de      | 56130100.. |
+|     |                                  |        |     |            | 28b8      | f9072558.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Graphics                |        |     | 18361   MB | 8086      | f50e0100.. |
+|     |                                  |        |     |            | 7dd5      | 8680d57d.. |
+|     |                                  |        |     |            | N/A       |            |
+|=============================================================================================|
+| OS: Windows 11 Pro, Version: 10.0 (25H2), Build: 26200, Kernel: 10.0.26100.7824
+| Processor: Intel(R) Core(TM) Ultra 9 185H
+| Cores: 16 | Logical Cores: 22
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 32212 | Free Memory: 9782
+| Total Page/Swap (MB): 59860 | Free Page/Swap: 22978
+|---------------------------------------------------------------------------------------------|
+[3.948s] [ext: omni.usd.metrics.assembler-107.3.1] startup
+2026-02-21T18:14:05Z [3,851ms] [Warning] [gpu.foundation.plugin] PCIe link generation current (3) and maximum (4) for device 0 don't match.
+[3.985s] [ext: omni.anim.curve.core-1.3.1] startup
+[4.027s] [ext: omni.kit.widget.path_field-2.0.11] startup
+[4.036s] [ext: omni.usd.metrics.assembler.physics-107.3.26] startup
+[4.043s] [ext: omni.kvdb-107.3.26] startup
+[4.048s] [ext: omni.kit.widget.browser_bar-2.0.10] startup
+[4.051s] [ext: omni.kit.clipboard-1.0.5] startup
+[4.055s] [ext: omni.physics-107.3.26] startup
+[4.061s] [ext: omni.localcache-107.3.26] startup
+[4.067s] [ext: omni.convexdecomposition-107.3.26] startup
+[4.074s] [ext: omni.kit.widget.options_menu-1.1.6] startup
+[4.085s] [ext: omni.usdphysics-107.3.26] startup
+[4.089s] [ext: omni.physx.foundation-107.3.26] startup
+[4.106s] [ext: omni.kit.helper.file_utils-0.1.9] startup
+[4.111s] [ext: omni.kit.menu.core-1.1.2] startup
+[4.114s] [ext: omni.physx.cooking-107.3.26] startup
+[4.119s] [ext: omni.ui.scene-1.11.5] startup
+[4.127s] [ext: omni.kit.widget.options_button-1.0.3] startup
+[4.130s] [ext: omni.kit.widget.filebrowser-2.12.3] startup
+[4.143s] [ext: omni.kit.widget.context_menu-1.2.5] startup
+[4.147s] [ext: omni.physx-107.3.26] startup
+[4.166s] [ext: omni.kit.window.filepicker-2.13.4] startup
+[4.212s] [ext: omni.kit.hotkeys.core-1.3.10] startup
+[4.223s] [ext: omni.kit.usd.layers-2.2.11] startup
+[4.240s] [ext: isaacsim.core.version-2.0.6] startup
+[4.243s] [ext: omni.physics.stageupdate-107.3.26] startup
+[4.249s] [ext: omni.physics.physx-107.3.26] startup
+2026-02-21T18:14:05Z [4,147ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+[4.252s] [ext: omni.kit.window.file_exporter-1.0.33] startup
+[4.260s] [ext: omni.kit.stage_template.core-1.1.22] startup
+[4.263s] [ext: omni.kit.window.drop_support-1.0.5] startup
+[4.265s] [ext: omni.kit.window.file_importer-1.1.18] startup
+[4.268s] [ext: omni.kit.window.content_browser_registry-0.0.6] startup
+[4.270s] [ext: omni.kit.widget.filter-1.1.4] startup
+[4.273s] [ext: omni.kit.window.file-2.0.5] startup
+[4.282s] [ext: omni.kit.menu.utils-2.0.5] startup
+[4.292s] [ext: omni.kit.numpy.common-0.1.3] startup
+[4.297s] [ext: omni.kit.window.content_browser-3.1.3] startup
+[4.504s] [ext: isaacsim.storage.native-1.5.1] startup
+[4.510s] [ext: omni.isaac.dynamic_control-2.0.7] startup
+2026-02-21T18:14:05Z [4,415ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+[4.520s] [ext: isaacsim.gui.content_browser-0.1.11] startup
+[4.529s] [ext: omni.hydra.rtx.shadercache.vulkan-1.0.0] startup
+[4.534s] [ext: omni.kit.manipulator.viewport-107.0.1] startup
+[4.538s] [ext: omni.index.libs-380600.8087.0] startup
+[4.539s] [ext: omni.graph.action_core-1.1.7] startup
+[4.545s] [ext: omni.volume-0.5.2] startup
+[4.553s] [ext: omni.ujitso.client-0.0.0] startup
+[4.555s] [ext: omni.index-1.0.1] startup
+[4.557s] [ext: omni.graph.action_nodes-1.50.4] startup
+[4.563s] [ext: omni.hydra.rtx-1.0.0] startup
+[4.646s] [ext: omni.kit.context_menu-1.8.6] startup
+[4.652s] [ext: omni.kit.raycast.query-1.1.0] startup
+[4.657s] [ext: omni.kit.material.library-2.0.7] startup
+[4.699s] [ext: omni.hydra.engine.stats-1.0.3] startup
+[4.709s] [ext: omni.kit.viewport.scene_camera_model-1.0.6] startup
+[4.712s] [ext: omni.kit.hydra_texture-1.4.6] startup
+[4.717s] [ext: omni.kit.viewport.registry-104.0.6] startup
+[4.719s] [ext: omni.kit.widget.searchfield-1.1.8] startup
+[4.724s] [ext: omni.kit.widget.viewport-107.1.3] startup
+[4.740s] [ext: omni.kit.viewport.legacy_gizmos-1.0.19] startup
+[4.742s] [ext: omni.kit.widget.stage_icons-1.0.8] startup
+[4.745s] [ext: omni.kit.widget.stage-3.1.4] startup
+[4.796s] [ext: omni.kit.viewport.window-107.2.0] startup
+[4.853s] [ext: omni.kit.window.stage-2.6.1] startup
+[4.861s] [ext: omni.kit.viewport.utility-1.1.2] startup
+[4.863s] [ext: omni.kit.menu.stage-1.2.7] startup
+[4.865s] [ext: omni.graph.visualization.nodes-2.1.3] startup
+[4.948s] [ext: omni.graph.action-1.130.0] startup
+[4.951s] [ext: omni.kit.widget.zoombar-1.0.6] startup
+[4.956s] [ext: omni.kit.widget.prompt-1.0.7] startup
+[4.960s] [ext: omni.kit.usd.collect-2.4.5] startup
+[4.968s] [ext: omni.kit.browser.core-2.3.13] startup
+[4.984s] [ext: omni.kit.tool.collect-2.2.18] startup
+[4.993s] [ext: omni.kit.browser.folder.core-1.10.9] startup
+[5.011s] [ext: omni.kit.property.adapter.core-1.0.2] startup
+[5.036s] [ext: omni.kit.window.extensions-1.4.27] startup
+[5.054s] [ext: omni.kit.widget.highlight_label-1.0.3] startup
+[5.056s] [ext: omni.kit.property.adapter.usd-1.0.2] startup
+[5.061s] [ext: omni.ui_query-1.1.8] startup
+[5.064s] [ext: omni.kit.window.property-1.12.1] startup
+[5.072s] [ext: omni.kit.property.adapter.fabric-1.0.3] startup
+[5.077s] [ext: omni.kit.usdz_export-1.0.9] startup
+[5.082s] [ext: omni.kit.ui_test-1.3.7] startup
+[5.088s] [ext: omni.kit.property.usd-4.5.12] startup
+[5.134s] [ext: omni.kit.tool.asset_importer-4.3.2] startup
+[5.152s] [ext: isaacsim.gui.components-1.2.1] startup
+[5.163s] [ext: isaacsim.examples.browser-0.2.1] startup
+[5.172s] [ext: isaacsim.asset.importer.urdf-2.4.30] startup
+[5.332s] [ext: omni.kit.widget.searchable_combobox-1.0.6] startup
+[5.346s] [ext: omni.kit.widget.graph-2.0.0] startup
+[5.365s] [ext: omni.kit.menu.create-2.0.1] startup
+[5.371s] [ext: omni.physics.tensors-107.3.26] startup
+[5.383s] [ext: omni.warp.core-1.8.2] startup
+[5.728s] [ext: omni.kit.graph.delegate.default-1.2.3] startup
+[5.731s] [ext: omni.kit.scripting-107.3.2] startup
+[5.783s] [ext: omni.physx.tensors-107.3.26] startup
+[5.787s] [ext: isaacsim.core.utils-3.5.1] startup
+[5.793s] [ext: omni.anim.asset-107.3.0] startup
+[5.796s] [ext: isaacsim.core.simulation_manager-1.4.4] startup
+[14.416s] [ext: omni.graph.scriptnode-1.50.0] startup
+[14.420s] [ext: omni.kit.graph.editor.core-1.5.3] startup
+[14.430s] [ext: omni.kit.widget.settings-1.2.6] startup
+[14.435s] [ext: omni.kit.primitive.mesh-1.0.17] startup
+[14.445s] [ext: isaacsim.core.prims-0.6.1] startup
+[14.493s] [ext: omni.kit.widget.material_preview-1.0.16] startup
+[14.500s] [ext: omni.kit.graph.usd.commands-1.3.1] startup
+[14.502s] [ext: omni.graph.image.core-0.6.1] startup
+[14.504s] [ext: omni.kit.window.preferences-1.8.0] startup
+[14.519s] [ext: omni.kit.stage_templates-2.0.0] startup
+[14.525s] [ext: isaacsim.asset.browser-1.3.23] startup
+[14.631s] [ext: omni.graph.image.nodes-1.3.1] startup
+[14.635s] [ext: omni.kit.viewport.menubar.core-107.2.1] startup
+[14.667s] [ext: isaacsim.core.api-4.8.0] startup
+[14.699s] [ext: omni.kit.window.material_graph-1.9.1] startup
+[14.723s] [ext: omni.kit.viewport.actions-107.0.2] startup
+[14.731s] [ext: omni.graph.nodes-1.170.10] startup
+[14.745s] [ext: omni.syntheticdata-0.6.13] startup
+[14.838s] [ext: omni.isaac.assets_check-0.3.13] startup
+2026-02-21T18:14:16Z [14,737ms] [Warning] [omni.isaac.assets_check] omni.isaac.assets_check has been deprecated in favor of isaacsim.asset.browser. Please update your code accordingly.
+[14.841s] [ext: isaacsim.core.cloner-1.4.10] startup
+[14.848s] [ext: omni.kit.viewport.menubar.display-107.0.3] startup
+[14.857s] [ext: omni.graph.ui_nodes-1.50.5] startup
+[14.864s] [ext: omni.videoencoding-0.1.2] startup
+[14.877s] [ext: omni.isaac.cloner-1.0.7] startup
+2026-02-21T18:14:16Z [14,775ms] [Warning] [omni.isaac.cloner] omni.isaac.cloner has been deprecated in favor of isaacsim.core.cloner. Please update your code accordingly.
+[14.884s] [ext: isaacsim.gui.sensors.icon-2.0.3] startup
+[14.930s] [ext: omni.warp-1.8.2] startup
+[14.969s] [ext: omni.anim.retarget.core-107.3.3] startup
+[15.015s] [ext: omni.debugdraw-0.1.4] startup
+[15.021s] [ext: omni.replicator.core-1.12.27] startup
+2026-02-21T18:14:16Z [14,938ms] [Warning] [pxr.Semantics] pxr.Semantics is deprecated - please use Semantics instead
+Warp 1.8.2 initialized:
+   CUDA Toolkit 12.8, Driver 12.8
+   Devices:
+     "cpu"      : "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel"
+     "cuda:0"   : "NVIDIA RTX 2000 Ada Generation Laptop GPU" (8 GiB, sm_89, mempool enabled)
+   Kernel cache:
+     C:\Users\Gabriel Santiago\AppData\Local\NVIDIA\warp\Cache\1.8.2
+2026-02-21T18:14:16Z [15,197ms] [Warning] [omni.graph.core.plugin] Found duplicate of category 'Replicator' - was 'Annotators', adding 'Fabric Reader'
+2026-02-21T18:14:16Z [15,197ms] [Warning] [omni.graph.core.plugin] Category 'Replicator' not accepted on node type 'omni.replicator.core.FabricReader' in extension 'omni.replicator.core'
+2026-02-21T18:14:16Z [15,199ms] [Warning] [omni.replicator.core.scripts.extension] No material configuration file, adding configuration to material settings directly.
+[15.338s] [ext: omni.kit.quicklayout-1.0.8] startup
+[15.341s] [ext: omni.anim.navigation.core-107.3.8] startup
+[15.355s] [ext: omni.anim.graph.core-107.3.4] startup
+[15.392s] [ext: omni.metropolis.utils-0.1.20] startup
+[15.443s] [ext: isaacsim.asset.importer.mjcf-2.5.13] startup
+2026-02-21T18:14:16Z [15,354ms] [Warning] [omni.graph.core._impl._registration.register_python_ogn] Python import process in omni.anim.graph.core failed - 'NoneType' object is not subscriptable. Aborting Python node registration
+[15.462s] [ext: omni.anim.people-0.7.9] startup
+[15.495s] [ext: isaacsim.test.docstring-1.1.0] startup
+[15.510s] [ext: isaacsim.core.experimental.utils-0.3.0] startup
+[15.520s] [ext: isaacsim.anim.robot-0.0.15] startup
+[15.865s] [ext: isaacsim.core.experimental.prims-0.8.1] startup
+[15.993s] [ext: isaacsim.core.nodes-3.4.3] startup
+[16.066s] [ext: omni.flowusd-107.1.8] startup
+2026-02-21T18:14:17Z [15,968ms] [Warning] [omni.stageupdate.plugin] Deprecated: direct use of IStageUpdate callbacks is deprecated. Use IStageUpdate::getStageUpdate instead.
+[16.097s] [ext: omni.sensors.nv.common-3.0.0] startup
+[16.124s] [ext: isaacsim.core.experimental.materials-0.4.0] startup
+[16.143s] [ext: omni.isaac.core-4.0.7] startup
+2026-02-21T18:14:17Z [16,043ms] [Warning] [omni.isaac.core.physics_context.physics_context] omni.isaac.core.physics_context.physics_context has been deprecated in favor of isaacsim.core.api.physics_context.physics_context. Please update your code accordingly.
+2026-02-21T18:14:17Z [16,044ms] [Warning] [omni.isaac.core.simulation_context.simulation_context] omni.isaac.core.simulation_context.simulation_context has been deprecated in favor of isaacsim.core.api.simulation_context.simulation_context. Please update your code accordingly.
+2026-02-21T18:14:17Z [16,045ms] [Warning] [omni.isaac.core.world.world] omni.isaac.core.world.world has been deprecated in favor of isaacsim.core.api.world.world. Please update your code accordingly.
+2026-02-21T18:14:17Z [16,045ms] [Warning] [omni.isaac.core] omni.isaac.core has been deprecated in favor of isaacsim.core.api. Please update your code accordingly.
+[16.150s] [ext: isaacsim.replicator.incident-0.1.28] startup
+[isaacsim.replicator.incident] started
+[16.384s] [ext: omni.sensors.net-1.0.0] startup
+[16.407s] [ext: omni.sensors.nv.materials-2.0.0] startup
+[16.422s] [ext: isaacsim.sensors.camera-1.3.6] startup
+[16.496s] [ext: omni.sensors.nv.wpm-3.0.0] startup
+[16.501s] [ext: isaacsim.util.debug_draw-3.1.0] startup
+[16.532s] [ext: omni.sensors.nv.ids-2.0.0] startup
+[16.581s] [ext: omni.sensors.nv.lidar-3.0.0] startup
+[16.592s] [ext: omni.sensors.nv.radar-3.0.0] startup
+[16.616s] [ext: isaacsim.sensors.physics-0.4.3] startup
+[16.673s] [ext: isaacsim.robot_motion.lula-4.0.8] startup
+[16.729s] [ext: isaacsim.robot.surface_gripper-3.3.1] startup
+Warp DeprecationWarning: The `warp.sim` module is deprecated and will be removed in v1.10. Please transition to using the forthcoming Newton library instead.
+[16.764s] [ext: isaacsim.sensors.rtx-15.8.4] startup
+[16.806s] [ext: omni.kit.mesh.raycast-107.0.1] startup
+[16.818s] [ext: isaacsim.robot_motion.motion_generation-8.0.26] startup
+[16.863s] [ext: isaacsim.robot.manipulators-3.3.6] startup
+[16.877s] [ext: isaacsim.core.experimental.objects-0.4.0] startup
+[16.897s] [ext: omni.isaac.core_nodes-2.0.6] startup
+2026-02-21T18:14:18Z [16,800ms] [Warning] [omni.isaac.core_nodes] omni.isaac.core_nodes has been deprecated in favor of isaacsim.core.nodes. Please update your code accordingly.
+[16.904s] [ext: isaacsim.replicator.agent.core-0.7.28] startup
+[16.940s] [ext: isaacsim.robot.manipulators.examples-1.1.2] startup
+[16.950s] [ext: isaacsim.simulation_app-2.12.2] startup
+[16.950s] [ext: omni.kit.selection-0.1.6] startup
+[16.960s] [ext: omni.isaac.franka-1.0.7] startup
+2026-02-21T18:14:18Z [16,859ms] [Warning] [omni.isaac.franka] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.franka. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,860ms] [Warning] [omni.isaac.franka.franka] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.franka. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,913ms] [Warning] [omni.isaac.franka.kinematics_solver] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.franka. Please update your code accordingly.
+[17.017s] [ext: isaacsim.robot_motion.lula_test_widget-1.0.12] startup
+[17.025s] [ext: omni.isaac.kit-2.0.6] startup
+2026-02-21T18:14:18Z [16,926ms] [Warning] [omni.isaac.kit] omni.isaac.kit has been deprecated in favor of isaacsim.simulation_app. Please update your code accordingly.
+[17.030s] [ext: isaacsim.gui.menu-2.4.4] startup
+[17.043s] [ext: omni.isaac.asset_browser-1.0.6] startup
+2026-02-21T18:14:18Z [16,942ms] [Warning] [omni.isaac.asset_browser] omni.isaac.asset_browser has been deprecated in favor of isaacsim.asset.browser. Please update your code accordingly.
+[17.047s] [ext: omni.isaac.lula_test_widget-1.0.6] startup
+2026-02-21T18:14:18Z [16,949ms] [Warning] [omni.isaac.lula_test_widget] omni.isaac.lula_test_widget has been deprecated in favor of isaacsim.robot_motion.lula_test_widget. Please update your code accordingly.
+[17.054s] [ext: omni.isaac.manipulators-3.0.7] startup
+2026-02-21T18:14:18Z [16,952ms] [Warning] [omni.isaac.manipulators] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,952ms] [Warning] [omni.isaac.manipulators.controllers] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,953ms] [Warning] [omni.isaac.manipulators.controllers.pick_place_controller] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,955ms] [Warning] [omni.isaac.manipulators.controllers.stacking_controller] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,955ms] [Warning] [omni.isaac.manipulators.grippers] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,956ms] [Warning] [omni.isaac.manipulators.grippers.gripper] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,956ms] [Warning] [omni.isaac.manipulators.grippers.parallel_gripper] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,957ms] [Warning] [omni.isaac.manipulators.grippers.surface_gripper] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,957ms] [Warning] [omni.isaac.manipulators.manipulators] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,958ms] [Warning] [omni.isaac.manipulators.manipulators.single_manipulator] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+[17.062s] [ext: omni.isaac.menu-1.0.6] startup
+2026-02-21T18:14:18Z [16,962ms] [Warning] [omni.isaac.menu] omni.isaac.menu has been deprecated in favor of isaacsim.gui.menu. Please update your code accordingly.
+[17.067s] [ext: isaacsim.robot.policy.examples-4.1.11] startup
+[17.076s] [ext: isaacsim.sensors.physx-2.3.2] startup
+[17.088s] [ext: omni.isaac.motion_generation-8.0.7] startup
+2026-02-21T18:14:18Z [16,988ms] [Warning] [omni.isaac.motion_generation] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,988ms] [Warning] [omni.isaac.motion_generation.articulation_kinematics_solver] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,989ms] [Warning] [omni.isaac.motion_generation.articulation_motion_policy] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,990ms] [Warning] [omni.isaac.motion_generation.articulation_trajectory] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,991ms] [Warning] [omni.isaac.motion_generation.kinematics_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,991ms] [Warning] [omni.isaac.motion_generation.lula] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,992ms] [Warning] [omni.isaac.motion_generation.lula.kinematics] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,993ms] [Warning] [omni.isaac.motion_generation.lula.motion_policies] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,995ms] [Warning] [omni.isaac.motion_generation.lula.path_planners] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,996ms] [Warning] [omni.isaac.motion_generation.lula.trajectory_generator] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,997ms] [Warning] [omni.isaac.motion_generation.motion_policy_controller] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,997ms] [Warning] [omni.isaac.motion_generation.motion_policy_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,998ms] [Warning] [omni.isaac.motion_generation.path_planner_visualizer] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,998ms] [Warning] [omni.isaac.motion_generation.path_planning_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,999ms] [Warning] [omni.isaac.motion_generation.trajectory] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-21T18:14:18Z [16,999ms] [Warning] [omni.isaac.motion_generation.world_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+[17.104s] [ext: omni.isaac.nucleus-1.0.6] startup
+2026-02-21T18:14:18Z [17,003ms] [Warning] [omni.isaac.nucleus] omni.isaac.nucleus has been deprecated in favor of isaacsim.storage.native. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,005ms] [Warning] [omni.isaac.nucleus.nucleus] omni.isaac.nucleus.nucleus has been deprecated in favor of isaacsim.storage.native. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,006ms] [Warning] [omni.ext._impl._internal] Found class `Extension` derived from `omni.ext.IExt` in module: 'omni.isaac.nucleus', but it was imported from other extension: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/exts/isaacsim.storage.native/isaacsim/storage/native/impl/extension.py', which is not a subpath to: 'c:\miniconda3\envs\isaaclab311\lib\site-packages\isaacsim\extsdeprecated\omni.isaac.nucleus'. Do not import `IExt` derived class from other extension in your public namespace.
+[17.110s] [ext: omni.isaac.quadruped-3.0.7] startup
+2026-02-21T18:14:18Z [17,008ms] [Warning] [omni.isaac.quadruped] omni.isaac.quadruped has been deprecated in favor of isaacsim.robot.policy.examples. Please update your code accordingly.
+[17.112s] [ext: omni.isaac.range_sensor-4.0.6] startup
+2026-02-21T18:14:18Z [17,013ms] [Warning] [omni.isaac.range_sensor] omni.isaac.range_sensor has been deprecated in favor of isaacsim.sensors.physx. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,016ms] [Warning] [omni.isaac.range_sensor.commands] omni.isaac.range_sensor.commands has been deprecated in favor of isaacsim.sensors.physx.commands. Please update your code accordingly.
+[17.120s] [ext: omni.isaac.sensor-13.0.7] startup
+2026-02-21T18:14:18Z [17,019ms] [Warning] [omni.isaac.sensor] omni.isaac.sensor has been deprecated in favor of isaacsim.sensors.camera, isaacsim.sensors.physics, isaacsim.sensors.physx, and isaacsim.sensors.rtx. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,021ms] [Warning] [omni.isaac.sensor.camera] omni.isaac.sensor.camera has been deprecated in favor of isaacsim.sensors.camera.camera. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,022ms] [Warning] [omni.isaac.sensor.camera_view] omni.isaac.sensor.camera_view has been deprecated in favor of isaacsim.sensors.camera.camera_view. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,023ms] [Warning] [omni.isaac.sensor.commands] omni.isaac.sensor.commands has been deprecated in favor of isaacsim.sensors.physics.commands, isaacsim.sensors.physx.commands, and isaacsim.sensors.rtx.commands. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,023ms] [Warning] [omni.isaac.sensor.contact_sensor] omni.isaac.sensor.contact_sensor has been deprecated in favor of isaacsim.sensors.physics.contact_sensor. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,024ms] [Warning] [omni.isaac.sensor.imu_sensor] omni.isaac.sensor.imu_sensor has been deprecated in favor of isaacsim.sensors.physics.imu_sensor. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,025ms] [Warning] [omni.isaac.sensor.lidar_rtx] omni.isaac.sensor.lidar_rtx has been deprecated in favor of isaacsim.sensors.rtx.lidar_rtx. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,025ms] [Warning] [omni.isaac.sensor.rotating_lidar_physX] omni.isaac.sensor.imu_sensor has been deprecated in favor of isaacsim.sensors.physix.rotating_lidar_physX. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,027ms] [Warning] [omni.isaac.sensor.scripts.samples.contact_sensor] omni.isaac.sensor.scripts.samples.contact_sensor has been deprecated in favor of isaacsim.sensors.physics.scripts.samples.contact_sensor. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,027ms] [Warning] [omni.isaac.sensor.scripts.samples.imu_sensor] omni.isaac.sensor.scripts.samples.imu_sensor has been deprecated in favor of isaacsim.sensors.physics.scripts.samples.imu_sensor. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,028ms] [Warning] [omni.isaac.sensor.scripts.samples.lightbeam_sensor] omni.isaac.sensor.scripts.samples.lightbeam_sensor has been deprecated in favor of isaacsim.sensors.physx.scripts.samples.lightbeam_sensor. Please update your code accordingly.
+[17.133s] [ext: omni.isaac.surface_gripper-2.0.6] startup
+2026-02-21T18:14:18Z [17,033ms] [Warning] [omni.isaac.surface_gripper] omni.isaac.surface_gripper has been deprecated in favor of isaacsim.robot.surface_gripper. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,034ms] [Warning] [omni.ext._impl._internal] Found class `Extension` derived from `omni.ext.IExt` in module: 'omni.isaac.surface_gripper', but it was imported from other extension: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/exts/isaacsim.robot.surface_gripper/isaacsim/robot/surface_gripper/impl/extension.py', which is not a subpath to: 'c:\miniconda3\envs\isaaclab311\lib\site-packages\isaacsim\extsdeprecated\omni.isaac.surface_gripper'. Do not import `IExt` derived class from other extension in your public namespace.
+[17.138s] [ext: omni.kit.widget.toolbar-2.0.1] startup
+[17.197s] [ext: omni.kit.manipulator.transform-107.0.0] startup
+[17.208s] [ext: omni.kit.manipulator.selector-1.1.3] startup
+[17.213s] [ext: isaacsim.app.about-2.0.11] startup
+[17.235s] [ext: isaacsim.cortex.framework-1.0.12] startup
+[17.237s] [ext: omni.kit.manipulator.tool.snap-1.5.13] startup
+[17.250s] [ext: omni.isaac.universal_robots-1.0.6] startup
+2026-02-21T18:14:18Z [17,148ms] [Warning] [omni.isaac.universal_robots] omni.isaac.universal_robots has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,149ms] [Warning] [omni.isaac.universal_robots.kinematics_solver] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,152ms] [Warning] [omni.isaac.universal_robots.ur10] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+[17.258s] [ext: omni.isaac.utils-2.0.6] startup
+[17.261s] [ext: omni.isaac.cortex-1.0.5] startup
+2026-02-21T18:14:18Z [17,162ms] [Warning] [omni.isaac.cortex] omni.isaac.cortex has been deprecated in favor of isaacsim.cortex.framework. Please update your code accordingly.
+[17.265s] [ext: omni.kit.viewport.manipulator.transform-107.0.4] startup
+[17.271s] [ext: omni.isaac.window.about-2.0.7] startup
+2026-02-21T18:14:18Z [17,173ms] [Warning] [omni.isaac.window.about] omni.isaac.window.about has been deprecated in favor of isaacsim.app.about. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,174ms] [Warning] [omni.isaac.window.about.about] omni.isaac.window.about.about has been deprecated in favor of isaacsim.app.about.about. Please update your code accordingly.
+[17.278s] [ext: omni.kit.manipulator.camera-106.0.4] startup
+[17.288s] [ext: omni.kit.property.audio-1.0.16] startup
+[17.292s] [ext: omni.fabric.commands-1.1.6] startup
+[17.300s] [ext: omni.kit.manipulator.prim.core-107.0.8] startup
+[17.363s] [ext: omni.kit.property.camera-1.0.10] startup
+[17.368s] [ext: omni.kit.property.geometry-2.0.4] startup
+[17.374s] [ext: omni.kit.property.light-1.0.12] startup
+[17.436s] [ext: omni.hydra.scene_api-0.1.2] startup
+[17.442s] [ext: omni.kit.manipulator.prim.fabric-107.0.4] startup
+[17.447s] [ext: omni.kit.manipulator.prim.usd-107.0.3] startup
+[17.450s] [ext: omni.kit.property.material-1.11.9] startup
+[17.468s] [ext: omni.kit.property.render-1.2.1] startup
+[17.471s] [ext: omni.kit.property.transform-1.5.13] startup
+[17.479s] [ext: isaacsim.gui.property-1.1.3] startup
+[17.485s] [ext: omni.kit.manipulator.prim-107.0.0] startup
+[17.486s] [ext: omni.kit.manipulator.selection-106.0.1] startup
+[17.490s] [ext: omni.isaac.lula-4.0.6] startup
+2026-02-21T18:14:18Z [17,387ms] [Warning] [omni.isaac.lula] omni.isaac.lula has been deprecated in favor of isaacsim.robot_motion.lula. Please update your code accordingly.
+[17.492s] [ext: omni.kit.property.bundle-1.4.1] startup
+[17.498s] [ext: omni.kit.property.isaac-1.0.6] startup
+2026-02-21T18:14:18Z [17,395ms] [Warning] [omni.kit.property.isaac] omni.kit.property.isaac has been deprecated in favor of isaacsim.gui.property. Please update your code accordingly.
+2026-02-21T18:14:18Z [17,396ms] [Warning] [omni.kit.property.isaac.widgets] omni.kit.property.isaac.widgets has been deprecated in favor of isaacsim.gui.property.widgets. Please update your code accordingly.
+[17.500s] [ext: isaacsim.replicator.writers-1.0.17] startup
+[17.611s] [ext: omni.kit.viewport.menubar.camera-107.0.6] startup
+[17.633s] [ext: omni.kit.viewport.menubar.lighting-107.3.1] startup
+[17.640s] [ext: omni.kit.viewport.menubar.render-107.0.10] startup
+[17.646s] [ext: omni.kit.viewport.menubar.settings-107.0.3] startup
+[17.661s] [ext: isaacsim.replicator.domain_randomization-1.0.16] startup
+[17.668s] [ext: isaacsim.replicator.examples-1.3.6] startup
+[17.675s] [ext: omni.ocio-0.1.1] startup
+[17.684s] [ext: omni.rtx.window.settings-0.6.19] startup
+[17.703s] [ext: omni.kit.window.console-1.1.4] startup
+[17.715s] [ext: omni.kit.window.status_bar-0.1.9] startup
+[17.725s] [ext: omni.kit.window.toolbar-2.0.0] startup
+[17.735s] [ext: omni.replicator.isaac-2.0.8] startup
+2026-02-21T18:14:19Z [17,633ms] [Warning] [omni.replicator.isaac] omni.replicator.isaac has been deprecated in favor of isaacsim.replicator.domain_randomization, isaacsim.replicator.examples, isaacsim.replicator.writers. Please update your code accordingly.
+[17.740s] [ext: omni.replicator.replicator_yaml-2.0.11] startup
+[17.776s] [ext: omni.rtx.settings.core-0.6.5] startup
+[17.788s] [ext: omni.usd.metrics.assembler.ui-107.3.1] startup
+[17.801s] [ext: isaacsim.robot.wheeled_robots-4.0.24] startup
+[17.874s] [ext: isaacsim.cortex.behaviors-2.0.14] startup
+[17.876s] [ext: omni.isaac.version-2.0.7] startup
+2026-02-21T18:14:19Z [17,779ms] [Warning] [omni.isaac.version] omni.isaac.version has been deprecated in favor of isaacsim.core.version. Please update your code accordingly.
+[17.886s] [ext: semantics.schema.editor-2.0.2] startup
+[17.907s] [ext: omni.kit.ui.actions-1.0.5] startup
+[17.912s] [ext: semantics.schema.property-2.0.1] startup
+[17.924s] [ext: omni.isaac.wheeled_robots-3.0.7] startup
+2026-02-21T18:14:19Z [17,823ms] [Warning] [omni.isaac.wheeled_robots] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,824ms] [Warning] [omni.isaac.wheeled_robots.controllers] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,824ms] [Warning] [omni.isaac.wheeled_robots.controllers.ackermann_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,825ms] [Warning] [omni.isaac.wheeled_robots.controllers.differential_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,826ms] [Warning] [omni.isaac.wheeled_robots.controllers.holonomic_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,826ms] [Warning] [omni.isaac.wheeled_robots.controllers.quintic_path_planner] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,827ms] [Warning] [omni.isaac.wheeled_robots.controllers.stanley_control] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,828ms] [Warning] [omni.isaac.wheeled_robots.controllers.wheel_base_pose_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,828ms] [Warning] [omni.isaac.wheeled_robots.impl] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,829ms] [Warning] [omni.isaac.wheeled_robots.robots] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,829ms] [Warning] [omni.isaac.wheeled_robots.robots.holonomic_robot_usd_setup] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-21T18:14:19Z [17,832ms] [Warning] [omni.isaac.wheeled_robots.robots.wheeled_robot] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+[17.941s] [ext: omni.isaac.cortex.sample_behaviors-2.0.5] startup
+2026-02-21T18:14:19Z [17,842ms] [Warning] [omni.isaac.cortex.sample_behaviors] omni.isaac.cortex.sample_behaviors has been deprecated in favor of isaacsim.cortex.behaviors. Please update your code accordingly.
+[17.945s] [ext: isaacsim.replicator.behavior-1.1.16] startup
+[17.952s] [ext: isaacsim.core.throttling-2.2.2] startup
+[17.959s] [ext: omni.kit.menu.common-2.0.1] startup
+[17.964s] [ext: isaacsim.exp.base-5.1.0] startup
+[17.966s] [ext: isaacsim.exp.base.python-5.1.0] startup
+[17.974s] Simulation App Starting
+2026-02-21T18:14:19Z [18,464ms] [Warning] [omni.fabric.plugin] Warning: attribute viewPickingId not found for bucket id 9
+
+[18.629s] app ready
+[23.951s] Simulation App Startup Complete
+
+============================================================
+  Capstone Evaluation
+  Environment: friction
+  Policy:      rough
+  Episodes:    100
+  Headless:    True
+  Output:      C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/parallel_2026-02-21_08-24-21
+============================================================
+
+Building friction environment...
+  Friction environment: 5 zones created
+    Zone 1: mu_s=0.9, mu_d=0.8 — 60-grit sandpaper
+    Zone 2: mu_s=0.6, mu_d=0.5 — Dry rubber on concrete
+    Zone 3: mu_s=0.35, mu_d=0.25 — Wet concrete
+    Zone 4: mu_s=0.15, mu_d=0.08 — Wet ice
+    Zone 5: mu_s=0.05, mu_d=0.02 — Oil on polished steel
+Loading rough policy...
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_3': buffer size 378 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_3': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_5502785215616817134/mesh_0' has corrupted data in primvar 'st': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_5502785215616817134/mesh_0' has corrupted data in primvar 'st_1': buffer size 7710 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,719ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st': buffer size 540 doesn't match expected size 77241 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_2': buffer size 1902 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_4': buffer size 228 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_2': buffer size 378 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_3': buffer size 228 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_2': buffer size 59238 doesn't match expected size 77241 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_1': buffer size 4530 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_4': buffer size 1902 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_5': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_6': buffer size 402 doesn't match expected size 77241 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_6': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st': buffer size 4530 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,720ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_1': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_4': buffer size 1830 doesn't match expected size 77241 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_2': buffer size 378 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_5': buffer size 4530 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_4': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_1': buffer size 9711 doesn't match expected size 77241 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_1': buffer size 1902 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_6': buffer size 228 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_5': buffer size 240 doesn't match expected size 77241 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_5': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_7': buffer size 1200 doesn't match expected size 77241 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_6': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-21T18:14:30Z [28,721ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_3': buffer size 4080 doesn't match expected size 77241 in faceVarying primvars
+[ROUGH] Loaded actor from C:\Users\Gabriel Santiago\OneDrive\Desktop\Capstone Project\Capstone\Experiments\Alex\4_env_test\src\checkpoints\model_29999.pt
+[ROUGH]   obs=235  act=12  scale=0.25  dec=10
+[ROUGH] Default pos mapped by name (12/12 joints)
+[ROUGH] DOF order: ['fl_hx', 'fr_hx', 'hl_hx', 'hr_hx', 'fl_hy', 'fr_hy', 'hl_hy', 'hr_hy', 'fl_kn', 'fr_kn', 'hl_kn', 'hr_kn']
+[ROUGH] default_pos: [ 0.1 -0.1  0.1 -0.1  0.9  0.9  1.1  1.1 -1.5 -1.5 -1.5 -1.5]
+[ROUGH] Hip DOFs: [0, 1, 2, 3, 4, 5, 6, 7]  Knee DOFs: [8, 9, 10, 11]
+[ROUGH] Height scan: fill=0.0 (187 dims, flat ground default)
+Robot loaded and initialized.
+Stabilizing robot...
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.14025356 -0.00570902 -0.55213911]
+  gravity_b = [-1.76509999e-05 -4.07503286e-03 -9.99991697e-01]
+  joint_pos_rel range = [-0.003, 0.001]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.611
+  [ROUGH act] eval=0 norm=4.341 range=[-2.315, 0.416] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.552 range=[-1.501, 0.777] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.744 range=[-3.231, 2.093] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.239 range=[-4.645, 4.385] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.719 range=[-4.597, 4.825] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.819 range=[-3.986, 4.327] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.396 range=[-3.765, 3.725] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.080 range=[-3.802, 2.156] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.340 range=[-2.584, 1.223] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.613 range=[-2.345, 1.434] cmd=[0.00,0.00,0.00]
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.50886613  0.30950204 -0.57522637]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.751, 0.236]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.445 range=[-1.626, 1.357] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.791 range=[-2.127, 2.150] cmd=[1.00,0.00,-1.03]
+  [ROUGH act] eval=2 norm=6.403 range=[-2.420, 3.697] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=3 norm=6.973 range=[-2.403, 4.233] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=4 norm=6.844 range=[-2.505, 4.060] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=5 norm=6.515 range=[-2.304, 3.759] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=6 norm=6.146 range=[-1.923, 3.680] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=7 norm=5.712 range=[-1.974, 3.565] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=8 norm=5.402 range=[-1.931, 3.411] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=9 norm=5.257 range=[-1.917, 3.303] cmd=[1.00,0.00,-0.06]
+  [   1/100] friction_rough_ep0000  FELL      progress= 32.7m  zone=4  time=71.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.61214423  0.71543276 -0.9650408 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.292, 0.849]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=15.104 range=[-6.766, 7.790] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=16.612 range=[-6.611, 11.270] cmd=[1.00,0.00,-1.87]
+  [ROUGH act] eval=2 norm=6.948 range=[-2.966, 3.106] cmd=[1.00,0.00,-0.17]
+  [ROUGH act] eval=3 norm=4.582 range=[-1.683, 3.042] cmd=[1.00,0.00,-0.28]
+  [ROUGH act] eval=4 norm=4.858 range=[-1.942, 2.849] cmd=[1.00,0.00,-0.36]
+  [ROUGH act] eval=5 norm=7.328 range=[-2.507, 5.831] cmd=[1.00,0.00,-0.43]
+  [ROUGH act] eval=6 norm=6.870 range=[-2.530, 5.557] cmd=[1.00,0.00,-0.52]
+  [ROUGH act] eval=7 norm=3.537 range=[-1.391, 2.002] cmd=[1.00,0.00,-0.61]
+  [ROUGH act] eval=8 norm=2.713 range=[-1.473, 1.338] cmd=[1.00,0.00,-0.71]
+  [ROUGH act] eval=9 norm=3.826 range=[-1.847, 2.355] cmd=[1.00,0.00,-0.81]
+  [   2/100] friction_rough_ep0001  FELL      progress= 36.0m  zone=4  time=80.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01223738  0.30768076 -0.89545643]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.643, 0.809]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=12.570 range=[-6.868, 4.169] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.388 range=[-5.454, 5.535] cmd=[1.00,0.00,-1.94]
+  [ROUGH act] eval=2 norm=10.597 range=[-5.268, 6.405] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=3 norm=9.118 range=[-5.272, 4.128] cmd=[1.00,0.00,0.27]
+  [ROUGH act] eval=4 norm=9.041 range=[-4.861, 4.639] cmd=[1.00,0.00,0.38]
+  [ROUGH act] eval=5 norm=6.599 range=[-4.201, 2.475] cmd=[1.00,0.00,0.50]
+  [ROUGH act] eval=6 norm=10.914 range=[-2.899, 8.910] cmd=[1.00,0.00,0.62]
+  [ROUGH act] eval=7 norm=10.054 range=[-2.350, 8.767] cmd=[1.00,0.00,0.70]
+  [ROUGH act] eval=8 norm=9.595 range=[-2.117, 7.848] cmd=[1.00,0.00,0.75]
+  [ROUGH act] eval=9 norm=8.892 range=[-2.032, 6.945] cmd=[1.00,0.00,0.79]
+  [   3/100] friction_rough_ep0002  FELL      progress= 35.1m  zone=4  time=95.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.46414539  1.09601891 -1.38542819]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.885]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=13.544 range=[-4.225, 10.485] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=15.207 range=[-4.218, 11.338] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=13.236 range=[-3.598, 9.123] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=3 norm=10.407 range=[-3.405, 6.371] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=4 norm=9.958 range=[-2.236, 8.292] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=5 norm=8.116 range=[-1.733, 6.841] cmd=[1.00,0.00,-0.39]
+  [ROUGH act] eval=6 norm=6.752 range=[-1.139, 5.070] cmd=[1.00,0.00,-0.53]
+  [ROUGH act] eval=7 norm=5.193 range=[-1.255, 2.611] cmd=[1.00,0.00,-0.67]
+  [ROUGH act] eval=8 norm=4.326 range=[-1.291, 2.678] cmd=[1.00,0.00,-0.79]
+  [ROUGH act] eval=9 norm=5.969 range=[-2.274, 2.640] cmd=[1.00,0.00,-0.90]
+  [   4/100] friction_rough_ep0003  FELL      progress= 38.0m  zone=4  time=95.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.18760744  0.65471214 -1.44968033]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.291, 1.068]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=10.917 range=[-2.412, 9.324] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=13.067 range=[-3.931, 9.816] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.898 range=[-4.107, 8.970] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=10.314 range=[-3.108, 7.462] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=7.953 range=[-3.198, 5.712] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=5 norm=6.632 range=[-3.132, 4.247] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=6 norm=6.042 range=[-2.877, 3.582] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=7 norm=5.534 range=[-2.452, 3.130] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=4.950 range=[-1.733, 2.681] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=4.111 range=[-0.967, 2.166] cmd=[1.00,0.00,0.02]
+  [   5/100] friction_rough_ep0004  FELL      progress= 33.3m  zone=4  time=79.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.51745468  0.57448941 -1.58914089]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.563, 0.507]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=9.647 range=[-2.808, 8.184] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.262 range=[-2.549, 7.974] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.124 range=[-2.845, 6.436] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=3 norm=5.696 range=[-2.209, 3.310] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=4 norm=5.939 range=[-2.635, 3.222] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=5 norm=6.005 range=[-3.059, 2.726] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=6 norm=5.682 range=[-3.078, 2.543] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=7 norm=5.129 range=[-3.043, 2.228] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=8 norm=4.566 range=[-2.911, 1.955] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=9 norm=4.247 range=[-2.596, 1.673] cmd=[1.00,0.00,-0.15]
+  [   6/100] friction_rough_ep0005  FELL      progress= 36.2m  zone=4  time=88.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.17419164  0.058302   -1.22089183]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.497, 0.387]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.924 range=[-1.770, 6.199] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=13.394 range=[-4.027, 9.801] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=17.872 range=[-5.331, 11.203] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=3 norm=18.713 range=[-6.020, 13.314] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=4 norm=12.368 range=[-2.591, 8.914] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=5 norm=11.519 range=[-5.409, 4.189] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=6 norm=12.512 range=[-5.563, 3.539] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=7 norm=12.053 range=[-5.482, 2.600] cmd=[1.00,0.00,-0.30]
+  [ROUGH act] eval=8 norm=10.577 range=[-5.651, 3.019] cmd=[1.00,0.00,-0.49]
+  [ROUGH act] eval=9 norm=6.074 range=[-2.241, 3.170] cmd=[1.00,0.00,-0.70]
+  [   7/100] friction_rough_ep0006  FELL      progress=  0.0m  zone=1  time=2.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.88854504  0.72654468 -0.3670837 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.551, 0.680]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=12.797 range=[-5.590, 5.390] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.907 range=[-3.280, 2.304] cmd=[1.00,0.00,-1.23]
+  [ROUGH act] eval=2 norm=7.301 range=[-3.583, 3.611] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=3 norm=9.181 range=[-5.371, 5.403] cmd=[1.00,0.00,-0.17]
+  [ROUGH act] eval=4 norm=5.479 range=[-4.196, 2.159] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=5 norm=5.297 range=[-3.431, 2.665] cmd=[1.00,0.00,-0.29]
+  [ROUGH act] eval=6 norm=4.525 range=[-2.668, 2.411] cmd=[1.00,0.00,-0.28]
+  [ROUGH act] eval=7 norm=3.787 range=[-1.804, 1.963] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=8 norm=3.759 range=[-1.339, 2.917] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=9 norm=4.605 range=[-2.477, 3.053] cmd=[1.00,0.00,-0.18]
+  [   8/100] friction_rough_ep0007  FELL      progress= 35.7m  zone=4  time=105.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.53963405 -0.03715975 -0.73087597]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.587, 0.867]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.989 range=[-3.698, 5.387] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.023 range=[-4.819, 6.798] cmd=[1.00,0.00,0.63]
+  [ROUGH act] eval=2 norm=11.943 range=[-4.308, 7.842] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=3 norm=9.298 range=[-3.529, 7.250] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=4 norm=10.577 range=[-2.270, 9.642] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=5 norm=11.517 range=[-2.079, 9.774] cmd=[1.00,0.00,0.32]
+  [ROUGH act] eval=6 norm=12.527 range=[-2.356, 9.865] cmd=[1.00,0.00,0.39]
+  [ROUGH act] eval=7 norm=11.565 range=[-2.860, 8.430] cmd=[1.00,0.00,0.46]
+  [ROUGH act] eval=8 norm=7.957 range=[-2.012, 6.084] cmd=[1.00,0.00,0.51]
+  [ROUGH act] eval=9 norm=6.819 range=[-1.638, 5.485] cmd=[1.00,0.00,0.54]
+  [   9/100] friction_rough_ep0008  TIMEOUT   progress=  0.0m  zone=1  time=123.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.0003156  -0.00054674  0.0059651 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.578, 0.368]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.672 range=[-1.955, 0.773] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.160 range=[-1.427, 0.828] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=2 norm=3.548 range=[-2.106, 1.276] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=4.212 range=[-2.555, 1.836] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=4 norm=5.827 range=[-2.815, 3.191] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=6.670 range=[-2.560, 3.910] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=6 norm=6.999 range=[-2.444, 4.206] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=7 norm=7.102 range=[-2.373, 4.309] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=8 norm=7.023 range=[-2.248, 4.411] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=9 norm=6.824 range=[-2.080, 4.409] cmd=[1.00,0.00,-0.03]
+  [  10/100] friction_rough_ep0009  FELL      progress= 31.5m  zone=4  time=72.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.03326304  0.60706764 -0.44105351]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.634, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.216 range=[-1.812, 2.651] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.647 range=[-1.803, 2.382] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=6.914 range=[-2.939, 4.575] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=3 norm=10.074 range=[-3.180, 6.070] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=4 norm=13.676 range=[-5.333, 7.824] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=5 norm=14.087 range=[-5.038, 10.642] cmd=[1.00,0.00,0.18]
+  [ROUGH act] eval=6 norm=14.198 range=[-4.388, 10.432] cmd=[1.00,0.00,0.21]
+  [ROUGH act] eval=7 norm=13.542 range=[-3.482, 9.664] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=8 norm=12.558 range=[-3.175, 8.560] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=9 norm=10.955 range=[-3.319, 6.831] cmd=[1.00,0.00,0.23]
+  [  11/100] friction_rough_ep0010  TIMEOUT   progress=  0.2m  zone=1  time=122.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [1.04494757e-05 1.31397783e-05 7.50608603e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.500, 0.346]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.158 range=[-1.163, 0.050] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.728 range=[-1.671, 0.917] cmd=[1.00,0.00,-1.42]
+  [ROUGH act] eval=2 norm=3.979 range=[-2.009, 2.273] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=5.858 range=[-2.548, 3.562] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=4 norm=7.173 range=[-2.754, 4.123] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=6.425 range=[-1.919, 4.377] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=6 norm=6.001 range=[-1.682, 4.325] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=7 norm=5.600 range=[-1.605, 4.083] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=8 norm=5.351 range=[-1.586, 3.863] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=9 norm=5.263 range=[-1.653, 3.733] cmd=[1.00,0.00,-0.04]
+  [  12/100] friction_rough_ep0011  FELL      progress= 32.2m  zone=4  time=77.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.25074965  0.28101912 -0.44923994]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.684, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.337 range=[-2.316, 1.971] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.013 range=[-2.954, 8.573] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=11.489 range=[-4.010, 8.874] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=3 norm=11.915 range=[-3.576, 8.298] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=4 norm=10.452 range=[-3.396, 6.673] cmd=[1.00,0.00,0.32]
+  [ROUGH act] eval=5 norm=8.199 range=[-2.386, 5.464] cmd=[1.00,0.00,0.39]
+  [ROUGH act] eval=6 norm=6.106 range=[-1.944, 4.155] cmd=[1.00,0.00,0.43]
+  [ROUGH act] eval=7 norm=4.998 range=[-1.861, 3.511] cmd=[1.00,0.00,0.45]
+  [ROUGH act] eval=8 norm=4.445 range=[-1.761, 3.263] cmd=[1.00,0.00,0.46]
+  [ROUGH act] eval=9 norm=3.831 range=[-1.523, 2.930] cmd=[1.00,0.00,0.46]
+  [  13/100] friction_rough_ep0012  TIMEOUT   progress=  0.3m  zone=1  time=122.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 9.04776462e-05 -2.92908400e-04  7.77002005e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.681, 0.383]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.451 range=[-0.620, 0.335] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.222 range=[-1.068, 1.316] cmd=[1.00,0.00,-1.06]
+  [ROUGH act] eval=2 norm=3.630 range=[-2.759, 1.549] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=4.722 range=[-2.594, 2.157] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=4 norm=6.787 range=[-2.979, 3.816] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=5 norm=6.790 range=[-2.416, 4.210] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=6 norm=6.943 range=[-2.150, 4.543] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=7 norm=6.926 range=[-2.120, 4.655] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.799 range=[-2.094, 4.627] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.679 range=[-2.071, 4.548] cmd=[1.00,0.00,0.00]
+  [  14/100] friction_rough_ep0013  FELL      progress= 31.5m  zone=4  time=75.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05026947  0.10504449 -1.50499451]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.929, 0.734]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.136 range=[-1.817, 5.301] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=15.745 range=[-5.722, 9.878] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=25.277 range=[-6.665, 16.520] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=3 norm=29.998 range=[-7.031, 22.824] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=4 norm=24.926 range=[-3.351, 22.592] cmd=[1.00,0.00,-0.12]
+  [ROUGH act] eval=5 norm=13.203 range=[-2.026, 11.672] cmd=[1.00,0.00,-0.23]
+  [ROUGH act] eval=6 norm=11.796 range=[-4.656, 4.955] cmd=[1.00,0.00,-0.36]
+  [ROUGH act] eval=7 norm=14.107 range=[-6.000, 6.471] cmd=[1.00,0.00,-0.56]
+  [ROUGH act] eval=8 norm=12.858 range=[-6.033, 5.110] cmd=[1.00,0.00,-0.81]
+  [ROUGH act] eval=9 norm=9.389 range=[-5.375, 3.157] cmd=[1.00,0.00,-1.06]
+  [  15/100] friction_rough_ep0014  TIMEOUT   progress=  0.3m  zone=1  time=120.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00065513 -0.00050153  0.00620637]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.792, 0.107]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.537 range=[-1.606, 0.352] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.550 range=[-2.487, 1.744] cmd=[1.00,0.00,-0.98]
+  [ROUGH act] eval=2 norm=4.761 range=[-2.249, 2.433] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=6.428 range=[-2.375, 3.833] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=4 norm=7.249 range=[-2.348, 4.436] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=5 norm=7.175 range=[-2.144, 4.716] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=6 norm=6.705 range=[-1.855, 4.785] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=7 norm=6.286 range=[-1.650, 4.747] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=5.565 range=[-1.248, 4.519] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=9 norm=3.312 range=[-1.188, 2.024] cmd=[1.00,0.00,-0.00]
+  [  16/100] friction_rough_ep0015  TIMEOUT   progress= 31.4m  zone=4  time=122.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 3.60346952e-04 -6.32489755e-05  7.46029802e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.655, 0.341]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.935 range=[-1.084, 0.674] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.136 range=[-1.836, 1.262] cmd=[1.00,0.00,-1.19]
+  [ROUGH act] eval=2 norm=4.399 range=[-2.353, 1.800] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=6.129 range=[-2.700, 3.215] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=4 norm=5.926 range=[-2.224, 3.965] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=5 norm=4.961 range=[-1.511, 3.674] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=2.227 range=[-0.647, 1.705] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.560 range=[-2.136, 1.546] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=4.887 range=[-2.610, 2.633] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=5.623 range=[-2.343, 3.149] cmd=[1.00,0.00,0.03]
+  [  17/100] friction_rough_ep0016  TIMEOUT   progress= 39.5m  zone=4  time=101.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.84087354  0.00554336 -0.08107039]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.566, 0.163]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.981 range=[-1.252, 0.405] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.228 range=[-2.126, 1.736] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.144 range=[-2.664, 2.066] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=5.838 range=[-2.214, 3.584] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=5.694 range=[-1.372, 3.660] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=5 norm=2.487 range=[-1.127, 1.103] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=6 norm=3.296 range=[-1.308, 1.557] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=7 norm=3.914 range=[-1.771, 2.282] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=4.617 range=[-1.742, 2.782] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=9 norm=4.970 range=[-1.752, 2.964] cmd=[1.00,0.00,0.01]
+  [  18/100] friction_rough_ep0017  FELL      progress= 32.1m  zone=4  time=86.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.11786554  0.69266266 -1.93321562]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.270, 0.746]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.943 range=[-2.627, 2.185] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.592 range=[-2.801, 5.258] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.326 range=[-4.321, 7.074] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=3 norm=14.753 range=[-3.949, 9.021] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=4 norm=12.433 range=[-5.802, 5.815] cmd=[1.00,0.00,-0.17]
+  [ROUGH act] eval=5 norm=9.494 range=[-4.517, 5.351] cmd=[1.00,0.00,-0.25]
+  [ROUGH act] eval=6 norm=7.362 range=[-3.074, 4.318] cmd=[1.00,0.00,-0.31]
+  [ROUGH act] eval=7 norm=5.615 range=[-2.192, 2.496] cmd=[1.00,0.00,-0.36]
+  [ROUGH act] eval=8 norm=4.889 range=[-2.182, 2.351] cmd=[1.00,0.00,-0.41]
+  [ROUGH act] eval=9 norm=5.009 range=[-2.179, 2.598] cmd=[1.00,0.00,-0.45]
+  [  19/100] friction_rough_ep0018  FELL      progress= 31.6m  zone=4  time=74.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.13994353  0.67820048 -2.13319564]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.736]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=17.135 range=[-10.214, 7.985] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.506 range=[-4.412, 6.038] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.901 range=[-3.321, 5.706] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=3 norm=13.536 range=[-4.620, 8.450] cmd=[1.00,0.00,-0.07]
+  [ROUGH act] eval=4 norm=12.030 range=[-4.132, 7.809] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=5 norm=6.443 range=[-1.334, 4.007] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=6 norm=6.969 range=[-2.391, 3.413] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=7 norm=5.446 range=[-2.265, 2.810] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=8 norm=4.923 range=[-2.226, 2.266] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=9 norm=4.666 range=[-2.261, 2.201] cmd=[1.00,0.00,-0.27]
+  [  20/100] friction_rough_ep0019  FELL      progress= 24.0m  zone=3  time=59.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.60491681  0.45172456 -1.06457555]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.908, 0.935]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=11.515 range=[-2.993, 8.921] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=21.484 range=[-6.180, 17.400] cmd=[1.00,0.00,-1.06]
+  [ROUGH act] eval=2 norm=21.939 range=[-5.866, 18.095] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=3 norm=20.409 range=[-5.357, 17.212] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=4 norm=17.296 range=[-3.867, 15.202] cmd=[1.00,0.00,-0.38]
+  [ROUGH act] eval=5 norm=13.794 range=[-2.703, 12.329] cmd=[1.00,0.00,-0.50]
+  [ROUGH act] eval=6 norm=10.848 range=[-1.964, 9.401] cmd=[1.00,0.00,-0.61]
+  [ROUGH act] eval=7 norm=9.107 range=[-2.268, 7.336] cmd=[1.00,0.00,-0.71]
+  [ROUGH act] eval=8 norm=7.603 range=[-2.614, 5.715] cmd=[1.00,0.00,-0.78]
+  [ROUGH act] eval=9 norm=5.416 range=[-1.488, 4.247] cmd=[1.00,0.00,-0.83]
+  [  21/100] friction_rough_ep0020  TIMEOUT   progress=  0.0m  zone=1  time=123.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00085635 -0.00040672  0.00758541]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.671, 0.472]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.496 range=[-1.349, 0.647] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.583 range=[-1.775, 1.477] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=4.858 range=[-2.380, 2.159] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=6.299 range=[-2.553, 3.260] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=4 norm=6.638 range=[-2.442, 3.898] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.628 range=[-2.299, 4.082] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=6 norm=6.349 range=[-2.095, 4.211] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=7 norm=6.117 range=[-1.995, 4.323] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=6.009 range=[-1.953, 4.346] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.927 range=[-1.916, 4.273] cmd=[1.00,0.00,-0.00]
+  [  22/100] friction_rough_ep0021  FELL      progress= 30.8m  zone=4  time=69.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.50020659  0.58508635 -1.80096304]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.203, 1.040]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.103 range=[-2.785, 5.283] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.394 range=[-4.620, 5.365] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=11.920 range=[-4.583, 7.663] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=3 norm=7.905 range=[-1.890, 4.097] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=5.199 range=[-2.213, 2.619] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=5 norm=4.352 range=[-2.044, 1.463] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=6 norm=4.929 range=[-2.720, 2.803] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=7 norm=5.173 range=[-2.730, 3.257] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=8 norm=5.185 range=[-2.632, 3.231] cmd=[1.00,0.00,-0.12]
+  [ROUGH act] eval=9 norm=5.017 range=[-2.505, 3.004] cmd=[1.00,0.00,-0.12]
+  [  23/100] friction_rough_ep0022  TIMEOUT   progress= 39.5m  zone=4  time=108.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.84820825  0.14476494 -0.00946368]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.561, 0.123]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.438 range=[-0.711, 0.349] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.107 range=[-1.245, 0.660] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=3.710 range=[-2.011, 1.196] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=5.112 range=[-2.720, 2.087] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=4 norm=5.570 range=[-2.301, 3.117] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=5 norm=5.528 range=[-2.178, 3.105] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=6 norm=5.372 range=[-2.076, 2.899] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=7 norm=5.159 range=[-1.961, 2.745] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=8 norm=4.799 range=[-1.818, 2.600] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=9 norm=4.133 range=[-1.502, 2.305] cmd=[1.00,0.00,-0.05]
+  [  24/100] friction_rough_ep0023  FELL      progress= 35.8m  zone=4  time=88.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.47565585  1.00353909 -1.12128556]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.285, 1.234]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=13.344 range=[-3.148, 11.992] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=18.476 range=[-5.336, 14.416] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=27.162 range=[-7.465, 20.365] cmd=[1.00,0.00,-0.33]
+  [ROUGH act] eval=3 norm=24.071 range=[-6.938, 19.642] cmd=[1.00,0.00,-0.53]
+  [ROUGH act] eval=4 norm=15.389 range=[-4.037, 13.772] cmd=[1.00,0.00,-0.74]
+  [ROUGH act] eval=5 norm=9.197 range=[-3.244, 6.335] cmd=[1.00,0.00,-0.93]
+  [ROUGH act] eval=6 norm=7.897 range=[-2.934, 4.909] cmd=[1.00,0.00,-1.11]
+  [ROUGH act] eval=7 norm=6.401 range=[-3.008, 2.994] cmd=[1.00,0.00,-1.27]
+  [ROUGH act] eval=8 norm=8.306 range=[-3.821, 4.478] cmd=[1.00,0.00,-1.43]
+  [ROUGH act] eval=9 norm=11.456 range=[-6.817, 7.026] cmd=[1.00,0.00,-1.60]
+  [  25/100] friction_rough_ep0024  TIMEOUT   progress=  0.0m  zone=1  time=123.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00112062  0.00042718  0.00754486]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.660, 0.756]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.680 range=[-1.847, 1.309] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.329 range=[-2.442, 1.434] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=4.538 range=[-2.472, 2.006] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=3 norm=5.161 range=[-1.941, 2.957] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=4 norm=6.547 range=[-2.127, 4.670] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=5 norm=6.892 range=[-1.911, 4.900] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=6 norm=6.499 range=[-1.810, 4.165] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=7 norm=5.692 range=[-1.469, 4.010] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=8 norm=4.106 range=[-1.034, 3.339] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=9 norm=3.109 range=[-1.432, 1.544] cmd=[1.00,0.00,0.03]
+  [  26/100] friction_rough_ep0025  FELL      progress= 30.6m  zone=4  time=67.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.536645    0.38870594 -0.38901168]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.568]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=17.054 range=[-7.752, 6.739] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.557 range=[-5.573, 6.620] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=6.198 range=[-2.839, 3.653] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=3 norm=3.157 range=[-1.444, 2.160] cmd=[1.00,0.00,-0.23]
+  [ROUGH act] eval=4 norm=3.997 range=[-1.925, 2.123] cmd=[1.00,0.00,-0.28]
+  [ROUGH act] eval=5 norm=5.479 range=[-2.598, 3.477] cmd=[1.00,0.00,-0.33]
+  [ROUGH act] eval=6 norm=6.921 range=[-1.885, 5.771] cmd=[1.00,0.00,-0.38]
+  [ROUGH act] eval=7 norm=5.501 range=[-0.980, 4.659] cmd=[1.00,0.00,-0.42]
+  [ROUGH act] eval=8 norm=5.638 range=[-2.033, 3.332] cmd=[1.00,0.00,-0.46]
+  [ROUGH act] eval=9 norm=7.485 range=[-2.946, 3.717] cmd=[1.00,0.00,-0.52]
+  [  27/100] friction_rough_ep0026  FELL      progress= 31.1m  zone=4  time=74.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.15742339  0.92861599 -1.87351787]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.283, 0.985]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.747 range=[-1.719, 3.439] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.617 range=[-2.413, 3.427] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=10.784 range=[-3.696, 7.294] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=3 norm=13.331 range=[-3.976, 8.699] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=4 norm=12.208 range=[-3.124, 7.769] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=5 norm=8.309 range=[-1.334, 5.636] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=6 norm=6.363 range=[-2.303, 4.185] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=7 norm=5.709 range=[-2.820, 3.351] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.115 range=[-2.404, 2.970] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=9 norm=4.445 range=[-2.165, 2.407] cmd=[1.00,0.00,-0.04]
+  [  28/100] friction_rough_ep0027  FELL      progress= 34.2m  zone=4  time=88.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.15993968  0.23113032 -0.7298606 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.042 range=[-2.808, 2.447] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.004 range=[-3.567, 3.659] cmd=[1.00,0.00,-1.98]
+  [ROUGH act] eval=2 norm=8.709 range=[-3.973, 4.054] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=3 norm=10.449 range=[-3.489, 6.654] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=4 norm=6.886 range=[-3.200, 3.208] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=5 norm=7.892 range=[-2.268, 6.387] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=6 norm=6.805 range=[-1.921, 4.794] cmd=[1.00,0.00,0.21]
+  [ROUGH act] eval=7 norm=6.886 range=[-2.081, 4.279] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=8 norm=6.431 range=[-2.077, 3.955] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=9 norm=6.178 range=[-2.182, 3.705] cmd=[1.00,0.00,0.18]
+  [  29/100] friction_rough_ep0028  FELL      progress= 37.4m  zone=4  time=100.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.31356242  0.2914283  -1.44037604]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.662, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=10.382 range=[-4.745, 5.179] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=12.634 range=[-5.185, 7.984] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=10.479 range=[-3.896, 7.344] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=3 norm=5.220 range=[-2.595, 2.866] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=4 norm=5.184 range=[-1.633, 3.913] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=5 norm=4.701 range=[-1.923, 3.498] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=6 norm=4.573 range=[-2.160, 2.489] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=7 norm=4.830 range=[-2.210, 2.384] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=8 norm=5.272 range=[-2.644, 3.019] cmd=[1.00,0.00,0.29]
+  [ROUGH act] eval=9 norm=6.067 range=[-3.438, 3.827] cmd=[1.00,0.00,0.35]
+  [  30/100] friction_rough_ep0029  FELL      progress= 34.3m  zone=4  time=90.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.11787196  0.5004319  -0.77895272]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.083, 0.607]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.554 range=[-4.093, 5.664] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.332 range=[-3.132, 5.480] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=10.144 range=[-3.290, 6.142] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=3 norm=9.861 range=[-4.035, 5.821] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=7.727 range=[-3.931, 4.133] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=5 norm=6.227 range=[-2.239, 4.243] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=6 norm=3.320 range=[-2.203, 1.297] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=7 norm=3.711 range=[-1.968, 1.919] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=4.237 range=[-2.478, 2.301] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=9 norm=5.352 range=[-2.669, 3.556] cmd=[1.00,0.00,-0.04]
+  [  31/100] friction_rough_ep0030  TIMEOUT   progress= 39.5m  zone=4  time=117.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.26956889 0.04774541 0.06788   ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.445, 0.336]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.009 range=[-1.052, 0.507] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=1.784 range=[-0.749, 0.818] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=3.478 range=[-2.549, 0.911] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=3 norm=4.326 range=[-2.471, 1.950] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=4 norm=5.711 range=[-2.330, 3.217] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=7.220 range=[-2.472, 4.371] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=6 norm=7.604 range=[-2.195, 4.891] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=7 norm=7.302 range=[-1.960, 4.552] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=8 norm=6.764 range=[-1.613, 4.293] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=9 norm=6.025 range=[-1.522, 4.121] cmd=[1.00,0.00,0.05]
+  [  32/100] friction_rough_ep0031  FELL      progress= 32.7m  zone=4  time=83.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.26845545  0.82695627 -1.13213372]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.289, 1.232]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=12.244 range=[-2.047, 10.672] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=12.859 range=[-4.167, 9.284] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.813 range=[-3.702, 9.640] cmd=[1.00,0.00,-0.14]
+  [ROUGH act] eval=3 norm=10.221 range=[-2.741, 7.349] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=4 norm=8.186 range=[-3.115, 5.422] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=5 norm=6.920 range=[-3.538, 3.851] cmd=[1.00,0.00,-0.33]
+  [ROUGH act] eval=6 norm=6.059 range=[-3.250, 3.111] cmd=[1.00,0.00,-0.39]
+  [ROUGH act] eval=7 norm=5.736 range=[-2.925, 2.854] cmd=[1.00,0.00,-0.43]
+  [ROUGH act] eval=8 norm=5.758 range=[-2.797, 2.803] cmd=[1.00,0.00,-0.47]
+  [ROUGH act] eval=9 norm=5.925 range=[-2.778, 2.881] cmd=[1.00,0.00,-0.50]
+  [  33/100] friction_rough_ep0032  TIMEOUT   progress= 33.2m  zone=4  time=121.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-5.22453221e-04  6.11202850e-05  7.50986068e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.665, 0.284]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.167 range=[-1.313, 0.589] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.115 range=[-1.849, 1.157] cmd=[1.00,0.00,-1.17]
+  [ROUGH act] eval=2 norm=4.446 range=[-2.418, 1.781] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.477 range=[-2.175, 2.776] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.136 range=[-1.781, 3.266] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.533 range=[-0.859, 2.494] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.199 range=[-2.025, 1.175] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=7 norm=4.656 range=[-2.527, 2.513] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=5.654 range=[-2.409, 3.085] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=6.285 range=[-2.227, 3.758] cmd=[1.00,0.00,0.03]
+  [  34/100] friction_rough_ep0033  FELL      progress= 31.9m  zone=4  time=75.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.24437699  0.74976522 -1.31695426]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.087, 0.639]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=15.566 range=[-7.759, 9.703] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.448 range=[-4.252, 5.072] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.820 range=[-3.364, 2.907] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=3 norm=7.698 range=[-2.188, 6.856] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=4 norm=8.096 range=[-2.412, 7.086] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=5 norm=8.897 range=[-2.605, 6.673] cmd=[1.00,0.00,-0.12]
+  [ROUGH act] eval=6 norm=7.495 range=[-2.920, 4.445] cmd=[1.00,0.00,-0.14]
+  [ROUGH act] eval=7 norm=5.403 range=[-2.108, 2.961] cmd=[1.00,0.00,-0.14]
+  [ROUGH act] eval=8 norm=6.825 range=[-3.364, 3.788] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=9 norm=7.065 range=[-3.751, 4.008] cmd=[1.00,0.00,-0.18]
+  [  35/100] friction_rough_ep0034  FELL      progress= 35.8m  zone=4  time=87.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.48834664  0.18165059 -1.21933329]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.289, 0.862]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=17.318 range=[-7.192, 8.523] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=14.688 range=[-6.504, 7.991] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.762 range=[-6.503, 5.991] cmd=[1.00,0.00,-0.29]
+  [ROUGH act] eval=3 norm=21.213 range=[-7.640, 10.748] cmd=[1.00,0.00,-0.44]
+  [ROUGH act] eval=4 norm=21.062 range=[-8.308, 12.179] cmd=[1.00,0.00,-0.57]
+  [ROUGH act] eval=5 norm=18.581 range=[-6.026, 13.185] cmd=[1.00,0.00,-0.66]
+  [ROUGH act] eval=6 norm=17.471 range=[-8.553, 9.129] cmd=[1.00,0.00,-0.73]
+  [ROUGH act] eval=7 norm=18.289 range=[-9.618, 7.263] cmd=[1.00,0.00,-0.78]
+  [ROUGH act] eval=8 norm=18.621 range=[-9.870, 9.841] cmd=[1.00,0.00,-0.92]
+  [ROUGH act] eval=9 norm=16.821 range=[-4.503, 10.113] cmd=[1.00,0.00,-1.05]
+  [  36/100] friction_rough_ep0035  FELL      progress=  0.0m  zone=1  time=0.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.26320222 -0.2197624  -0.99320459]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.371, 0.847]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=11.752 range=[-3.715, 7.312] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.858 range=[-2.905, 7.292] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=6.092 range=[-1.774, 4.685] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=3 norm=12.331 range=[-3.864, 9.787] cmd=[1.00,0.00,-0.40]
+  [ROUGH act] eval=4 norm=8.822 range=[-2.914, 6.250] cmd=[1.00,0.00,-0.51]
+  [ROUGH act] eval=5 norm=8.247 range=[-2.057, 5.042] cmd=[1.00,0.00,-0.62]
+  [ROUGH act] eval=6 norm=4.462 range=[-1.747, 2.926] cmd=[1.00,0.00,-0.72]
+  [ROUGH act] eval=7 norm=6.742 range=[-2.467, 4.172] cmd=[1.00,0.00,-0.82]
+  [ROUGH act] eval=8 norm=6.734 range=[-2.274, 4.353] cmd=[1.00,0.00,-0.89]
+  [ROUGH act] eval=9 norm=6.178 range=[-2.589, 4.081] cmd=[1.00,0.00,-0.95]
+  [  37/100] friction_rough_ep0036  FELL      progress= 33.2m  zone=4  time=84.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.38729295  0.53035879 -0.73626399]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.117, 1.162]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.457 range=[-1.770, 3.924] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.108 range=[-2.124, 4.798] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=7.195 range=[-2.033, 4.956] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=3 norm=7.292 range=[-2.367, 4.470] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=4 norm=7.119 range=[-2.965, 2.904] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=5 norm=3.819 range=[-1.436, 2.697] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=6 norm=3.803 range=[-1.732, 1.983] cmd=[1.00,0.00,-0.14]
+  [ROUGH act] eval=7 norm=4.729 range=[-2.012, 2.953] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=8 norm=5.382 range=[-1.986, 3.353] cmd=[1.00,0.00,-0.21]
+  [ROUGH act] eval=9 norm=5.666 range=[-2.225, 3.421] cmd=[1.00,0.00,-0.24]
+  [  38/100] friction_rough_ep0037  TIMEOUT   progress= 39.5m  zone=4  time=108.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.06958091 -0.29281235  0.00048148]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.462, 0.378]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.555 range=[-1.389, 0.774] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.202 range=[-2.376, 3.001] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=6.552 range=[-3.257, 4.081] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=7.131 range=[-2.747, 4.445] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.071 range=[-2.314, 4.481] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.436 range=[-1.891, 4.515] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.832 range=[-1.024, 3.896] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=2.094 range=[-0.959, 0.701] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=3.702 range=[-1.986, 1.514] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=4.625 range=[-2.208, 2.350] cmd=[1.00,0.00,0.03]
+  [  39/100] friction_rough_ep0038  FELL      progress= 35.3m  zone=4  time=80.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.40176767  0.325982   -1.35750866]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.443, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=14.915 range=[-5.479, 11.321] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=15.615 range=[-4.961, 12.708] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=15.236 range=[-3.852, 12.309] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=3 norm=10.732 range=[-1.992, 8.699] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=4 norm=5.695 range=[-1.655, 4.029] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=5 norm=6.789 range=[-2.159, 5.574] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=6 norm=6.148 range=[-2.492, 4.098] cmd=[1.00,0.00,0.17]
+  [ROUGH act] eval=7 norm=5.868 range=[-2.735, 2.881] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=8 norm=5.974 range=[-3.033, 3.190] cmd=[1.00,0.00,0.28]
+  [ROUGH act] eval=9 norm=5.857 range=[-2.556, 2.823] cmd=[1.00,0.00,0.33]
+  [  40/100] friction_rough_ep0039  FELL      progress= 26.3m  zone=3  time=59.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01340365  0.36775479 -1.61432135]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.434, 0.706]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.458 range=[-2.796, 3.506] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=13.487 range=[-3.605, 9.713] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=19.185 range=[-4.028, 15.051] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=3 norm=15.474 range=[-3.855, 11.807] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=4 norm=5.528 range=[-1.327, 3.053] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=5 norm=4.419 range=[-2.278, 2.400] cmd=[1.00,0.00,-0.29]
+  [ROUGH act] eval=6 norm=3.553 range=[-1.908, 1.610] cmd=[1.00,0.00,-0.41]
+  [ROUGH act] eval=7 norm=3.171 range=[-1.839, 1.768] cmd=[1.00,0.00,-0.50]
+  [ROUGH act] eval=8 norm=3.681 range=[-2.019, 2.162] cmd=[1.00,0.00,-0.57]
+  [ROUGH act] eval=9 norm=4.171 range=[-1.888, 2.521] cmd=[1.00,0.00,-0.64]
+  [  41/100] friction_rough_ep0040  FELL      progress= 20.6m  zone=3  time=45.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05768776  0.60104448 -0.7823602 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.014, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.972 range=[-3.354, 3.311] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.583 range=[-2.724, 2.405] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.799 range=[-2.699, 3.068] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=3 norm=5.407 range=[-1.799, 3.224] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=4 norm=1.801 range=[-0.812, 1.260] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=5 norm=3.474 range=[-1.803, 2.058] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=6 norm=4.477 range=[-2.153, 2.742] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=7 norm=4.946 range=[-2.001, 2.782] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=8 norm=5.448 range=[-1.797, 3.664] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=9 norm=6.067 range=[-2.002, 4.043] cmd=[1.00,0.00,0.10]
+  [  42/100] friction_rough_ep0041  FELL      progress= 31.3m  zone=4  time=70.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.24983814  0.78277713 -1.64103568]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.617, 0.499]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=11.932 range=[-4.709, 5.386] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=12.526 range=[-5.795, 6.933] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=8.493 range=[-2.912, 4.907] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=3 norm=7.606 range=[-1.534, 4.676] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=4 norm=9.341 range=[-3.345, 5.703] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=8.448 range=[-2.914, 5.574] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=6 norm=7.272 range=[-2.092, 5.231] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=7 norm=6.509 range=[-2.206, 4.852] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=8 norm=6.093 range=[-2.289, 4.526] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=9 norm=5.852 range=[-2.293, 4.304] cmd=[1.00,0.00,0.07]
+  [  43/100] friction_rough_ep0042  FELL      progress= 31.8m  zone=4  time=73.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.10264621 -0.60589427 -0.57952023]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.717, 1.046]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.251 range=[-2.586, 3.345] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.394 range=[-2.463, 3.197] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=6.944 range=[-2.284, 4.399] cmd=[1.00,0.00,-0.14]
+  [ROUGH act] eval=3 norm=8.478 range=[-3.489, 3.586] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=4 norm=10.313 range=[-2.759, 8.654] cmd=[1.00,0.00,-0.36]
+  [ROUGH act] eval=5 norm=11.379 range=[-3.164, 9.597] cmd=[1.00,0.00,-0.45]
+  [ROUGH act] eval=6 norm=10.738 range=[-3.436, 8.291] cmd=[1.00,0.00,-0.50]
+  [ROUGH act] eval=7 norm=9.649 range=[-3.690, 6.309] cmd=[1.00,0.00,-0.51]
+  [ROUGH act] eval=8 norm=7.474 range=[-3.205, 5.225] cmd=[1.00,0.00,-0.49]
+  [ROUGH act] eval=9 norm=4.814 range=[-2.957, 2.256] cmd=[1.00,0.00,-0.51]
+  [  44/100] friction_rough_ep0043  TIMEOUT   progress=  0.4m  zone=1  time=117.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00011787  0.00016601  0.00747818]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.444, 0.334]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.213 range=[-1.306, 0.547] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.704 range=[-1.826, 2.113] cmd=[1.00,0.00,-0.33]
+  [ROUGH act] eval=2 norm=4.915 range=[-1.756, 3.353] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=5.782 range=[-1.922, 4.017] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=4 norm=5.969 range=[-1.622, 4.089] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=5 norm=5.669 range=[-1.542, 3.902] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=6 norm=4.968 range=[-1.409, 3.595] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=7 norm=3.454 range=[-0.689, 2.741] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=8 norm=2.854 range=[-1.540, 1.231] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=9 norm=3.946 range=[-2.046, 2.032] cmd=[1.00,0.00,-0.03]
+  [  45/100] friction_rough_ep0044  FELL      progress= 30.5m  zone=4  time=64.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.18951973  0.40816316 -1.39112961]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.860, 0.810]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=14.121 range=[-4.516, 11.005] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=13.796 range=[-3.394, 11.201] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.206 range=[-5.143, 10.261] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=3 norm=11.046 range=[-4.997, 8.813] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=4 norm=9.277 range=[-4.651, 7.272] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=5 norm=8.580 range=[-3.171, 5.450] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=6 norm=8.723 range=[-2.898, 5.158] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=7 norm=7.715 range=[-3.329, 4.823] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=8 norm=10.063 range=[-3.803, 4.760] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=9 norm=5.021 range=[-2.717, 2.056] cmd=[1.00,0.00,0.22]
+  [  46/100] friction_rough_ep0045  FELL      progress= 30.8m  zone=4  time=76.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.18645883  0.22363886 -1.61364591]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.739, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.025 range=[-2.707, 6.603] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.237 range=[-3.222, 5.607] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=7.956 range=[-2.797, 6.623] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=3 norm=7.258 range=[-2.676, 5.172] cmd=[1.00,0.00,-0.12]
+  [ROUGH act] eval=4 norm=6.960 range=[-2.574, 4.651] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=5 norm=6.250 range=[-2.113, 3.860] cmd=[1.00,0.00,-0.17]
+  [ROUGH act] eval=6 norm=5.563 range=[-1.983, 3.274] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=7 norm=5.212 range=[-2.007, 3.208] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=8 norm=5.059 range=[-1.978, 3.099] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=9 norm=4.924 range=[-1.868, 3.009] cmd=[1.00,0.00,-0.18]
+  [  47/100] friction_rough_ep0046  FELL      progress= 34.1m  zone=4  time=80.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.2455515  -0.0048225  -0.34574309]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.998, 1.239]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.133 range=[-2.475, 2.684] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.234 range=[-2.552, 3.618] cmd=[1.00,0.00,0.48]
+  [ROUGH act] eval=2 norm=5.429 range=[-2.504, 2.906] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=3 norm=5.828 range=[-2.514, 3.081] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=4 norm=6.937 range=[-3.292, 3.467] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=7.204 range=[-2.888, 4.504] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=6 norm=6.668 range=[-3.382, 3.345] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=7 norm=7.009 range=[-3.377, 3.621] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=8 norm=6.818 range=[-2.675, 3.610] cmd=[1.00,0.00,0.25]
+  [ROUGH act] eval=9 norm=6.170 range=[-2.280, 3.136] cmd=[1.00,0.00,0.28]
+  [  48/100] friction_rough_ep0047  FELL      progress= 32.0m  zone=4  time=73.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.45581713  0.70465779 -1.1215322 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.049, 0.962]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=10.785 range=[-3.855, 8.377] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=14.879 range=[-4.513, 12.570] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=11.535 range=[-1.772, 10.200] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=3 norm=9.505 range=[-1.953, 8.065] cmd=[1.00,0.00,-0.29]
+  [ROUGH act] eval=4 norm=7.017 range=[-2.171, 5.058] cmd=[1.00,0.00,-0.40]
+  [ROUGH act] eval=5 norm=4.091 range=[-1.184, 1.782] cmd=[1.00,0.00,-0.53]
+  [ROUGH act] eval=6 norm=4.560 range=[-2.110, 2.328] cmd=[1.00,0.00,-0.65]
+  [ROUGH act] eval=7 norm=4.636 range=[-1.970, 3.197] cmd=[1.00,0.00,-0.77]
+  [ROUGH act] eval=8 norm=4.831 range=[-2.123, 3.613] cmd=[1.00,0.00,-0.88]
+  [ROUGH act] eval=9 norm=4.800 range=[-2.186, 3.607] cmd=[1.00,0.00,-0.97]
+  [  49/100] friction_rough_ep0048  FELL      progress= 33.7m  zone=4  time=80.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.31923863  0.83622819 -1.53277326]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.617, 1.131]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=11.092 range=[-5.267, 5.332] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=20.046 range=[-9.134, 7.186] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=14.612 range=[-6.790, 5.264] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=3 norm=7.814 range=[-3.715, 3.842] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=4 norm=6.360 range=[-2.016, 4.772] cmd=[1.00,0.00,0.17]
+  [ROUGH act] eval=5 norm=9.197 range=[-2.834, 4.484] cmd=[1.00,0.00,0.18]
+  [ROUGH act] eval=6 norm=9.778 range=[-3.252, 4.962] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=7 norm=8.754 range=[-2.864, 4.484] cmd=[1.00,0.00,0.18]
+  [ROUGH act] eval=8 norm=7.667 range=[-2.604, 3.861] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=9 norm=6.115 range=[-2.566, 3.123] cmd=[1.00,0.00,0.10]
+  [  50/100] friction_rough_ep0049  TIMEOUT   progress=  0.1m  zone=1  time=118.5s
+Saved 50 episodes to C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/parallel_2026-02-21_08-24-21\friction_rough_episodes.jsonl
+  >> Saved checkpoint at episode 50
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-8.05394448e-05 -1.78027505e-04  7.48772779e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.618, 0.217]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.624 range=[-1.084, 0.312] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.543 range=[-1.416, 1.314] cmd=[1.00,0.00,-1.37]
+  [ROUGH act] eval=2 norm=3.669 range=[-2.267, 1.180] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.165 range=[-2.405, 2.517] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=4 norm=5.468 range=[-1.593, 3.478] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=5 norm=2.945 range=[-0.810, 1.820] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=6 norm=4.050 range=[-1.755, 1.956] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=7 norm=5.198 range=[-2.156, 2.970] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=6.161 range=[-2.351, 3.548] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=6.489 range=[-2.427, 3.874] cmd=[1.00,0.00,0.02]
+  [  51/100] friction_rough_ep0050  FELL      progress= 37.5m  zone=4  time=105.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.15887225 -0.4574708  -0.67744714]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.844, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.709 range=[-2.335, 2.250] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.269 range=[-2.142, 6.143] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=10.798 range=[-3.046, 6.901] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=3 norm=10.849 range=[-3.023, 6.647] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=4 norm=7.859 range=[-2.679, 2.975] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=5 norm=9.296 range=[-2.306, 8.520] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=6 norm=9.099 range=[-2.370, 7.920] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=7 norm=10.019 range=[-3.028, 7.656] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=8 norm=9.325 range=[-3.596, 6.191] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=9 norm=7.293 range=[-2.866, 4.316] cmd=[1.00,0.00,-0.09]
+  [  52/100] friction_rough_ep0051  TIMEOUT   progress=  0.4m  zone=1  time=121.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.18062072 -0.29045376  0.06661027]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.409, 0.392]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.736 range=[-1.416, 1.024] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.965 range=[-1.911, 2.607] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=5.438 range=[-2.128, 3.663] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=6.913 range=[-2.543, 4.223] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=4 norm=5.928 range=[-1.859, 4.267] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=4.553 range=[-0.924, 3.793] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=6 norm=2.341 range=[-1.450, 0.532] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=7 norm=3.866 range=[-2.352, 1.585] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=5.167 range=[-2.614, 2.840] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=5.731 range=[-2.056, 3.602] cmd=[1.00,0.00,-0.01]
+  [  53/100] friction_rough_ep0052  TIMEOUT   progress= 39.5m  zone=4  time=101.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.7321139   0.40457964 -0.10668395]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.470, 0.407]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.129 range=[-1.331, 1.821] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.461 range=[-2.184, 2.121] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=6.357 range=[-2.562, 3.757] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=3 norm=6.499 range=[-2.012, 4.012] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=4 norm=6.221 range=[-1.730, 4.519] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=5.739 range=[-1.457, 4.645] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=6 norm=3.978 range=[-1.168, 3.419] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=7 norm=3.423 range=[-2.155, 1.506] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=4.028 range=[-2.134, 1.917] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=9 norm=4.706 range=[-2.395, 2.640] cmd=[1.00,0.00,-0.00]
+  [  54/100] friction_rough_ep0053  FELL      progress= 30.9m  zone=4  time=74.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.24325588  0.78106958 -1.31785953]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.937]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=10.270 range=[-5.128, 6.190] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.016 range=[-2.751, 5.232] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=8.311 range=[-3.295, 6.551] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=3 norm=6.717 range=[-2.441, 5.149] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=4 norm=5.850 range=[-2.482, 3.445] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=5 norm=6.041 range=[-2.710, 2.806] cmd=[1.00,0.00,-0.25]
+  [ROUGH act] eval=6 norm=7.063 range=[-3.024, 4.068] cmd=[1.00,0.00,-0.30]
+  [ROUGH act] eval=7 norm=7.582 range=[-2.823, 5.010] cmd=[1.00,0.00,-0.37]
+  [ROUGH act] eval=8 norm=4.680 range=[-0.167, 3.007] cmd=[1.00,0.00,-0.45]
+  [ROUGH act] eval=9 norm=3.970 range=[-0.884, 1.977] cmd=[1.00,0.00,-0.55]
+  [  55/100] friction_rough_ep0054  FELL      progress= 21.9m  zone=3  time=49.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.22297859  0.74702972 -1.95264482]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.204, 1.140]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.055 range=[-2.324, 5.480] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.615 range=[-3.922, 6.661] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.018 range=[-3.813, 7.600] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=3 norm=10.778 range=[-3.159, 6.928] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=4 norm=8.288 range=[-2.662, 5.246] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=5 norm=6.620 range=[-2.553, 3.853] cmd=[1.00,0.00,0.17]
+  [ROUGH act] eval=6 norm=6.019 range=[-2.560, 3.292] cmd=[1.00,0.00,0.17]
+  [ROUGH act] eval=7 norm=5.469 range=[-2.263, 2.971] cmd=[1.00,0.00,0.17]
+  [ROUGH act] eval=8 norm=4.468 range=[-1.374, 2.503] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=9 norm=3.838 range=[-1.069, 2.195] cmd=[1.00,0.00,0.15]
+  [  56/100] friction_rough_ep0055  TIMEOUT   progress= 39.5m  zone=4  time=103.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.77580512  0.17273568 -0.08768307]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.496, 0.403]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.685 range=[-1.041, 0.116] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.542 range=[-1.409, 0.621] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=4.181 range=[-2.552, 1.594] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=3 norm=5.142 range=[-2.936, 2.161] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=4 norm=5.883 range=[-2.492, 3.817] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=5 norm=6.035 range=[-2.369, 3.875] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=6 norm=5.837 range=[-2.323, 3.600] cmd=[1.00,0.00,-0.12]
+  [ROUGH act] eval=7 norm=5.496 range=[-2.212, 3.318] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=8 norm=5.129 range=[-2.011, 3.048] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=9 norm=4.804 range=[-1.746, 2.842] cmd=[1.00,0.00,-0.14]
+  [  57/100] friction_rough_ep0056  TIMEOUT   progress= 39.5m  zone=4  time=99.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.49028307 -0.59570926  0.06424478]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.419, 0.433]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.341 range=[-1.858, 1.044] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.009 range=[-2.588, 2.808] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=6.325 range=[-2.363, 3.811] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=6.687 range=[-2.278, 4.080] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=4 norm=5.980 range=[-1.758, 4.128] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=5 norm=4.592 range=[-1.433, 3.678] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=6 norm=2.625 range=[-1.766, 0.851] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=7 norm=4.024 range=[-2.584, 1.565] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=8 norm=4.890 range=[-2.584, 2.608] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=9 norm=5.178 range=[-2.204, 3.161] cmd=[1.00,0.00,0.07]
+  [  58/100] friction_rough_ep0057  TIMEOUT   progress= 39.5m  zone=4  time=111.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.30956838 0.193259   0.14162134]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.460, 0.588]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.324 range=[-1.589, 0.865] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.699 range=[-1.948, 1.778] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=4.582 range=[-2.045, 2.354] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=5.255 range=[-1.970, 2.960] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=4 norm=5.617 range=[-1.714, 3.834] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=5 norm=2.173 range=[-0.395, 1.226] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=6 norm=3.305 range=[-1.519, 1.936] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=7 norm=4.738 range=[-2.147, 2.554] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.466 range=[-1.781, 3.190] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=6.170 range=[-1.729, 3.685] cmd=[1.00,0.00,-0.02]
+  [  59/100] friction_rough_ep0058  FELL      progress= 32.6m  zone=4  time=76.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.31796014  0.63035816 -1.29702926]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.588, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.946 range=[-2.904, 5.624] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.145 range=[-4.723, 5.772] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=10.530 range=[-4.552, 5.996] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=3 norm=9.833 range=[-3.811, 6.064] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=4 norm=5.646 range=[-2.542, 3.274] cmd=[1.00,0.00,-0.41]
+  [ROUGH act] eval=5 norm=8.206 range=[-3.671, 5.948] cmd=[1.00,0.00,-0.55]
+  [ROUGH act] eval=6 norm=9.270 range=[-3.650, 6.840] cmd=[1.00,0.00,-0.69]
+  [ROUGH act] eval=7 norm=8.882 range=[-3.080, 6.068] cmd=[1.00,0.00,-0.80]
+  [ROUGH act] eval=8 norm=8.372 range=[-2.689, 5.594] cmd=[1.00,0.00,-0.91]
+  [ROUGH act] eval=9 norm=7.559 range=[-2.598, 5.023] cmd=[1.00,0.00,-1.00]
+  [  60/100] friction_rough_ep0059  TIMEOUT   progress= 39.5m  zone=4  time=105.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.79789615  0.3234469  -0.00565521]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.444, 0.158]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.678 range=[-0.841, 0.184] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=1.939 range=[-0.977, 0.712] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=3.316 range=[-2.077, 0.925] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=4.564 range=[-2.235, 2.553] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=4 norm=6.329 range=[-2.566, 4.002] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=5 norm=6.814 range=[-2.318, 4.642] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=6 norm=6.891 range=[-2.355, 4.477] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=7 norm=6.612 range=[-2.238, 4.051] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=6.041 range=[-1.960, 3.464] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=9 norm=5.492 range=[-1.924, 2.845] cmd=[1.00,0.00,-0.04]
+  [  61/100] friction_rough_ep0060  FELL      progress= 20.7m  zone=3  time=47.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.34970337  0.75245422 -1.18686187]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.041, 1.056]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=13.144 range=[-2.616, 12.186] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=20.019 range=[-5.805, 15.255] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=26.455 range=[-7.517, 19.998] cmd=[1.00,0.00,-0.34]
+  [ROUGH act] eval=3 norm=20.699 range=[-4.515, 15.693] cmd=[1.00,0.00,-0.54]
+  [ROUGH act] eval=4 norm=10.660 range=[-4.308, 6.560] cmd=[1.00,0.00,-0.75]
+  [ROUGH act] eval=5 norm=12.984 range=[-5.029, 8.117] cmd=[1.00,0.00,-0.97]
+  [ROUGH act] eval=6 norm=8.725 range=[-2.483, 5.423] cmd=[1.00,0.00,-1.20]
+  [ROUGH act] eval=7 norm=7.905 range=[-4.824, 4.159] cmd=[1.00,0.00,-1.40]
+  [ROUGH act] eval=8 norm=7.697 range=[-4.232, 3.463] cmd=[1.00,0.00,-1.63]
+  [ROUGH act] eval=9 norm=13.114 range=[-5.602, 7.560] cmd=[1.00,0.00,-1.86]
+  [  62/100] friction_rough_ep0061  TIMEOUT   progress=  0.0m  zone=1  time=117.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00141309 -0.00034004  0.00848775]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.795, 0.892]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.572 range=[-1.629, 1.085] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.565 range=[-2.418, 1.477] cmd=[1.00,0.00,0.71]
+  [ROUGH act] eval=2 norm=4.207 range=[-2.316, 1.930] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=5.257 range=[-1.897, 3.306] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=6.601 range=[-2.201, 4.046] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=5 norm=7.252 range=[-2.223, 4.708] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=6 norm=7.077 range=[-2.170, 4.791] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=7 norm=6.680 range=[-2.030, 4.745] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=6.481 range=[-1.860, 4.682] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=9 norm=6.338 range=[-1.642, 4.658] cmd=[1.00,0.00,-0.01]
+  [  63/100] friction_rough_ep0062  FELL      progress= 35.0m  zone=4  time=78.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.22810529  0.78337109 -1.88716936]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.030, 0.557]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.607 range=[-2.228, 6.023] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=14.807 range=[-5.647, 8.826] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=16.562 range=[-5.234, 12.827] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=3 norm=15.329 range=[-4.911, 8.814] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=4 norm=14.065 range=[-6.263, 7.385] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=5 norm=14.852 range=[-6.050, 9.829] cmd=[1.00,0.00,0.26]
+  [ROUGH act] eval=6 norm=11.706 range=[-4.319, 7.956] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=7 norm=19.212 range=[-6.492, 12.407] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=8 norm=25.368 range=[-9.914, 15.532] cmd=[1.00,0.00,0.26]
+  [ROUGH act] eval=9 norm=24.259 range=[-10.602, 14.385] cmd=[1.00,0.00,0.32]
+  [  64/100] friction_rough_ep0063  FELL      progress=  0.1m  zone=1  time=0.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.13916096  0.74852377 -0.61260211]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.419, 0.739]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=12.580 range=[-3.937, 10.339] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=14.960 range=[-5.311, 11.746] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=14.214 range=[-6.066, 11.931] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=3 norm=14.968 range=[-6.099, 12.374] cmd=[1.00,0.00,-0.23]
+  [ROUGH act] eval=4 norm=12.197 range=[-4.636, 9.792] cmd=[1.00,0.00,-0.35]
+  [ROUGH act] eval=5 norm=7.447 range=[-3.450, 2.897] cmd=[1.00,0.00,-0.49]
+  [ROUGH act] eval=6 norm=9.584 range=[-4.146, 5.273] cmd=[1.00,0.00,-0.66]
+  [ROUGH act] eval=7 norm=12.114 range=[-5.907, 7.789] cmd=[1.00,0.00,-0.84]
+  [ROUGH act] eval=8 norm=14.540 range=[-7.079, 9.407] cmd=[1.00,0.00,-0.96]
+  [ROUGH act] eval=9 norm=8.692 range=[-5.357, 4.178] cmd=[1.00,0.00,-1.03]
+  [  65/100] friction_rough_ep0064  FELL      progress=  0.0m  zone=1  time=1.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.44114509  0.21906422 -0.47486043]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.718, 0.671]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.568 range=[-2.642, 2.861] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.439 range=[-2.898, 5.664] cmd=[1.00,0.00,-0.98]
+  [ROUGH act] eval=2 norm=6.811 range=[-2.491, 3.845] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=3 norm=3.383 range=[-1.654, 1.864] cmd=[1.00,0.00,-0.22]
+  [ROUGH act] eval=4 norm=5.351 range=[-2.325, 2.541] cmd=[1.00,0.00,-0.31]
+  [ROUGH act] eval=5 norm=5.476 range=[-2.541, 2.614] cmd=[1.00,0.00,-0.45]
+  [ROUGH act] eval=6 norm=5.188 range=[-2.863, 2.711] cmd=[1.00,0.00,-0.61]
+  [ROUGH act] eval=7 norm=4.689 range=[-2.150, 2.446] cmd=[1.00,0.00,-0.75]
+  [ROUGH act] eval=8 norm=3.871 range=[-1.873, 2.220] cmd=[1.00,0.00,-0.85]
+  [ROUGH act] eval=9 norm=3.570 range=[-1.568, 1.865] cmd=[1.00,0.00,-0.93]
+  [  66/100] friction_rough_ep0065  TIMEOUT   progress= 39.5m  zone=4  time=103.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.49516186  0.65105009 -0.26046607]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.801, 0.844]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.860 range=[-2.939, 2.576] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.046 range=[-3.459, 1.565] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.916 range=[-2.845, 2.427] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=3 norm=8.372 range=[-4.215, 4.407] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=4 norm=10.747 range=[-4.908, 4.702] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=5 norm=12.384 range=[-5.432, 4.728] cmd=[1.00,0.00,-0.35]
+  [ROUGH act] eval=6 norm=6.276 range=[-3.128, 3.716] cmd=[1.00,0.00,-0.47]
+  [ROUGH act] eval=7 norm=11.998 range=[-2.709, 11.178] cmd=[1.00,0.00,-0.60]
+  [ROUGH act] eval=8 norm=13.301 range=[-3.642, 11.915] cmd=[1.00,0.00,-0.71]
+  [ROUGH act] eval=9 norm=12.511 range=[-3.936, 10.345] cmd=[1.00,0.00,-0.80]
+  [  67/100] friction_rough_ep0066  TIMEOUT   progress=  0.2m  zone=1  time=116.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.14491777 -0.36454412  0.07364319]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.524, 0.402]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.166 range=[-1.986, 0.948] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.399 range=[-2.276, 1.953] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=4.746 range=[-2.260, 2.167] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=3 norm=5.197 range=[-1.891, 3.056] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=2.470 range=[-1.665, 0.875] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=5 norm=4.108 range=[-2.368, 1.898] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=6 norm=4.688 range=[-2.410, 2.328] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=7 norm=5.069 range=[-2.170, 3.423] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=8 norm=5.553 range=[-1.898, 4.000] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=9 norm=5.980 range=[-1.799, 4.261] cmd=[1.00,0.00,0.11]
+  [  68/100] friction_rough_ep0067  FELL      progress= 33.4m  zone=4  time=89.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.58526206  0.20907305 -2.06920314]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.487, 0.719]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.070 range=[-1.407, 3.153] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.465 range=[-1.953, 3.355] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.175 range=[-3.034, 6.670] cmd=[1.00,0.00,0.11]
+  [ROUGH act] eval=3 norm=7.893 range=[-3.906, 5.178] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=4 norm=9.117 range=[-2.846, 7.005] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=5 norm=7.358 range=[-2.660, 4.529] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=6 norm=4.456 range=[-1.055, 3.210] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=7 norm=6.318 range=[-3.149, 4.009] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=8 norm=7.509 range=[-3.646, 4.472] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=9 norm=7.587 range=[-3.125, 4.262] cmd=[1.00,0.00,0.03]
+  [  69/100] friction_rough_ep0068  TIMEOUT   progress= 39.5m  zone=4  time=108.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.33322793 0.01685482 0.05964044]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.549, 0.450]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.139 range=[-1.012, 0.813] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.426 range=[-2.046, 1.347] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=4.337 range=[-2.399, 1.937] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=3 norm=4.869 range=[-2.190, 2.736] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=4 norm=4.699 range=[-2.475, 1.547] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=5 norm=5.154 range=[-2.559, 2.583] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=6 norm=5.633 range=[-2.560, 3.175] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=7 norm=6.183 range=[-2.683, 3.622] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=8 norm=6.256 range=[-2.479, 3.790] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=9 norm=6.083 range=[-2.309, 3.589] cmd=[1.00,0.00,0.13]
+  [  70/100] friction_rough_ep0069  FELL      progress= 33.0m  zone=4  time=72.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.05900272  0.29091284 -2.020473  ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.094, 1.171]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=15.357 range=[-4.862, 10.499] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=20.621 range=[-6.621, 16.467] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=19.018 range=[-3.629, 16.585] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=3 norm=12.809 range=[-4.517, 8.920] cmd=[1.00,0.00,0.21]
+  [ROUGH act] eval=4 norm=13.350 range=[-4.305, 9.530] cmd=[1.00,0.00,0.27]
+  [ROUGH act] eval=5 norm=9.958 range=[-4.946, 7.154] cmd=[1.00,0.00,0.26]
+  [ROUGH act] eval=6 norm=9.715 range=[-4.557, 7.650] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=7 norm=8.424 range=[-3.842, 4.458] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=8 norm=6.457 range=[-2.890, 3.107] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=9 norm=5.625 range=[-2.744, 2.632] cmd=[1.00,0.00,0.23]
+  [  71/100] friction_rough_ep0070  TIMEOUT   progress=  0.1m  zone=1  time=121.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00084601  0.0004098   0.00782664]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.572, 0.421]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.657 range=[-1.060, 0.200] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.108 range=[-1.247, 1.873] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=2.650 range=[-1.023, 1.184] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.593 range=[-2.309, 2.180] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.898 range=[-2.488, 3.317] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=5 norm=6.910 range=[-2.513, 4.555] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=6 norm=7.042 range=[-2.022, 4.614] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=7 norm=6.691 range=[-1.964, 4.094] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=6.293 range=[-1.899, 3.985] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=9 norm=6.075 range=[-1.843, 3.885] cmd=[1.00,0.00,0.00]
+  [  72/100] friction_rough_ep0071  FELL      progress= 31.7m  zone=4  time=70.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.69070035  0.46153742 -1.55952859]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.464, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=15.152 range=[-6.827, 9.610] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=14.526 range=[-4.702, 11.318] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=11.428 range=[-3.479, 9.387] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=7.734 range=[-1.816, 6.223] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=4.187 range=[-1.449, 2.749] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=4.902 range=[-1.983, 2.925] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=6 norm=5.036 range=[-2.504, 2.032] cmd=[1.00,0.00,0.11]
+  [ROUGH act] eval=7 norm=5.784 range=[-2.686, 2.923] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=8 norm=5.680 range=[-2.441, 2.696] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=9 norm=5.338 range=[-2.150, 2.545] cmd=[1.00,0.00,0.22]
+  [  73/100] friction_rough_ep0072  FELL      progress= 33.9m  zone=4  time=76.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.28260127  0.13784787 -1.78753638]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.466, 0.544]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.424 range=[-2.593, 6.962] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=13.020 range=[-4.066, 10.198] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=13.584 range=[-3.696, 10.359] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=3 norm=9.854 range=[-4.470, 5.828] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=4 norm=5.816 range=[-3.021, 2.676] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.383 range=[-2.474, 2.767] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=6 norm=4.543 range=[-2.262, 2.160] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=7 norm=4.280 range=[-2.157, 1.839] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=8 norm=4.233 range=[-2.101, 1.853] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=9 norm=4.227 range=[-2.173, 1.783] cmd=[1.00,0.00,-0.17]
+  [  74/100] friction_rough_ep0073  TIMEOUT   progress= 39.5m  zone=4  time=105.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.23543397 -0.00611257 -0.14926791]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.584, 0.407]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.150 range=[-1.494, 1.327] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.164 range=[-2.024, 1.795] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.558 range=[-2.284, 3.019] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=3 norm=6.600 range=[-2.280, 3.729] cmd=[1.00,0.00,0.11]
+  [ROUGH act] eval=4 norm=6.768 range=[-2.788, 3.865] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=5 norm=6.997 range=[-2.812, 4.108] cmd=[1.00,0.00,0.17]
+  [ROUGH act] eval=6 norm=7.013 range=[-2.711, 4.307] cmd=[1.00,0.00,0.18]
+  [ROUGH act] eval=7 norm=6.854 range=[-2.604, 4.371] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=8 norm=6.557 range=[-2.436, 4.258] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=9 norm=6.121 range=[-2.146, 4.000] cmd=[1.00,0.00,0.19]
+  [  75/100] friction_rough_ep0074  FELL      progress= 29.5m  zone=3  time=71.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.36209276  0.50144506 -1.50921988]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.788, 1.203]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=9.995 range=[-4.550, 4.144] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.124 range=[-4.695, 5.346] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.799 range=[-5.652, 8.336] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=3 norm=8.048 range=[-3.506, 3.696] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=4 norm=7.281 range=[-2.308, 5.108] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=5 norm=6.128 range=[-2.673, 3.960] cmd=[1.00,0.00,0.32]
+  [ROUGH act] eval=6 norm=5.316 range=[-2.649, 2.417] cmd=[1.00,0.00,0.38]
+  [ROUGH act] eval=7 norm=5.868 range=[-2.713, 3.110] cmd=[1.00,0.00,0.45]
+  [ROUGH act] eval=8 norm=5.683 range=[-2.541, 3.078] cmd=[1.00,0.00,0.51]
+  [ROUGH act] eval=9 norm=5.272 range=[-2.465, 2.752] cmd=[1.00,0.00,0.55]
+  [  76/100] friction_rough_ep0075  FELL      progress= 33.6m  zone=4  time=77.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.35584742  0.42803937 -1.78953445]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.631]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.809 range=[-3.272, 6.829] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=15.473 range=[-4.467, 13.085] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=13.642 range=[-3.661, 11.793] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=3 norm=11.768 range=[-3.106, 10.305] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=4 norm=9.842 range=[-2.628, 8.019] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=5 norm=6.318 range=[-1.782, 4.359] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=6 norm=4.942 range=[-1.642, 3.763] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=7 norm=3.150 range=[-1.259, 1.790] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=8 norm=4.635 range=[-2.818, 2.203] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=5.211 range=[-2.615, 2.327] cmd=[1.00,0.00,0.01]
+  [  77/100] friction_rough_ep0076  TIMEOUT   progress= 39.5m  zone=4  time=104.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.58298439 -0.34869996  0.03447038]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.438, 0.333]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.943 range=[-1.569, 0.948] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.528 range=[-2.541, 2.230] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=5.836 range=[-2.468, 3.408] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=4.554 range=[-1.466, 3.153] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=3.394 range=[-2.143, 1.213] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=5 norm=4.954 range=[-2.868, 2.554] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=6 norm=5.927 range=[-2.761, 3.410] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=7 norm=6.079 range=[-2.295, 4.040] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=8 norm=6.049 range=[-1.916, 4.275] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=9 norm=5.811 range=[-1.665, 4.035] cmd=[1.00,0.00,0.10]
+  [  78/100] friction_rough_ep0077  FELL      progress= 37.7m  zone=4  time=98.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.1123492   0.46783677 -1.79712832]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.996, 1.044]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=14.297 range=[-4.064, 10.859] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=15.050 range=[-4.088, 12.083] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.878 range=[-3.078, 7.823] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=3 norm=7.224 range=[-4.595, 2.425] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=4 norm=10.025 range=[-6.287, 4.150] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=5 norm=7.443 range=[-4.880, 2.120] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=6 norm=7.378 range=[-2.040, 4.595] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=7 norm=24.306 range=[-9.189, 17.803] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=8 norm=22.298 range=[-7.756, 17.512] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=9 norm=11.131 range=[-4.716, 7.077] cmd=[1.00,0.00,-0.07]
+  [  79/100] friction_rough_ep0078  FELL      progress=  0.0m  zone=1  time=1.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02871533  0.81382132 -0.49735263]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.548, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.825 range=[-4.136, 3.340] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.336 range=[-5.003, 4.032] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=8.747 range=[-4.001, 4.779] cmd=[1.00,0.00,-0.07]
+  [ROUGH act] eval=3 norm=4.345 range=[-1.395, 2.660] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=4 norm=4.713 range=[-1.490, 3.012] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=5 norm=5.978 range=[-2.201, 4.480] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=6 norm=5.347 range=[-1.706, 3.702] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=7 norm=5.610 range=[-1.744, 3.563] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=8 norm=6.047 range=[-1.613, 3.931] cmd=[1.00,0.00,-0.22]
+  [ROUGH act] eval=9 norm=6.299 range=[-2.120, 3.869] cmd=[1.00,0.00,-0.26]
+  [  80/100] friction_rough_ep0079  FELL      progress= 29.4m  zone=3  time=65.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.17191713  0.39164087 -0.75648433]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.867, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.815 range=[-3.042, 2.371] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.329 range=[-2.045, 1.810] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.356 range=[-2.902, 2.259] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=3 norm=6.793 range=[-2.473, 4.838] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=4 norm=3.830 range=[-1.123, 2.276] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=5 norm=3.726 range=[-1.433, 1.926] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=6 norm=4.150 range=[-1.895, 1.973] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=7 norm=4.987 range=[-2.219, 2.574] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=8 norm=5.445 range=[-2.278, 3.199] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=5.841 range=[-2.107, 3.422] cmd=[1.00,0.00,0.03]
+  [  81/100] friction_rough_ep0080  FELL      progress= 34.1m  zone=4  time=84.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.47615051 -0.02772879 -0.8559801 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.660, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.250 range=[-2.916, 3.283] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.863 range=[-4.134, 4.415] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.222 range=[-4.198, 3.910] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=3 norm=10.173 range=[-4.275, 4.366] cmd=[1.00,0.00,-0.17]
+  [ROUGH act] eval=4 norm=9.677 range=[-4.352, 4.397] cmd=[1.00,0.00,-0.25]
+  [ROUGH act] eval=5 norm=5.358 range=[-2.456, 4.014] cmd=[1.00,0.00,-0.34]
+  [ROUGH act] eval=6 norm=5.820 range=[-3.154, 3.482] cmd=[1.00,0.00,-0.42]
+  [ROUGH act] eval=7 norm=5.930 range=[-2.667, 3.892] cmd=[1.00,0.00,-0.48]
+  [ROUGH act] eval=8 norm=6.219 range=[-2.379, 4.311] cmd=[1.00,0.00,-0.53]
+  [ROUGH act] eval=9 norm=6.017 range=[-1.801, 4.324] cmd=[1.00,0.00,-0.56]
+  [  82/100] friction_rough_ep0081  FELL      progress= 30.9m  zone=4  time=67.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.3671619   0.44510964 -0.64105743]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.281, 0.846]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.688 range=[-2.647, 3.863] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.714 range=[-4.879, 6.241] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.482 range=[-3.841, 9.714] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=3 norm=10.296 range=[-2.724, 7.962] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=4 norm=12.147 range=[-6.379, 5.873] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=5 norm=10.602 range=[-5.922, 4.565] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=6 norm=9.222 range=[-3.196, 5.928] cmd=[1.00,0.00,-0.12]
+  [ROUGH act] eval=7 norm=8.628 range=[-2.668, 5.128] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=8 norm=13.381 range=[-4.840, 9.339] cmd=[1.00,0.00,-0.25]
+  [ROUGH act] eval=9 norm=12.991 range=[-5.066, 8.502] cmd=[1.00,0.00,-0.30]
+  [  83/100] friction_rough_ep0082  FELL      progress=  0.2m  zone=1  time=1.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.39207581  0.88806462 -0.67851967]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.860, 0.853]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.297 range=[-1.540, 3.092] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.109 range=[-2.368, 4.924] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=6.499 range=[-2.044, 5.435] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=3 norm=5.360 range=[-2.103, 4.443] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=4 norm=5.189 range=[-2.275, 3.919] cmd=[1.00,0.00,0.18]
+  [ROUGH act] eval=5 norm=4.527 range=[-2.088, 3.245] cmd=[1.00,0.00,0.21]
+  [ROUGH act] eval=6 norm=3.636 range=[-1.659, 2.461] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=7 norm=2.317 range=[-0.621, 1.252] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=8 norm=4.200 range=[-2.134, 1.626] cmd=[1.00,0.00,0.25]
+  [ROUGH act] eval=9 norm=5.313 range=[-2.087, 2.617] cmd=[1.00,0.00,0.25]
+  [  84/100] friction_rough_ep0083  FELL      progress= 31.0m  zone=4  time=80.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.05041146  0.4841041  -1.84691167]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.268, 1.027]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=16.978 range=[-4.955, 12.034] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=20.951 range=[-7.373, 14.687] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=20.334 range=[-7.143, 13.053] cmd=[1.00,0.00,0.11]
+  [ROUGH act] eval=3 norm=14.119 range=[-4.389, 12.078] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=4 norm=16.228 range=[-4.620, 14.456] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=5 norm=15.964 range=[-6.526, 13.483] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=6 norm=8.655 range=[-4.716, 4.257] cmd=[1.00,0.00,0.26]
+  [ROUGH act] eval=7 norm=6.688 range=[-3.126, 2.856] cmd=[1.00,0.00,0.30]
+  [ROUGH act] eval=8 norm=5.513 range=[-2.933, 2.650] cmd=[1.00,0.00,0.34]
+  [ROUGH act] eval=9 norm=5.338 range=[-2.661, 2.401] cmd=[1.00,0.00,0.40]
+  [  85/100] friction_rough_ep0084  TIMEOUT   progress=  0.1m  zone=1  time=117.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-3.97872973e-05 -1.19536198e-05  7.50968000e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.459, 0.422]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.867 range=[-1.611, 0.962] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.366 range=[-2.002, 1.669] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=2 norm=4.475 range=[-2.160, 2.580] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=5.393 range=[-1.915, 3.153] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.080 range=[-1.972, 4.101] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.355 range=[-1.949, 4.510] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=6 norm=6.225 range=[-1.927, 4.549] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=7 norm=5.956 range=[-1.800, 4.363] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=5.670 range=[-1.658, 4.080] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=9 norm=5.417 range=[-1.591, 3.804] cmd=[1.00,0.00,-0.04]
+  [  86/100] friction_rough_ep0085  TIMEOUT   progress= 32.1m  zone=4  time=117.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 4.53255168e-04 -2.49102250e-05  7.52427103e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.613, 0.240]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.999 range=[-1.239, 0.574] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.007 range=[-1.826, 1.120] cmd=[1.00,0.00,-0.96]
+  [ROUGH act] eval=2 norm=4.004 range=[-2.241, 1.607] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.061 range=[-1.520, 2.057] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=4 norm=3.426 range=[-1.958, 1.173] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=5 norm=4.892 range=[-2.430, 2.732] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=6 norm=6.011 range=[-2.172, 3.731] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=7 norm=6.839 range=[-2.268, 4.656] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=7.065 range=[-2.296, 4.856] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=6.795 range=[-2.264, 4.501] cmd=[1.00,0.00,0.02]
+  [  87/100] friction_rough_ep0086  FELL      progress= 34.5m  zone=4  time=82.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.30699426  0.13575824 -1.63674998]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.589, 0.419]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=9.486 range=[-2.675, 8.421] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=12.051 range=[-3.890, 8.751] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=15.485 range=[-4.438, 10.623] cmd=[1.00,0.00,0.11]
+  [ROUGH act] eval=3 norm=12.646 range=[-4.389, 8.314] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=4 norm=7.375 range=[-2.745, 4.871] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=5 norm=3.851 range=[-1.676, 2.012] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=6 norm=3.971 range=[-2.277, 1.521] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=7 norm=4.279 range=[-2.513, 1.928] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=8 norm=4.238 range=[-2.413, 1.515] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=9 norm=4.153 range=[-2.540, 1.766] cmd=[1.00,0.00,0.04]
+  [  88/100] friction_rough_ep0087  FELL      progress= 33.9m  zone=4  time=78.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.148849    0.2610293  -1.71832657]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.130, 0.839]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=17.950 range=[-4.123, 14.742] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=23.678 range=[-4.987, 21.210] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=16.296 range=[-5.327, 9.566] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=3 norm=16.658 range=[-3.387, 15.302] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=4 norm=16.433 range=[-5.722, 14.532] cmd=[1.00,0.00,0.28]
+  [ROUGH act] eval=5 norm=12.288 range=[-5.658, 9.393] cmd=[1.00,0.00,0.32]
+  [ROUGH act] eval=6 norm=10.283 range=[-4.159, 6.406] cmd=[1.00,0.00,0.27]
+  [ROUGH act] eval=7 norm=7.738 range=[-1.852, 4.595] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=8 norm=5.081 range=[-2.086, 2.402] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=9 norm=7.607 range=[-3.591, 3.842] cmd=[1.00,0.00,0.08]
+  [  89/100] friction_rough_ep0088  TIMEOUT   progress=  0.0m  zone=1  time=117.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-8.38745793e-04  3.43109023e-05  8.13972484e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.752, 0.876]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.489 range=[-1.687, 1.058] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.252 range=[-2.497, 1.525] cmd=[1.00,0.00,-0.89]
+  [ROUGH act] eval=2 norm=4.397 range=[-2.378, 2.000] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=5.268 range=[-1.970, 3.081] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=4 norm=6.566 range=[-2.009, 4.378] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=6.811 range=[-1.899, 4.502] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=6 norm=6.362 range=[-1.699, 4.339] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=7 norm=5.414 range=[-1.346, 4.178] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=8 norm=3.504 range=[-0.802, 2.796] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=3.428 range=[-1.541, 1.955] cmd=[1.00,0.00,0.00]
+  [  90/100] friction_rough_ep0089  FELL      progress= 31.1m  zone=4  time=77.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.18836246  0.60962677 -1.77296698]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.640, 0.901]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.753 range=[-3.152, 5.905] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=15.076 range=[-5.318, 10.869] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=15.858 range=[-4.493, 12.040] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=3 norm=8.732 range=[-3.974, 5.356] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=4 norm=6.804 range=[-2.766, 3.953] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=5 norm=5.402 range=[-2.831, 2.900] cmd=[1.00,0.00,-0.07]
+  [ROUGH act] eval=6 norm=5.327 range=[-3.209, 2.293] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=7 norm=5.110 range=[-3.170, 2.249] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=8 norm=4.905 range=[-3.127, 2.194] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=9 norm=4.370 range=[-2.852, 1.995] cmd=[1.00,0.00,-0.26]
+  [  91/100] friction_rough_ep0090  FELL      progress= 32.6m  zone=4  time=77.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.06524492  0.46387619 -1.7649467 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.062, 0.580]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=9.240 range=[-4.266, 6.293] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=15.605 range=[-4.325, 12.315] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.047 range=[-3.191, 10.543] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=6.425 range=[-1.027, 5.393] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=4 norm=6.745 range=[-2.227, 5.472] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=6.583 range=[-2.518, 4.853] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=6 norm=6.239 range=[-2.436, 4.052] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=7 norm=5.717 range=[-2.264, 3.102] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=8 norm=5.286 range=[-2.053, 2.471] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=9 norm=4.993 range=[-1.914, 2.213] cmd=[1.00,0.00,0.20]
+  [  92/100] friction_rough_ep0091  FELL      progress= 31.2m  zone=4  time=69.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.3373853   0.57725734 -1.22431433]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.489, 0.872]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.864 range=[-3.638, 5.624] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.944 range=[-3.253, 8.495] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.302 range=[-3.005, 7.143] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=3 norm=6.405 range=[-1.715, 4.844] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=4 norm=2.586 range=[-0.927, 1.324] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=5 norm=4.971 range=[-2.255, 2.936] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=6 norm=5.822 range=[-2.216, 3.393] cmd=[1.00,0.00,-0.07]
+  [ROUGH act] eval=7 norm=6.494 range=[-2.323, 3.679] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=8 norm=6.998 range=[-2.348, 3.853] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=9 norm=7.067 range=[-2.345, 3.820] cmd=[1.00,0.00,-0.11]
+  [  93/100] friction_rough_ep0092  FELL      progress= 31.0m  zone=4  time=75.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.45153546  0.77779639 -0.63191992]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.750]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=9.859 range=[-5.691, 4.181] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.039 range=[-3.139, 3.392] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=6.386 range=[-1.003, 4.650] cmd=[1.00,0.00,-0.21]
+  [ROUGH act] eval=3 norm=8.084 range=[-2.879, 4.946] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=4 norm=6.501 range=[-2.472, 3.697] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=5 norm=9.932 range=[-4.076, 7.005] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=6 norm=13.553 range=[-5.926, 7.904] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=7 norm=10.898 range=[-3.861, 6.826] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=8 norm=15.282 range=[-3.359, 10.468] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=9 norm=18.058 range=[-7.359, 13.050] cmd=[1.00,0.00,-0.20]
+  [  94/100] friction_rough_ep0093  FELL      progress=  0.0m  zone=1  time=1.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.23889904  0.6283291  -1.20740318]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.910, 0.596]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.672 range=[-2.582, 3.592] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.000 range=[-3.854, 4.779] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=10.152 range=[-3.585, 6.788] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=3 norm=10.372 range=[-2.769, 7.533] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=4 norm=9.559 range=[-2.312, 6.543] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=5 norm=8.486 range=[-2.332, 5.231] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=6 norm=7.150 range=[-2.134, 4.438] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=7 norm=5.956 range=[-1.801, 3.580] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=8 norm=4.800 range=[-1.665, 2.991] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=9 norm=3.700 range=[-1.907, 1.274] cmd=[1.00,0.00,-0.00]
+  [  95/100] friction_rough_ep0094  FELL      progress= 34.6m  zone=4  time=81.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.08775416  0.40151867 -1.05899453]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.291, 1.233]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.697 range=[-2.343, 3.425] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.966 range=[-4.133, 5.157] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.082 range=[-3.303, 5.311] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=3 norm=9.401 range=[-3.455, 6.146] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=4 norm=8.790 range=[-4.406, 3.941] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=5 norm=4.095 range=[-1.500, 2.469] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=6 norm=5.273 range=[-2.582, 2.693] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=7 norm=5.376 range=[-1.868, 2.851] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=8 norm=5.849 range=[-2.040, 3.371] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=9 norm=5.967 range=[-2.267, 3.530] cmd=[1.00,0.00,0.02]
+  [  96/100] friction_rough_ep0095  FELL      progress= 37.7m  zone=4  time=88.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.26517487  0.54391134 -1.86475825]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.759, 0.436]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=11.316 range=[-5.289, 4.673] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.823 range=[-4.503, 7.000] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=12.768 range=[-5.011, 7.709] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=10.437 range=[-3.685, 7.433] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.492 range=[-2.050, 2.897] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.278 range=[-2.240, 4.967] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=6 norm=7.878 range=[-2.398, 4.916] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=7 norm=6.747 range=[-2.560, 3.577] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=5.468 range=[-2.645, 2.300] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=4.729 range=[-2.617, 1.644] cmd=[1.00,0.00,0.02]
+  [  97/100] friction_rough_ep0096  FELL      progress= 30.5m  zone=4  time=73.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.10563347 -0.29689604 -1.55660856]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.744, 0.559]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=10.581 range=[-5.255, 5.661] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.928 range=[-5.347, 6.659] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=11.966 range=[-6.070, 5.226] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=3 norm=9.985 range=[-3.151, 6.027] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=4 norm=14.071 range=[-3.511, 12.808] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=5 norm=12.813 range=[-2.893, 11.221] cmd=[1.00,0.00,0.33]
+  [ROUGH act] eval=6 norm=13.101 range=[-2.618, 11.118] cmd=[1.00,0.00,0.40]
+  [ROUGH act] eval=7 norm=11.896 range=[-2.221, 9.958] cmd=[1.00,0.00,0.44]
+  [ROUGH act] eval=8 norm=10.124 range=[-2.135, 8.240] cmd=[1.00,0.00,0.46]
+  [ROUGH act] eval=9 norm=8.669 range=[-2.139, 6.553] cmd=[1.00,0.00,0.48]
+  [  98/100] friction_rough_ep0097  FELL      progress= 31.0m  zone=4  time=73.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.22595404  0.64907026 -1.7347039 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.269, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=13.208 range=[-2.483, 12.299] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=21.007 range=[-6.448, 16.326] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=33.634 range=[-7.521, 27.416] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=3 norm=33.964 range=[-5.257, 29.505] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=4 norm=23.540 range=[-2.711, 20.734] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=5 norm=18.865 range=[-5.343, 13.607] cmd=[1.00,0.00,-0.17]
+  [ROUGH act] eval=6 norm=14.893 range=[-7.077, 6.191] cmd=[1.00,0.00,-0.26]
+  [ROUGH act] eval=7 norm=9.422 range=[-4.843, 3.465] cmd=[1.00,0.00,-0.33]
+  [ROUGH act] eval=8 norm=7.146 range=[-3.803, 1.661] cmd=[1.00,0.00,-0.38]
+  [ROUGH act] eval=9 norm=6.787 range=[-4.263, 1.952] cmd=[1.00,0.00,-0.46]
+  [  99/100] friction_rough_ep0098  TIMEOUT   progress=  0.0m  zone=1  time=119.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00123465  0.00030569  0.00849296]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.611, 0.408]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.839 range=[-1.117, 0.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.041 range=[-1.362, 1.814] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=3.068 range=[-1.269, 1.473] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=4.763 range=[-2.554, 2.416] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=6.914 range=[-3.144, 4.122] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=5 norm=6.960 range=[-2.622, 4.249] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=6 norm=6.539 range=[-2.094, 4.184] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=7 norm=6.043 range=[-2.080, 3.993] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=8 norm=5.734 range=[-2.025, 3.847] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=9 norm=5.605 range=[-1.980, 3.719] cmd=[1.00,0.00,0.04]
+  [ 100/100] friction_rough_ep0099  FELL      progress= 32.8m  zone=4  time=77.9s
+Saved 50 episodes to C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/parallel_2026-02-21_08-24-21\friction_rough_episodes.jsonl
+  >> Saved checkpoint at episode 100
+Saved 0 episodes to C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/parallel_2026-02-21_08-24-21\friction_rough_episodes.jsonl
+
+============================================================
+  Evaluation complete!
+  Total episodes: 100
+  Total time:     8369.8s (139.5min)
+  Avg per episode: 83.7s
+  Results saved to: C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/parallel_2026-02-21_08-24-21
+============================================================
+
+Exiting (skipping SimulationApp.close to avoid GPU hang).
