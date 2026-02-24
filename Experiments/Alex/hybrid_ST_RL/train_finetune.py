@@ -14,7 +14,7 @@ Key innovations:
 Attempt #2 fixes (from Attempt #1 value function collapse):
   - Actor-only loading: critic is reset to random (avoids reward mismatch)
   - Critic warmup: actor is frozen for N iterations while critic calibrates
-  - Noise floor: noise_std clamped >= 0.4 to prevent exploration collapse
+  - Noise clamp: noise_std clamped to [0.4, 1.5] to prevent collapse AND explosion
 
 Usage (on H100 server):
     cd ~/IsaacLab
@@ -49,6 +49,8 @@ parser.add_argument("--actor_freeze_iters", type=int, default=1000,
                     help="Iterations to freeze actor while critic warms up (default 1000)")
 parser.add_argument("--min_noise_std", type=float, default=0.4,
                     help="Minimum noise std floor to prevent exploration collapse (default 0.4)")
+parser.add_argument("--max_noise_std", type=float, default=1.5,
+                    help="Maximum noise std ceiling to prevent exploration explosion (default 1.5)")
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
 sys.argv = [sys.argv[0]]
@@ -218,30 +220,52 @@ def load_actor_only(runner, checkpoint_path: str):
 
 
 def freeze_actor(policy):
-    """Freeze actor weights so only the critic trains during warmup."""
+    """Freeze actor weights AND noise std so only the critic trains during warmup.
+
+    Bug fix (Attempt #3): In Attempt #2, std was left trainable during warmup.
+    With the actor frozen, surrogate_loss ≈ 0, so the entropy bonus dominated
+    the loss and pushed std from 0.65 → 5.75+ in 247 iterations. The robot
+    produced pure noise actions and fell over instantly (3s episodes, 100%
+    body_contact termination).
+
+    Fix: Also freeze std/log_std so exploration level stays at the checkpoint's
+    value (0.65) until the actor unfreezes.
+    """
     for param in policy.actor.parameters():
         param.requires_grad = False
-    # Note: std (noise) is NOT frozen — it should adapt during warmup
+    # CRITICAL: Also freeze noise std — otherwise entropy bonus pushes it up unbounded
+    if hasattr(policy, 'std'):
+        policy.std.requires_grad = False
+    if hasattr(policy, 'log_std'):
+        policy.log_std.requires_grad = False
 
 
 def unfreeze_actor(policy):
-    """Unfreeze actor weights after critic warmup is complete."""
+    """Unfreeze actor weights and noise std after critic warmup is complete."""
     for param in policy.actor.parameters():
         param.requires_grad = True
+    if hasattr(policy, 'std'):
+        policy.std.requires_grad = True
+    if hasattr(policy, 'log_std'):
+        policy.log_std.requires_grad = True
 
 
-def clamp_noise_std(policy, min_std: float):
-    """Clamp noise std to prevent exploration collapse.
+def clamp_noise_std(policy, min_std: float, max_std: float = 1.5):
+    """Clamp noise std to prevent both exploration collapse AND explosion.
 
-    In Attempt #1, adaptive KL crushed noise from 0.65 -> 0.15,
-    locking the policy in a deterministic death spiral.
+    Attempt #1: adaptive KL crushed noise 0.65 → 0.15 (collapse). Fix: min_std=0.4.
+    Attempt #2: entropy bonus pushed noise 0.65 → 5.75+ (explosion). Fix: max_std=1.5.
+
+    The upper bound (1.5) is ~2.3× the checkpoint's converged noise (0.65),
+    allowing reasonable exploration growth while preventing runaway.
     """
     with torch.no_grad():
         if hasattr(policy, 'noise_std_type') and policy.noise_std_type == "log":
             log_min = torch.log(torch.tensor(min_std, device=policy.log_std.device))
-            policy.log_std.clamp_(min=log_min.item())
+            log_max = torch.log(torch.tensor(max_std, device=policy.log_std.device))
+            policy.log_std.clamp_(min=log_min.item(), max=log_max.item())
         else:
-            policy.std.clamp_(min=min_std)
+            policy.std.clamp_(min=min_std, max=max_std)
 
 
 # ── 4. Main ─────────────────────────────────────────────────────────────
@@ -280,7 +304,7 @@ def main():
     print(f"  Steps per env:    {agent_cfg.num_steps_per_env}", flush=True)
     print(f"  Network:          {agent_cfg.policy.actor_hidden_dims}", flush=True)
     print(f"  Actor freeze:     {args_cli.actor_freeze_iters} iterations (critic warmup)", flush=True)
-    print(f"  Min noise std:    {args_cli.min_noise_std}", flush=True)
+    print(f"  Noise std range:  [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
     print(f"  Episode length:   {env_cfg.episode_length_s}s", flush=True)
     print(f"  Terrains:         12 types (ROBUST_TERRAINS_CFG)", flush=True)
     print(f"  Rewards:          19 terms (14 base + 5 custom)", flush=True)
@@ -333,7 +357,7 @@ def main():
             trainable_params = sum(1 for p in runner.alg.policy.named_parameters() if p[1].requires_grad)
             print(f"[INFO] Frozen actor params: {frozen_params}, trainable params: {trainable_params}", flush=True)
 
-        print(f"[INFO] Noise floor: {args_cli.min_noise_std} (prevents exploration collapse)", flush=True)
+        print(f"[INFO] Noise std range: [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
     else:
         print("[WARN] No checkpoint specified — training from scratch!", flush=True)
         print("[WARN] This is NOT recommended. Use --checkpoint /path/to/model_27500.pt", flush=True)
@@ -358,15 +382,16 @@ def main():
         f.write(f"dr_schedule: {DR_SCHEDULE}\n")
         f.write(f"actor_freeze_iters: {args_cli.actor_freeze_iters}\n")
         f.write(f"min_noise_std: {args_cli.min_noise_std}\n")
+        f.write(f"max_noise_std: {args_cli.max_noise_std}\n")
         f.write(f"loading_mode: actor_only (critic reset)\n")
-        f.write(f"attempt: 2 (fixes: actor-only load, critic warmup, noise floor)\n")
+        f.write(f"attempt: 3 (fixes: actor-only load, critic warmup + std freeze, noise clamp [min,max])\n")
 
     # --- Monkey-patch alg.update() for progressive DR + warmup + noise floor ---
     print("\n[TRAIN] Starting training with progressive DR...", flush=True)
     if args_cli.actor_freeze_iters > 0 and args_cli.checkpoint:
         print(f"[TRAIN] Phase 1: Critic warmup (actor frozen, iters 0-{args_cli.actor_freeze_iters})", flush=True)
         print(f"[TRAIN] Phase 2: Full training (actor unfrozen, iters {args_cli.actor_freeze_iters}+)", flush=True)
-    print(f"[TRAIN] Noise floor: {args_cli.min_noise_std}", flush=True)
+    print(f"[TRAIN] Noise std range: [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
     start_time = time.time()
 
     original_update = runner.alg.update
@@ -407,7 +432,7 @@ def main():
         result = original_update(*args, **kwargs)
 
         # --- Fix 3: Clamp noise std after update ---
-        clamp_noise_std(runner.alg.policy, args_cli.min_noise_std)
+        clamp_noise_std(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
 
         # Log progress periodically
         if it % _dr_log_interval == 0:

@@ -5,7 +5,7 @@
 # Verifies: actor-only loading, critic warmup, noise floor, 12 terrains,
 # 19 reward terms, progressive DR, no NaN, no CUDA errors.
 #
-# Attempt #2: Tests all three fixes from the Attempt #1 collapse.
+# Attempt #3: Tests all fixes (actor-only load, std freeze, noise clamp [min,max]).
 #
 # Usage:
 #   cd C:/IsaacLab
@@ -42,6 +42,7 @@ if [ ! -f "${CHECKPOINT}" ]; then
         --dr_expansion_iters 5 \
         --actor_freeze_iters 3 \
         --min_noise_std 0.4 \
+        --max_noise_std 1.5 \
         --seed 42
 else
     ./isaaclab.sh -p "${TRAIN_SCRIPT}" --headless \
@@ -50,6 +51,7 @@ else
         --dr_expansion_iters 5 \
         --actor_freeze_iters 3 \
         --min_noise_std 0.4 \
+        --max_noise_std 1.5 \
         --seed 42 \
         --checkpoint "${CHECKPOINT}"
 fi
@@ -58,7 +60,8 @@ echo ""
 echo "Local debug complete. Check output for:"
 echo "  - Actor-only load (SKIPPED critic keys message)"
 echo "  - Actor FROZEN / UNFROZEN messages (critic warmup)"
-echo "  - Noise std >= 0.4 (noise floor active)"
+echo "  - Noise std in [0.4, 1.5] (clamped both directions)"
+echo "  - Noise std stable at ~0.65 during warmup (std frozen)"
 echo "  - Terrain level > 0 at start (confirms warm start)"
 echo "  - No NaN in reward terms"
 echo "  - DR expansion messages"
