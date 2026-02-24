@@ -58,6 +58,7 @@ isaaclab.bat -p /path/to/train_finetune.py --headless ^
     --dr_expansion_iters 5 ^
     --actor_freeze_iters 3 ^
     --min_noise_std 0.4 ^
+    --max_noise_std 1.5 ^
     --seed 42 ^
     --checkpoint /path/to/model_27500.pt
 ```
@@ -67,7 +68,8 @@ isaaclab.bat -p /path/to/train_finetune.py --headless ^
 - `Actor FROZEN for 3 iterations` — critic warmup active
 - `[WARMUP COMPLETE] iter=3: Actor UNFROZEN` — warmup → full training transition
 - `dr=X.X%` in progress lines — progressive DR active
-- `noise=0.4XX` — noise floor active (never drops below 0.4)
+- `noise=0.4XX` — noise clamped in [0.4, 1.5] (never collapses or explodes)
+- Noise std stable at ~0.65 during warmup (std frozen)
 - No `NaN` in any reward terms
 
 ### H100 Production Launch
@@ -675,7 +677,7 @@ If you use `mode="startup"` with progressive DR, the ranges never actually chang
 
 ## 9. Checkpoint Loading Fixes
 
-These three fixes were developed after Attempt #1 collapsed due to value function mismatch. See [TRAINING_METHODOLOGY.md §5.2.7](TRAINING_METHODOLOGY.md) for the academic analysis.
+These fixes were developed across three attempts. Attempt #1 collapsed due to value function mismatch (Fixes 1-4). Attempt #2 collapsed due to noise explosion (Fixes 5-6). See [TRAINING_METHODOLOGY.md §5.2.7–5.2.10](TRAINING_METHODOLOGY.md) for the academic analysis.
 
 ### Fix 1: Actor-Only Loading
 
@@ -712,21 +714,37 @@ def load_actor_only(runner, checkpoint_path: str):
     print(f"  SKIPPED {len(critic_keys)} critic keys (intentionally reset)", flush=True)
 ```
 
-### Fix 2: Critic Warmup (Actor Freeze)
+### Fix 2: Critic Warmup (Actor Freeze + Std Freeze)
 
-With a random critic, early advantage estimates are garbage. If the actor updates on garbage advantages, it can diverge immediately. Solution: freeze the actor for N iterations while the critic learns the new reward structure.
+With a random critic, early advantage estimates are garbage. If the actor updates on garbage advantages, it can diverge immediately. Solution: freeze the actor **and noise std** for N iterations while the critic learns the new reward structure.
+
+**Critical detail (learned in Attempt #2):** RSL-RL's `policy.std` is a top-level `nn.Parameter` on `ActorCritic`, NOT inside `policy.actor`. Freezing only `policy.actor.parameters()` leaves `std` trainable. During warmup, the PPO entropy bonus (`-entropy_coef × log(std)`) pushes `std` upward monotonically (since the actor is frozen, there's no surrogate loss to counterbalance it). In Attempt #2, this caused `std` to explode from 0.65 → 5.75+ in 247 iterations.
 
 ```python
 def freeze_actor(policy):
-    """Freeze actor weights so only the critic trains during warmup."""
+    """Freeze actor weights AND noise std so only the critic trains during warmup.
+
+    Bug fix (Attempt #3): In Attempt #2, std was left trainable during warmup.
+    With the actor frozen, surrogate_loss ≈ 0, so the entropy bonus dominated
+    the loss and pushed std from 0.65 → 5.75+ in 247 iterations.
+    Fix: Also freeze std/log_std so exploration level stays at checkpoint value.
+    """
     for param in policy.actor.parameters():
         param.requires_grad = False
-    # Note: std (noise) is NOT frozen — it should adapt during warmup
+    # CRITICAL: Also freeze noise std — otherwise entropy bonus pushes it up unbounded
+    if hasattr(policy, 'std'):
+        policy.std.requires_grad = False
+    if hasattr(policy, 'log_std'):
+        policy.log_std.requires_grad = False
 
 def unfreeze_actor(policy):
-    """Unfreeze actor weights after critic warmup is complete."""
+    """Unfreeze actor weights and noise std after critic warmup is complete."""
     for param in policy.actor.parameters():
         param.requires_grad = True
+    if hasattr(policy, 'std'):
+        policy.std.requires_grad = True
+    if hasattr(policy, 'log_std'):
+        policy.log_std.requires_grad = True
 ```
 
 **LR Reset at Unfreeze** — This is a subtle but critical detail. During warmup, the actor is frozen → KL divergence ≈ 0 → adaptive KL scheduler doubles the learning rate every iteration. After 1000 iterations, the LR would be astronomically inflated. Without resetting it:
@@ -744,19 +762,30 @@ if not _actor_unfrozen[0] and it >= args_cli.actor_freeze_iters:
         pg["lr"] = original_lr
 ```
 
-### Fix 3: Noise Floor
+### Fix 3: Noise Floor AND Ceiling
 
-In Attempt #1, adaptive KL crushed noise from 0.65 → 0.15, locking the policy in a deterministic death spiral. The noise floor prevents this:
+- **Attempt #1** — adaptive KL crushed noise from 0.65 → 0.15 (collapse). Fix: `min_std=0.4`.
+- **Attempt #2** — entropy bonus pushed noise from 0.65 → 5.75+ (explosion). Fix: `max_std=1.5`.
+
+The clamping now bounds noise in both directions:
 
 ```python
-def clamp_noise_std(policy, min_std: float):
-    """Clamp noise std to prevent exploration collapse."""
+def clamp_noise_std(policy, min_std: float, max_std: float = 1.5):
+    """Clamp noise std to prevent both exploration collapse AND explosion.
+
+    Attempt #1: adaptive KL crushed noise 0.65 → 0.15 (collapse). Fix: min_std=0.4.
+    Attempt #2: entropy bonus pushed noise 0.65 → 5.75+ (explosion). Fix: max_std=1.5.
+
+    The upper bound (1.5) is ~2.3× the checkpoint's converged noise (0.65),
+    allowing reasonable exploration growth while preventing runaway.
+    """
     with torch.no_grad():
         if hasattr(policy, 'noise_std_type') and policy.noise_std_type == "log":
             log_min = torch.log(torch.tensor(min_std, device=policy.log_std.device))
-            policy.log_std.clamp_(min=log_min.item())
+            log_max = torch.log(torch.tensor(max_std, device=policy.log_std.device))
+            policy.log_std.clamp_(min=log_min.item(), max=log_max.item())
         else:
-            policy.std.clamp_(min=min_std)
+            policy.std.clamp_(min=min_std, max=max_std)
 ```
 
 Called after every PPO update:
@@ -764,7 +793,13 @@ Called after every PPO update:
 ```python
 # Inside update_with_fixes():
 result = original_update(*args, **kwargs)
-clamp_noise_std(runner.alg.policy, args_cli.min_noise_std)  # min_std=0.4
+clamp_noise_std(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
+```
+
+CLI arguments:
+```
+--min_noise_std 0.4    # Floor — prevents exploration collapse
+--max_noise_std 1.5    # Ceiling — prevents exploration explosion
 ```
 
 ---
@@ -815,8 +850,8 @@ def update_with_fixes(*args, **kwargs):
     # Run the actual PPO update
     result = original_update(*args, **kwargs)
 
-    # Fix 3: Clamp noise std after update
-    clamp_noise_std(runner.alg.policy, args_cli.min_noise_std)
+    # Fix 3: Clamp noise std after update (both floor AND ceiling)
+    clamp_noise_std(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
 
     _iteration_counter[0] += 1
     return result
@@ -996,6 +1031,7 @@ screen -dmS finetune bash -c "
         --dr_expansion_iters ${DR_EXPANSION} \
         --actor_freeze_iters ${ACTOR_FREEZE} \
         --min_noise_std ${MIN_NOISE_STD} \
+        --max_noise_std ${MAX_NOISE_STD} \
         --checkpoint ${CHECKPOINT} \
         2>&1 | tee -a ${LOG_FILE}
 "
@@ -1038,6 +1074,7 @@ export PYTHONUNBUFFERED=1
     --dr_expansion_iters 5 \
     --actor_freeze_iters 3 \
     --min_noise_std 0.4 \
+    --max_noise_std 1.5 \
     --seed 42 \
     --checkpoint "${CHECKPOINT}"
 ```
@@ -1045,7 +1082,8 @@ export PYTHONUNBUFFERED=1
 **Post-run validation checklist** (from the script):
 - `SKIPPED N critic keys` — actor-only load confirmed
 - `Actor FROZEN` / `Actor UNFROZEN` — critic warmup working
-- `noise=0.4XX` — noise floor active
+- Noise std in [0.4, 1.5] (clamped both directions)
+- Noise std stable at ~0.65 during warmup (std frozen)
 - `Terrain level > 0` at start — warm start confirmed
 - No `NaN` in reward terms
 - DR expansion messages appearing
@@ -1230,7 +1268,21 @@ sim_params.physx.num_velocity_iterations = 0
 
 Same as SpotRoughTerrainPolicy — no `world.scene.add()`.
 
-### 15. Screen Session Management
+### 15. `policy.std` is NOT Inside `policy.actor`
+
+RSL-RL's `ActorCritic` stores the action noise as a top-level `nn.Parameter`:
+
+```
+ActorCritic
+├── actor   (nn.Sequential)  ← policy.actor.parameters()
+├── critic  (nn.Sequential)
+├── std     (nn.Parameter)   ← NOT in actor.parameters()!
+└── distribution
+```
+
+If you freeze `policy.actor.parameters()` to stop the actor from updating, `std` is still trainable. During warmup with a frozen actor, the PPO entropy bonus pushes `std` upward without limit (Attempt #2: 0.65 → 5.75+ in 247 iterations). Always freeze/unfreeze `std` alongside the actor.
+
+### 16. Screen Session Management
 
 Never kill a screen session running Isaac Sim with `screen -X quit`. This leaves zombie processes holding GPU memory. Instead:
 
@@ -1387,5 +1439,5 @@ From `configs/finetune_ppo_cfg.py`:
 
 ---
 
-*Last updated: February 2026*
+*Last updated: February 24, 2026 — Attempt #3 fixes (std freeze + noise ceiling)*
 *AI2C Tech Capstone — Hybrid ST-RL Training Pipeline*

@@ -594,25 +594,100 @@ The fix: at the exact moment the actor unfreezes, we reset the learning
 rate back to its original value (1e-4). Clean start, no accumulated
 momentum.
 
-#### Current Status: Attempt #2 Is Running
+#### Attempt #2: The Noise Explosion
 
-The fixes worked. In a 30-iteration smoke test on 4,096 environments:
+The fixes worked in our local 30-iteration smoke test. We launched the
+production run on the H100. It failed within 45 minutes.
 
-| What we measured | Attempt #1 (broken) | Attempt #2 (fixed) |
-|-----------------|--------------------|--------------------|
-| Terrain level | 0.00 (collapsed) | 2.67 (stable) |
-| Body contact | 100% (always falling) | 56% (learning) |
-| Noise | 0.15 (dead) | 0.69 (healthy) |
-| Episode length | 4.8s (falling immediately) | Growing |
+But this time the failure was the **exact opposite** of Attempt #1.
 
-The production run launched February 24, 2026: 16,384 robots, 25,000
-iterations, all four fixes active. First iteration showed terrain level
-2.82 and body contact 37.2% — the robot's walking ability survived the
-loading process intact.
+In Attempt #1, the action noise collapsed (0.65 → 0.15) — the robot
+stopped exploring and froze. In Attempt #2, the action noise
+**exploded** (0.65 → 5.75+) — the robot started producing completely
+random movements and fell over instantly.
 
-Now the real question: will the progressive domain randomization work?
-Will the robot learn to handle ice, boulders, and stairs better than the
-48hr baseline? That's what the next ~69 hours will tell us.
+**The jazz musician who can't stop improvising:**
+
+Remember Fix 3 — the noise floor that said "always improvise a little"?
+It had a floor (minimum 0.4) but no ceiling. And during the 1,000-
+iteration warmup (Fix 2), something went wrong with the ceiling.
+
+Here's the key insight we missed: in RSL-RL's code, the action noise
+(`std`) is stored as a **separate parameter**, not inside the actor
+network. Our `freeze_actor()` function froze everything inside the
+actor — all the weights that decide "what should the robot do?" — but
+left the noise parameter free. It's like we told the jazz musician "play
+the same notes every time" but forgot to add "and at the same volume."
+
+During warmup, the actor is frozen. The PPO algorithm has a component
+called the **entropy bonus** that encourages exploration. The actor
+can't change its notes (frozen), so the only way the entropy bonus can
+increase exploration is by turning up the volume — increasing the noise.
+And it did. Relentlessly. For 247 iterations, the noise climbed from
+0.65 to 5.75, at which point the "music" was pure static.
+
+The noise floor (0.4) couldn't help — it was a floor, and the noise
+was going up, not down.
+
+**Why our smoke test didn't catch it:** The local test used
+`actor_freeze_iters=3` — only 3 warmup iterations. In 3 iterations,
+the noise barely budged (0.65 → 0.68). The production run used 1,000
+warmup iterations, giving the entropy bonus 1,000 chances to crank the
+volume. The bug was a time bomb — it only explodes if you wait long
+enough.
+
+#### The Two Additional Fixes (Attempt #3)
+
+**Fix 5: Also freeze the volume knob.**
+
+When freezing the actor for warmup, we now also freeze the noise
+parameter. The robot walks using its loaded skills at its loaded noise
+level (0.65), and nothing changes until the warmup ends. It's like
+telling the musician "play these exact notes at this exact volume for
+the first set. Then you can improvise."
+
+**Fix 6: Put a ceiling on the noise.**
+
+In addition to the floor (0.4 minimum), we added a ceiling (1.5
+maximum). So the noise can never drop below 0.4 (preventing Attempt
+#1's collapse) or rise above 1.5 (preventing Attempt #2's explosion).
+The range [0.4, 1.5] brackets the checkpoint's converged noise (0.65)
+with room to explore in both directions.
+
+1.5 is about 2.3× the normal noise level — plenty of room for the
+robot to experiment with bolder movements when it needs to, but not
+enough to produce pure random noise.
+
+#### Current Status: Attempt #3 Is Running
+
+After the noise explosion killed Attempt #2, we had to hard-reboot the
+H100 server (the crashed processes created unkillable zombie processes
+holding 76 GB of GPU memory — a known NVIDIA PhysX issue). We deployed
+the fixes via SCP and relaunched.
+
+| What we measured | Attempt #1 (collapse) | Attempt #2 (explosion) | Attempt #3 (stable) |
+|-----------------|----------------------|----------------------|---------------------|
+| Noise | 0.15 (collapsed) | 5.75 (exploded) | 0.65 (frozen, stable) |
+| Terrain level | 0.00 | 0.00 | 2.86 (progressing) |
+| Body contact | 100% | 100% | 71.5% (expected*) |
+| Mean reward | Collapsed | Collapsed | -248 (improving) |
+
+*The 71.5% body contact rate is expected during warmup. The 48hr
+checkpoint was trained on 6 terrain types — it's now being asked to
+walk on 12 types (including stairs, stepping stones, and gaps it's
+never seen) with its legs tied (actor frozen). It's falling on hard
+terrains because it can't adapt yet. The key is that it's not getting
+worse — the noise is stable at 0.65, terrain levels are holding at
+~2.9, and the critic is calibrating normally.
+
+The actor unfreezes at iteration 1,000 (~3 hours into training). That's
+when the real learning begins — the robot finally gets to adapt its
+walking strategy for the 6 new terrain types, with a well-calibrated
+critic to guide it.
+
+Production run launched February 24, 2026: 16,384 robots, 25,000
+iterations, all six fixes active. The next ~12 hours will tell us
+whether the progressive domain randomization works.
 
 ---
 
@@ -876,9 +951,10 @@ rough height patterns rather than relying on precise measurements.
 ---
 
 *Written February 23, 2026. Updated February 24, 2026. The first
-fine-tuning attempt crashed in 50 minutes — a miscalibrated value
-function destroyed the walking ability we carefully loaded. Four fixes
-later (actor-only loading, critic warmup, noise floor, learning rate
-reset), Attempt #2 is running on the H100. 16,384 simulated Spots are
-walking, falling, getting back up, and getting better — right now, as
-you read this.*
+fine-tuning attempt crashed in 50 minutes (miscalibrated value function
+destroyed walking ability). The second attempt crashed in 45 minutes
+(noise parameter exploded because we forgot to freeze it during warmup).
+Six fixes later (actor-only loading, critic warmup, noise floor, LR
+reset, std freeze, noise ceiling), Attempt #3 is running on the H100.
+16,384 simulated Spots are walking, falling, getting back up, and
+getting better — right now, as you read this.*

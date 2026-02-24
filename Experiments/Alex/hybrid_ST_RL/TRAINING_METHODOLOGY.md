@@ -645,8 +645,161 @@ The production run was launched with 16,384 environments at 25,000
 iterations. Initial metrics at iteration 1 showed terrain level 2.82
 and body contact rate 37.2%, consistent with the checkpoint's baseline
 performance — confirming that the actor's locomotion ability was
-preserved through the selective loading and warmup process. Training is
-ongoing as of February 24, 2026.
+preserved through the selective loading and warmup process.
+
+#### 5.2.9 Attempt #2 Production Failure: Noise Standard Deviation Explosion
+
+Attempt #2's production run on the H100 (February 24, 2026) failed
+within 250 iterations (~45 minutes of wall time), despite passing
+smoke tests on smaller configurations. The failure mode was the exact
+opposite of Attempt #1's noise collapse.
+
+**Timeline of noise explosion:**
+
+| Iteration | Noise Std | Episode Length | Body Contact % | Terrain Level |
+|-----------|-----------|---------------|----------------|---------------|
+| 0 | 0.65 | ~24s | 37% | 2.82 |
+| 50 | 1.42 | 16.1s | 58% | 2.15 |
+| 100 | 2.89 | 8.3s | 79% | 0.92 |
+| 200 | 4.76 | 4.2s | 97% | 0.08 |
+| 247 | 5.75+ | 3.0s | 100% | 0.00 |
+
+Within 247 iterations, the action noise standard deviation exploded
+from the checkpoint's converged value of 0.65 to over 5.75. At this
+noise level, the policy's mean actions were completely drowned by
+random noise — the robot was producing essentially random joint
+commands and falling immediately.
+
+**Root cause — `policy.std` is NOT inside `policy.actor`:**
+
+RSL-RL's `ActorCritic` module structures its parameters as follows:
+
+```
+ActorCritic
+├── actor       (nn.Sequential — the MLP)
+├── critic      (nn.Sequential — the MLP)
+├── std         (nn.Parameter — action noise, shape [12])
+└── distribution (Normal distribution object)
+```
+
+The `std` parameter is a **top-level** `nn.Parameter` on the
+`ActorCritic` module. It is not a child of `policy.actor`. The
+`freeze_actor()` function in Attempt #2 only froze parameters inside
+`policy.actor.parameters()`, leaving `std` trainable.
+
+**The entropy bonus exploit:**
+
+During critic warmup, the actor MLP is frozen (all weights have
+`requires_grad=False`). This means the PPO surrogate loss is
+approximately zero — the policy ratio is 1.0 regardless of actions,
+and the clipped surrogate produces no gradient for the actor.
+
+However, PPO's loss function includes an entropy bonus:
+
+```
+L_total = L_surrogate + c_vf * L_value - c_entropy * L_entropy
+```
+
+With `L_surrogate ≈ 0` (frozen actor), the only gradient flowing to
+`std` comes from the entropy term: `-c_entropy × H(π)`. For a
+Gaussian policy, `H(π) ∝ log(std)`. The gradient of `-c_entropy ×
+log(std)` with respect to `std` is `c_entropy / std`, which is
+always positive. This pushes `std` upward monotonically.
+
+The noise floor (Fix 3, `min_std = 0.4`) provided a lower bound but
+not an upper bound. There was no mechanism to prevent `std` from
+growing without limit during the warmup phase.
+
+**Why smoke tests didn't catch this:** The local smoke test used
+`actor_freeze_iters=3` (3 warmup iterations). In 3 iterations, `std`
+barely moved (0.65 → ~0.68). The production run used
+`actor_freeze_iters=1000`, giving the entropy bonus 1000 iterations
+to push `std` upward. The bug is time-dependent — it only manifests
+with extended warmup periods.
+
+**Observation on D-state processes:** After killing the failed training
+run via `kill -9`, the PhysX and CUDA driver teardown left four zombie
+processes in Linux's D-state (uninterruptible sleep), holding 76 GB of
+GPU memory. These processes were unkillable by any signal and required
+a hard server reboot. This is a known issue with NVIDIA's PhysX
+GPU implementation when the process is forcefully terminated during
+active GPU operations. See Section 14 of the Technical Development
+Guide for mitigation strategies.
+
+#### 5.2.10 Attempt #3: Complete Parameter Freezing
+
+Two additional modifications were implemented to address the noise
+explosion:
+
+**Fix 5 — Freeze noise std during warmup:**
+
+The `freeze_actor()` function was extended to also freeze `policy.std`
+and `policy.log_std` (RSL-RL may use either representation depending
+on version):
+
+```python
+def freeze_actor(policy):
+    for param in policy.actor.parameters():
+        param.requires_grad = False
+    # CRITICAL: Also freeze noise std
+    if hasattr(policy, 'std'):
+        policy.std.requires_grad = False
+    if hasattr(policy, 'log_std'):
+        policy.log_std.requires_grad = False
+```
+
+Correspondingly, `unfreeze_actor()` now restores `requires_grad=True`
+for `std`/`log_std` when the warmup ends.
+
+This ensures the action noise stays at the checkpoint's converged value
+(0.65) throughout the warmup phase. The entropy bonus still produces a
+gradient for `std`, but `requires_grad=False` means the gradient is
+discarded before the optimizer step.
+
+**Fix 6 — Noise standard deviation ceiling:**
+
+The `clamp_noise_std()` function was extended with an upper bound
+(`max_std`, default 1.5):
+
+```python
+def clamp_noise_std(policy, min_std: float, max_std: float = 1.5):
+    with torch.no_grad():
+        policy.std.clamp_(min=min_std, max=max_std)
+```
+
+The ceiling of 1.5 is approximately 2.3× the checkpoint's converged
+noise (0.65), allowing meaningful exploration growth after the actor
+unfreezes while preventing runaway. This provides defense-in-depth:
+even if a future configuration change inadvertently leaves `std`
+trainable during warmup, the ceiling prevents the catastrophic
+explosion observed in Attempt #2.
+
+A new CLI argument `--max_noise_std` (default 1.5) was added to make
+the ceiling configurable, paralleling the existing `--min_noise_std`.
+
+**Attempt #3 early validation (16,384 envs, 160 iterations):**
+
+| Metric | Attempt #2 @ iter 247 | Attempt #3 @ iter 160 |
+|--------|----------------------|----------------------|
+| Noise std | 5.75+ (exploding) | 0.65 (stable, frozen) |
+| Episode length | 3.0s (falling) | 87 steps (~1.7s*) |
+| Body contact % | 100% | 71.5% (stable) |
+| Terrain level | 0.00 (collapsed) | 2.86 (progressing) |
+| Mean reward | Catastrophic | -248 (improving) |
+| Surrogate loss | N/A | 0.000 (correct — actor frozen) |
+
+*Episode length in steps; the actual episode duration depends on the
+control timestep (0.02s per step). The 71.5% body contact rate is
+expected during warmup — the 48hr checkpoint was trained on 6 terrain
+types, not 12, and the frozen actor cannot yet adapt to stairs,
+stepping stones, or gaps. The key indicator is stability: noise std
+is locked at 0.65, terrain levels are not collapsing, and the critic
+is learning (value function loss decreasing from 2,205 to 1,905 over
+the observed window).
+
+Training is ongoing as of February 24, 2026, with Attempt #3. The
+actor is expected to unfreeze at iteration 1,000 (~3 hours after
+launch), at which point the real learning phase begins.
 
 ### 5.3 Stage 2: Teacher-Student Distillation (Optional)
 
@@ -873,6 +1026,8 @@ just specialization on training terrain types.
 ---
 
 *Document created February 23, 2026. Updated February 24, 2026 with
-Attempt #1 failure analysis and Attempt #2 corrective measures.
-Stage 1 training in progress on NVIDIA H100 NVL — 16,384 environments,
-25,000 iterations.*
+Attempt #1 failure analysis (value function mismatch collapse),
+Attempt #2 failure analysis (noise standard deviation explosion),
+and Attempt #3 corrective measures (complete parameter freezing +
+noise ceiling). Stage 1 Attempt #3 in progress on NVIDIA H100 NVL —
+16,384 environments, 25,000 iterations.*
