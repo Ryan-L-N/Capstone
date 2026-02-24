@@ -453,9 +453,12 @@ addressing the boulder terrain weakness.
 The lower learning rate is the single most important hyperparameter change.
 With a warm start, large learning rates cause **catastrophic forgetting** —
 the policy rapidly loses its existing walking ability in the first few
-hundred iterations before slowly relearning it (French, 1999). A rate of
-1e-4 combined with adaptive KL (target 0.008) ensures each update makes
-small, controlled improvements without destroying existing capabilities.
+hundred iterations before slowly relearning it (French, 1999).
+
+**Note:** The table above reflects the initial design (Attempt #3). After
+Attempt #3's catastrophic forgetting at unfreeze (§5.2.11), these were
+further reduced in Attempt #4 (§5.2.12): LR 1e-4 → 1e-5, clip 0.2 →
+0.1, entropy 0.005 → 0.0, epochs 5 → 3, KL target 0.008 → 0.005.
 
 #### 5.2.6 GPU Parallelism and Scaling
 
@@ -789,17 +792,189 @@ the ceiling configurable, paralleling the existing `--min_noise_std`.
 | Surrogate loss | N/A | 0.000 (correct — actor frozen) |
 
 *Episode length in steps; the actual episode duration depends on the
-control timestep (0.02s per step). The 71.5% body contact rate is
-expected during warmup — the 48hr checkpoint was trained on 6 terrain
-types, not 12, and the frozen actor cannot yet adapt to stairs,
-stepping stones, or gaps. The key indicator is stability: noise std
-is locked at 0.65, terrain levels are not collapsing, and the critic
-is learning (value function loss decreasing from 2,205 to 1,905 over
-the observed window).
+control timestep (0.02s per step). The warmup phase appeared healthy —
+noise locked at 0.65, terrain levels progressing, critic calibrating
+normally.
 
-Training is ongoing as of February 24, 2026, with Attempt #3. The
-actor is expected to unfreeze at iteration 1,000 (~3 hours after
-launch), at which point the real learning phase begins.
+#### 5.2.11 Attempt #3 Production Failure: Catastrophic Forgetting at Actor Unfreeze
+
+Attempt #3's warmup phase (iterations 0–999) ran successfully. The
+noise std stayed locked at 0.65, terrain levels reached 3.47, and
+the critic's value function loss converged normally. At iteration
+1,000, the actor was unfrozen and training entered the full learning
+phase.
+
+The policy catastrophically collapsed within 30 iterations of
+unfreezing.
+
+**Timeline of collapse:**
+
+| Iteration | Episode Length | Terrain Level | Body Contact % | Noise Std |
+|-----------|--------------|---------------|----------------|-----------|
+| 999 (pre-unfreeze) | 206 steps | 3.47 | 70% | 0.65 |
+| 1005 | 158 steps | 3.47 | 70% | 0.66 |
+| 1010 | 80 steps | 3.20 | 82% | 0.67 |
+| 1015 | 42 steps | 2.41 | 90% | 0.70 |
+| 1025 | 16 steps | 0.80 | 97% | 0.73 |
+| 1050 | 7 steps | 0.00 | 100% | 0.76 |
+| 1200 | 2.5 steps | 0.00 | 100% | 0.78 |
+
+The episode length dropped from 206 steps to 2.5 steps — the robots
+fell almost immediately upon spawning. Terrain levels collapsed from
+3.47 to 0.0 and body contact termination reached 100%.
+
+**Root cause — PPO hyperparameters too aggressive for fine-tuning:**
+
+The hyperparameters used in Attempt #3 were calibrated for the
+original 48hr from-scratch training, not for fine-tuning a
+pre-trained policy. Specifically:
+
+1. **Learning rate (1e-4):** While 3× lower than the 48hr run's
+   3e-4, this was still too high for a pre-trained actor that needed
+   to make small adjustments, not large updates. The first PPO update
+   after unfreeze was large enough to destabilize the actor's existing
+   walking behavior.
+
+2. **Clip parameter (0.2):** The standard PPO clip ratio allows up to
+   20% change in the policy ratio per update. Combined with 5 learning
+   epochs × 8 mini-batches = 40 gradient steps per iteration, this
+   permitted a compound policy change that was far too large for
+   fine-tuning.
+
+3. **Entropy coefficient (0.005):** Although low by from-scratch
+   standards, this was nonzero, and after unfreezing both the actor
+   and the noise std, it pushed the noise from 0.65 → 0.78, adding
+   destructive randomness during the fragile transition period.
+
+4. **Learning epochs (5):** Each PPO iteration performed 5 full passes
+   over the rollout buffer, each with 8 mini-batch updates. This is
+   appropriate for from-scratch training where the policy is far from
+   optimal, but excessive for a pre-trained policy where each pass
+   compounds the deviation from the checkpoint's behavior.
+
+**The critic-staleness cascade:** The failure mechanism is a feedback
+loop between the actor and critic. During the 1,000-iteration warmup,
+the critic calibrated its value predictions for the frozen actor's
+behavior. When the actor unfreezes:
+
+1. The first PPO update modifies actor weights based on critic's
+   advantage estimates
+2. The modified actor produces slightly different behavior
+3. The critic's value predictions become stale (calibrated for the
+   old behavior)
+4. Stale value predictions produce noisy advantages
+5. The next PPO update, guided by noisy advantages, makes the actor
+   diverge further
+6. The cycle accelerates — within 30 iterations, the actor's behavior
+   has diverged so far from the critic's expectations that advantages
+   become meaningless
+
+This cascade is fundamentally different from the failures in Attempts
+#1 and #2, which were parameter-level bugs (wrong critic, unfrozen
+std). Attempt #3 had the right architecture — its failure was purely
+in the magnitude of updates at the transition point.
+
+The noise std rise from 0.65 → 0.78, while contained by the ceiling
+of 1.5, exacerbated the problem by adding random perturbations to an
+already-diverging policy. With entropy_coef = 0.005 and std now
+trainable after unfreeze, the optimization had no incentive to keep
+noise low during the critical transition.
+
+#### 5.2.12 Attempt #4: Ultra-Conservative Fine-Tuning
+
+Attempt #4 implements two categories of changes: ultra-conservative
+PPO hyperparameters and a gradual learning rate warmup after actor
+unfreeze.
+
+**Fix 7 — Ultra-conservative PPO hyperparameters:**
+
+| Parameter | Attempt #3 | Attempt #4 | Rationale |
+|-----------|-----------|-----------|-----------|
+| Learning rate | 1e-4 | **1e-5** | 10× lower — smallest possible updates |
+| Clip parameter | 0.2 | **0.1** | Halved — limits per-update ratio change |
+| Entropy coef | 0.005 | **0.0** | Disabled — noise std is permanently frozen |
+| Learning epochs | 5 | **3** | Fewer gradient steps per iteration |
+| Desired KL | 0.008 | **0.005** | Tighter adaptive KL constraint |
+
+The learning rate reduction from 1e-4 to 1e-5 is the most impactful
+change. At 1e-5, each gradient step modifies the actor weights by
+approximately 10× less. Combined with halving the clip ratio (0.2 →
+0.1) and reducing learning epochs (5 → 3), the total per-iteration
+policy change is approximately 30× smaller than Attempt #3.
+
+Setting entropy to 0.0 is justified because the noise std is
+permanently frozen at 0.65 (Fix 8). With no entropy bonus, the only
+gradients flowing to the actor MLP come from the surrogate loss —
+clean policy improvement signals without exploration pressure.
+
+**Fix 8 — Permanently frozen noise std:**
+
+In Attempt #3, `unfreeze_actor()` restored `requires_grad=True` for
+both the actor MLP and the noise std. In Attempt #4, only the actor
+MLP is unfrozen — the noise std remains permanently frozen at 0.65:
+
+```python
+def unfreeze_actor(policy):
+    for param in policy.actor.parameters():
+        param.requires_grad = True
+    # INTENTIONALLY do NOT unfreeze std/log_std
+    # Keep noise permanently at checkpoint's converged value (0.65)
+```
+
+This ensures a constant, moderate level of exploration throughout
+training. The policy adapts its behavior purely through the actor
+MLP weights, not through noise inflation or deflation.
+
+**Fix 9 — Learning rate warmup post-unfreeze:**
+
+Rather than immediately using the target LR (1e-5) at unfreeze,
+the learning rate starts at 2e-6 (5× lower) and linearly ramps to
+1e-5 over 1,000 iterations:
+
+```
+iter 1000 (unfreeze): LR = 2e-6
+iter 1500:            LR = 6e-6  (midpoint)
+iter 2000:            LR = 1e-5  (target)
+iter 2001+:           LR = 1e-5  (adaptive KL takes over)
+```
+
+During the warmup ramp, the adaptive KL schedule is overridden —
+the ramp explicitly sets the LR after each PPO update to prevent
+the adaptive schedule from adjusting it. After the warmup completes,
+the adaptive KL schedule resumes normal operation.
+
+The warmup serves a specific purpose: in the first iterations after
+unfreeze, the critic's value predictions are calibrated for the
+frozen actor. Small actor updates (at 2e-6) give the critic time to
+track the gradually changing policy, preventing the staleness cascade
+that destroyed Attempt #3. By the time the LR reaches 1e-5, the
+critic has been co-adapting with the actor for 1,000 iterations and
+can provide accurate advantage estimates.
+
+A new CLI argument `--lr_warmup_iters` (default 1000) controls the
+ramp duration.
+
+**Attempt #4 training phases:**
+
+| Phase | Iterations | Actor | Noise Std | LR | Purpose |
+|-------|-----------|-------|-----------|-----|---------|
+| 1: Critic warmup | 0–999 | Frozen | Frozen (0.65) | N/A (critic only) | Critic calibrates to new rewards |
+| 2: LR warmup | 1000–1999 | Training | Frozen (0.65) | 2e-6 → 1e-5 | Gentle actor adaptation |
+| 3: Full training | 2000–25000 | Training | Frozen (0.65) | 1e-5 (adaptive) | Progressive DR + terrain curriculum |
+
+**Early validation (16,384 envs, 3 iterations):**
+
+| Metric | Attempt #3 @ iter 3 | Attempt #4 @ iter 3 |
+|--------|--------------------|--------------------|
+| Noise std | 0.65 (frozen) | 0.65 (frozen) |
+| Episode length | ~35 steps | 46.85 steps |
+| Terrain levels | ~3.1 | 3.02 |
+| Body contact % | ~23% | 27.5% |
+| Timeout % | ~3% | 4.0% |
+
+Both attempts show comparable warmup behavior, as expected — the
+critical test is at iteration 1,000 (actor unfreeze). Training is
+ongoing as of February 24, 2026.
 
 ### 5.3 Stage 2: Teacher-Student Distillation (Optional)
 
@@ -1028,6 +1203,7 @@ just specialization on training terrain types.
 *Document created February 23, 2026. Updated February 24, 2026 with
 Attempt #1 failure analysis (value function mismatch collapse),
 Attempt #2 failure analysis (noise standard deviation explosion),
-and Attempt #3 corrective measures (complete parameter freezing +
-noise ceiling). Stage 1 Attempt #3 in progress on NVIDIA H100 NVL —
-16,384 environments, 25,000 iterations.*
+Attempt #3 failure analysis (catastrophic forgetting at actor unfreeze),
+and Attempt #4 corrective measures (ultra-conservative PPO + permanent
+std freeze + LR warmup). Stage 1 Attempt #4 in progress on NVIDIA
+H100 NVL — 16,384 environments, 25,000 iterations.*

@@ -658,36 +658,125 @@ with room to explore in both directions.
 robot to experiment with bolder movements when it needs to, but not
 enough to produce pure random noise.
 
-#### Current Status: Attempt #3 Is Running
+#### Attempt #3: The Unfreeze Catastrophe
 
-After the noise explosion killed Attempt #2, we had to hard-reboot the
-H100 server (the crashed processes created unkillable zombie processes
-holding 76 GB of GPU memory — a known NVIDIA PhysX issue). We deployed
-the fixes via SCP and relaunched.
+Attempt #3's warmup phase looked perfect. For 1,000 iterations, the
+noise stayed locked at 0.65, terrain levels climbed to 3.47, and the
+critic learned the new reward landscape. Everything was working.
 
-| What we measured | Attempt #1 (collapse) | Attempt #2 (explosion) | Attempt #3 (stable) |
-|-----------------|----------------------|----------------------|---------------------|
-| Noise | 0.15 (collapsed) | 5.75 (exploded) | 0.65 (frozen, stable) |
-| Terrain level | 0.00 | 0.00 | 2.86 (progressing) |
-| Body contact | 100% | 100% | 71.5% (expected*) |
-| Mean reward | Collapsed | Collapsed | -248 (improving) |
+Then the actor unfroze at iteration 1,000. And the policy collapsed
+in 30 iterations.
 
-*The 71.5% body contact rate is expected during warmup. The 48hr
-checkpoint was trained on 6 terrain types — it's now being asked to
-walk on 12 types (including stairs, stepping stones, and gaps it's
-never seen) with its legs tied (actor frozen). It's falling on hard
-terrains because it can't adapt yet. The key is that it's not getting
-worse — the noise is stable at 0.65, terrain levels are holding at
-~2.9, and the critic is calibrating normally.
+```
+Before unfreeze: episode length 206 steps, terrain level 3.47
+5 iters later:   episode length 158
+10 iters later:  episode length 80
+15 iters later:  episode length 42
+25 iters later:  episode length 16
+50 iters later:  episode length 7
+200 iters later: episode length 2.5 — robots fall immediately
+```
 
-The actor unfreezes at iteration 1,000 (~3 hours into training). That's
-when the real learning begins — the robot finally gets to adapt its
-walking strategy for the 6 new terrain types, with a well-calibrated
-critic to guide it.
+**The aggressive driving instructor:**
 
-Production run launched February 24, 2026: 16,384 robots, 25,000
-iterations, all six fixes active. The next ~12 hours will tell us
-whether the progressive domain randomization works.
+Think of it this way. During warmup, the driving student (actor) was
+sitting in the passenger seat while the instructor (critic) studied
+the new roads for 3 hours. The instructor got a perfect feel for the
+roads. Then the student takes the wheel — and the instructor starts
+screaming corrections at maximum volume.
+
+"TURN LEFT! NO, HARDER! BRAKE! ACCELERATE! TURN RIGHT!"
+
+The corrections aren't wrong — but they're too loud and too frequent.
+Each correction is 20% of the wheel. Five corrections per second. In
+30 seconds, the student is so confused they drive off the road.
+
+That's what happened. The PPO updates were too large:
+
+- **Learning rate 1e-4:** Each update moved the weights significantly
+- **Clip ratio 0.2:** Allowed 20% policy change per update
+- **5 learning epochs × 8 mini-batches = 40 gradient steps per iteration**
+- All combined: each iteration could change the policy dramatically
+
+The first PPO update after unfreeze nudged the actor's behavior. The
+critic's value predictions — calibrated for the frozen actor — became
+slightly wrong. The next update, guided by slightly wrong predictions,
+nudged the actor further. The critic fell further behind. Each update
+made the next update worse. Within 30 iterations, it was a runaway
+cascade.
+
+The noise std also crept from 0.65 to 0.78 after unfreeze (entropy
+bonus pushing it up), adding random jitter to an already-spiraling
+situation.
+
+**The key insight:** Fine-tuning a trained policy requires much gentler
+updates than training from scratch. It's the difference between
+teaching someone to drive from zero (big corrections are fine — they
+don't know anything yet) and coaching an experienced driver on new
+roads (gentle suggestions, not yanking the wheel).
+
+#### The Three Additional Fixes (Attempt #4)
+
+**Fix 7: Whisper, don't shout.**
+
+We made the PPO updates dramatically smaller:
+
+| Setting | Attempt #3 | Attempt #4 | Change |
+|---------|-----------|-----------|--------|
+| Learning rate | 1e-4 | 1e-5 | 10× lower |
+| Clip ratio | 0.2 | 0.1 | Half the max change |
+| Entropy bonus | 0.005 | 0.0 | Turned off completely |
+| Learning epochs | 5 | 3 | Fewer passes over data |
+| KL target | 0.008 | 0.005 | Tighter constraint |
+
+Combined, each iteration now changes the policy about **30× less** than
+Attempt #3. The driving instructor now whispers suggestions instead of
+shouting commands.
+
+**Fix 8: Freeze the noise permanently.**
+
+In Attempt #3, we unfroze the noise std when the actor unfroze. It
+crept from 0.65 to 0.78. In Attempt #4, the noise std stays frozen
+at 0.65 forever — the robot explores at exactly the level the 48hr
+policy converged to. Combined with entropy = 0.0, there's no force
+pushing the noise in either direction.
+
+It's like telling our experienced driver: "Drive with the same
+confidence level you've always had. Don't suddenly get bolder or more
+cautious. Just drive the way you know, and make small adjustments
+for the new roads."
+
+**Fix 9: Ease into it.**
+
+Even with the lower learning rate (1e-5), the very first update after
+1,000 iterations of freezing might be too abrupt. So we added a
+gradual warmup:
+
+- At unfreeze (iter 1000): LR starts at 2e-6 (5× below target)
+- Over the next 1,000 iterations: LR linearly ramps to 1e-5
+- After iter 2000: full learning rate, adaptive KL takes over
+
+It's like slowly releasing the clutch after shifting gears. You don't
+dump it — you ease into the new gear to avoid stalling.
+
+#### Current Status: Attempt #4 Is Running
+
+| What we measured | #1 (collapse) | #2 (explosion) | #3 (unfreeze crash) | #4 (running) |
+|-----------------|--------------|----------------|--------------------|--------------|
+| Noise std | 0.15 (died) | 5.75 (died) | 0.78 (crept up) | 0.65 (locked) |
+| Failure mode | Noise collapse | Noise explosion | Catastrophic forgetting | TBD |
+| Failed at | iter ~300 | iter ~247 | iter ~1030 | — |
+| Root cause | Wrong critic | Unfrozen std | PPO too aggressive | — |
+
+The warmup phase looks identical to Attempt #3 (as expected — same
+actor, same critic warmup). The real test is iteration 1,000 (actor
+unfreeze, ~3 hours in), where Attempt #3 died. With 30× gentler
+updates and a 1,000-iteration LR warmup, we expect the transition to
+be smooth.
+
+Training launched February 24, 2026: 16,384 robots, 25,000 iterations,
+nine fixes active. Three training phases: critic warmup (iters 0–999),
+LR warmup (iters 1000–1999), full training (iters 2000+).
 
 ---
 
@@ -835,13 +924,17 @@ walking ability.
 too aggressively, it could forget how to walk before learning anything new.
 Like a tennis player who takes golf lessons and comes back unable to serve.
 
-**The prevention:** We use a learning rate 3× lower than the original
-training (1e-4 vs 3e-4) and set a tight KL divergence target (0.008 vs
-0.01). The adaptive schedule automatically reduces the learning rate further
-if any single update changes the policy too much. Belt and suspenders.
+**The prevention:** We use a learning rate 10× lower than the original
+training (1e-5 vs 3e-4 in the original, down from 1e-4 in Attempt #3
+which was still too aggressive — see "The Unfreeze Catastrophe" above).
+We also set a tight KL divergence target (0.005), halve the clip ratio
+(0.1 instead of the standard 0.2), and use a 1,000-iteration LR warmup
+that starts at 2e-6 and gradually ramps to 1e-5. This multi-layered
+approach was developed after Attempt #3 proved that even "conservative"
+PPO settings (LR=1e-4, clip=0.2) are too aggressive for fine-tuning.
 
 We also don't load the old optimizer's momentum. The 48hr training used
-gradient momentum tuned for LR=3e-4. Applying that momentum at LR=1e-4
+gradient momentum tuned for LR=3e-4. Applying that momentum at LR=1e-5
 would cause the first few updates to overshoot — the accumulated momentum
 would push the weights too far. Fresh optimizer, fresh start.
 
@@ -952,9 +1045,11 @@ rough height patterns rather than relying on precise measurements.
 
 *Written February 23, 2026. Updated February 24, 2026. The first
 fine-tuning attempt crashed in 50 minutes (miscalibrated value function
-destroyed walking ability). The second attempt crashed in 45 minutes
-(noise parameter exploded because we forgot to freeze it during warmup).
-Six fixes later (actor-only loading, critic warmup, noise floor, LR
-reset, std freeze, noise ceiling), Attempt #3 is running on the H100.
-16,384 simulated Spots are walking, falling, getting back up, and
-getting better — right now, as you read this.*
+destroyed walking ability). The second crashed in 45 minutes (noise
+parameter exploded — forgot to freeze it). The third survived warmup
+beautifully, then collapsed in 30 iterations when the actor unfroze
+(PPO updates too aggressive for fine-tuning). Nine fixes later —
+actor-only loading, critic warmup, noise floor, LR reset, std freeze,
+noise ceiling, ultra-conservative PPO, permanent std freeze, and LR
+warmup — Attempt #4 is running on the H100. 16,384 simulated Spots,
+three training phases, and the gentlest possible learning rate.*

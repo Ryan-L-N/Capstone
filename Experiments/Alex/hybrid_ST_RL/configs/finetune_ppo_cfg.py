@@ -1,8 +1,17 @@
 """Stage 1: PPO Configuration for Progressive Fine-Tuning.
 
 Architecture: [512, 256, 128] — MUST match the 48hr rough policy checkpoint.
-Learning rate: 1e-4 (3x lower than 48hr's 3e-4 for fine-tuning stability).
-Entropy: 0.005 (lower than 48hr's 0.008 — warm start needs less exploration).
+
+Attempt #4 hyperparameters — ultra-conservative for fine-tuning:
+  - LR 1e-5 (10× lower than Attempt #3's 1e-4 which caused catastrophic forgetting)
+  - clip 0.1 (halved — limits per-update policy change)
+  - entropy 0.0 (disabled — noise std is permanently frozen at 0.65)
+  - 3 learning epochs (reduced from 5 — fewer gradient steps per iteration)
+  - KL target 0.005 (tighter — prevents large policy divergence)
+
+Attempt #3 failure: LR=1e-4, clip=0.2, entropy=0.005, epochs=5 caused the actor
+to catastrophically forget within 30 iterations of unfreezing (episode length
+206 → 2.5 steps). The PPO updates were too aggressive for fine-tuning.
 
 Created for AI2C Tech Capstone — hybrid_ST_RL, February 2026
 """
@@ -21,10 +30,13 @@ class SpotFinetunePPORunnerCfg(RslRlOnPolicyRunnerCfg):
     """PPO config for fine-tuning the 48hr rough policy on 12 terrain types.
 
     Architecture [512, 256, 128] matches model_27500.pt exactly.
-    Hyperparameters are conservative for fine-tuning:
-    - LR 1e-4 (not 3e-4) to avoid catastrophic forgetting
-    - KL target 0.008 (not 0.01) for tighter policy updates
-    - Entropy 0.005 (not 0.008) since the policy already knows how to walk
+
+    Attempt #4 hyperparameters — ultra-conservative:
+    - LR 1e-5 (was 1e-4 in Attempt #3 — caused catastrophic forgetting at unfreeze)
+    - clip 0.1 (was 0.2 — halved to limit per-update ratio change)
+    - entropy 0.0 (was 0.005 — disabled because noise std is permanently frozen)
+    - 3 learning epochs (was 5 — fewer gradient steps per PPO iteration)
+    - KL target 0.005 (was 0.008 — tighter adaptive KL constraint)
     - init_noise_std 0.65 matches the checkpoint's converged action noise
     """
 
@@ -48,14 +60,14 @@ class SpotFinetunePPORunnerCfg(RslRlOnPolicyRunnerCfg):
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
-        clip_param=0.2,
-        entropy_coef=0.005,        # Lower than 48hr's 0.008 — warm start
-        num_learning_epochs=5,     # Same as 48hr
+        clip_param=0.1,            # Attempt #4: halved (was 0.2) — less per-update change
+        entropy_coef=0.0,          # Attempt #4: disabled (was 0.005) — std is permanently frozen
+        num_learning_epochs=3,     # Attempt #4: reduced (was 5) — fewer gradient steps
         num_mini_batches=8,        # 16,384 envs * 24 steps / 8 = 49K per mini-batch
-        learning_rate=1.0e-4,      # Lower than 48hr's 3e-4 for fine-tuning
+        learning_rate=1.0e-5,      # Attempt #4: 10× lower (was 1e-4) — prevent catastrophic forgetting
         schedule="adaptive",       # Adaptive KL — prevents destructive updates
         gamma=0.99,
         lam=0.95,
-        desired_kl=0.008,          # Tighter than 48hr's 0.01
+        desired_kl=0.005,          # Attempt #4: tighter (was 0.008) — smaller policy steps
         max_grad_norm=1.0,
     )

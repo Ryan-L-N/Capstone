@@ -11,10 +11,12 @@ Key innovations:
   - Same [512,256,128] architecture — checkpoint loads directly
   - Conservative LR (1e-4) with adaptive KL to prevent catastrophic forgetting
 
-Attempt #2 fixes (from Attempt #1 value function collapse):
+Attempt #4 fixes (from Attempts #1-3):
   - Actor-only loading: critic is reset to random (avoids reward mismatch)
   - Critic warmup: actor is frozen for N iterations while critic calibrates
-  - Noise clamp: noise_std clamped to [0.4, 1.5] to prevent collapse AND explosion
+  - Noise std permanently frozen at 0.65 (entropy bonus can't inflate it)
+  - Ultra-conservative PPO: LR 1e-5, clip 0.1, entropy 0.0, 3 epochs
+  - LR warmup post-unfreeze: 2e-6 → 1e-5 over 1000 iterations
 
 Usage (on H100 server):
     cd ~/IsaacLab
@@ -51,6 +53,8 @@ parser.add_argument("--min_noise_std", type=float, default=0.4,
                     help="Minimum noise std floor to prevent exploration collapse (default 0.4)")
 parser.add_argument("--max_noise_std", type=float, default=1.5,
                     help="Maximum noise std ceiling to prevent exploration explosion (default 1.5)")
+parser.add_argument("--lr_warmup_iters", type=int, default=1000,
+                    help="Iterations to linearly ramp LR after actor unfreeze (default 1000)")
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
 sys.argv = [sys.argv[0]]
@@ -241,13 +245,18 @@ def freeze_actor(policy):
 
 
 def unfreeze_actor(policy):
-    """Unfreeze actor weights and noise std after critic warmup is complete."""
+    """Unfreeze actor MLP weights after critic warmup — but keep noise std FROZEN.
+
+    Attempt #4: noise std stays permanently frozen at 0.65. In Attempt #3,
+    unfreezing std allowed entropy bonus to push it from 0.65 → 0.78, adding
+    destructive randomness during the fragile transition period. With entropy
+    now set to 0.0 and std frozen, all exploration comes from the fixed noise
+    level that the 48hr policy converged to.
+    """
     for param in policy.actor.parameters():
         param.requires_grad = True
-    if hasattr(policy, 'std'):
-        policy.std.requires_grad = True
-    if hasattr(policy, 'log_std'):
-        policy.log_std.requires_grad = True
+    # INTENTIONALLY do NOT unfreeze std/log_std — keep noise permanently at 0.65
+    # This was a key failure mode: entropy bonus inflated std even with entropy_coef=0.005
 
 
 def clamp_noise_std(policy, min_std: float, max_std: float = 1.5):
@@ -304,7 +313,8 @@ def main():
     print(f"  Steps per env:    {agent_cfg.num_steps_per_env}", flush=True)
     print(f"  Network:          {agent_cfg.policy.actor_hidden_dims}", flush=True)
     print(f"  Actor freeze:     {args_cli.actor_freeze_iters} iterations (critic warmup)", flush=True)
-    print(f"  Noise std range:  [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
+    print(f"  Noise std range:  [{args_cli.min_noise_std}, {args_cli.max_noise_std}] (std permanently frozen)", flush=True)
+    print(f"  LR warmup:        {args_cli.lr_warmup_iters} iters post-unfreeze", flush=True)
     print(f"  Episode length:   {env_cfg.episode_length_s}s", flush=True)
     print(f"  Terrains:         12 types (ROBUST_TERRAINS_CFG)", flush=True)
     print(f"  Rewards:          19 terms (14 base + 5 custom)", flush=True)
@@ -383,47 +393,68 @@ def main():
         f.write(f"actor_freeze_iters: {args_cli.actor_freeze_iters}\n")
         f.write(f"min_noise_std: {args_cli.min_noise_std}\n")
         f.write(f"max_noise_std: {args_cli.max_noise_std}\n")
+        f.write(f"lr_warmup_iters: {args_cli.lr_warmup_iters}\n")
         f.write(f"loading_mode: actor_only (critic reset)\n")
-        f.write(f"attempt: 3 (fixes: actor-only load, critic warmup + std freeze, noise clamp [min,max])\n")
+        f.write(f"attempt: 4 (ultra-conservative PPO: LR 1e-5, clip 0.1, entropy 0.0, 3 epochs, permanent std freeze, LR warmup)\n")
 
     # --- Monkey-patch alg.update() for progressive DR + warmup + noise floor ---
     print("\n[TRAIN] Starting training with progressive DR...", flush=True)
     if args_cli.actor_freeze_iters > 0 and args_cli.checkpoint:
-        print(f"[TRAIN] Phase 1: Critic warmup (actor frozen, iters 0-{args_cli.actor_freeze_iters})", flush=True)
-        print(f"[TRAIN] Phase 2: Full training (actor unfrozen, iters {args_cli.actor_freeze_iters}+)", flush=True)
-    print(f"[TRAIN] Noise std range: [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
+        unfreeze_at = args_cli.actor_freeze_iters
+        warmup_end = unfreeze_at + args_cli.lr_warmup_iters
+        print(f"[TRAIN] Phase 1: Critic warmup (actor+std frozen, iters 0-{unfreeze_at})", flush=True)
+        print(f"[TRAIN] Phase 2: LR warmup (actor unfrozen, LR 2e-6→1e-5, iters {unfreeze_at}-{warmup_end})", flush=True)
+        print(f"[TRAIN] Phase 3: Full training (target LR, iters {warmup_end}+)", flush=True)
+    print(f"[TRAIN] Noise std: permanently frozen at 0.65", flush=True)
+    print(f"[TRAIN] Noise std safety clamp: [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
     start_time = time.time()
 
     original_update = runner.alg.update
     _iteration_counter = [0]
     _actor_unfrozen = [args_cli.actor_freeze_iters == 0 or not args_cli.checkpoint]
+    _unfreeze_iter = [None]  # Track when actor was unfrozen for LR warmup
     _dr_log_interval = 500
+    _target_lr = agent_cfg.algorithm.learning_rate  # 1e-5 (the final target LR)
+    _warmup_start_lr = _target_lr / 5.0             # 2e-6 (start of LR warmup)
 
     def update_with_fixes(*args, **kwargs):
-        """Wrapper: progressive DR + critic warmup + noise floor."""
+        """Wrapper: progressive DR + critic warmup + LR warmup + noise clamp."""
         it = _iteration_counter[0]
 
         # --- Fix 2: Unfreeze actor after critic warmup ---
         if not _actor_unfrozen[0] and it >= args_cli.actor_freeze_iters:
             unfreeze_actor(runner.alg.policy)
             _actor_unfrozen[0] = True
+            _unfreeze_iter[0] = it
 
-            # CRITICAL: Reset LR to original value after warmup.
+            # CRITICAL: Reset LR to warmup start (very low) after critic warmup.
             # During warmup the actor is frozen → KL ≈ 0 → adaptive KL doubles
             # the LR every iteration. Without this reset, the first actor update
-            # would use an inflated LR (0.01+ instead of 1e-4), destroying the policy.
-            original_lr = agent_cfg.algorithm.learning_rate
-            runner.alg.learning_rate = original_lr
+            # would use an inflated LR, destroying the policy.
+            #
+            # Attempt #4: Start at 2e-6 and ramp to 1e-5 over lr_warmup_iters.
+            # Attempt #3 used 1e-4 flat → catastrophic forgetting in 30 iterations.
+            runner.alg.learning_rate = _warmup_start_lr
             for pg in runner.alg.optimizer.param_groups:
-                pg["lr"] = original_lr
+                pg["lr"] = _warmup_start_lr
 
+            noise = runner.alg.policy.std.mean().item() if hasattr(runner.alg.policy, 'std') else 0
             print(
-                f"\n[WARMUP COMPLETE] iter={it}: Actor UNFROZEN — full training begins",
+                f"\n[WARMUP COMPLETE] iter={it}: Actor MLP UNFROZEN (noise std stays FROZEN at {noise:.4f})",
                 flush=True,
             )
-            noise = runner.alg.policy.std.mean().item() if hasattr(runner.alg.policy, 'std') else 0
-            print(f"[WARMUP COMPLETE] LR reset to {original_lr} (was inflated during warmup)", flush=True)
-            print(f"[WARMUP COMPLETE] Current noise_std: {noise:.4f}", flush=True)
+            print(f"[WARMUP COMPLETE] LR warmup: {_warmup_start_lr:.1e} → {_target_lr:.1e} "
+                  f"over {args_cli.lr_warmup_iters} iterations", flush=True)
+
+        # --- Fix 4 (Attempt #4): Gradual LR warmup after unfreeze ---
+        if _actor_unfrozen[0] and _unfreeze_iter[0] is not None:
+            iters_since_unfreeze = it - _unfreeze_iter[0]
+            if iters_since_unfreeze <= args_cli.lr_warmup_iters:
+                warmup_frac = iters_since_unfreeze / max(args_cli.lr_warmup_iters, 1)
+                current_lr = _warmup_start_lr + (_target_lr - _warmup_start_lr) * warmup_frac
+                runner.alg.learning_rate = current_lr
+                for pg in runner.alg.optimizer.param_groups:
+                    pg["lr"] = current_lr
 
         # --- Progressive DR ---
         dr_info = update_dr_params(env, it, args_cli.dr_expansion_iters)
@@ -431,8 +462,20 @@ def main():
         # --- Run the actual PPO update ---
         result = original_update(*args, **kwargs)
 
-        # --- Fix 3: Clamp noise std after update ---
+        # --- Fix 3: Clamp noise std after update (safety net) ---
         clamp_noise_std(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
+
+        # --- Override adaptive KL's LR during warmup ramp ---
+        # The adaptive KL schedule may adjust LR after update(). During the
+        # warmup ramp we need to enforce our schedule, so re-apply it.
+        if _actor_unfrozen[0] and _unfreeze_iter[0] is not None:
+            iters_since_unfreeze = it - _unfreeze_iter[0]
+            if iters_since_unfreeze <= args_cli.lr_warmup_iters:
+                warmup_frac = iters_since_unfreeze / max(args_cli.lr_warmup_iters, 1)
+                current_lr = _warmup_start_lr + (_target_lr - _warmup_start_lr) * warmup_frac
+                runner.alg.learning_rate = current_lr
+                for pg in runner.alg.optimizer.param_groups:
+                    pg["lr"] = current_lr
 
         # Log progress periodically
         if it % _dr_log_interval == 0:
@@ -441,12 +484,14 @@ def main():
             fps = it * steps_per_iter / max(elapsed, 1) if it > 0 else 0
             noise = runner.alg.policy.std.mean().item() if hasattr(runner.alg.policy, 'std') else 0
             phase = "WARMUP" if not _actor_unfrozen[0] else "TRAIN"
+            current_lr = runner.alg.optimizer.param_groups[0]["lr"]
             print(
                 f"[{phase}] iter={it:6d}/{agent_cfg.max_iterations}  "
                 f"dr={dr_info['dr_fraction']:.1%}  "
                 f"friction={dr_info['friction_range']}  "
                 f"push={dr_info['push_vel']:.2f}  "
                 f"noise={noise:.3f}  "
+                f"lr={current_lr:.1e}  "
                 f"elapsed={hours:.1f}h  fps={fps:.0f}",
                 flush=True,
             )

@@ -3,9 +3,10 @@
 # Local Debug: Smoke test on RTX 2000 Ada (64 envs, 10 iterations)
 # =============================================================================
 # Verifies: actor-only loading, critic warmup, noise floor, 12 terrains,
-# 19 reward terms, progressive DR, no NaN, no CUDA errors.
+# 19 reward terms, progressive DR, LR warmup, no NaN, no CUDA errors.
 #
-# Attempt #3: Tests all fixes (actor-only load, std freeze, noise clamp [min,max]).
+# Attempt #4: Ultra-conservative PPO (LR 1e-5, clip 0.1, entropy 0.0, 3 epochs,
+# permanent std freeze, LR warmup 2e-6 → 1e-5).
 #
 # Usage:
 #   cd C:/IsaacLab
@@ -41,6 +42,7 @@ if [ ! -f "${CHECKPOINT}" ]; then
         --max_iterations 10 \
         --dr_expansion_iters 5 \
         --actor_freeze_iters 3 \
+        --lr_warmup_iters 2 \
         --min_noise_std 0.4 \
         --max_noise_std 1.5 \
         --seed 42
@@ -50,6 +52,7 @@ else
         --max_iterations 10 \
         --dr_expansion_iters 5 \
         --actor_freeze_iters 3 \
+        --lr_warmup_iters 2 \
         --min_noise_std 0.4 \
         --max_noise_std 1.5 \
         --seed 42 \
@@ -59,9 +62,9 @@ fi
 echo ""
 echo "Local debug complete. Check output for:"
 echo "  - Actor-only load (SKIPPED critic keys message)"
-echo "  - Actor FROZEN / UNFROZEN messages (critic warmup)"
-echo "  - Noise std in [0.4, 1.5] (clamped both directions)"
-echo "  - Noise std stable at ~0.65 during warmup (std frozen)"
+echo "  - Actor MLP UNFROZEN (noise std stays FROZEN) message"
+echo "  - LR warmup messages (2e-6 → 1e-5)"
+echo "  - Noise std locked at ~0.65 throughout (permanently frozen)"
 echo "  - Terrain level > 0 at start (confirms warm start)"
 echo "  - No NaN in reward terms"
 echo "  - DR expansion messages"

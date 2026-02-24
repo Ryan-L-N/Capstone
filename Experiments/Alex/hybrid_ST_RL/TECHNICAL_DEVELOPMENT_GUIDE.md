@@ -57,6 +57,7 @@ isaaclab.bat -p /path/to/train_finetune.py --headless ^
     --max_iterations 10 ^
     --dr_expansion_iters 5 ^
     --actor_freeze_iters 3 ^
+    --lr_warmup_iters 2 ^
     --min_noise_std 0.4 ^
     --max_noise_std 1.5 ^
     --seed 42 ^
@@ -66,10 +67,11 @@ isaaclab.bat -p /path/to/train_finetune.py --headless ^
 **Expected output markers** (verify these appear):
 - `SKIPPED N critic keys (intentionally reset)` — actor-only load working
 - `Actor FROZEN for 3 iterations` — critic warmup active
-- `[WARMUP COMPLETE] iter=3: Actor UNFROZEN` — warmup → full training transition
+- `Actor MLP UNFROZEN (noise std stays FROZEN at 0.65)` — warmup → LR warmup transition
+- `LR warmup: 2.0e-06 → 1.0e-05 over N iterations` — gradual LR ramp active
 - `dr=X.X%` in progress lines — progressive DR active
-- `noise=0.4XX` — noise clamped in [0.4, 1.5] (never collapses or explodes)
-- Noise std stable at ~0.65 during warmup (std frozen)
+- `noise=0.650` — noise locked at 0.65 throughout (permanently frozen)
+- `lr=X.Xe-0X` in progress lines — LR warmup visible
 - No `NaN` in any reward terms
 
 ### H100 Production Launch
@@ -98,7 +100,7 @@ hybrid_ST_RL/
 ├── configs/
 │   ├── __init__.py
 │   ├── finetune_env_cfg.py     # Stage 1 environment config (235-dim obs, 19 rewards, 12 terrains)
-│   ├── finetune_ppo_cfg.py     # Stage 1 PPO hyperparameters ([512,256,128], LR=1e-4)
+│   ├── finetune_ppo_cfg.py     # Stage 1 PPO hyperparameters ([512,256,128], LR=1e-5, Attempt #4)
 │   ├── teacher_env_cfg.py      # Stage 2a environment config (254-dim obs = 235 + 19 privileged)
 │   ├── teacher_ppo_cfg.py      # Stage 2a PPO hyperparameters
 │   └── terrain_cfg.py          # ROBUST_TERRAINS_CFG: 12 terrain types, 10x40 grid
@@ -677,7 +679,7 @@ If you use `mode="startup"` with progressive DR, the ranges never actually chang
 
 ## 9. Checkpoint Loading Fixes
 
-These fixes were developed across three attempts. Attempt #1 collapsed due to value function mismatch (Fixes 1-4). Attempt #2 collapsed due to noise explosion (Fixes 5-6). See [TRAINING_METHODOLOGY.md §5.2.7–5.2.10](TRAINING_METHODOLOGY.md) for the academic analysis.
+These fixes were developed across four attempts. Attempt #1 collapsed due to value function mismatch (Fixes 1-4). Attempt #2 collapsed due to noise explosion (Fixes 5-6). Attempt #3 collapsed due to catastrophic forgetting at actor unfreeze (Fixes 7-9). See [TRAINING_METHODOLOGY.md §5.2.7–5.2.12](TRAINING_METHODOLOGY.md) for the academic analysis.
 
 ### Fix 1: Actor-Only Loading
 
@@ -714,21 +716,17 @@ def load_actor_only(runner, checkpoint_path: str):
     print(f"  SKIPPED {len(critic_keys)} critic keys (intentionally reset)", flush=True)
 ```
 
-### Fix 2: Critic Warmup (Actor Freeze + Std Freeze)
+### Fix 2: Critic Warmup (Actor Freeze + Permanent Std Freeze)
 
 With a random critic, early advantage estimates are garbage. If the actor updates on garbage advantages, it can diverge immediately. Solution: freeze the actor **and noise std** for N iterations while the critic learns the new reward structure.
 
 **Critical detail (learned in Attempt #2):** RSL-RL's `policy.std` is a top-level `nn.Parameter` on `ActorCritic`, NOT inside `policy.actor`. Freezing only `policy.actor.parameters()` leaves `std` trainable. During warmup, the PPO entropy bonus (`-entropy_coef × log(std)`) pushes `std` upward monotonically (since the actor is frozen, there's no surrogate loss to counterbalance it). In Attempt #2, this caused `std` to explode from 0.65 → 5.75+ in 247 iterations.
 
+**Attempt #4 change:** Noise std is now **permanently frozen** (never unfrozen). In Attempt #3, unfreezing std at iter 1000 allowed it to creep from 0.65 → 0.78, adding destructive randomness during the fragile unfreeze transition. With entropy set to 0.0, there is no need for a trainable noise parameter.
+
 ```python
 def freeze_actor(policy):
-    """Freeze actor weights AND noise std so only the critic trains during warmup.
-
-    Bug fix (Attempt #3): In Attempt #2, std was left trainable during warmup.
-    With the actor frozen, surrogate_loss ≈ 0, so the entropy bonus dominated
-    the loss and pushed std from 0.65 → 5.75+ in 247 iterations.
-    Fix: Also freeze std/log_std so exploration level stays at checkpoint value.
-    """
+    """Freeze actor weights AND noise std so only the critic trains during warmup."""
     for param in policy.actor.parameters():
         param.requires_grad = False
     # CRITICAL: Also freeze noise std — otherwise entropy bonus pushes it up unbounded
@@ -738,29 +736,46 @@ def freeze_actor(policy):
         policy.log_std.requires_grad = False
 
 def unfreeze_actor(policy):
-    """Unfreeze actor weights and noise std after critic warmup is complete."""
+    """Unfreeze actor MLP weights only — noise std stays PERMANENTLY FROZEN.
+
+    Attempt #4: std stays at checkpoint's converged 0.65 forever.
+    In Attempt #3, unfreezing std allowed entropy bonus to push it from
+    0.65 → 0.78, adding destructive randomness during unfreeze transition.
+    """
     for param in policy.actor.parameters():
         param.requires_grad = True
-    if hasattr(policy, 'std'):
-        policy.std.requires_grad = True
-    if hasattr(policy, 'log_std'):
-        policy.log_std.requires_grad = True
+    # INTENTIONALLY do NOT unfreeze std/log_std — keep noise permanently at 0.65
 ```
 
-**LR Reset at Unfreeze** — This is a subtle but critical detail. During warmup, the actor is frozen → KL divergence ≈ 0 → adaptive KL scheduler doubles the learning rate every iteration. After 1000 iterations, the LR would be astronomically inflated. Without resetting it:
+**LR Warmup at Unfreeze (Attempt #4)** — During warmup, the actor is frozen → KL divergence ≈ 0 → adaptive KL scheduler doubles the learning rate every iteration. After 1000 iterations, the LR would be astronomically inflated. Attempt #3 reset LR to 1e-4 flat, but this was still too aggressive and caused catastrophic forgetting within 30 iterations. Attempt #4 uses a gradual warmup:
 
 ```python
 # Inside the monkey-patched update function:
+_target_lr = agent_cfg.algorithm.learning_rate   # 1e-5
+_warmup_start_lr = _target_lr / 5.0              # 2e-6
+
 if not _actor_unfrozen[0] and it >= args_cli.actor_freeze_iters:
     unfreeze_actor(runner.alg.policy)
     _actor_unfrozen[0] = True
+    _unfreeze_iter[0] = it
 
-    # CRITICAL: Reset LR to original value
-    original_lr = agent_cfg.algorithm.learning_rate
-    runner.alg.learning_rate = original_lr
+    # Start LR at warmup_start (2e-6), NOT at target (1e-5)
+    runner.alg.learning_rate = _warmup_start_lr
     for pg in runner.alg.optimizer.param_groups:
-        pg["lr"] = original_lr
+        pg["lr"] = _warmup_start_lr
+
+# Gradual LR ramp: 2e-6 → 1e-5 over lr_warmup_iters
+if _actor_unfrozen[0] and _unfreeze_iter[0] is not None:
+    iters_since_unfreeze = it - _unfreeze_iter[0]
+    if iters_since_unfreeze <= args_cli.lr_warmup_iters:
+        warmup_frac = iters_since_unfreeze / max(args_cli.lr_warmup_iters, 1)
+        current_lr = _warmup_start_lr + (_target_lr - _warmup_start_lr) * warmup_frac
+        runner.alg.learning_rate = current_lr
+        for pg in runner.alg.optimizer.param_groups:
+            pg["lr"] = current_lr
 ```
+
+The warmup is applied **both before and after** the PPO update call, overriding any LR adjustment the adaptive KL schedule makes during the ramp period.
 
 ### Fix 3: Noise Floor AND Ceiling
 
@@ -824,25 +839,40 @@ There is no `on_iteration_start()`, `on_before_update()`, or similar callback. T
 
 ### The Pattern
 
-From `train_finetune.py` lines 372–432:
+From `train_finetune.py` lines 402–490:
 
 ```python
 original_update = runner.alg.update
 _iteration_counter = [0]        # Mutable list trick (closures can't rebind nonlocal ints easily)
 _actor_unfrozen = [False]
+_unfreeze_iter = [None]         # Track when actor was unfrozen for LR warmup
 _dr_log_interval = 500
+_target_lr = agent_cfg.algorithm.learning_rate   # 1e-5 (final target LR)
+_warmup_start_lr = _target_lr / 5.0              # 2e-6 (start of LR warmup)
 
 def update_with_fixes(*args, **kwargs):
-    """Wrapper: progressive DR + critic warmup + noise floor."""
+    """Wrapper: progressive DR + critic warmup + LR warmup + noise clamp."""
     it = _iteration_counter[0]
 
-    # Fix 2: Unfreeze actor after critic warmup
+    # Fix 2: Unfreeze actor MLP after critic warmup (std stays frozen)
     if not _actor_unfrozen[0] and it >= args_cli.actor_freeze_iters:
         unfreeze_actor(runner.alg.policy)
         _actor_unfrozen[0] = True
-        # Reset LR (adaptive KL inflated it during warmup)
+        _unfreeze_iter[0] = it
+        # Start LR warmup at 2e-6 (not 1e-5 directly — too aggressive)
+        runner.alg.learning_rate = _warmup_start_lr
         for pg in runner.alg.optimizer.param_groups:
-            pg["lr"] = agent_cfg.algorithm.learning_rate
+            pg["lr"] = _warmup_start_lr
+
+    # Fix 9 (Attempt #4): Gradual LR warmup after unfreeze
+    if _actor_unfrozen[0] and _unfreeze_iter[0] is not None:
+        iters_since_unfreeze = it - _unfreeze_iter[0]
+        if iters_since_unfreeze <= args_cli.lr_warmup_iters:
+            warmup_frac = iters_since_unfreeze / max(args_cli.lr_warmup_iters, 1)
+            current_lr = _warmup_start_lr + (_target_lr - _warmup_start_lr) * warmup_frac
+            runner.alg.learning_rate = current_lr
+            for pg in runner.alg.optimizer.param_groups:
+                pg["lr"] = current_lr
 
     # Progressive DR
     dr_info = update_dr_params(env, it, args_cli.dr_expansion_iters)
@@ -850,8 +880,18 @@ def update_with_fixes(*args, **kwargs):
     # Run the actual PPO update
     result = original_update(*args, **kwargs)
 
-    # Fix 3: Clamp noise std after update (both floor AND ceiling)
+    # Fix 3: Clamp noise std after update (safety net — std is frozen but just in case)
     clamp_noise_std(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
+
+    # Override adaptive KL's LR during warmup ramp (re-apply our schedule)
+    if _actor_unfrozen[0] and _unfreeze_iter[0] is not None:
+        iters_since_unfreeze = it - _unfreeze_iter[0]
+        if iters_since_unfreeze <= args_cli.lr_warmup_iters:
+            warmup_frac = iters_since_unfreeze / max(args_cli.lr_warmup_iters, 1)
+            current_lr = _warmup_start_lr + (_target_lr - _warmup_start_lr) * warmup_frac
+            runner.alg.learning_rate = current_lr
+            for pg in runner.alg.optimizer.param_groups:
+                pg["lr"] = current_lr
 
     _iteration_counter[0] += 1
     return result
@@ -1030,6 +1070,7 @@ screen -dmS finetune bash -c "
         --max_iterations ${MAX_ITERS} \
         --dr_expansion_iters ${DR_EXPANSION} \
         --actor_freeze_iters ${ACTOR_FREEZE} \
+        --lr_warmup_iters ${LR_WARMUP} \
         --min_noise_std ${MIN_NOISE_STD} \
         --max_noise_std ${MAX_NOISE_STD} \
         --checkpoint ${CHECKPOINT} \
@@ -1073,6 +1114,7 @@ export PYTHONUNBUFFERED=1
     --max_iterations 10 \
     --dr_expansion_iters 5 \
     --actor_freeze_iters 3 \
+    --lr_warmup_iters 2 \
     --min_noise_std 0.4 \
     --max_noise_std 1.5 \
     --seed 42 \
@@ -1081,9 +1123,9 @@ export PYTHONUNBUFFERED=1
 
 **Post-run validation checklist** (from the script):
 - `SKIPPED N critic keys` — actor-only load confirmed
-- `Actor FROZEN` / `Actor UNFROZEN` — critic warmup working
-- Noise std in [0.4, 1.5] (clamped both directions)
-- Noise std stable at ~0.65 during warmup (std frozen)
+- `Actor MLP UNFROZEN (noise std stays FROZEN)` — actor unfreeze with permanent std lock
+- `LR warmup: 2.0e-06 → 1.0e-05` — gradual LR ramp active
+- Noise std locked at ~0.65 throughout (permanently frozen)
 - `Terrain level > 0` at start — warm start confirmed
 - No `NaN` in reward terms
 - DR expansion messages appearing
@@ -1282,7 +1324,15 @@ ActorCritic
 
 If you freeze `policy.actor.parameters()` to stop the actor from updating, `std` is still trainable. During warmup with a frozen actor, the PPO entropy bonus pushes `std` upward without limit (Attempt #2: 0.65 → 5.75+ in 247 iterations). Always freeze/unfreeze `std` alongside the actor.
 
-### 16. Screen Session Management
+### 16. Catastrophic Forgetting at Actor Unfreeze
+
+After critic warmup, the first PPO updates to the newly-unfrozen actor can destroy the pre-trained policy. In Attempt #3, episode length dropped from 206 → 2.5 steps within 30 iterations of unfreeze.
+
+**Root cause:** PPO hyperparameters tuned for training from scratch (LR=1e-4, clip=0.2, 5 epochs) are far too aggressive for fine-tuning. The critic's value predictions become stale as the actor changes, creating a feedback loop.
+
+**Solution:** Ultra-conservative PPO (LR=1e-5, clip=0.1, 3 epochs, entropy=0.0) + gradual LR warmup (2e-6 → 1e-5 over 1000 iterations) + permanently frozen noise std.
+
+### 17. Screen Session Management
 
 Never kill a screen session running Isaac Sim with `screen -X quit`. This leaves zombie processes holding GPU memory. Instead:
 
@@ -1325,16 +1375,16 @@ From `configs/finetune_ppo_cfg.py`:
 | `actor_obs_normalization` | False | No running normalization |
 | `critic_obs_normalization` | False | No running normalization |
 
-### PPO Algorithm
+### PPO Algorithm (Attempt #4 — Ultra-Conservative)
 
 | Parameter | Value | Rationale |
 |-----------|-------|-----------|
-| `learning_rate` | 1e-4 | 3× lower than 48hr's 3e-4 (fine-tuning stability) |
-| `schedule` | `adaptive` | KL-based LR adjustment |
-| `desired_kl` | 0.008 | Tighter than 48hr's 0.01 |
-| `clip_param` | 0.2 | Standard PPO clipping |
-| `entropy_coef` | 0.005 | Lower than 48hr's 0.008 (warm start needs less exploration) |
-| `num_learning_epochs` | 5 | Passes over each rollout |
+| `learning_rate` | **1e-5** | 10× lower than Attempt #3's 1e-4 (prevent catastrophic forgetting) |
+| `schedule` | `adaptive` | KL-based LR adjustment (overridden during LR warmup) |
+| `desired_kl` | **0.005** | Tighter than Attempt #3's 0.008 |
+| `clip_param` | **0.1** | Halved from 0.2 — limits per-update policy change |
+| `entropy_coef` | **0.0** | Disabled — noise std is permanently frozen |
+| `num_learning_epochs` | **3** | Reduced from 5 — fewer gradient steps per iteration |
 | `num_mini_batches` | 8 | 16K envs × 24 steps / 8 = 49K samples per mini-batch |
 | `gamma` | 0.99 | Discount factor |
 | `lam` | 0.95 | GAE lambda |
@@ -1342,14 +1392,26 @@ From `configs/finetune_ppo_cfg.py`:
 | `use_clipped_value_loss` | True | Clip value function updates |
 | `max_grad_norm` | 1.0 | Gradient clipping |
 
+**Attempt #3 → #4 comparison:**
+
+| Parameter | Attempt #3 | Attempt #4 | Why Changed |
+|-----------|-----------|-----------|-------------|
+| `learning_rate` | 1e-4 | **1e-5** | 1e-4 caused catastrophic forgetting at unfreeze |
+| `clip_param` | 0.2 | **0.1** | 0.2 allowed too-large per-update changes |
+| `entropy_coef` | 0.005 | **0.0** | Pushed noise from 0.65→0.78 after unfreeze |
+| `num_learning_epochs` | 5 | **3** | 5 × 8 = 40 gradient steps per iter was too many |
+| `desired_kl` | 0.008 | **0.005** | Tighter constraint on policy divergence |
+
 ### Stage Comparison
 
-| Parameter | 48hr Base | Stage 1 (Finetune) | Stage 2a (Teacher) | Stage 2b (Distill) |
-|-----------|-----------|--------------------|--------------------|-------------------|
-| LR | 3e-4 | 1e-4 | 1e-4 | 5e-5 |
-| Entropy | 0.008 | 0.005 | 0.005 | 0.005 |
-| desired_kl | 0.01 | 0.008 | 0.008 | 0.008 |
-| init_noise_std | 0.8 | 0.65 | 0.65 | 0.65 |
+| Parameter | 48hr Base | Stage 1 (Attempt #4) | Stage 2a (Teacher) | Stage 2b (Distill) |
+|-----------|-----------|---------------------|--------------------|-------------------|
+| LR | 3e-4 | **1e-5** | 1e-5 | 5e-6 |
+| Clip | 0.2 | **0.1** | 0.1 | 0.1 |
+| Entropy | 0.008 | **0.0** | 0.0 | 0.0 |
+| Epochs | 5 | **3** | 3 | 3 |
+| desired_kl | 0.01 | **0.005** | 0.005 | 0.005 |
+| init_noise_std | 0.8 | 0.65 (frozen) | 0.65 | 0.65 |
 | Obs dims | 235 | 235 | 254 | 235 |
 | Reward terms | 14 | 19 | 19 | 19 |
 | Envs | 4,096 | 16,384 | 8,192 | 8,192 |
@@ -1439,5 +1501,5 @@ From `configs/finetune_ppo_cfg.py`:
 
 ---
 
-*Last updated: February 24, 2026 — Attempt #3 fixes (std freeze + noise ceiling)*
+*Last updated: February 24, 2026 — Attempt #4 fixes (ultra-conservative PPO + permanent std freeze + LR warmup)*
 *AI2C Tech Capstone — Hybrid ST-RL Training Pipeline*
