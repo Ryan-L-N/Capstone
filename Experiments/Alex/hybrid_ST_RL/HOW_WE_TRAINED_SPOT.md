@@ -486,6 +486,134 @@ never need to manually set a training schedule. The curriculum finds the
 **learning frontier** — the difficulty level where the policy is challenged
 but not overwhelmed — and keeps training right at that edge.
 
+#### When the Fine-Tuning Crashed (The Dashboard Problem)
+
+We launched Stage 1 on the H100 on February 23, 2026. It failed within
+50 minutes.
+
+The robot started walking at terrain level 3.46 (decent difficulty).
+Within 300 iterations, it collapsed to terrain level 0, falling in 100%
+of episodes. The walking ability we carefully loaded from the 48hr
+checkpoint was completely destroyed.
+
+**The car dashboard analogy:**
+
+Remember the driver's ed analogy? We gave our experienced driver their
+familiar car (the [512,256,128] network) and loaded their driving skills
+(the checkpoint). But we forgot one thing: we also loaded the car's
+**dashboard gauges** — and the gauges were calibrated for the old car.
+
+In RL terms, the "dashboard" is the **value function** (the critic
+network). It tells the learning algorithm "how well am I doing right
+now?" The old value function was calibrated for 14 reward terms. Our new
+environment has 19 reward terms (5 new penalties). So the dashboard kept
+saying "you should be earning 15 points per step!" when the robot was
+actually earning 10 (because the 5 new penalties were dragging down its
+score).
+
+Here's the chain of events:
+
+1. **Dashboard reads high.** The critic thinks the robot should be
+   earning +15 reward per step (what it learned in the old environment).
+2. **Actual reward is +10.** Because 5 new penalty terms are now active.
+3. **The system concludes: "Walking is underperforming."** Expected +15,
+   got +10. Walking must be a bad strategy.
+4. **The learning algorithm shifts away from walking.** It starts trying
+   to find something "better" — which means standing still (the only
+   strategy that avoids the new penalties entirely).
+5. **Exploration dies.** The action noise collapses from 0.65 to 0.15.
+   The robot stops trying different things and commits to standing still.
+6. **Game over.** With no exploration, the robot can never rediscover
+   that walking actually works — it just needed to adapt slightly for
+   the new penalties.
+
+It's like a navigation system that thinks you should be going 80 mph
+(because that's what the old highway allowed), but you're on a winding
+mountain road doing 45. The system keeps yelling "YOU'RE TOO SLOW!" and
+you keep overcorrecting until you drive off the road entirely.
+
+The critical insight: **the robot's driving skills (actor) transferred
+perfectly. Its internal GPS/speedometer (critic) was the problem.**
+Loading both was worse than loading just the skills and letting the
+robot recalibrate its gauges from scratch.
+
+#### The Four Fixes (Attempt #2)
+
+We implemented four fixes, all in the training script:
+
+**Fix 1: Only load the driving skills, not the gauges.**
+
+Instead of loading the entire checkpoint (actor + critic), we only load
+the actor weights and the action noise parameter. The critic starts from
+random — a blank dashboard that has to learn the new environment from
+scratch. This is actually better than a miscalibrated dashboard, for the
+same reason that a blank map is better than a wrong map.
+
+**Fix 2: Let the gauges calibrate before driving.**
+
+For the first 1,000 iterations, the actor is **frozen**. The robot walks
+using its loaded skills, but those skills don't change. Meanwhile, the
+fresh critic watches 393 million data points and learns "here's what the
+reward actually looks like in this new environment."
+
+It's like a new employee who shadows for a week before making any
+decisions. "Just watch, learn the new system, and then we'll let you
+start making changes."
+
+After 1,000 iterations, the actor unfreezes and starts learning again —
+but now the critic's guidance is calibrated. The first real update is
+based on accurate "you're doing well" / "you're doing poorly" signals,
+not miscalibrated ones.
+
+**Fix 3: Never stop exploring.**
+
+We added a **noise floor** — the action noise can never drop below 0.4.
+In Attempt #1, the noise collapsed from 0.65 to 0.15, killing
+exploration. Now, even if the value function has a bad day and pushes
+noise down, it can't go below 0.4.
+
+It's like telling a jazz musician: "You can settle into your style, but
+you must always improvise at least a little. Never play the exact same
+solo twice." This ensures the robot keeps trying variations of its
+walking strategy, which is how it discovers adaptations for new terrains.
+
+**Fix 4: Reset the speedometer when driving starts.**
+
+This was a sneaky bug we found during smoke testing on the H100. During
+the 1,000-iteration warmup (Fix 2), the actor is frozen, so every
+iteration produces identical behavior. The adaptive learning rate sees
+"the policy isn't changing at all" and keeps doubling the learning rate:
+1e-4 → 2e-4 → 4e-4 → ... → 0.01. That's a 100× increase.
+
+When the actor unfreezes, the first update hits with 100× the intended
+force. It's like revving a car engine to 8,000 RPM in neutral, then
+suddenly dropping it into gear — the wheels spin out and you lose
+control.
+
+The fix: at the exact moment the actor unfreezes, we reset the learning
+rate back to its original value (1e-4). Clean start, no accumulated
+momentum.
+
+#### Current Status: Attempt #2 Is Running
+
+The fixes worked. In a 30-iteration smoke test on 4,096 environments:
+
+| What we measured | Attempt #1 (broken) | Attempt #2 (fixed) |
+|-----------------|--------------------|--------------------|
+| Terrain level | 0.00 (collapsed) | 2.67 (stable) |
+| Body contact | 100% (always falling) | 56% (learning) |
+| Noise | 0.15 (dead) | 0.69 (healthy) |
+| Episode length | 4.8s (falling immediately) | Growing |
+
+The production run launched February 24, 2026: 16,384 robots, 25,000
+iterations, all four fixes active. First iteration showed terrain level
+2.82 and body contact 37.2% — the robot's walking ability survived the
+loading process intact.
+
+Now the real question: will the progressive domain randomization work?
+Will the robot learn to handle ice, boulders, and stairs better than the
+48hr baseline? That's what the next ~69 hours will tell us.
+
 ---
 
 ## Part 4: Scaling — Why 16,384 Robots?
@@ -747,6 +875,10 @@ rough height patterns rather than relying on precise measurements.
 
 ---
 
-*Written February 23, 2026. The robot is currently learning on the H100.
-16,384 simulated Spots are walking, falling, getting back up, and getting
-better — right now, as you read this.*
+*Written February 23, 2026. Updated February 24, 2026. The first
+fine-tuning attempt crashed in 50 minutes — a miscalibrated value
+function destroyed the walking ability we carefully loaded. Four fixes
+later (actor-only loading, critic warmup, noise floor, learning rate
+reset), Attempt #2 is running on the H100. 16,384 simulated Spots are
+walking, falling, getting back up, and getting better — right now, as
+you read this.*

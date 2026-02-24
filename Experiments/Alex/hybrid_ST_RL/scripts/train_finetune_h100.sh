@@ -17,6 +17,8 @@ set -euo pipefail
 NUM_ENVS="${NUM_ENVS:-16384}"
 MAX_ITERS="${MAX_ITERS:-25000}"
 DR_EXPANSION="${DR_EXPANSION:-15000}"
+ACTOR_FREEZE="${ACTOR_FREEZE:-1000}"
+MIN_NOISE_STD="${MIN_NOISE_STD:-0.4}"
 SEED="${SEED:-42}"
 CHECKPOINT="${CHECKPOINT:-/home/t2user/IsaacLab/logs/rsl_rl/spot_rough/2026-02-13_16-26-37_48h_proprioception/model_27500.pt}"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -31,10 +33,13 @@ echo "============================================"
 echo "  Envs:          ${NUM_ENVS}"
 echo "  Max iters:     ${MAX_ITERS}"
 echo "  DR expansion:  ${DR_EXPANSION} iters"
+echo "  Actor freeze:  ${ACTOR_FREEZE} iters (critic warmup)"
+echo "  Min noise std: ${MIN_NOISE_STD}"
 echo "  Checkpoint:    ${CHECKPOINT}"
 echo "  Train script:  ${TRAIN_SCRIPT}"
 echo "  Log file:      ${LOG_FILE}"
 echo "  Timestamp:     ${TIMESTAMP}"
+echo "  Attempt:       #2 (actor-only load, critic warmup, noise floor)"
 echo "============================================"
 
 # ── Verify checkpoint exists ────────────────────────────────────────────
@@ -58,6 +63,8 @@ screen -dmS finetune bash -c "
         --num_envs ${NUM_ENVS} \
         --max_iterations ${MAX_ITERS} \
         --dr_expansion_iters ${DR_EXPANSION} \
+        --actor_freeze_iters ${ACTOR_FREEZE} \
+        --min_noise_std ${MIN_NOISE_STD} \
         --seed ${SEED} \
         --checkpoint ${CHECKPOINT} \
         2>&1 | tee -a ${LOG_FILE}

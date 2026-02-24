@@ -2,8 +2,10 @@
 # =============================================================================
 # Local Debug: Smoke test on RTX 2000 Ada (64 envs, 10 iterations)
 # =============================================================================
-# Verifies: checkpoint loads, 12 terrains generate, 18 reward terms compute,
-# progressive DR updates, no NaN, no CUDA errors.
+# Verifies: actor-only loading, critic warmup, noise floor, 12 terrains,
+# 19 reward terms, progressive DR, no NaN, no CUDA errors.
+#
+# Attempt #2: Tests all three fixes from the Attempt #1 collapse.
 #
 # Usage:
 #   cd C:/IsaacLab
@@ -38,20 +40,26 @@ if [ ! -f "${CHECKPOINT}" ]; then
         --num_envs 64 \
         --max_iterations 10 \
         --dr_expansion_iters 5 \
+        --actor_freeze_iters 3 \
+        --min_noise_std 0.4 \
         --seed 42
 else
     ./isaaclab.sh -p "${TRAIN_SCRIPT}" --headless \
         --num_envs 64 \
         --max_iterations 10 \
         --dr_expansion_iters 5 \
+        --actor_freeze_iters 3 \
+        --min_noise_std 0.4 \
         --seed 42 \
         --checkpoint "${CHECKPOINT}"
 fi
 
 echo ""
 echo "Local debug complete. Check output for:"
-echo "  - Checkpoint load success (reward should start positive)"
+echo "  - Actor-only load (SKIPPED critic keys message)"
+echo "  - Actor FROZEN / UNFROZEN messages (critic warmup)"
+echo "  - Noise std >= 0.4 (noise floor active)"
 echo "  - Terrain level > 0 at start (confirms warm start)"
 echo "  - No NaN in reward terms"
-echo "  - DR expansion messages every 5 iterations"
+echo "  - DR expansion messages"
 echo "============================================"

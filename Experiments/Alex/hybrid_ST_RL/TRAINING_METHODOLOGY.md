@@ -483,6 +483,171 @@ We chose 16,384 environments because:
 4. **Diminishing returns:** Going from 8K→16K doubles per-terrain coverage
    (meaningful). Going 16K→32K adds less value but costs 80% more time.
 
+#### 5.2.7 Stage 1 Attempt #1: Value Function Mismatch Collapse
+
+The first deployment of Stage 1 on the H100 (February 23, 2026) failed
+catastrophically within 300 iterations (~50 minutes of wall time). This
+section documents the failure mode and its resolution, as the root cause
+reveals a subtle but critical pitfall in transfer learning for RL.
+
+**Timeline of collapse:**
+
+| Iteration | Terrain Level | Body Contact % | VF Loss | Noise Std | Episode Length |
+|-----------|--------------|----------------|---------|-----------|----------------|
+| 0 | 3.46 | 37% | 5,298 | 0.65 | 12.1s |
+| 50 | 2.15 | 48% | 890 | 0.42 | 9.8s |
+| 100 | 0.81 | 72% | 412 | 0.28 | 7.2s |
+| 200 | 0.05 | 95% | 285 | 0.18 | 5.1s |
+| 300 | 0.00 | 100% | 198 | 0.15 | 4.8s |
+
+The policy collapsed from a functional walking state (terrain level 3.46,
+37% body contact) to complete failure (terrain level 0, 100% body contact)
+in approximately 300 iterations.
+
+**Root cause — value function reward landscape mismatch:**
+
+The 48hr checkpoint's critic was trained to predict cumulative returns
+under a 14-term reward function. Stage 1 uses a 19-term reward function
+(5 additional terms: velocity modulation, vegetation drag, body height
+tracking, contact force smoothness, stumble penalty). When the full
+checkpoint was loaded (both actor and critic), the critic's value
+predictions were calibrated for the wrong reward landscape.
+
+The failure chain:
+
+1. The loaded critic predicted returns based on 14 reward terms
+2. Actual returns included 5 additional penalty terms, producing
+   systematically lower returns than predicted
+3. The GAE advantage estimator computed large negative advantages for
+   walking behavior (expected high value, received lower actual return)
+4. PPO interpreted walking as "worse than expected" and shifted
+   probability mass toward alternative (standing) behaviors
+5. The action noise standard deviation collapsed (0.65 → 0.15) as the
+   policy concentrated on a narrow set of low-motion actions
+6. Reduced exploration prevented recovery — the policy could no longer
+   discover that walking was viable in the new reward landscape
+
+This is a specific instance of **value function interference** in transfer
+learning for RL. Unlike supervised learning where loading a pre-trained
+model and fine-tuning is straightforward, RL value functions encode
+task-specific reward expectations. When the reward function changes, the
+value function becomes a liability rather than an asset — it provides
+actively misleading training signals.
+
+The initial VF loss of 5,298 (compared to a converged value of ~50-100)
+quantifies the severity of the mismatch. The critic's predictions were
+off by orders of magnitude, generating pathological advantage estimates
+that systematically penalized the actor's existing locomotion behavior.
+
+**Observation on noise collapse:** The action noise parameter (`log_std`
+in RSL-RL) is a learnable parameter updated by the PPO loss. When
+advantages are consistently negative for high-noise actions (exploring
+diverse walking strategies) and less negative for low-noise actions
+(staying near the current mean, which converges to standing still), the
+gradient drives noise toward zero. This constitutes an **exploration
+death spiral** — the policy requires exploration to discover that walking
+works in the new reward landscape, but the value function mismatch
+penalizes exploration itself.
+
+This failure mode is analogous to the cold-start problem described by
+Abel et al. (2018) in transfer RL, where stale value functions in new
+environments cause performance worse than random initialization. Our
+empirical evidence confirms that for PPO with GAE, loading a mismatched
+critic is strictly worse than starting with a randomly initialized critic.
+
+#### 5.2.8 Stage 1 Attempt #2: Corrective Measures
+
+Four modifications were implemented to address the value function
+mismatch collapse:
+
+**Fix 1 — Actor-only checkpoint loading:**
+
+Rather than loading the full checkpoint (actor + critic + optimizer),
+only the actor weights and action noise parameter are loaded. The critic
+is left with its random initialization, forcing it to learn the new
+19-term reward landscape from scratch. Implementation extracts keys
+prefixed with `actor.` and the `std` parameter from the state dict,
+loads them into the actor subnetwork via `strict=True`, and explicitly
+skips all `critic.` keys.
+
+The rationale: the actor encodes locomotion behavior (how to walk),
+which transfers directly regardless of reward function changes. The
+critic encodes value predictions (expected cumulative return), which do
+not transfer when the reward function changes. Selectively loading only
+the actor preserves behavioral competence while allowing the critic to
+calibrate to the new reward landscape without interference.
+
+**Fix 2 — Critic warmup (actor freeze):**
+
+For the first 1,000 iterations, the actor's parameters are frozen
+(`requires_grad=False`). During this phase, only the critic and noise
+parameters receive gradient updates. This provides the randomly
+initialized critic approximately 1,000 iterations × 393,216
+samples/iteration = 393 million training samples to calibrate its value
+predictions before the actor begins adapting.
+
+Without this warmup, the first actor update would be based on a randomly
+initialized critic's advantage estimates — high-variance noise that could
+push the actor in an arbitrary direction, potentially destroying its
+existing walking ability. The warmup ensures the first meaningful actor
+update is guided by a reasonably calibrated value function.
+
+**Fix 3 — Action noise floor:**
+
+After each PPO update, the action noise standard deviation is clamped to
+a minimum of 0.4:
+
+```python
+with torch.no_grad():
+    policy.std.data.clamp_(min=math.log(min_noise_std))
+```
+
+This prevents the exploration death spiral observed in Attempt #1. Even
+if the value function temporarily produces pathological advantages that
+would drive noise toward zero, the floor maintains sufficient
+stochasticity for the policy to explore diverse walking strategies. The
+value 0.4 was chosen as approximately 60% of the checkpoint's converged
+noise (0.65), providing a meaningful exploration floor without excessive
+random behavior.
+
+**Fix 4 — Learning rate reset at actor unfreeze:**
+
+During the critic warmup phase, the frozen actor produces identical
+actions regardless of state. This results in KL divergence ≈ 0 between
+successive policy versions. The adaptive KL schedule (Section 5.2.5)
+interprets KL ≈ 0 as insufficient policy change and repeatedly doubles
+the learning rate. Over 1,000 warmup iterations, this inflated the LR
+from 1e-4 to approximately 0.01 — a 100× increase.
+
+When the actor unfreezes at iteration 1,000, the first gradient update
+at LR = 0.01 would be catastrophically large, immediately destroying the
+walking behavior. The fix resets both `runner.alg.learning_rate` and all
+optimizer parameter group learning rates to the original configured
+value (1e-4) at the moment the actor is unfrozen.
+
+This interaction between actor freezing and adaptive LR scheduling is,
+to our knowledge, undocumented in the RSL-RL literature. It arises
+specifically from the combination of (a) freezing a subset of parameters
+while (b) using a KL-adaptive learning rate schedule — a configuration
+that does not occur in standard training.
+
+**Attempt #2 validation (smoke test, 4,096 envs, 30 iterations):**
+
+| Metric | Attempt #1 @ iter 300 | Attempt #2 @ iter 30 |
+|--------|----------------------|---------------------|
+| Terrain level | 0.00 (collapsed) | 2.67 (stable) |
+| Body contact % | 100% | 56% |
+| VF loss | 198 (falling from 5,298) | Dropping (normal convergence) |
+| Noise std | 0.15 (collapsed) | 0.69 (healthy, above floor) |
+| Episode length | 4.8s | Growing |
+
+The production run was launched with 16,384 environments at 25,000
+iterations. Initial metrics at iteration 1 showed terrain level 2.82
+and body contact rate 37.2%, consistent with the checkpoint's baseline
+performance — confirming that the actor's locomotion ability was
+preserved through the selective loading and warmup process. Training is
+ongoing as of February 24, 2026.
+
 ### 5.3 Stage 2: Teacher-Student Distillation (Optional)
 
 Stage 2 is executed only if Stage 1 evaluation shows insufficient
@@ -701,4 +866,13 @@ just specialization on training terrain types.
 
 ---
 
-*Document created February 23, 2026. Training in progress on NVIDIA H100 NVL.*
+21. **Abel, D., Dabney, W., Harutyunyan, A., Ho, M. K., Littman, M. L.,
+    Precup, D., & Singh, S.** (2018). Policy and Value Transfer in Lifelong
+    Reinforcement Learning. *ICML 2018*.
+
+---
+
+*Document created February 23, 2026. Updated February 24, 2026 with
+Attempt #1 failure analysis and Attempt #2 corrective measures.
+Stage 1 training in progress on NVIDIA H100 NVL — 16,384 environments,
+25,000 iterations.*

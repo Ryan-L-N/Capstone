@@ -11,6 +11,11 @@ Key innovations:
   - Same [512,256,128] architecture — checkpoint loads directly
   - Conservative LR (1e-4) with adaptive KL to prevent catastrophic forgetting
 
+Attempt #2 fixes (from Attempt #1 value function collapse):
+  - Actor-only loading: critic is reset to random (avoids reward mismatch)
+  - Critic warmup: actor is frozen for N iterations while critic calibrates
+  - Noise floor: noise_std clamped >= 0.4 to prevent exploration collapse
+
 Usage (on H100 server):
     cd ~/IsaacLab
     ./isaaclab.sh -p /path/to/train_finetune.py --headless --num_envs 16384 \\
@@ -40,6 +45,10 @@ parser.add_argument("--checkpoint", type=str, default=None,
                     help="Path to 48hr rough policy checkpoint (model_27500.pt)")
 parser.add_argument("--dr_expansion_iters", type=int, default=15000,
                     help="Iterations over which DR expands from easy to hard (default 15000)")
+parser.add_argument("--actor_freeze_iters", type=int, default=1000,
+                    help="Iterations to freeze actor while critic warms up (default 1000)")
+parser.add_argument("--min_noise_std", type=float, default=0.4,
+                    help="Minimum noise std floor to prevent exploration collapse (default 0.4)")
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
 sys.argv = [sys.argv[0]]
@@ -163,7 +172,79 @@ def update_dr_params(env, iteration: int, expansion_iters: int) -> dict:
     }
 
 
-# ── 3. Main ─────────────────────────────────────────────────────────────
+# ── 3. Actor-Only Loading + Critic Warmup + Noise Floor ────────────────
+
+def load_actor_only(runner, checkpoint_path: str):
+    """Load ONLY actor weights from checkpoint; critic stays random.
+
+    This avoids the value function mismatch that caused Attempt #1 to collapse.
+    The 48hr critic was trained on 14 reward terms — our env has 19.
+    Loading it would give wildly wrong value estimates, poisoning advantages.
+
+    We also copy the noise std from the checkpoint so the policy starts
+    with the same exploration level it had when training ended (0.65).
+    """
+    device = runner.device
+    loaded_dict = torch.load(checkpoint_path, weights_only=False, map_location=device)
+    state_dict = loaded_dict["model_state_dict"]
+    policy = runner.alg.policy
+
+    # --- Load actor MLP weights ---
+    actor_state = {k.replace("actor.", ""): v
+                   for k, v in state_dict.items()
+                   if k.startswith("actor.")}
+    policy.actor.load_state_dict(actor_state, strict=True)
+
+    # --- Copy noise std from checkpoint ---
+    if "std" in state_dict:
+        policy.std.data.copy_(state_dict["std"])
+        print(f"  Loaded noise std: {state_dict['std'].mean().item():.4f}", flush=True)
+    elif "log_std" in state_dict:
+        policy.log_std.data.copy_(state_dict["log_std"])
+        print(f"  Loaded log_std: {state_dict['log_std'].mean().item():.4f}", flush=True)
+
+    # --- Copy actor obs normalizer if present ---
+    norm_state = {k.replace("actor_obs_normalizer.", ""): v
+                  for k, v in state_dict.items()
+                  if k.startswith("actor_obs_normalizer.")}
+    if norm_state and hasattr(policy, 'actor_obs_normalizer'):
+        policy.actor_obs_normalizer.load_state_dict(norm_state, strict=False)
+        print("  Loaded actor_obs_normalizer", flush=True)
+
+    # --- Critic is intentionally LEFT RANDOM ---
+    critic_keys = [k for k in state_dict if k.startswith("critic.")]
+    print(f"  SKIPPED {len(critic_keys)} critic keys (intentionally reset)", flush=True)
+    print(f"  Actor loaded, critic random — ready for warmup", flush=True)
+
+
+def freeze_actor(policy):
+    """Freeze actor weights so only the critic trains during warmup."""
+    for param in policy.actor.parameters():
+        param.requires_grad = False
+    # Note: std (noise) is NOT frozen — it should adapt during warmup
+
+
+def unfreeze_actor(policy):
+    """Unfreeze actor weights after critic warmup is complete."""
+    for param in policy.actor.parameters():
+        param.requires_grad = True
+
+
+def clamp_noise_std(policy, min_std: float):
+    """Clamp noise std to prevent exploration collapse.
+
+    In Attempt #1, adaptive KL crushed noise from 0.65 -> 0.15,
+    locking the policy in a deterministic death spiral.
+    """
+    with torch.no_grad():
+        if hasattr(policy, 'noise_std_type') and policy.noise_std_type == "log":
+            log_min = torch.log(torch.tensor(min_std, device=policy.log_std.device))
+            policy.log_std.clamp_(min=log_min.item())
+        else:
+            policy.std.clamp_(min=min_std)
+
+
+# ── 4. Main ─────────────────────────────────────────────────────────────
 
 def main():
     # --- Environment config ---
@@ -198,9 +279,11 @@ def main():
     print(f"  Mini-batches:     {agent_cfg.algorithm.num_mini_batches}", flush=True)
     print(f"  Steps per env:    {agent_cfg.num_steps_per_env}", flush=True)
     print(f"  Network:          {agent_cfg.policy.actor_hidden_dims}", flush=True)
+    print(f"  Actor freeze:     {args_cli.actor_freeze_iters} iterations (critic warmup)", flush=True)
+    print(f"  Min noise std:    {args_cli.min_noise_std}", flush=True)
     print(f"  Episode length:   {env_cfg.episode_length_s}s", flush=True)
     print(f"  Terrains:         12 types (ROBUST_TERRAINS_CFG)", flush=True)
-    print(f"  Rewards:          18 terms (14 base + 4 custom)", flush=True)
+    print(f"  Rewards:          19 terms (14 base + 5 custom)", flush=True)
     print(f"  Log dir:          {log_dir}", flush=True)
     steps_per_iter = env_cfg.scene.num_envs * agent_cfg.num_steps_per_env
     print(f"  Steps/iteration:  {steps_per_iter:,}", flush=True)
@@ -236,11 +319,21 @@ def main():
         env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device
     )
 
-    # --- Load 48hr rough policy checkpoint ---
+    # --- Load 48hr rough policy checkpoint (ACTOR ONLY — Attempt #2 fix) ---
     if args_cli.checkpoint:
-        print(f"[INFO] Loading checkpoint: {args_cli.checkpoint}", flush=True)
-        runner.load(args_cli.checkpoint, load_optimizer=False)
-        print(f"[INFO] Checkpoint loaded (optimizer reset for fine-tuning LR={agent_cfg.algorithm.learning_rate})", flush=True)
+        print(f"\n[INFO] Loading ACTOR-ONLY from: {args_cli.checkpoint}", flush=True)
+        print(f"[INFO] Critic will be RESET (random init) to avoid reward mismatch", flush=True)
+        load_actor_only(runner, args_cli.checkpoint)
+
+        # Freeze actor for critic warmup
+        if args_cli.actor_freeze_iters > 0:
+            freeze_actor(runner.alg.policy)
+            print(f"[INFO] Actor FROZEN for {args_cli.actor_freeze_iters} iterations (critic warmup)", flush=True)
+            frozen_params = sum(1 for p in runner.alg.policy.actor.parameters() if not p.requires_grad)
+            trainable_params = sum(1 for p in runner.alg.policy.named_parameters() if p[1].requires_grad)
+            print(f"[INFO] Frozen actor params: {frozen_params}, trainable params: {trainable_params}", flush=True)
+
+        print(f"[INFO] Noise floor: {args_cli.min_noise_std} (prevents exploration collapse)", flush=True)
     else:
         print("[WARN] No checkpoint specified — training from scratch!", flush=True)
         print("[WARN] This is NOT recommended. Use --checkpoint /path/to/model_27500.pt", flush=True)
@@ -263,41 +356,80 @@ def main():
         f.write(f"network: {agent_cfg.policy.actor_hidden_dims}\n")
         f.write(f"episode_length_s: {env_cfg.episode_length_s}\n")
         f.write(f"dr_schedule: {DR_SCHEDULE}\n")
+        f.write(f"actor_freeze_iters: {args_cli.actor_freeze_iters}\n")
+        f.write(f"min_noise_std: {args_cli.min_noise_std}\n")
+        f.write(f"loading_mode: actor_only (critic reset)\n")
+        f.write(f"attempt: 2 (fixes: actor-only load, critic warmup, noise floor)\n")
 
-    # --- Monkey-patch alg.update() for progressive DR ---
+    # --- Monkey-patch alg.update() for progressive DR + warmup + noise floor ---
     print("\n[TRAIN] Starting training with progressive DR...", flush=True)
+    if args_cli.actor_freeze_iters > 0 and args_cli.checkpoint:
+        print(f"[TRAIN] Phase 1: Critic warmup (actor frozen, iters 0-{args_cli.actor_freeze_iters})", flush=True)
+        print(f"[TRAIN] Phase 2: Full training (actor unfrozen, iters {args_cli.actor_freeze_iters}+)", flush=True)
+    print(f"[TRAIN] Noise floor: {args_cli.min_noise_std}", flush=True)
     start_time = time.time()
 
     original_update = runner.alg.update
     _iteration_counter = [0]
+    _actor_unfrozen = [args_cli.actor_freeze_iters == 0 or not args_cli.checkpoint]
     _dr_log_interval = 500
 
-    def update_with_progressive_dr(*args, **kwargs):
-        """Wrapper that expands DR parameters before each PPO update."""
+    def update_with_fixes(*args, **kwargs):
+        """Wrapper: progressive DR + critic warmup + noise floor."""
         it = _iteration_counter[0]
 
-        # Update DR parameters
+        # --- Fix 2: Unfreeze actor after critic warmup ---
+        if not _actor_unfrozen[0] and it >= args_cli.actor_freeze_iters:
+            unfreeze_actor(runner.alg.policy)
+            _actor_unfrozen[0] = True
+
+            # CRITICAL: Reset LR to original value after warmup.
+            # During warmup the actor is frozen → KL ≈ 0 → adaptive KL doubles
+            # the LR every iteration. Without this reset, the first actor update
+            # would use an inflated LR (0.01+ instead of 1e-4), destroying the policy.
+            original_lr = agent_cfg.algorithm.learning_rate
+            runner.alg.learning_rate = original_lr
+            for pg in runner.alg.optimizer.param_groups:
+                pg["lr"] = original_lr
+
+            print(
+                f"\n[WARMUP COMPLETE] iter={it}: Actor UNFROZEN — full training begins",
+                flush=True,
+            )
+            noise = runner.alg.policy.std.mean().item() if hasattr(runner.alg.policy, 'std') else 0
+            print(f"[WARMUP COMPLETE] LR reset to {original_lr} (was inflated during warmup)", flush=True)
+            print(f"[WARMUP COMPLETE] Current noise_std: {noise:.4f}", flush=True)
+
+        # --- Progressive DR ---
         dr_info = update_dr_params(env, it, args_cli.dr_expansion_iters)
 
-        # Log DR progress periodically
+        # --- Run the actual PPO update ---
+        result = original_update(*args, **kwargs)
+
+        # --- Fix 3: Clamp noise std after update ---
+        clamp_noise_std(runner.alg.policy, args_cli.min_noise_std)
+
+        # Log progress periodically
         if it % _dr_log_interval == 0:
             elapsed = time.time() - start_time
             hours = elapsed / 3600
             fps = it * steps_per_iter / max(elapsed, 1) if it > 0 else 0
+            noise = runner.alg.policy.std.mean().item() if hasattr(runner.alg.policy, 'std') else 0
+            phase = "WARMUP" if not _actor_unfrozen[0] else "TRAIN"
             print(
-                f"[TRAIN] iter={it:6d}/{agent_cfg.max_iterations}  "
+                f"[{phase}] iter={it:6d}/{agent_cfg.max_iterations}  "
                 f"dr={dr_info['dr_fraction']:.1%}  "
                 f"friction={dr_info['friction_range']}  "
                 f"push={dr_info['push_vel']:.2f}  "
-                f"force={dr_info['ext_force']:.1f}  "
+                f"noise={noise:.3f}  "
                 f"elapsed={hours:.1f}h  fps={fps:.0f}",
                 flush=True,
             )
 
         _iteration_counter[0] += 1
-        return original_update(*args, **kwargs)
+        return result
 
-    runner.alg.update = update_with_progressive_dr
+    runner.alg.update = update_with_fixes
 
     # Run training
     runner.learn(

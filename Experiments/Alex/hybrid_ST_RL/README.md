@@ -142,6 +142,78 @@ Key contributions applied to this project:
 
 ---
 
+## Stage 1 Attempt #1: Value Function Mismatch Collapse (Failed)
+
+**Date:** 2026-02-23, ~21:06 UTC
+**Duration:** ~10.5 hours (2,902 iterations of 25,000 planned)
+**Config:** 16,384 envs, [512,256,128], LR=1e-4, adaptive KL
+
+### What Happened
+
+The training collapsed catastrophically within the first ~2,900 iterations. The policy went from walking competently (terrain level 3.44, 7.5% fall rate, 18.75s episodes) to falling immediately on flat ground (terrain level 0.0, 100% fall rate, 6.93s episodes).
+
+### Failure Timeline (TensorBoard data)
+
+| Metric | Start (iter 0) | End (iter 2,902) | Direction |
+|---|---|---|---|
+| Terrain level | 3.44 | 0.00 | Collapsed to flat ground |
+| Body contact termination | 7.5% | 100% | Every robot falls every episode |
+| Episode length | 18.75s | 6.93s | Dies in <7 seconds |
+| Mean noise std | 0.654 | 0.155 | Policy became near-deterministic |
+| Entropy | 11.89 | -5.44 | Negative = no exploration left |
+| Value function loss | **5,298** | 0.16 | Started astronomically high |
+| Learning rate | 2e-4 | ~0 | Adaptive KL killed the LR |
+| Mean reward | -67.6 | 1.19 | Misleading — reward is small because robot dies fast |
+
+### Root Cause: Critic-Reward Mismatch
+
+The 48hr checkpoint's **critic (value function)** was trained on 14 reward terms. Our fine-tuning environment has 19 reward terms (5 new custom terms: vegetation_drag, velocity_modulation, body_height_tracking, contact_force_smoothness, stumble) with different magnitudes.
+
+**The chain of failure:**
+
+1. **Value function loss = 5,298 at iteration 0.** The critic's predictions were wildly wrong because it was trained on a completely different reward landscape. For comparison, a well-calibrated critic should have loss < 50.
+
+2. **Bad value estimates → bad advantage estimates.** PPO uses `advantage = return - value_estimate`. When the value estimates are off by orders of magnitude, every advantage estimate is garbage. The policy gets gradient signals saying "this was good" when it was terrible, and vice versa.
+
+3. **Adaptive KL detected massive policy divergence.** The KL divergence between old and new policy was huge (because the gradient signals were corrupted), so the adaptive KL schedule slashed the learning rate toward zero and contracted the noise standard deviation from 0.65 → 0.15.
+
+4. **Entropy collapsed to -5.44.** Negative entropy means the policy became maximally deterministic — it found one bad behavior and locked into it. With noise at 0.15 and LR at ~0, there was no way to explore out of this local minimum.
+
+5. **Locked in death spiral.** Robot falls → terrain level drops → gets easier terrain → still falls (policy is locked) → terrain stays at 0 → 100% body contact forever.
+
+### Key Insight
+
+**Loading actor weights was fine.** The actor (policy network) maps observations → actions. Its 235-dim input and 12-dim output are identical between the 48hr and fine-tuning environments.
+
+**Loading critic weights was catastrophic.** The critic maps observations → scalar value. But the "value" depends entirely on what rewards the environment gives. The critic learned "seeing flat ground while walking forward is worth ~X reward points" based on 14 terms. In our 19-term environment, that same situation is worth a very different amount, so every value prediction is wrong.
+
+### Checkpoints Saved (for forensics)
+
+```
+/home/t2user/IsaacLab/logs/rsl_rl/spot_hybrid_st_rl/2026-02-23_21-06-41_stage1_finetune/
+├── model_27500.pt   (iter 0 — copied from 48hr checkpoint)
+├── model_28000.pt   (iter 500 — still partially functional)
+├── model_28500.pt   (iter 1,000)
+├── model_29000.pt   (iter 1,500)
+├── model_29500.pt   (iter 2,000 — mostly collapsed)
+├── model_30000.pt   (iter 2,500 — fully collapsed)
+└── events.out.tfevents.*  (full TensorBoard log)
+```
+
+### Fix Strategy for Attempt #2
+
+Three changes to prevent this failure mode:
+
+1. **Actor-only loading (reset critic).** Load ONLY the actor weights from model_27500.pt. Initialize the critic from scratch (random weights). The critic will learn the correct value landscape from iteration 0 with no stale predictions contaminating the advantages.
+
+2. **Critic warmup (freeze actor for ~1,000 iterations).** Keep the actor frozen while the fresh critic calibrates to the new 19-term reward landscape. This prevents corrupted gradient signals from reaching the actor during the initial high-loss period. After warmup, unfreeze the actor and train normally.
+
+3. **Noise floor (clamp noise_std >= 0.4).** Prevent the adaptive KL from collapsing the exploration noise below 0.4. This ensures the policy always maintains enough stochasticity to recover from bad updates, even if the KL schedule tries to contract it.
+
+All three changes will be applied simultaneously in Attempt #2.
+
+---
+
 ## Environment Count & Iteration Scaling — Why 16,384 x 25,000
 
 Choosing the right number of parallel environments and training iterations is a
