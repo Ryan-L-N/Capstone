@@ -759,24 +759,93 @@ gradual warmup:
 It's like slowly releasing the clutch after shifting gears. You don't
 dump it — you ease into the new gear to avoid stalling.
 
-#### Current Status: Attempt #4 Is Running
+#### Attempt #4: The Slow Fade
 
-| What we measured | #1 (collapse) | #2 (explosion) | #3 (unfreeze crash) | #4 (running) |
-|-----------------|--------------|----------------|--------------------|--------------|
-| Noise std | 0.15 (died) | 5.75 (died) | 0.78 (crept up) | 0.65 (locked) |
-| Failure mode | Noise collapse | Noise explosion | Catastrophic forgetting | TBD |
-| Failed at | iter ~300 | iter ~247 | iter ~1030 | — |
-| Root cause | Wrong critic | Unfrozen std | PPO too aggressive | — |
+Attempt #4 made it past the unfreeze point — the first time any attempt
+survived beyond iteration 1,030. The ultra-conservative settings worked
+to prevent the instant 30-iteration crash of Attempt #3.
 
-The warmup phase looks identical to Attempt #3 (as expected — same
-actor, same critic warmup). The real test is iteration 1,000 (actor
-unfreeze, ~3 hours in), where Attempt #3 died. With 30× gentler
-updates and a 1,000-iteration LR warmup, we expect the transition to
-be smooth.
+But the policy still died. Just slower.
 
-Training launched February 24, 2026: 16,384 robots, 25,000 iterations,
-nine fixes active. Three training phases: critic warmup (iters 0–999),
-LR warmup (iters 1000–1999), full training (iters 2000+).
+```
+Before unfreeze: episode length ~150 steps, terrain level ~3.0
+50 iters later:  episode length ~120 (ok so far...)
+100 iters later: episode length ~80 (hmm, declining...)
+150 iters later: episode length ~20 (uh oh)
+200 iters later: episode length ~4 — robots fall immediately
+3000 iters later: episode length ~5 — never recovered
+```
+
+It's the same critic-staleness cascade as Attempt #3, just in slow
+motion. Even at 1/30th the update strength, every tiny change to the
+actor made the critic's predictions slightly wrong, and those slightly
+wrong predictions made the next actor update slightly off, and so on.
+
+**The fundamental realization:** The freeze-then-unfreeze approach
+doesn't work. Period. It's not about the learning rate or the clip
+ratio or the warmup schedule. The problem is training a critic on a
+frozen actor and then expecting that critic to guide a moving actor.
+It's like a GPS that was calibrated with you standing still — the
+moment you start walking, it gives bad directions, and the worse
+your path gets, the worse the directions get.
+
+| What we measured | #1 (collapse) | #2 (explosion) | #3 (crash) | #4 (slow fade) |
+|-----------------|--------------|----------------|-----------|---------------|
+| Noise std | 0.15 (died) | 5.75 (died) | 0.78 (crept) | 0.65 (locked) |
+| Failure mode | Noise collapse | Noise explosion | Instant crash | Gradual collapse |
+| Failed at | iter ~300 | iter ~247 | iter ~1030 | iter ~1200 |
+| Root cause | Wrong critic | Unfrozen std | PPO too aggressive | Critic-staleness fundamental |
+
+### The Pivot: Attempt #5 — Start From Scratch
+
+After four failed fine-tuning attempts, we asked a simple question:
+**what if we just trained from scratch?**
+
+The original 48-hour policy learned to walk from nothing. It worked.
+Every failure since then was caused by the surgery we performed on
+that policy — expanding dimensions, resetting critics, freezing
+actors, warming up learning rates. The surgery itself was the problem.
+
+So we threw out the fine-tuning approach entirely and started fresh:
+
+- **No checkpoint** — train from random initialization
+- **No freezing** — actor and critic learn together from iteration 0
+- **No warmup** — standard adaptive KL handles the learning rate
+- **No surgery** — the 235-dim observation space is there from day one
+
+The height scan dimensions (187 values) are mostly zeros on flat
+terrain. The network learns to walk using the 48 proprioceptive
+inputs first, and as the terrain curriculum introduces harder ground,
+the height scan values become non-zero and the network gradually
+learns to use them.
+
+**The terrain curriculum:**
+
+All robots start on flat terrain (difficulty level 0). As they learn
+to walk and track velocity commands, the curriculum automatically
+promotes them to harder terrain:
+
+| Terrain | What it is | Easy (level 0) | Hard (level 9) |
+|---------|-----------|---------------|---------------|
+| Flat | True flat ground | Flat | Flat |
+| Uneven | Random rough ground | 2cm bumps | 15cm bumps |
+| Boulders | Scattered boxes | 5cm high | 25cm high |
+| Stairs up | Ascending stairs | 5cm steps | 25cm steps |
+| Stairs down | Descending stairs | 5cm steps | 25cm steps |
+| Friction | Slippery flat surface | Low grip | Low grip |
+| Vegetation | Flat + drag resistance | Light drag | Heavy drag |
+
+**The tradeoff:** We spend ~48 hours re-learning basic locomotion
+that the 48hr policy already knew. But we completely avoid the fragile
+fine-tuning surgery that failed four times. No freeze/unfreeze
+boundary means no critic-staleness cascade.
+
+#### Current Status: Attempt #5 Is Running
+
+Training launched February 25, 2026: 16,384 robots, 15,000 iterations,
+from-scratch with terrain curriculum. Standard PPO hyperparameters
+(LR 1e-3, clip 0.2, entropy 0.005). At iteration 2, episode length
+was already 27 steps (robots staying up briefly from random init).
 
 ---
 
@@ -931,7 +1000,8 @@ We also set a tight KL divergence target (0.005), halve the clip ratio
 (0.1 instead of the standard 0.2), and use a 1,000-iteration LR warmup
 that starts at 2e-6 and gradually ramps to 1e-5. This multi-layered
 approach was developed after Attempt #3 proved that even "conservative"
-PPO settings (LR=1e-4, clip=0.2) are too aggressive for fine-tuning.
+PPO settings (LR=1e-4, clip=0.2) are too aggressive for fine-tuning,
+or eliminated entirely by training from scratch (Attempt #5).
 
 We also don't load the old optimizer's momentum. The 48hr training used
 gradient momentum tuned for LR=3e-4. Applying that momentum at LR=1e-5
@@ -1043,13 +1113,10 @@ rough height patterns rather than relying on precise measurements.
 
 ---
 
-*Written February 23, 2026. Updated February 24, 2026. The first
-fine-tuning attempt crashed in 50 minutes (miscalibrated value function
-destroyed walking ability). The second crashed in 45 minutes (noise
-parameter exploded — forgot to freeze it). The third survived warmup
-beautifully, then collapsed in 30 iterations when the actor unfroze
-(PPO updates too aggressive for fine-tuning). Nine fixes later —
-actor-only loading, critic warmup, noise floor, LR reset, std freeze,
-noise ceiling, ultra-conservative PPO, permanent std freeze, and LR
-warmup — Attempt #4 is running on the H100. 16,384 simulated Spots,
-three training phases, and the gentlest possible learning rate.*
+*Written February 23, 2026. Updated February 25, 2026. Four fine-tuning
+attempts, nine fixes, and one fundamental realization: you can't train a
+critic on a frozen actor and expect it to guide a moving one. The
+freeze/unfreeze approach was the problem all along. Attempt #5 starts
+fresh — from-scratch training with terrain curriculum on the H100.
+16,384 simulated Spots learning to walk from nothing, with terrain
+difficulty that grows as they improve.*

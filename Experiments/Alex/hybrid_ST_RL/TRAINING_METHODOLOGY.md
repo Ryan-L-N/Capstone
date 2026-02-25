@@ -972,9 +972,104 @@ ramp duration.
 | Body contact % | ~23% | 27.5% |
 | Timeout % | ~3% | 4.0% |
 
-Both attempts show comparable warmup behavior, as expected — the
-critical test is at iteration 1,000 (actor unfreeze). Training is
-ongoing as of February 24, 2026.
+Both attempts show comparable warmup behavior during the critic
+warmup phase, as expected.
+
+#### 5.2.13 Attempt #4 Failure: Gradual Collapse Despite Ultra-Conservative PPO
+
+Attempt #4 survived the actor unfreeze at iteration 1,000 without
+immediate collapse — the ultra-conservative hyperparameters
+successfully prevented the 30-iteration catastrophic failure of
+Attempt #3. However, the policy gradually degraded over the
+following 100–200 iterations:
+
+| Iteration | Episode Length | Terrain Level | Body Contact % |
+|-----------|--------------|---------------|----------------|
+| 999 (pre-unfreeze) | ~150 steps | ~3.0 | ~30% |
+| 1050 | ~120 steps | ~2.8 | ~40% |
+| 1100 | ~80 steps | ~1.5 | ~60% |
+| 1150 | ~20 steps | ~0.3 | ~90% |
+| 1200 | ~4 steps | 0.0 | 100% |
+| 2000 | ~2.3 steps | 0.0 | 100% |
+| 3935 | ~5 steps | 0.0 | 100% |
+
+The collapse was slower than Attempt #3 (100+ iterations vs 30) but
+equally terminal. By iteration 1200, the robots fell immediately
+upon spawning and never recovered — even by iteration 3935, episode
+length was ~5 steps with terrain levels at 0.0.
+
+**Root cause — the critic-first warmup approach is fundamentally
+flawed:**
+
+The core problem is not the magnitude of PPO updates (which
+Attempt #4 minimized to ~30× smaller than Attempt #3) but the
+architecture of the training: training the critic on a frozen
+actor, then unfreezing the actor. Even at microscopic learning
+rates (2e-6 during warmup), the actor's behavior changes enough
+to make the critic's value estimates stale. The critic-staleness
+cascade described in §5.2.11 still occurs — it just takes longer
+to manifest.
+
+This represents a fundamental limitation of the freeze-warmup-
+unfreeze approach for fine-tuning pre-trained locomotion policies.
+The critic's value landscape is highly sensitive to the actor's
+behavior, and any change — no matter how small — initiates a
+divergence feedback loop that cannot be overcome by simply
+reducing update magnitude.
+
+#### 5.2.14 Attempt #5: From-Scratch Training with Terrain Curriculum
+
+After four failed fine-tuning attempts, a fundamentally different
+approach was adopted: train a fresh 235-dim policy from random
+initialization using terrain curriculum to gradually introduce
+harder terrains. This eliminates the freeze/unfreeze boundary
+entirely — the actor and critic grow up together from iteration 0.
+
+**Rationale:**
+
+The original 48-hour policy was trained from scratch and learned to
+walk successfully. The fine-tuning failures were all caused by the
+surgery required to adapt a pre-trained policy (weight expansion,
+critic reset, actor freezing, warmup scheduling). Training from
+scratch avoids all of this by accepting the cost of re-learning
+basic locomotion in exchange for a stable, continuous training
+trajectory.
+
+**Key design changes from Attempts #1–4:**
+
+| Aspect | Attempts #1–4 (Fine-tune) | Attempt #5 (From Scratch) |
+|--------|--------------------------|--------------------------|
+| Initialization | 48hr checkpoint (actor only) | Random |
+| Actor/Critic | Frozen → unfrozen | Train together from iter 0 |
+| LR | 1e-5 (ultra-conservative) | 1e-3 (standard from-scratch) |
+| Clip | 0.1 (halved) | 0.2 (standard) |
+| Entropy | 0.0 (disabled) | 0.005 (standard) |
+| Noise std | Frozen at 0.65 | 1.0 (converges naturally) |
+| Terrain | ROBUST_TERRAINS_CFG (12 types) | SCRATCH_TERRAINS_CFG (7 types) |
+| Terrain start | max_init_terrain_level=5 | max_init_terrain_level=0 |
+| Monkey-patching | Freeze/unfreeze + LR warmup | Progressive DR only |
+
+**Terrain curriculum:**
+
+The terrain configuration focuses on the user's specific
+requirements: flat terrain (20%), uneven ground (20%), boulders
+(15%), stairs up (15%), stairs down (15%), friction planes (10%),
+and vegetation planes (5%). All robots start at terrain difficulty
+level 0, where even non-flat terrains have barely perceptible
+features (5 cm steps, 2 cm roughness). The curriculum auto-promotes
+robots to harder terrain as they learn to track velocity commands.
+
+**Training configuration:**
+
+- 16,384 environments on NVIDIA H100 NVL
+- 15,000 iterations (estimated ~48 hours)
+- Progressive DR: friction/push/force expand over 15K iterations
+- 235-dim observations (48 proprioceptive + 187 height scan)
+- 19 reward terms (14 standard + 5 custom)
+- [512, 256, 128] architecture (compatible with Stage 2 distillation)
+- Standard PPO: LR 1e-3, clip 0.2, entropy 0.005, 5 epochs, KL 0.01
+
+Training launched February 25, 2026.
 
 ### 5.3 Stage 2: Teacher-Student Distillation (Optional)
 
@@ -1200,10 +1295,11 @@ just specialization on training terrain types.
 
 ---
 
-*Document created February 23, 2026. Updated February 24, 2026 with
-Attempt #1 failure analysis (value function mismatch collapse),
-Attempt #2 failure analysis (noise standard deviation explosion),
-Attempt #3 failure analysis (catastrophic forgetting at actor unfreeze),
-and Attempt #4 corrective measures (ultra-conservative PPO + permanent
-std freeze + LR warmup). Stage 1 Attempt #4 in progress on NVIDIA
-H100 NVL — 16,384 environments, 25,000 iterations.*
+*Document created February 23, 2026. Updated February 25, 2026 with
+Attempts #1–4 failure analyses (value function mismatch, noise explosion,
+catastrophic forgetting at actor unfreeze, gradual collapse despite
+ultra-conservative PPO) and Attempt #5 pivot to from-scratch training
+with terrain curriculum. All fine-tuning approaches failed due to
+fundamental critic-staleness at the freeze/unfreeze boundary. Attempt #5
+trains from random initialization on NVIDIA H100 NVL — 16,384
+environments, 15,000 iterations, 7 terrain types with curriculum.*

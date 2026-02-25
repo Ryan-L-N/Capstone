@@ -94,6 +94,7 @@ NUM_ENVS=8192 MAX_ITERS=30000 bash ~/hybrid_ST_RL/scripts/train_finetune_h100.sh
 ```
 hybrid_ST_RL/
 ├── train_finetune.py           # Stage 1: Progressive fine-tuning (main training script)
+├── train_from_scratch.py       # Attempt #5: from-scratch training (no checkpoint)
 ├── train_teacher.py            # Stage 2a: Teacher training with privileged obs
 ├── train_distill.py            # Stage 2b: Student distillation from teacher
 │
@@ -101,6 +102,9 @@ hybrid_ST_RL/
 │   ├── __init__.py
 │   ├── finetune_env_cfg.py     # Stage 1 environment config (235-dim obs, 19 rewards, 12 terrains)
 │   ├── finetune_ppo_cfg.py     # Stage 1 PPO hyperparameters ([512,256,128], LR=1e-5, Attempt #4)
+│   ├── scratch_terrain_cfg.py  # Attempt #5 terrain curriculum (7 types, flat start)
+│   ├── scratch_ppo_cfg.py      # Attempt #5 from-scratch PPO (LR=1e-3, standard)
+│   ├── scratch_env_cfg.py      # Attempt #5 env config (235-dim, terrain curriculum)
 │   ├── teacher_env_cfg.py      # Stage 2a environment config (254-dim obs = 235 + 19 privileged)
 │   ├── teacher_ppo_cfg.py      # Stage 2a PPO hyperparameters
 │   └── terrain_cfg.py          # ROBUST_TERRAINS_CFG: 12 terrain types, 10x40 grid
@@ -1348,6 +1352,10 @@ kill -9 <pid>         # Same problem — D-state zombies survive SIGKILL
 
 If zombies already exist, the server may require a reboot.
 
+**18. Fine-Tuning Pre-Trained Policies May Not Work**
+
+Four attempts at fine-tuning the 48hr checkpoint all failed at the freeze/unfreeze boundary. The critic-first warmup approach (freeze actor → train critic → unfreeze actor) creates a fundamental mismatch: the critic learns value estimates for a frozen actor, and even microscopic actor changes (LR=2e-6) cause the estimates to go stale. If fine-tuning collapses despite increasingly conservative hyperparameters, consider training from scratch with terrain curriculum instead. The cost is re-learning basic locomotion (~48hrs), but the training trajectory is smooth and continuous. See `train_from_scratch.py` and `configs/scratch_terrain_cfg.py`.
+
 ---
 
 ## 15. PPO Hyperparameters
@@ -1404,18 +1412,20 @@ From `configs/finetune_ppo_cfg.py`:
 
 ### Stage Comparison
 
-| Parameter | 48hr Base | Stage 1 (Attempt #4) | Stage 2a (Teacher) | Stage 2b (Distill) |
-|-----------|-----------|---------------------|--------------------|-------------------|
-| LR | 3e-4 | **1e-5** | 1e-5 | 5e-6 |
-| Clip | 0.2 | **0.1** | 0.1 | 0.1 |
-| Entropy | 0.008 | **0.0** | 0.0 | 0.0 |
-| Epochs | 5 | **3** | 3 | 3 |
-| desired_kl | 0.01 | **0.005** | 0.005 | 0.005 |
-| init_noise_std | 0.8 | 0.65 (frozen) | 0.65 | 0.65 |
-| Obs dims | 235 | 235 | 254 | 235 |
-| Reward terms | 14 | 19 | 19 | 19 |
-| Envs | 4,096 | 16,384 | 8,192 | 8,192 |
-| Max iters | 27,500 | 25,000 | 20,000 | 10,000 |
+| Parameter | 48hr Base | Stage 1 Finetune (#4) | **Attempt #5 (Scratch)** | Stage 2a (Teacher) | Stage 2b (Distill) |
+|-----------|-----------|----------------------|-------------------------|--------------------|--------------------|
+| LR | 3e-4 | 1e-5 | **1e-3** | 1e-5 | 5e-6 |
+| Clip | 0.2 | 0.1 | **0.2** | 0.1 | 0.1 |
+| Entropy | 0.008 | 0.0 | **0.005** | 0.0 | 0.0 |
+| Epochs | 5 | 3 | **5** | 3 | 3 |
+| desired_kl | 0.01 | 0.005 | **0.01** | 0.005 | 0.005 |
+| init_noise_std | 0.8 | 0.65 (frozen) | **1.0** | 0.65 | 0.65 |
+| Obs dims | 235 | 235 | **235** | 254 | 235 |
+| Reward terms | 14 | 19 | **19** | 19 | 19 |
+| Envs | 4,096 | 16,384 | **16,384** | 8,192 | 8,192 |
+| Max iters | 27,500 | 25,000 | **15,000** | 20,000 | 10,000 |
+| Terrain | ROUGH (6) | ROBUST (12) | **SCRATCH (7)** | ROBUST (12) | ROBUST (12) |
+| Init terrain | level 5 | level 5 | **level 0 (flat)** | level 5 | level 5 |
 
 ---
 
@@ -1501,5 +1511,5 @@ From `configs/finetune_ppo_cfg.py`:
 
 ---
 
-*Last updated: February 24, 2026 — Attempt #4 fixes (ultra-conservative PPO + permanent std freeze + LR warmup)*
+*Last updated: February 25, 2026 — Attempt #5 pivot to from-scratch training with terrain curriculum (Attempts #1–4 fine-tuning all failed at freeze/unfreeze boundary)*
 *AI2C Tech Capstone — Hybrid ST-RL Training Pipeline*
