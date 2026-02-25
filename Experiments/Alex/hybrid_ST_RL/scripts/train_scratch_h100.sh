@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────
-# Attempt 5: H100 Production — From-Scratch Training with Terrain Curriculum
+# Attempt 6: H100 Production — From-Scratch Training with Terrain Curriculum (v2)
 # ─────────────────────────────────────────────────────────────────────────
 #
 # Trains a fresh 235-dim policy from random initialization on the H100.
 # Terrain curriculum starts flat and gradually introduces harder terrains.
 # Progressive DR expands friction/push/force over 15K iterations.
+#
+# Changes from Attempt 5:
+#   - Enabled observation normalization (critical fix)
+#   - Reduced init_noise_std from 1.0 to 0.5
+#   - Relaxed termination: body-only (no leg segments)
+#   - Gentler spawn perturbations
+#   - Simplified to 14 core reward terms
 #
 # Expected: ~48 hours for 15K iterations with 16,384 envs.
 #
@@ -13,7 +20,7 @@
 #   ssh t2user@172.24.254.24
 #   cd ~/IsaacLab
 #   screen -S scratch
-#   bash ~/hybrid_ST_RL/scripts/train_scratch_h100.sh 2>&1 | tee ~/scratch_attempt6_$(date +%F_%H-%M-%S).log
+#   bash ~/hybrid_ST_RL/scripts/train_scratch_h100.sh 2>&1 | tee ~/scratch_attempt7_$(date +%F_%H-%M-%S).log
 #
 # TensorBoard (in a separate screen):
 #   screen -S tb_scratch
@@ -42,7 +49,7 @@ TRAIN_SCRIPT="${HOME}/hybrid_ST_RL/train_from_scratch.py"
 # ────────────────────────────────────────────────────────────────────────
 
 echo "============================================================"
-echo "  Attempt 5 — H100 PRODUCTION"
+echo "  Attempt 6 — H100 PRODUCTION"
 echo "  Mode:       FROM SCRATCH (no checkpoint)"
 echo "  Envs:       ${NUM_ENVS}"
 echo "  Iterations: ${MAX_ITERS}"
@@ -64,5 +71,5 @@ conda activate env_isaaclab
 
 echo ""
 echo "============================================================"
-echo "  Attempt 5 training complete at $(date)"
+echo "  Attempt 6 training complete at $(date)"
 echo "============================================================"

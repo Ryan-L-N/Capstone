@@ -840,12 +840,111 @@ that the 48hr policy already knew. But we completely avoid the fragile
 fine-tuning surgery that failed four times. No freeze/unfreeze
 boundary means no critic-staleness cascade.
 
-#### Current Status: Attempt #5 Is Running
+#### What Happened: Attempt #5 Stalled
 
-Training launched February 25, 2026: 16,384 robots, 15,000 iterations,
-from-scratch with terrain curriculum. Standard PPO hyperparameters
-(LR 1e-3, clip 0.2, entropy 0.005). At iteration 2, episode length
-was already 27 steps (robots staying up briefly from random init).
+Training launched February 25, 2026. By iteration 2,000+, the reward
+curve was flat at ~1.08, episode length stuck at ~7 seconds (robots
+falling almost immediately), and body contact termination was at 100%.
+The terrain curriculum never promoted a single robot — every one was
+still on flat terrain at difficulty level 0.
+
+The robot wasn't learning. It was flailing and dying, over and over.
+
+### The Fix: Attempt #6 — Learning from Kumar et al. (2023)
+
+We found our answer in a paper by Kumar et al. (2023), "Enhancing
+Efficiency of Quadrupedal Locomotion over Challenging Terrains with
+Extensible Feet." They trained the same Spot robot in Isaac Gym with
+PPO, the same [512, 256, 128] architecture, and a similar terrain
+curriculum. Their training showed clear reward improvement by
+iteration 1,000. Ours was flat.
+
+Comparing their setup to ours revealed five problems:
+
+**1. Observation normalization was OFF (the critical fix)**
+
+Kumar et al. used observation normalization — a running mean/std
+normalizer that scales every input to zero mean, unit variance before
+it enters the network. Our config had `actor_obs_normalization=False`
+and `critic_obs_normalization=False`.
+
+Why this matters: our 235-dim observation vector mixes values at
+wildly different scales. Joint positions are ±0.5 radians, joint
+velocities can hit ±30 rad/s, and height scan values range from
+-1.0 to 1.0. Without normalization, the network's first layer is
+dominated by whichever input has the largest magnitude. The height
+scan (187 dimensions of small values) gets drowned out by a few
+large velocity readings. The network can't learn from terrain
+information if it can't even "see" it.
+
+**Fix:** Enabled `actor_obs_normalization=True` and
+`critic_obs_normalization=True`. This uses RSL-RL's built-in
+`EmpiricalNormalization` module — a running mean/std tracker that
+normalizes observations online during training.
+
+**2. Initial noise was too high**
+
+`init_noise_std=1.0` meant the policy's initial action distribution
+was extremely wide — the robot was essentially flailing randomly with
+maximum-amplitude joint commands. Combined with un-normalized
+observations, the early gradient signal was pure noise.
+
+**Fix:** Reduced to `init_noise_std=0.5`. Still enough exploration,
+but actions start closer to the default pose.
+
+**3. Termination was too aggressive**
+
+We terminated episodes when the body OR any leg segment touched the
+ground (`body_names=["body", ".*leg"]`). For a from-scratch policy,
+shin contact during early stumbling is inevitable and informative.
+Killing the episode on every shin scrape meant robots only survived
+~7 seconds — not enough time to learn anything useful.
+
+Kumar et al. only terminated on base (torso) contact.
+
+**Fix:** Changed to body-only termination (`body_names=["body"]`).
+Leg contact is still penalized via rewards but doesn't end the
+episode. This gives the robot more timesteps to learn from its
+mistakes instead of dying on every stumble.
+
+**4. Spawn perturbations were too aggressive**
+
+Robots spawned with ±1.5 m/s velocity and ±0.7 rad/s roll/pitch —
+essentially launching mid-tumble. This is useful for robustness
+testing of a trained policy, but terrible for a policy that can't
+stand yet.
+
+**Fix:** Reduced to ±0.5 m/s velocity and ±0.3 rad/s angular rates.
+Robots now spawn in a survivable state.
+
+**5. Too many reward terms**
+
+19 reward terms created a noisy gradient signal. Five of them
+(vegetation drag, velocity modulation, body height tracking, contact
+force smoothness, stumble) are irrelevant when the robot can't stand.
+They add noise to the critic's value estimates during the critical
+first 1,000 iterations.
+
+**Fix:** Zeroed out the 5 niche terms (weight=0.0), keeping 14 core
+terms. The disabled terms can be re-enabled later once basic
+locomotion is established.
+
+#### Results: Immediate Improvement
+
+After deploying Attempt #6 to the H100, the difference was dramatic.
+At just iteration 14:
+
+| Metric | Attempt #5 (iter 2000+) | Attempt #6 (iter 14) |
+|--------|------------------------|---------------------|
+| Episode length | 6.97s | 247s |
+| Body contact rate | 100% | 42.7% |
+| Terrain level | 0.0 | 0.48 |
+| Throughput | 33.7K steps/s | 43.8K steps/s |
+
+Robots were surviving 35× longer, more than half were avoiding body
+contact entirely, and the terrain curriculum was already promoting
+robots to harder terrain — all within the first 14 iterations.
+Observation normalization was the single most impactful fix.
 
 ---
 
@@ -1077,46 +1176,55 @@ rough height patterns rather than relying on precise measurements.
 
 ## References
 
-1. Schulman et al. (2017). "Proximal Policy Optimization Algorithms." — The
+1. **Kumar, A., Li, Z., Zeng, J., Pathak, D., Sreenath, K., & Malik, J.**
+   (2023). "Enhancing Efficiency of Quadrupedal Locomotion over Challenging
+   Terrains with Extensible Feet." arXiv: 2305.01998. — Spot robot trained
+   from scratch in Isaac Gym with PPO, [512, 256, 128] architecture, terrain
+   curriculum, and observation normalization. Direct comparison of their
+   setup to ours revealed the root causes of Attempt #5's stall and
+   informed all five fixes in Attempt #6.
+
+2. Schulman et al. (2017). "Proximal Policy Optimization Algorithms." — The
    PPO algorithm we use for all training.
 
-2. Cheng, Shi, Agarwal & Pathak (2024). "Extreme Parkour with Legged
+3. Cheng, Shi, Agarwal & Pathak (2024). "Extreme Parkour with Legged
    Robots." ICRA 2024. — Teacher-student distillation and terrain curriculum
    for quadruped locomotion. Primary inspiration for Stage 2.
 
-3. Rudin, Hoeller, Reist & Hutter (2022). "Learning to Walk in Minutes
+4. Rudin, Hoeller, Reist & Hutter (2022). "Learning to Walk in Minutes
    Using Massively Parallel Deep Reinforcement Learning." CoRL. — RSL-RL
    framework, terrain curriculum, and proof that massive parallelism works.
 
-4. Hoeller et al. (2024). "ANYmal Parkour." Science Robotics. — Privileged
+5. Hoeller et al. (2024). "ANYmal Parkour." Science Robotics. — Privileged
    observation teacher-student paradigm for terrain navigation.
 
-5. Peng et al. (2018). "Sim-to-Real Transfer with Dynamics Randomization."
+6. Peng et al. (2018). "Sim-to-Real Transfer with Dynamics Randomization."
    ICRA. — Domain randomization as the primary sim-to-real technique.
 
-6. Narvekar et al. (2020). "Curriculum Learning for RL: A Framework and
+7. Narvekar et al. (2020). "Curriculum Learning for RL: A Framework and
    Survey." JMLR. — Why progressive difficulty works better than all-at-once.
 
-7. Bengio et al. (2009). "Curriculum Learning." ICML. — Original curriculum
+8. Bengio et al. (2009). "Curriculum Learning." ICML. — Original curriculum
    learning paper showing that starting easy improves convergence.
 
-8. Kirkpatrick et al. (2017). "Overcoming Catastrophic Forgetting." PNAS.
+9. Kirkpatrick et al. (2017). "Overcoming Catastrophic Forgetting." PNAS.
    — Why fine-tuning with a low learning rate prevents losing existing skills.
 
-9. Hwangbo et al. (2019). "Learning Agile and Dynamic Motor Skills for
-   Legged Robots." Science Robotics. — Contact force penalties and
-   proprioceptive locomotion foundations.
+10. Hwangbo et al. (2019). "Learning Agile and Dynamic Motor Skills for
+    Legged Robots." Science Robotics. — Contact force penalties and
+    proprioceptive locomotion foundations.
 
-10. Ross, Gordon & Bagnell (2011). "DAgger: A Reduction of Imitation
+11. Ross, Gordon & Bagnell (2011). "DAgger: A Reduction of Imitation
     Learning." AISTATS. — The annealing behavior cloning approach used in
     student distillation.
 
 ---
 
 *Written February 23, 2026. Updated February 25, 2026. Four fine-tuning
-attempts, nine fixes, and one fundamental realization: you can't train a
-critic on a frozen actor and expect it to guide a moving one. The
-freeze/unfreeze approach was the problem all along. Attempt #5 starts
-fresh — from-scratch training with terrain curriculum on the H100.
-16,384 simulated Spots learning to walk from nothing, with terrain
-difficulty that grows as they improve.*
+attempts, nine fixes, one fundamental realization (you can't train a
+critic on a frozen actor), and one critical lesson from Kumar et al.
+(2023): observation normalization is not optional. Attempt #5 started
+fresh but stalled because the network couldn't see its own inputs at
+the right scale. Attempt #6 fixed that — and the robot started learning
+within 14 iterations. 16,384 simulated Spots on the H100, with terrain
+curriculum that grows as they improve.*

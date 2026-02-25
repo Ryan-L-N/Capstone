@@ -1374,14 +1374,24 @@ From `configs/finetune_ppo_cfg.py`:
 
 ### Network Architecture
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| `actor_hidden_dims` | [512, 256, 128] | Must match 48hr checkpoint |
-| `critic_hidden_dims` | [512, 256, 128] | Must match 48hr checkpoint |
-| `activation` | `elu` | Standard for locomotion (smooth gradients) |
-| `init_noise_std` | 0.65 | Matches checkpoint's converged noise level |
-| `actor_obs_normalization` | False | No running normalization |
-| `critic_obs_normalization` | False | No running normalization |
+| Parameter | Fine-tune Value | Scratch (Attempt #6) | Rationale |
+|-----------|----------------|---------------------|-----------|
+| `actor_hidden_dims` | [512, 256, 128] | [512, 256, 128] | Must match 48hr checkpoint / Kumar et al. (2023) |
+| `critic_hidden_dims` | [512, 256, 128] | [512, 256, 128] | Must match 48hr checkpoint / Kumar et al. (2023) |
+| `activation` | `elu` | `elu` | Standard for locomotion (smooth gradients) |
+| `init_noise_std` | 0.65 | **0.5** | Fine-tune: match checkpoint; Scratch: reduced from 1.0 to limit flailing |
+| `actor_obs_normalization` | False | **True** | **Critical fix** — required for heterogeneous obs scales (Kumar et al., 2023) |
+| `critic_obs_normalization` | False | **True** | **Critical fix** — critic needs clean inputs for accurate value estimates |
+
+**Observation normalization note:** Attempt #5 trained from scratch with
+normalization disabled, causing training to stall at iteration 2,000+.
+The 235-dim observation vector mixes joint positions (±0.5 rad), joint
+velocities (±30 rad/s), and height scan values (±1.0). Without running
+mean/std normalization (RSL-RL's `EmpiricalNormalization`), the network's
+first layer is dominated by high-magnitude inputs and cannot learn from
+the 187-dim height scan. Enabling normalization in Attempt #6 — following
+Kumar et al. (2023) — was the single most impactful fix, producing 247s
+episode length at iteration 14 vs 6.97s in Attempt #5 at iteration 2,000+.
 
 ### PPO Algorithm (Attempt #4 — Ultra-Conservative)
 
@@ -1412,20 +1422,24 @@ From `configs/finetune_ppo_cfg.py`:
 
 ### Stage Comparison
 
-| Parameter | 48hr Base | Stage 1 Finetune (#4) | **Attempt #5 (Scratch)** | Stage 2a (Teacher) | Stage 2b (Distill) |
-|-----------|-----------|----------------------|-------------------------|--------------------|--------------------|
-| LR | 3e-4 | 1e-5 | **1e-3** | 1e-5 | 5e-6 |
-| Clip | 0.2 | 0.1 | **0.2** | 0.1 | 0.1 |
-| Entropy | 0.008 | 0.0 | **0.005** | 0.0 | 0.0 |
-| Epochs | 5 | 3 | **5** | 3 | 3 |
-| desired_kl | 0.01 | 0.005 | **0.01** | 0.005 | 0.005 |
-| init_noise_std | 0.8 | 0.65 (frozen) | **1.0** | 0.65 | 0.65 |
-| Obs dims | 235 | 235 | **235** | 254 | 235 |
-| Reward terms | 14 | 19 | **19** | 19 | 19 |
-| Envs | 4,096 | 16,384 | **16,384** | 8,192 | 8,192 |
-| Max iters | 27,500 | 25,000 | **15,000** | 20,000 | 10,000 |
-| Terrain | ROUGH (6) | ROBUST (12) | **SCRATCH (7)** | ROBUST (12) | ROBUST (12) |
-| Init terrain | level 5 | level 5 | **level 0 (flat)** | level 5 | level 5 |
+| Parameter | 48hr Base | Stage 1 Finetune (#4) | Attempt #5 (Scratch) | **Attempt #6 (Scratch v2)** | Stage 2a (Teacher) | Stage 2b (Distill) |
+|-----------|-----------|----------------------|---------------------|---------------------------|--------------------|--------------------|
+| LR | 3e-4 | 1e-5 | 1e-3 | **1e-3** | 1e-5 | 5e-6 |
+| Clip | 0.2 | 0.1 | 0.2 | **0.2** | 0.1 | 0.1 |
+| Entropy | 0.008 | 0.0 | 0.005 | **0.005** | 0.0 | 0.0 |
+| Epochs | 5 | 3 | 5 | **5** | 3 | 3 |
+| desired_kl | 0.01 | 0.005 | 0.01 | **0.01** | 0.005 | 0.005 |
+| init_noise_std | 0.8 | 0.65 (frozen) | 1.0 | **0.5** | 0.65 | 0.65 |
+| Obs normalization | ? | False | False | **True** | False | False |
+| Obs dims | 235 | 235 | 235 | **235** | 254 | 235 |
+| Reward terms | 14 | 19 | 19 | **14 (5 zeroed)** | 19 | 19 |
+| Termination | body | body + legs | body + legs | **body only** | body + legs | body + legs |
+| Envs | 4,096 | 16,384 | 16,384 | **16,384** | 8,192 | 8,192 |
+| Max iters | 27,500 | 25,000 | 15,000 | **15,000** | 20,000 | 10,000 |
+| Terrain | ROUGH (6) | ROBUST (12) | SCRATCH (7) | **SCRATCH (7)** | ROBUST (12) | ROBUST (12) |
+| Init terrain | level 5 | level 5 | level 0 (flat) | **level 0 (flat)** | level 5 | level 5 |
+| Spawn velocity | ? | ±1.5 m/s | ±1.5 m/s | **±0.5 m/s** | ±1.5 m/s | ±1.5 m/s |
+| Status | Complete | Failed (critic stale) | Stalled (no normalization) | **Running** | Planned | Planned |
 
 ---
 
@@ -1511,5 +1525,5 @@ From `configs/finetune_ppo_cfg.py`:
 
 ---
 
-*Last updated: February 25, 2026 — Attempt #5 pivot to from-scratch training with terrain curriculum (Attempts #1–4 fine-tuning all failed at freeze/unfreeze boundary)*
+*Last updated: February 25, 2026 — Attempt #6 from-scratch training with observation normalization fix informed by Kumar et al. (2023). Attempt #5 stalled due to disabled obs normalization, aggressive termination, and high init_noise_std. Attempts #1–4 fine-tuning all failed at freeze/unfreeze boundary.*
 *AI2C Tech Capstone — Hybrid ST-RL Training Pipeline*

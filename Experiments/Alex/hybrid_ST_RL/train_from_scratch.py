@@ -1,6 +1,6 @@
 """
-Attempt 5: Train From Scratch with 235-dim Obs + Terrain Curriculum
-====================================================================
+Attempt 6: Train From Scratch with 235-dim Obs + Terrain Curriculum (v2)
+=========================================================================
 
 Trains a fresh policy from random initialization on flat terrain with
 terrain curriculum to gradually introduce harder terrains (boulders,
@@ -9,6 +9,13 @@ stairs, uneven ground, friction, vegetation drag).
 No checkpoint, no freeze/unfreeze, no LR warmup — actor and critic
 grow up together from iteration 0. This eliminates the catastrophic
 forgetting that killed Attempts 1-4.
+
+Changes from Attempt 5 (which stalled at reward ~1.08 for 2,000+ iters):
+  - Enabled observation normalization (critical — was OFF)
+  - Reduced init_noise_std from 1.0 to 0.5
+  - Relaxed termination: body-only (no leg segments)
+  - Gentler spawn perturbations (robot starts from survivable state)
+  - Simplified to 14 core reward terms (disabled 5 niche terms)
 
 Key features:
   - 235-dim observations (48 proprio + 187 height scan) from day one
@@ -26,7 +33,7 @@ Usage (local debug — RTX 2000 Ada):
     isaaclab.bat -p /path/to/train_from_scratch.py --headless --num_envs 64 \\
         --max_iterations 10 --dr_expansion_iters 5
 
-Created for AI2C Tech Capstone — hybrid_ST_RL Attempt 5, February 2026
+Created for AI2C Tech Capstone — hybrid_ST_RL Attempt 6, February 2026
 """
 
 # ── 0. Parse args BEFORE any Isaac imports ──────────────────────────────
@@ -35,7 +42,7 @@ import sys
 
 from isaaclab.app import AppLauncher
 
-parser = argparse.ArgumentParser(description="Attempt 5: Train from scratch with terrain curriculum")
+parser = argparse.ArgumentParser(description="Attempt 6: Train from scratch with terrain curriculum (v2 — obs norm, relaxed term)")
 parser.add_argument("--num_envs", type=int, default=16384,
                     help="Number of parallel environments (default 16384 for H100)")
 parser.add_argument("--max_iterations", type=int, default=15000,
@@ -76,7 +83,7 @@ _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 if _THIS_DIR not in sys.path:
     sys.path.insert(0, _THIS_DIR)
 
-from configs.scratch_env_cfg import SpotScratchEnvCfg
+from configs.scratch_env_cfg_v2 import SpotScratchEnvCfgV2
 from configs.scratch_ppo_cfg import SpotScratchPPORunnerCfg
 
 # Enable TF32 for faster matmul on H100
@@ -180,7 +187,7 @@ def clamp_noise_std(policy, min_std: float, max_std: float):
 
 def main():
     # --- Environment config ---
-    env_cfg = SpotScratchEnvCfg()
+    env_cfg = SpotScratchEnvCfgV2()
     env_cfg.scene.num_envs = args_cli.num_envs
     env_cfg.seed = args_cli.seed
 
@@ -200,7 +207,7 @@ def main():
     steps_per_iter = env_cfg.scene.num_envs * agent_cfg.num_steps_per_env
 
     print(f"\n{'='*70}", flush=True)
-    print(f"  ATTEMPT 6: TRAIN FROM SCRATCH + TERRAIN CURRICULUM", flush=True)
+    print(f"  ATTEMPT 7: TRAIN FROM SCRATCH + TERRAIN CURRICULUM (v2)", flush=True)
     print(f"  {'='*66}", flush=True)
     print(f"  Mode:             FROM SCRATCH (no checkpoint)", flush=True)
     print(f"  Envs:             {env_cfg.scene.num_envs}", flush=True)
@@ -219,7 +226,7 @@ def main():
     print(f"  Noise std range:  [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
     print(f"  Episode length:   {env_cfg.episode_length_s}s", flush=True)
     print(f"  Terrains:         7 types (SCRATCH_TERRAINS_CFG, flat start)", flush=True)
-    print(f"  Rewards:          19 terms (14 base + 5 custom)", flush=True)
+    print(f"  Rewards:          14 active terms (5 niche disabled)", flush=True)
     print(f"  Log dir:          {log_dir}", flush=True)
     print(f"  Steps/iteration:  {steps_per_iter:,}", flush=True)
     print(f"  Est. total steps: {steps_per_iter * agent_cfg.max_iterations / 1e9:.1f}B", flush=True)
@@ -239,14 +246,14 @@ def main():
 
     # --- Create environment ---
     gym.register(
-        id="Isaac-Velocity-Scratch-Spot-v0",
+        id="Isaac-Velocity-Scratch-Spot-v1",
         entry_point="isaaclab.envs:ManagerBasedRLEnv",
         disable_env_checker=True,
         kwargs={
-            "env_cfg_entry_point": f"{SpotScratchEnvCfg.__module__}:{SpotScratchEnvCfg.__name__}",
+            "env_cfg_entry_point": f"{SpotScratchEnvCfgV2.__module__}:{SpotScratchEnvCfgV2.__name__}",
         },
     )
-    env = gym.make("Isaac-Velocity-Scratch-Spot-v0", cfg=env_cfg)
+    env = gym.make("Isaac-Velocity-Scratch-Spot-v1", cfg=env_cfg)
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     # --- Create runner (from random initialization — no checkpoint) ---
@@ -262,7 +269,7 @@ def main():
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
 
     with open(os.path.join(log_dir, "params", "training_params.txt"), "w") as f:
-        f.write(f"attempt: 5 (from scratch + terrain curriculum)\n")
+        f.write(f"attempt: 6 (from scratch + terrain curriculum, v2 — obs norm, relaxed term)\n")
         f.write(f"mode: from_scratch (no checkpoint, no freeze/unfreeze)\n")
         f.write(f"num_envs: {env_cfg.scene.num_envs}\n")
         f.write(f"max_iterations: {agent_cfg.max_iterations}\n")
@@ -278,7 +285,7 @@ def main():
         f.write(f"network: {agent_cfg.policy.actor_hidden_dims}\n")
         f.write(f"episode_length_s: {env_cfg.episode_length_s}\n")
         f.write(f"terrain: SCRATCH_TERRAINS_CFG (7 types, flat start, curriculum)\n")
-        f.write(f"rewards: 19 terms (14 base + 5 custom)\n")
+        f.write(f"rewards: 14 active terms (5 niche disabled)\n")
         f.write(f"dr_schedule: {DR_SCHEDULE}\n")
 
     # --- Monkey-patch for progressive DR + noise clamp ---
@@ -339,7 +346,7 @@ def main():
     total_steps = agent_cfg.max_iterations * steps_per_iter
 
     print(f"\n{'='*70}", flush=True)
-    print(f"  ATTEMPT 6 TRAINING COMPLETE", flush=True)
+    print(f"  ATTEMPT 7 TRAINING COMPLETE", flush=True)
     print(f"  {'='*66}", flush=True)
     print(f"  Total time:       {hours:.1f} hours ({elapsed:.0f} seconds)", flush=True)
     print(f"  Total steps:      {total_steps / 1e9:.1f}B", flush=True)

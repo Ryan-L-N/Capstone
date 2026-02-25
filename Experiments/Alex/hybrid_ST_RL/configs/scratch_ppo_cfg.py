@@ -1,4 +1,4 @@
-"""Attempt 5: PPO Configuration for From-Scratch Training.
+"""Attempt 6: PPO Configuration for From-Scratch Training.
 
 Standard from-scratch hyperparameters — same as the original 48hr rough policy.
 No ultra-conservative settings needed because there's no fine-tuning surgery.
@@ -7,7 +7,11 @@ Actor and critic train together from random initialization.
 Architecture: [512, 256, 128] — same as 48hr policy for compatibility with
 future teacher-student distillation (Stage 2).
 
-Created for AI2C Tech Capstone — hybrid_ST_RL Attempt 5, February 2026
+Changes from Attempt 5:
+  - Enabled actor/critic observation normalization (was False — critical fix)
+  - Reduced init_noise_std from 1.0 to 0.5 (less random flailing at start)
+
+Created for AI2C Tech Capstone — hybrid_ST_RL Attempt 6, February 2026
 """
 
 from isaaclab.utils import configclass
@@ -26,7 +30,7 @@ class SpotScratchPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     Standard from-scratch hyperparameters:
     - LR 1e-3 with adaptive KL (same as 48hr policy)
     - clip 0.2, entropy 0.005, 5 epochs (standard PPO)
-    - init_noise_std 1.0 (converges naturally during training)
+    - init_noise_std 0.5 (reduced from 1.0 — less flailing, faster convergence)
     - Architecture [512, 256, 128] (same as 48hr for Stage 2 compatibility)
     """
 
@@ -34,14 +38,14 @@ class SpotScratchPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     max_iterations = 15000
     save_interval = 500
     experiment_name = "spot_scratch_terrain"
-    run_name = "attempt5"
+    run_name = "attempt6"
     store_code_state = False
     seed = 42
 
     policy = RslRlPpoActorCriticCfg(
-        init_noise_std=1.0,  # From scratch — will converge naturally
-        actor_obs_normalization=False,
-        critic_obs_normalization=False,
+        init_noise_std=0.5,  # Reduced from 1.0 — less flailing, faster convergence
+        actor_obs_normalization=True,   # ENABLED — critical for heterogeneous obs scales
+        critic_obs_normalization=True,  # ENABLED — critic needs clean inputs too
         actor_hidden_dims=[512, 256, 128],
         critic_hidden_dims=[512, 256, 128],
         activation="elu",

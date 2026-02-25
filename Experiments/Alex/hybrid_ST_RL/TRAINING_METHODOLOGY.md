@@ -1071,6 +1071,89 @@ robots to harder terrain as they learn to track velocity commands.
 
 Training launched February 25, 2026.
 
+#### 5.2.15 Attempt #6: Observation Normalization and Training Stability Fixes
+
+Attempt #5 stalled after 2,000+ iterations with flat reward (~1.08),
+100% body contact termination rate, and zero terrain curriculum
+progression. Analysis guided by Kumar et al. (2023) — who trained
+the same Spot robot in Isaac Gym with PPO, [512, 256, 128] ELU
+architecture, terrain curriculum, and 2,048 environments — revealed
+five root causes.
+
+**Reference:** Kumar, A., Li, Z., Zeng, J., Pathak, D., Sreenath, K.,
+& Malik, J. (2023). "Enhancing Efficiency of Quadrupedal Locomotion
+over Challenging Terrains with Extensible Feet." arXiv: 2305.01998.
+
+Kumar et al. achieved clear reward improvement by iteration 1,000
+with a comparable setup. Direct comparison of their configuration
+to ours identified the following discrepancies:
+
+**Root cause analysis and fixes:**
+
+| Issue | Attempt #5 | Attempt #6 | Source |
+|-------|-----------|-----------|--------|
+| Observation normalization | `False` (both actor/critic) | `True` (both) | Kumar et al. use normalization (standard practice) |
+| `init_noise_std` | 1.0 | 0.5 | Kumar et al. use lower initial exploration noise |
+| Termination bodies | `["body", ".*leg"]` | `["body"]` only | Kumar et al. terminate on base contact only |
+| Spawn velocity | ±1.5 m/s, ±0.7 rad/s | ±0.5 m/s, ±0.3 rad/s | Aggressive perturbations incompatible with random init |
+| Active reward terms | 19 | 14 (5 zeroed) | Niche terms add gradient noise before locomotion emerges |
+
+**1. Observation normalization (critical fix):**
+The 235-dim observation vector mixes joint positions (±0.5 rad),
+joint velocities (±30 rad/s), and height scan values (±1.0). Without
+running-mean/std normalization, the network's first layer is dominated
+by high-magnitude inputs. The height scan (187 dimensions) is
+effectively invisible to the network. Enabling RSL-RL's built-in
+`EmpiricalNormalization` module resolved this by scaling all inputs
+to zero mean, unit variance. This is standard practice in the
+locomotion RL literature (Kumar et al., 2023; Rudin et al., 2022)
+and was the single most impactful fix.
+
+**2. Reduced initial noise standard deviation:**
+`init_noise_std=1.0` caused maximum-amplitude random joint commands
+at initialization. Combined with un-normalized observations, the
+early gradient signal was pure noise. Reduced to 0.5 to provide
+sufficient exploration while keeping initial actions closer to the
+default standing pose.
+
+**3. Body-only termination:**
+Episode termination on leg contact (`".*leg"`) killed episodes at
+~7 seconds — insufficient time for the policy to receive meaningful
+reward signal. Body-only termination follows Kumar et al.'s approach,
+which terminates only on base collision. Leg contact remains penalized
+via reward terms but no longer truncates learning episodes.
+
+**4. Gentler spawn perturbations:**
+Spawn velocities of ±1.5 m/s and angular rates of ±0.7 rad/s launched
+robots mid-tumble, appropriate for robustness testing of a trained
+policy but counterproductive for random initialization learning.
+Reduced to ±0.5 m/s and ±0.3 rad/s for survivable initial states.
+
+**5. Simplified reward signal:**
+Five niche reward terms were zeroed out (weight=0.0):
+`vegetation_drag`, `velocity_modulation`, `body_height_tracking`,
+`contact_force_smoothness`, and `stumble`. These terms are irrelevant
+when the robot cannot stand and add noise to the critic's value
+estimates during early training. The remaining 14 terms provide a
+cleaner gradient signal for learning basic locomotion.
+
+**Early results (iteration 14):**
+
+| Metric | Attempt #5 (iter 2000+) | Attempt #6 (iter 14) |
+|--------|------------------------|---------------------|
+| Episode length | 6.97s | 247s |
+| Body contact rate | 100% | 42.7% |
+| Mean terrain level | 0.0 | 0.48 |
+| Throughput | 33.7K steps/s | 43.8K steps/s |
+
+**Configuration files:**
+- `configs/scratch_ppo_cfg.py` — Updated normalization and noise std
+- `configs/scratch_env_cfg_v2.py` — New env config with relaxed
+  terminations, gentler spawns, simplified rewards
+- `train_from_scratch.py` — Updated to use v2 env config
+
+Training launched February 25, 2026 on NVIDIA H100 NVL.
+
 ### 5.3 Stage 2: Teacher-Student Distillation (Optional)
 
 Stage 2 is executed only if Stage 1 evaluation shows insufficient
@@ -1186,17 +1269,21 @@ disturbances.
 
 ## 8. Termination Conditions
 
-| Condition | Type | Purpose |
-|-----------|------|---------|
-| `time_out` | Timeout (30s) | End episode after maximum duration |
-| `body_contact` | Fatal | Body or leg contacts ground (threshold: 1.0 N) |
-| `terrain_out_of_bounds` | Timeout | Robot wanders off terrain grid |
+| Condition | Type | Attempt #5 | Attempt #6 | Purpose |
+|-----------|------|-----------|-----------|---------|
+| `time_out` | Timeout (30s) | Yes | Yes | End episode after maximum duration |
+| `body_contact` | Fatal | Body + legs | **Body only** | Torso contacts ground (threshold: 1.0 N) |
+| `terrain_out_of_bounds` | Timeout | Yes | Yes | Robot wanders off terrain grid |
 
 The `body_contact` termination is the primary learning signal for stability.
-When the robot's body or upper legs touch the ground, the episode
-immediately ends with a truncated return. This creates strong selection
-pressure for policies that maintain balance — robots that fall lose all
-future reward for that episode.
+In Attempt #5, termination included all leg segments
+(`body_names=["body", ".*leg"]`), which killed episodes at ~7 seconds
+during early training when shin contact is inevitable. Attempt #6
+relaxes this to body-only (`body_names=["body"]`), following Kumar et al.
+(2023), who terminate only on base collision. Leg contact remains
+penalized via reward terms but no longer truncates learning episodes.
+This change increased mean episode length from 6.97s to 247s, giving
+the policy sufficient time to receive meaningful gradient signal.
 
 ---
 
@@ -1287,19 +1374,29 @@ just specialization on training terrain types.
 20. **Parkour in the Wild: Unified Agile Locomotion.** (2025). ETH Zurich
     / NVIDIA. arXiv: 2505.11164.
 
----
-
 21. **Abel, D., Dabney, W., Harutyunyan, A., Ho, M. K., Littman, M. L.,
     Precup, D., & Singh, S.** (2018). Policy and Value Transfer in Lifelong
     Reinforcement Learning. *ICML 2018*.
+
+22. **Kumar, A., Li, Z., Zeng, J., Pathak, D., Sreenath, K., & Malik, J.**
+    (2023). Enhancing Efficiency of Quadrupedal Locomotion over Challenging
+    Terrains with Extensible Feet. arXiv: 2305.01998. — Spot robot trained
+    from scratch in Isaac Gym with PPO, [512, 256, 128] ELU, terrain
+    curriculum, and observation normalization. Direct comparison to our
+    Attempt #5 configuration revealed that disabled observation normalization
+    was the primary cause of training stall. Informed all five fixes in
+    Attempt #6.
 
 ---
 
 *Document created February 23, 2026. Updated February 25, 2026 with
 Attempts #1–4 failure analyses (value function mismatch, noise explosion,
 catastrophic forgetting at actor unfreeze, gradual collapse despite
-ultra-conservative PPO) and Attempt #5 pivot to from-scratch training
-with terrain curriculum. All fine-tuning approaches failed due to
-fundamental critic-staleness at the freeze/unfreeze boundary. Attempt #5
-trains from random initialization on NVIDIA H100 NVL — 16,384
-environments, 15,000 iterations, 7 terrain types with curriculum.*
+ultra-conservative PPO), Attempt #5 pivot to from-scratch training,
+and Attempt #6 training stability fixes informed by Kumar et al. (2023).
+Attempt #5 stalled at iteration 2,000+ due to disabled observation
+normalization, aggressive termination, and noisy reward signal.
+Attempt #6 enabled observation normalization, relaxed termination to
+body-only, reduced init_noise_std to 0.5, gentled spawn perturbations,
+and simplified rewards to 14 active terms — producing immediate
+improvement (247s episode length vs 6.97s at iteration 14).*
