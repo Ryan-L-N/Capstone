@@ -1,0 +1,1280 @@
+Starting kit application with the following args:  ['C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim\\exts\\isaacsim.simulation_app\\isaacsim\\simulation_app\\simulation_app.py', 'C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim\\apps/isaacsim.exp.base.python.kit', '--/app/tokens/exe-path=C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim\\kit', '--/persistent/app/viewport/displayOptions=3094', '--/rtx/materialDb/syncLoads=True', '--/rtx/hydra/materialSyncLoads=True', '--/omni.kit.plugin/syncUsdLoads=True', '--/app/renderer/resolution/width=1920', '--/app/renderer/resolution/height=1080', '--/app/window/width=1440', '--/app/window/height=900', '--/renderer/multiGpu/enabled=True', '--/app/fastShutdown=True', '--/app/installSignalHandlers=0', '--ext-folder', 'C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim/exts', '--ext-folder', 'C:\\miniconda3\\envs\\isaaclab311\\Lib\\site-packages\\isaacsim/apps', '--/physics/cudaDevice=0', '--/plugins/carb.tasking.plugin/threadCount=22', '--/plugins/omni.tbb.globalcontrol/maxThreadCount=22', '--portable', '--no-window', '--/app/window/hideUi=1']
+Passing the following args to the base kit application:  ['--headless', '--num_episodes', '40', '--policy', 'rough', '--env', 'boulder', '--output_dir', 'C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/production_2026-02-19_17-46-36']
+[Info] [carb] Logging to file: c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim Python/5.1/kit_20260219_222207.log
+2026-02-20T03:22:07Z [35ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\3ccdcd92-f8ab-4a0a-a189-815350e620b6.dmp'
+2026-02-20T03:22:07Z [51ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\47ec0a47-b3c3-426a-8745-bdda09069319.dmp'
+2026-02-20T03:22:07Z [63ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\2cf1286c-59b5-4eed-bc07-697b99970a9e.dmp'
+2026-02-20T03:22:07Z [93ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\5a33d78b-bf55-474d-871f-d06bb2f4d658.dmp'
+2026-02-20T03:22:08Z [132ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\fbce512d-9d7e-434f-b1dc-1a1a791d4fe0.dmp'
+2026-02-20T03:22:08Z [133ms] [Warning] [carb.crashreporter-breakpad.plugin] Failed to parse toml file 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1/04192272-b39e-444e-a5bc-29660df52f57.dmp.toml': c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1/04192272-b39e-444e-a5bc-29660df52f57.dmp.toml could not be opened for parsing
+2026-02-20T03:22:08Z [133ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1/04192272-b39e-444e-a5bc-29660df52f57.dmp'
+2026-02-20T03:22:08Z [164ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim Python/5.1\73d71a0e-427c-4863-9469-c62ecaf6830c.dmp'
+[1.026s] [ext: omni.kit.async_engine-0.0.3] startup
+[1.305s] [ext: omni.metrics.core-0.0.3] startup
+[1.308s] [ext: omni.client.lib-1.1.0] startup
+[1.326s] [ext: omni.blobkey-1.1.2] startup
+[1.328s] [ext: omni.stats-1.0.1] startup
+[1.331s] [ext: omni.datastore-0.0.0] startup
+[1.333s] [ext: omni.client-1.3.0] startup
+[1.356s] [ext: omni.ujitso.default-1.0.0] startup
+[1.360s] [ext: omni.hsscclient-1.1.2] startup
+[1.431s] [ext: omni.gpu_foundation.shadercache.vulkan-1.0.0] startup
+[1.438s] [ext: omni.assets.plugins-0.0.0] startup
+[1.443s] [ext: omni.gpu_foundation-0.0.0] startup
+[1.470s] [ext: carb.windowing.plugins-1.0.0] startup
+[1.647s] [ext: omni.kit.renderer.init-0.0.0] startup
+[1.649s] [ext: omni.materialx.libs-1.0.7] startup
+[1.671s] [ext: omni.usd.config-1.0.6] startup
+[1.688s] [ext: omni.gpucompute.plugins-0.0.0] startup
+[1.690s] [ext: omni.usd.libs-1.0.1] startup
+[1.777s] [ext: omni.mdl-56.0.3] startup
+[2.511s] [ext: omni.iray.libs-0.0.0] startup
+[2.662s] [ext: omni.mdl.neuraylib-0.2.12] startup
+[2.702s] [ext: omni.kit.usd.mdl-1.1.5] startup
+[2.859s] [ext: omni.kit.pipapi-0.0.0] startup
+[2.861s] [ext: omni.services.pip_archive-0.16.0] startup
+[2.863s] [ext: omni.kit.loop-isaac-1.3.7] startup
+[2.866s] [ext: omni.kit.test-2.0.1] startup
+2026-02-20T03:22:10Z [2,963ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+2026-02-20T03:22:10Z [2,964ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+[3.379s] [ext: omni.kit.telemetry-0.5.2] startup
+[3.394s] [ext: omni.appwindow-1.1.10] startup
+[3.400s] [ext: omni.kit.renderer.core-1.1.0] startup
+[3.416s] [ext: omni.kit.renderer.capture-0.0.0] startup
+[3.425s] [ext: omni.kit.renderer.imgui-2.0.5] startup
+[3.443s] [ext: omni.ui-2.27.1] startup
+[3.458s] [ext: omni.kit.mainwindow-1.0.3] startup
+[3.460s] [ext: carb.audio-0.1.0] startup
+[3.462s] [ext: omni.uiaudio-1.0.0] startup
+[3.465s] [ext: omni.kit.uiapp-0.0.0] startup
+[3.465s] [ext: omni.usd.schema.metrics.assembler-107.3.1] startup
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 573.44        | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA RTX 2000 Ada Generation.. | Yes: 0 |     | 7960    MB | 10de      | c4130100.. |
+|     |                                  |        |     |            | 28b8      | f9072558.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Graphics                |        |     | 18361   MB | 8086      | f40d0100.. |
+|     |                                  |        |     |            | 7dd5      | 8680d57d.. |
+|     |                                  |        |     |            | N/A       |            |
+|=============================================================================================|
+| OS: Windows 11 Pro, Version: 10.0 (25H2), Build: 26200, Kernel: 10.0.26100.7824
+| Processor: Intel(R) Core(TM) Ultra 9 185H
+| Cores: 16 | Logical Cores: 22
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 32212 | Free Memory: 10855
+| Total Page/Swap (MB): 59860 | Free Page/Swap: 16781
+|---------------------------------------------------------------------------------------------|
+[3.493s] [ext: omni.usd.schema.omniscripting-1.0.0] startup
+2026-02-20T03:22:11Z [3,364ms] [Warning] [gpu.foundation.plugin] PCIe link generation current (3) and maximum (4) for device 0 don't match.
+[3.528s] [ext: omni.usd.schema.anim-0.0.0] startup
+[3.632s] [ext: omni.usd.schema.geospatial-0.0.0] startup
+[3.660s] [ext: omni.usd.schema.semantics-0.0.0] startup
+[3.683s] [ext: omni.anim.behavior.schema-107.3.0] startup
+[3.711s] [ext: omni.usd.schema.physx-107.3.26] startup
+[3.804s] [ext: omni.usd.schema.audio-0.0.0] startup
+[3.828s] [ext: isaacsim.robot.schema-3.6.0] startup
+[3.896s] [ext: omni.usd_resolver-1.0.0] startup
+[3.934s] [ext: omni.usd.core-1.5.3] startup
+[3.937s] [ext: omni.usd.schema.omni_lens_distortion-0.0.0] startup
+[3.988s] [ext: omni.usd.schema.omnigraph-1.0.0] startup
+[4.018s] [ext: omni.graph.exec-0.9.6] startup
+[4.020s] [ext: omni.kit.actions.core-1.0.0] startup
+[4.027s] [ext: omni.kit.usd_undo-0.1.8] startup
+[4.029s] [ext: omni.kit.exec.core-0.13.4] startup
+[4.034s] [ext: omni.kit.commands-1.4.10] startup
+[4.045s] [ext: omni.kit.window.popup_dialog-2.0.24] startup
+[4.054s] [ext: omni.activity.core-1.0.3] startup
+[4.057s] [ext: omni.resourcemonitor-107.0.1] startup
+[4.062s] [ext: omni.timeline-1.0.14] startup
+[4.066s] [ext: omni.kit.widget.nucleus_connector-2.0.1] startup
+[4.071s] [ext: usdrt.scenegraph-7.6.1] startup
+[4.143s] [ext: omni.kit.audiodeviceenum-1.0.2] startup
+[4.148s] [ext: omni.hydra.usdrt_delegate-7.5.1] startup
+[4.159s] [ext: omni.hydra.scene_delegate-0.3.4] startup
+[4.164s] [ext: omni.usd-1.13.10] startup
+[4.227s] [ext: omni.inspect-1.0.2] startup
+[4.233s] [ext: omni.kit.notification_manager-1.0.10] startup
+[4.238s] [ext: omni.graph.core-2.184.5] startup
+[4.256s] [ext: isaacsim.core.deprecation_manager-0.2.7] startup
+[4.259s] [ext: omni.anim.navigation.schema-107.3.3] startup
+[4.285s] [ext: omni.kit.asset_converter-5.0.17] startup
+[4.316s] [ext: omni.usd.schema.isaac-3.0.5] startup
+[4.316s] [ext: omni.usd.schema.omni_sensors-0.0.0] startup
+[4.335s] [ext: omni.usd.schema.flow-107.1.1] startup
+[4.351s] [ext: omni.usd.schema.render_settings.rtx-0.0.0] startup
+[4.370s] [ext: omni.anim.graph.schema-107.3.3] startup
+[4.401s] [ext: omni.graph.tools-1.79.2] startup
+[4.528s] [ext: omni.graph-1.141.2] startup
+[4.683s] [ext: omni.usd.metrics.assembler-107.3.1] startup
+[4.735s] [ext: omni.anim.curve.core-1.3.1] startup
+[4.775s] [ext: omni.kit.widget.path_field-2.0.11] startup
+[4.781s] [ext: omni.usd.metrics.assembler.physics-107.3.26] startup
+[4.786s] [ext: omni.kvdb-107.3.26] startup
+[4.792s] [ext: omni.kit.widget.browser_bar-2.0.10] startup
+[4.795s] [ext: omni.kit.clipboard-1.0.5] startup
+[4.798s] [ext: omni.physics-107.3.26] startup
+[4.808s] [ext: omni.localcache-107.3.26] startup
+[4.814s] [ext: omni.convexdecomposition-107.3.26] startup
+[4.821s] [ext: omni.kit.widget.options_menu-1.1.6] startup
+[4.832s] [ext: omni.usdphysics-107.3.26] startup
+[4.839s] [ext: omni.physx.foundation-107.3.26] startup
+[4.860s] [ext: omni.kit.helper.file_utils-0.1.9] startup
+[4.865s] [ext: omni.kit.menu.core-1.1.2] startup
+[4.867s] [ext: omni.physx.cooking-107.3.26] startup
+[4.873s] [ext: omni.ui.scene-1.11.5] startup
+[4.880s] [ext: omni.kit.widget.options_button-1.0.3] startup
+[4.883s] [ext: omni.kit.widget.filebrowser-2.12.3] startup
+[4.897s] [ext: omni.kit.widget.context_menu-1.2.5] startup
+[4.901s] [ext: omni.physx-107.3.26] startup
+[4.919s] [ext: omni.kit.window.filepicker-2.13.4] startup
+[4.959s] [ext: omni.kit.hotkeys.core-1.3.10] startup
+[4.970s] [ext: omni.kit.usd.layers-2.2.11] startup
+[4.984s] [ext: isaacsim.core.version-2.0.6] startup
+[4.991s] [ext: omni.physics.stageupdate-107.3.26] startup
+[4.998s] [ext: omni.physics.physx-107.3.26] startup
+2026-02-20T03:22:12Z [4,849ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+[5.002s] [ext: omni.kit.window.file_exporter-1.0.33] startup
+[5.009s] [ext: omni.kit.stage_template.core-1.1.22] startup
+[5.012s] [ext: omni.kit.window.drop_support-1.0.5] startup
+[5.014s] [ext: omni.kit.window.file_importer-1.1.18] startup
+[5.016s] [ext: omni.kit.window.content_browser_registry-0.0.6] startup
+[5.022s] [ext: omni.kit.widget.filter-1.1.4] startup
+[5.026s] [ext: omni.kit.window.file-2.0.5] startup
+[5.036s] [ext: omni.kit.menu.utils-2.0.5] startup
+[5.046s] [ext: omni.kit.numpy.common-0.1.3] startup
+[5.050s] [ext: omni.kit.window.content_browser-3.1.3] startup
+[5.319s] [ext: isaacsim.storage.native-1.5.1] startup
+[5.323s] [ext: omni.isaac.dynamic_control-2.0.7] startup
+2026-02-20T03:22:13Z [5,179ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+[5.332s] [ext: isaacsim.gui.content_browser-0.1.11] startup
+[5.339s] [ext: omni.hydra.rtx.shadercache.vulkan-1.0.0] startup
+[5.345s] [ext: omni.kit.manipulator.viewport-107.0.1] startup
+[5.348s] [ext: omni.index.libs-380600.8087.0] startup
+[5.348s] [ext: omni.graph.action_core-1.1.7] startup
+[5.353s] [ext: omni.volume-0.5.2] startup
+[5.359s] [ext: omni.ujitso.client-0.0.0] startup
+[5.361s] [ext: omni.index-1.0.1] startup
+[5.363s] [ext: omni.graph.action_nodes-1.50.4] startup
+[5.369s] [ext: omni.hydra.rtx-1.0.0] startup
+[5.432s] [ext: omni.kit.context_menu-1.8.6] startup
+[5.438s] [ext: omni.kit.raycast.query-1.1.0] startup
+[5.444s] [ext: omni.kit.material.library-2.0.7] startup
+[5.472s] [ext: omni.hydra.engine.stats-1.0.3] startup
+[5.485s] [ext: omni.kit.viewport.scene_camera_model-1.0.6] startup
+[5.499s] [ext: omni.kit.hydra_texture-1.4.6] startup
+[5.505s] [ext: omni.kit.viewport.registry-104.0.6] startup
+[5.507s] [ext: omni.kit.widget.searchfield-1.1.8] startup
+[5.513s] [ext: omni.kit.widget.viewport-107.1.3] startup
+[5.525s] [ext: omni.kit.viewport.legacy_gizmos-1.0.19] startup
+[5.530s] [ext: omni.kit.widget.stage_icons-1.0.8] startup
+[5.532s] [ext: omni.kit.widget.stage-3.1.4] startup
+[5.594s] [ext: omni.kit.viewport.window-107.2.0] startup
+[5.650s] [ext: omni.kit.window.stage-2.6.1] startup
+[5.659s] [ext: omni.kit.viewport.utility-1.1.2] startup
+[5.661s] [ext: omni.kit.menu.stage-1.2.7] startup
+[5.664s] [ext: omni.graph.visualization.nodes-2.1.3] startup
+[5.791s] [ext: omni.graph.action-1.130.0] startup
+[5.794s] [ext: omni.kit.widget.zoombar-1.0.6] startup
+[5.800s] [ext: omni.kit.widget.prompt-1.0.7] startup
+[5.805s] [ext: omni.kit.usd.collect-2.4.5] startup
+[5.816s] [ext: omni.kit.browser.core-2.3.13] startup
+[5.832s] [ext: omni.kit.tool.collect-2.2.18] startup
+[5.845s] [ext: omni.kit.browser.folder.core-1.10.9] startup
+[5.865s] [ext: omni.kit.property.adapter.core-1.0.2] startup
+[5.895s] [ext: omni.kit.window.extensions-1.4.27] startup
+[5.917s] [ext: omni.kit.widget.highlight_label-1.0.3] startup
+[5.920s] [ext: omni.kit.property.adapter.usd-1.0.2] startup
+[5.924s] [ext: omni.ui_query-1.1.8] startup
+[5.927s] [ext: omni.kit.window.property-1.12.1] startup
+[5.935s] [ext: omni.kit.property.adapter.fabric-1.0.3] startup
+[5.942s] [ext: omni.kit.usdz_export-1.0.9] startup
+[5.948s] [ext: omni.kit.ui_test-1.3.7] startup
+[5.952s] [ext: omni.kit.property.usd-4.5.12] startup
+[5.995s] [ext: omni.kit.tool.asset_importer-4.3.2] startup
+[6.010s] [ext: isaacsim.gui.components-1.2.1] startup
+[6.019s] [ext: isaacsim.examples.browser-0.2.1] startup
+[6.026s] [ext: isaacsim.asset.importer.urdf-2.4.30] startup
+[6.175s] [ext: omni.kit.widget.searchable_combobox-1.0.6] startup
+[6.188s] [ext: omni.kit.widget.graph-2.0.0] startup
+[6.202s] [ext: omni.kit.menu.create-2.0.1] startup
+[6.206s] [ext: omni.physics.tensors-107.3.26] startup
+[6.222s] [ext: omni.warp.core-1.8.2] startup
+[6.539s] [ext: omni.kit.graph.delegate.default-1.2.3] startup
+[6.542s] [ext: omni.kit.scripting-107.3.2] startup
+[6.595s] [ext: omni.physx.tensors-107.3.26] startup
+[6.600s] [ext: isaacsim.core.utils-3.5.1] startup
+[6.605s] [ext: omni.anim.asset-107.3.0] startup
+[6.609s] [ext: isaacsim.core.simulation_manager-1.4.4] startup
+[17.339s] [ext: omni.graph.scriptnode-1.50.0] startup
+[17.341s] [ext: omni.kit.graph.editor.core-1.5.3] startup
+[17.350s] [ext: omni.kit.widget.settings-1.2.6] startup
+[17.355s] [ext: omni.kit.primitive.mesh-1.0.17] startup
+[17.365s] [ext: isaacsim.core.prims-0.6.1] startup
+[17.426s] [ext: omni.kit.widget.material_preview-1.0.16] startup
+[17.433s] [ext: omni.kit.graph.usd.commands-1.3.1] startup
+[17.436s] [ext: omni.graph.image.core-0.6.1] startup
+[17.438s] [ext: omni.kit.window.preferences-1.8.0] startup
+[17.452s] [ext: omni.kit.stage_templates-2.0.0] startup
+[17.457s] [ext: isaacsim.asset.browser-1.3.23] startup
+[17.563s] [ext: omni.graph.image.nodes-1.3.1] startup
+[17.566s] [ext: omni.kit.viewport.menubar.core-107.2.1] startup
+[17.598s] [ext: isaacsim.core.api-4.8.0] startup
+[17.628s] [ext: omni.kit.window.material_graph-1.9.1] startup
+[17.650s] [ext: omni.kit.viewport.actions-107.0.2] startup
+[17.658s] [ext: omni.graph.nodes-1.170.10] startup
+[17.673s] [ext: omni.syntheticdata-0.6.13] startup
+[17.736s] [ext: omni.isaac.assets_check-0.3.13] startup
+2026-02-20T03:22:25Z [17,588ms] [Warning] [omni.isaac.assets_check] omni.isaac.assets_check has been deprecated in favor of isaacsim.asset.browser. Please update your code accordingly.
+[17.739s] [ext: isaacsim.core.cloner-1.4.10] startup
+[17.747s] [ext: omni.kit.viewport.menubar.display-107.0.3] startup
+[17.751s] [ext: omni.graph.ui_nodes-1.50.5] startup
+[17.758s] [ext: omni.videoencoding-0.1.2] startup
+[17.768s] [ext: omni.isaac.cloner-1.0.7] startup
+2026-02-20T03:22:25Z [17,618ms] [Warning] [omni.isaac.cloner] omni.isaac.cloner has been deprecated in favor of isaacsim.core.cloner. Please update your code accordingly.
+[17.770s] [ext: isaacsim.gui.sensors.icon-2.0.3] startup
+[17.851s] [ext: omni.warp-1.8.2] startup
+[17.887s] [ext: omni.anim.retarget.core-107.3.3] startup
+[17.960s] [ext: omni.debugdraw-0.1.4] startup
+[17.967s] [ext: omni.replicator.core-1.12.27] startup
+2026-02-20T03:22:25Z [17,832ms] [Warning] [pxr.Semantics] pxr.Semantics is deprecated - please use Semantics instead
+Warp 1.8.2 initialized:
+   CUDA Toolkit 12.8, Driver 12.8
+   Devices:
+     "cpu"      : "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel"
+     "cuda:0"   : "NVIDIA RTX 2000 Ada Generation Laptop GPU" (8 GiB, sm_89, mempool enabled)
+   Kernel cache:
+     C:\Users\Gabriel Santiago\AppData\Local\NVIDIA\warp\Cache\1.8.2
+2026-02-20T03:22:25Z [18,093ms] [Warning] [omni.graph.core.plugin] Found duplicate of category 'Replicator' - was 'Annotators', adding 'Fabric Reader'
+2026-02-20T03:22:25Z [18,093ms] [Warning] [omni.graph.core.plugin] Category 'Replicator' not accepted on node type 'omni.replicator.core.FabricReader' in extension 'omni.replicator.core'
+2026-02-20T03:22:25Z [18,095ms] [Warning] [omni.replicator.core.scripts.extension] No material configuration file, adding configuration to material settings directly.
+[18.279s] [ext: omni.kit.quicklayout-1.0.8] startup
+[18.288s] [ext: omni.anim.navigation.core-107.3.8] startup
+[18.302s] [ext: omni.anim.graph.core-107.3.4] startup
+[18.352s] [ext: omni.metropolis.utils-0.1.20] startup
+[18.401s] [ext: isaacsim.asset.importer.mjcf-2.5.13] startup
+[18.419s] [ext: omni.anim.people-0.7.9] startup
+2026-02-20T03:22:26Z [18,272ms] [Warning] [omni.graph.core._impl._registration.register_python_ogn] Python import process in omni.anim.graph.core failed - 'NoneType' object is not subscriptable. Aborting Python node registration
+[18.447s] [ext: isaacsim.test.docstring-1.1.0] startup
+[18.460s] [ext: isaacsim.core.experimental.utils-0.3.0] startup
+[18.464s] [ext: isaacsim.anim.robot-0.0.15] startup
+[18.771s] [ext: isaacsim.core.experimental.prims-0.8.1] startup
+[18.941s] [ext: isaacsim.core.nodes-3.4.3] startup
+[18.953s] [ext: omni.flowusd-107.1.8] startup
+2026-02-20T03:22:26Z [18,806ms] [Warning] [omni.stageupdate.plugin] Deprecated: direct use of IStageUpdate callbacks is deprecated. Use IStageUpdate::getStageUpdate instead.
+[18.964s] [ext: omni.sensors.nv.common-3.0.0] startup
+[19.014s] [ext: isaacsim.core.experimental.materials-0.4.0] startup
+[19.090s] [ext: omni.isaac.core-4.0.7] startup
+2026-02-20T03:22:26Z [18,945ms] [Warning] [omni.isaac.core.physics_context.physics_context] omni.isaac.core.physics_context.physics_context has been deprecated in favor of isaacsim.core.api.physics_context.physics_context. Please update your code accordingly.
+2026-02-20T03:22:26Z [18,947ms] [Warning] [omni.isaac.core.simulation_context.simulation_context] omni.isaac.core.simulation_context.simulation_context has been deprecated in favor of isaacsim.core.api.simulation_context.simulation_context. Please update your code accordingly.
+2026-02-20T03:22:26Z [18,949ms] [Warning] [omni.isaac.core.world.world] omni.isaac.core.world.world has been deprecated in favor of isaacsim.core.api.world.world. Please update your code accordingly.
+2026-02-20T03:22:26Z [18,949ms] [Warning] [omni.isaac.core] omni.isaac.core has been deprecated in favor of isaacsim.core.api. Please update your code accordingly.
+[19.102s] [ext: isaacsim.replicator.incident-0.1.28] startup
+[isaacsim.replicator.incident] started
+[19.301s] [ext: omni.sensors.net-1.0.0] startup
+[19.329s] [ext: omni.sensors.nv.materials-2.0.0] startup
+[19.350s] [ext: isaacsim.sensors.camera-1.3.6] startup
+[19.421s] [ext: omni.sensors.nv.wpm-3.0.0] startup
+[19.428s] [ext: isaacsim.util.debug_draw-3.1.0] startup
+[19.463s] [ext: omni.sensors.nv.ids-2.0.0] startup
+[19.506s] [ext: omni.sensors.nv.lidar-3.0.0] startup
+[19.520s] [ext: omni.sensors.nv.radar-3.0.0] startup
+[19.539s] [ext: isaacsim.sensors.physics-0.4.3] startup
+[19.594s] [ext: isaacsim.robot_motion.lula-4.0.8] startup
+[19.642s] [ext: isaacsim.robot.surface_gripper-3.3.1] startup
+Warp DeprecationWarning: The `warp.sim` module is deprecated and will be removed in v1.10. Please transition to using the forthcoming Newton library instead.
+[19.676s] [ext: isaacsim.sensors.rtx-15.8.4] startup
+[19.698s] [ext: omni.kit.mesh.raycast-107.0.1] startup
+[19.720s] [ext: isaacsim.robot_motion.motion_generation-8.0.26] startup
+[19.747s] [ext: isaacsim.robot.manipulators-3.3.6] startup
+[19.767s] [ext: isaacsim.core.experimental.objects-0.4.0] startup
+[19.791s] [ext: omni.isaac.core_nodes-2.0.6] startup
+2026-02-20T03:22:27Z [19,646ms] [Warning] [omni.isaac.core_nodes] omni.isaac.core_nodes has been deprecated in favor of isaacsim.core.nodes. Please update your code accordingly.
+[19.799s] [ext: isaacsim.replicator.agent.core-0.7.28] startup
+[19.828s] [ext: isaacsim.robot.manipulators.examples-1.1.2] startup
+[19.837s] [ext: isaacsim.simulation_app-2.12.2] startup
+[19.840s] [ext: omni.kit.selection-0.1.6] startup
+[19.851s] [ext: omni.isaac.franka-1.0.7] startup
+2026-02-20T03:22:27Z [19,701ms] [Warning] [omni.isaac.franka] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.franka. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,702ms] [Warning] [omni.isaac.franka.franka] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.franka. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,756ms] [Warning] [omni.isaac.franka.kinematics_solver] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.franka. Please update your code accordingly.
+[19.907s] [ext: isaacsim.robot_motion.lula_test_widget-1.0.12] startup
+[19.914s] [ext: omni.isaac.kit-2.0.6] startup
+2026-02-20T03:22:27Z [19,766ms] [Warning] [omni.isaac.kit] omni.isaac.kit has been deprecated in favor of isaacsim.simulation_app. Please update your code accordingly.
+[19.917s] [ext: isaacsim.gui.menu-2.4.4] startup
+[19.944s] [ext: omni.isaac.asset_browser-1.0.6] startup
+2026-02-20T03:22:27Z [19,796ms] [Warning] [omni.isaac.asset_browser] omni.isaac.asset_browser has been deprecated in favor of isaacsim.asset.browser. Please update your code accordingly.
+[19.948s] [ext: omni.isaac.lula_test_widget-1.0.6] startup
+2026-02-20T03:22:27Z [19,802ms] [Warning] [omni.isaac.lula_test_widget] omni.isaac.lula_test_widget has been deprecated in favor of isaacsim.robot_motion.lula_test_widget. Please update your code accordingly.
+[19.953s] [ext: omni.isaac.manipulators-3.0.7] startup
+2026-02-20T03:22:27Z [19,804ms] [Warning] [omni.isaac.manipulators] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,805ms] [Warning] [omni.isaac.manipulators.controllers] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,805ms] [Warning] [omni.isaac.manipulators.controllers.pick_place_controller] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,807ms] [Warning] [omni.isaac.manipulators.controllers.stacking_controller] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,808ms] [Warning] [omni.isaac.manipulators.grippers] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,808ms] [Warning] [omni.isaac.manipulators.grippers.gripper] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,809ms] [Warning] [omni.isaac.manipulators.grippers.parallel_gripper] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,809ms] [Warning] [omni.isaac.manipulators.grippers.surface_gripper] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,810ms] [Warning] [omni.isaac.manipulators.manipulators] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,810ms] [Warning] [omni.isaac.manipulators.manipulators.single_manipulator] omni.isaac.manipulators has been deprecated in favor of isaacsim.robot.manipulators. Please update your code accordingly.
+[19.962s] [ext: omni.isaac.menu-1.0.6] startup
+2026-02-20T03:22:27Z [19,814ms] [Warning] [omni.isaac.menu] omni.isaac.menu has been deprecated in favor of isaacsim.gui.menu. Please update your code accordingly.
+[19.966s] [ext: isaacsim.robot.policy.examples-4.1.11] startup
+[19.974s] [ext: isaacsim.sensors.physx-2.3.2] startup
+[19.987s] [ext: omni.isaac.motion_generation-8.0.7] startup
+2026-02-20T03:22:27Z [19,838ms] [Warning] [omni.isaac.motion_generation] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,839ms] [Warning] [omni.isaac.motion_generation.articulation_kinematics_solver] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,840ms] [Warning] [omni.isaac.motion_generation.articulation_motion_policy] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,840ms] [Warning] [omni.isaac.motion_generation.articulation_trajectory] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,841ms] [Warning] [omni.isaac.motion_generation.kinematics_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,841ms] [Warning] [omni.isaac.motion_generation.lula] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,842ms] [Warning] [omni.isaac.motion_generation.lula.kinematics] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,845ms] [Warning] [omni.isaac.motion_generation.lula.motion_policies] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,846ms] [Warning] [omni.isaac.motion_generation.lula.path_planners] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,846ms] [Warning] [omni.isaac.motion_generation.lula.trajectory_generator] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,847ms] [Warning] [omni.isaac.motion_generation.motion_policy_controller] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,847ms] [Warning] [omni.isaac.motion_generation.motion_policy_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,848ms] [Warning] [omni.isaac.motion_generation.path_planner_visualizer] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,848ms] [Warning] [omni.isaac.motion_generation.path_planning_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,849ms] [Warning] [omni.isaac.motion_generation.trajectory] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,849ms] [Warning] [omni.isaac.motion_generation.world_interface] omni.isaac.motion_generation has been deprecated in favor of isaacsim.robot_motion.motion_generation. Please update your code accordingly.
+[20.001s] [ext: omni.isaac.nucleus-1.0.6] startup
+2026-02-20T03:22:27Z [19,852ms] [Warning] [omni.isaac.nucleus] omni.isaac.nucleus has been deprecated in favor of isaacsim.storage.native. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,854ms] [Warning] [omni.isaac.nucleus.nucleus] omni.isaac.nucleus.nucleus has been deprecated in favor of isaacsim.storage.native. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,855ms] [Warning] [omni.ext._impl._internal] Found class `Extension` derived from `omni.ext.IExt` in module: 'omni.isaac.nucleus', but it was imported from other extension: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/exts/isaacsim.storage.native/isaacsim/storage/native/impl/extension.py', which is not a subpath to: 'c:\miniconda3\envs\isaaclab311\lib\site-packages\isaacsim\extsdeprecated\omni.isaac.nucleus'. Do not import `IExt` derived class from other extension in your public namespace.
+[20.006s] [ext: omni.isaac.quadruped-3.0.7] startup
+2026-02-20T03:22:27Z [19,857ms] [Warning] [omni.isaac.quadruped] omni.isaac.quadruped has been deprecated in favor of isaacsim.robot.policy.examples. Please update your code accordingly.
+[20.009s] [ext: omni.isaac.range_sensor-4.0.6] startup
+2026-02-20T03:22:27Z [19,860ms] [Warning] [omni.isaac.range_sensor] omni.isaac.range_sensor has been deprecated in favor of isaacsim.sensors.physx. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,861ms] [Warning] [omni.isaac.range_sensor.commands] omni.isaac.range_sensor.commands has been deprecated in favor of isaacsim.sensors.physx.commands. Please update your code accordingly.
+[20.015s] [ext: omni.isaac.sensor-13.0.7] startup
+2026-02-20T03:22:27Z [19,868ms] [Warning] [omni.isaac.sensor] omni.isaac.sensor has been deprecated in favor of isaacsim.sensors.camera, isaacsim.sensors.physics, isaacsim.sensors.physx, and isaacsim.sensors.rtx. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,869ms] [Warning] [omni.isaac.sensor.camera] omni.isaac.sensor.camera has been deprecated in favor of isaacsim.sensors.camera.camera. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,869ms] [Warning] [omni.isaac.sensor.camera_view] omni.isaac.sensor.camera_view has been deprecated in favor of isaacsim.sensors.camera.camera_view. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,870ms] [Warning] [omni.isaac.sensor.commands] omni.isaac.sensor.commands has been deprecated in favor of isaacsim.sensors.physics.commands, isaacsim.sensors.physx.commands, and isaacsim.sensors.rtx.commands. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,871ms] [Warning] [omni.isaac.sensor.contact_sensor] omni.isaac.sensor.contact_sensor has been deprecated in favor of isaacsim.sensors.physics.contact_sensor. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,871ms] [Warning] [omni.isaac.sensor.imu_sensor] omni.isaac.sensor.imu_sensor has been deprecated in favor of isaacsim.sensors.physics.imu_sensor. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,871ms] [Warning] [omni.isaac.sensor.lidar_rtx] omni.isaac.sensor.lidar_rtx has been deprecated in favor of isaacsim.sensors.rtx.lidar_rtx. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,872ms] [Warning] [omni.isaac.sensor.rotating_lidar_physX] omni.isaac.sensor.imu_sensor has been deprecated in favor of isaacsim.sensors.physix.rotating_lidar_physX. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,874ms] [Warning] [omni.isaac.sensor.scripts.samples.contact_sensor] omni.isaac.sensor.scripts.samples.contact_sensor has been deprecated in favor of isaacsim.sensors.physics.scripts.samples.contact_sensor. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,874ms] [Warning] [omni.isaac.sensor.scripts.samples.imu_sensor] omni.isaac.sensor.scripts.samples.imu_sensor has been deprecated in favor of isaacsim.sensors.physics.scripts.samples.imu_sensor. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,875ms] [Warning] [omni.isaac.sensor.scripts.samples.lightbeam_sensor] omni.isaac.sensor.scripts.samples.lightbeam_sensor has been deprecated in favor of isaacsim.sensors.physx.scripts.samples.lightbeam_sensor. Please update your code accordingly.
+[20.029s] [ext: omni.isaac.surface_gripper-2.0.6] startup
+2026-02-20T03:22:27Z [19,878ms] [Warning] [omni.isaac.surface_gripper] omni.isaac.surface_gripper has been deprecated in favor of isaacsim.robot.surface_gripper. Please update your code accordingly.
+2026-02-20T03:22:27Z [19,879ms] [Warning] [omni.ext._impl._internal] Found class `Extension` derived from `omni.ext.IExt` in module: 'omni.isaac.surface_gripper', but it was imported from other extension: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/exts/isaacsim.robot.surface_gripper/isaacsim/robot/surface_gripper/impl/extension.py', which is not a subpath to: 'c:\miniconda3\envs\isaaclab311\lib\site-packages\isaacsim\extsdeprecated\omni.isaac.surface_gripper'. Do not import `IExt` derived class from other extension in your public namespace.
+[20.031s] [ext: omni.kit.widget.toolbar-2.0.1] startup
+[20.098s] [ext: omni.kit.manipulator.transform-107.0.0] startup
+[20.108s] [ext: omni.kit.manipulator.selector-1.1.3] startup
+[20.112s] [ext: isaacsim.app.about-2.0.11] startup
+[20.134s] [ext: isaacsim.cortex.framework-1.0.12] startup
+[20.136s] [ext: omni.kit.manipulator.tool.snap-1.5.13] startup
+[20.150s] [ext: omni.isaac.universal_robots-1.0.6] startup
+2026-02-20T03:22:27Z [20,000ms] [Warning] [omni.isaac.universal_robots] omni.isaac.universal_robots has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+2026-02-20T03:22:27Z [20,001ms] [Warning] [omni.isaac.universal_robots.kinematics_solver] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+2026-02-20T03:22:27Z [20,004ms] [Warning] [omni.isaac.universal_robots.ur10] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+[20.155s] [ext: omni.isaac.utils-2.0.6] startup
+[20.160s] [ext: omni.isaac.cortex-1.0.5] startup
+2026-02-20T03:22:27Z [20,012ms] [Warning] [omni.isaac.cortex] omni.isaac.cortex has been deprecated in favor of isaacsim.cortex.framework. Please update your code accordingly.
+[20.164s] [ext: omni.kit.viewport.manipulator.transform-107.0.4] startup
+[20.170s] [ext: omni.isaac.window.about-2.0.7] startup
+2026-02-20T03:22:27Z [20,024ms] [Warning] [omni.isaac.window.about] omni.isaac.window.about has been deprecated in favor of isaacsim.app.about. Please update your code accordingly.
+2026-02-20T03:22:27Z [20,024ms] [Warning] [omni.isaac.window.about.about] omni.isaac.window.about.about has been deprecated in favor of isaacsim.app.about.about. Please update your code accordingly.
+[20.176s] [ext: omni.kit.manipulator.camera-106.0.4] startup
+[20.186s] [ext: omni.kit.property.audio-1.0.16] startup
+[20.189s] [ext: omni.fabric.commands-1.1.6] startup
+[20.196s] [ext: omni.kit.manipulator.prim.core-107.0.8] startup
+[20.254s] [ext: omni.kit.property.camera-1.0.10] startup
+[20.258s] [ext: omni.kit.property.geometry-2.0.4] startup
+[20.264s] [ext: omni.kit.property.light-1.0.12] startup
+[20.333s] [ext: omni.hydra.scene_api-0.1.2] startup
+[20.340s] [ext: omni.kit.manipulator.prim.fabric-107.0.4] startup
+[20.345s] [ext: omni.kit.manipulator.prim.usd-107.0.3] startup
+[20.349s] [ext: omni.kit.property.material-1.11.9] startup
+[20.371s] [ext: omni.kit.property.render-1.2.1] startup
+[20.374s] [ext: omni.kit.property.transform-1.5.13] startup
+[20.384s] [ext: isaacsim.gui.property-1.1.3] startup
+[20.390s] [ext: omni.kit.manipulator.prim-107.0.0] startup
+[20.391s] [ext: omni.kit.manipulator.selection-106.0.1] startup
+[20.394s] [ext: omni.isaac.lula-4.0.6] startup
+2026-02-20T03:22:28Z [20,244ms] [Warning] [omni.isaac.lula] omni.isaac.lula has been deprecated in favor of isaacsim.robot_motion.lula. Please update your code accordingly.
+[20.396s] [ext: omni.kit.property.bundle-1.4.1] startup
+[20.400s] [ext: omni.kit.property.isaac-1.0.6] startup
+2026-02-20T03:22:28Z [20,251ms] [Warning] [omni.kit.property.isaac] omni.kit.property.isaac has been deprecated in favor of isaacsim.gui.property. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,252ms] [Warning] [omni.kit.property.isaac.widgets] omni.kit.property.isaac.widgets has been deprecated in favor of isaacsim.gui.property.widgets. Please update your code accordingly.
+[20.403s] [ext: isaacsim.replicator.writers-1.0.17] startup
+[20.560s] [ext: omni.kit.viewport.menubar.camera-107.0.6] startup
+[20.579s] [ext: omni.kit.viewport.menubar.lighting-107.3.1] startup
+[20.585s] [ext: omni.kit.viewport.menubar.render-107.0.10] startup
+[20.592s] [ext: omni.kit.viewport.menubar.settings-107.0.3] startup
+[20.607s] [ext: isaacsim.replicator.domain_randomization-1.0.16] startup
+[20.615s] [ext: isaacsim.replicator.examples-1.3.6] startup
+[20.622s] [ext: omni.ocio-0.1.1] startup
+[20.630s] [ext: omni.rtx.window.settings-0.6.19] startup
+[20.647s] [ext: omni.kit.window.console-1.1.4] startup
+[20.664s] [ext: omni.kit.window.status_bar-0.1.9] startup
+[20.672s] [ext: omni.kit.window.toolbar-2.0.0] startup
+[20.703s] [ext: omni.replicator.isaac-2.0.8] startup
+2026-02-20T03:22:28Z [20,553ms] [Warning] [omni.replicator.isaac] omni.replicator.isaac has been deprecated in favor of isaacsim.replicator.domain_randomization, isaacsim.replicator.examples, isaacsim.replicator.writers. Please update your code accordingly.
+[20.705s] [ext: omni.replicator.replicator_yaml-2.0.11] startup
+[20.741s] [ext: omni.rtx.settings.core-0.6.5] startup
+[20.752s] [ext: omni.usd.metrics.assembler.ui-107.3.1] startup
+[20.766s] [ext: isaacsim.robot.wheeled_robots-4.0.24] startup
+[20.837s] [ext: isaacsim.cortex.behaviors-2.0.14] startup
+[20.838s] [ext: omni.isaac.version-2.0.7] startup
+2026-02-20T03:22:28Z [20,691ms] [Warning] [omni.isaac.version] omni.isaac.version has been deprecated in favor of isaacsim.core.version. Please update your code accordingly.
+[20.845s] [ext: semantics.schema.editor-2.0.2] startup
+[20.871s] [ext: omni.kit.ui.actions-1.0.5] startup
+[20.875s] [ext: semantics.schema.property-2.0.1] startup
+[20.924s] [ext: omni.isaac.wheeled_robots-3.0.7] startup
+2026-02-20T03:22:28Z [20,775ms] [Warning] [omni.isaac.wheeled_robots] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,775ms] [Warning] [omni.isaac.wheeled_robots.controllers] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,776ms] [Warning] [omni.isaac.wheeled_robots.controllers.ackermann_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,777ms] [Warning] [omni.isaac.wheeled_robots.controllers.differential_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,779ms] [Warning] [omni.isaac.wheeled_robots.controllers.holonomic_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,780ms] [Warning] [omni.isaac.wheeled_robots.controllers.quintic_path_planner] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,781ms] [Warning] [omni.isaac.wheeled_robots.controllers.stanley_control] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,784ms] [Warning] [omni.isaac.wheeled_robots.controllers.wheel_base_pose_controller] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,785ms] [Warning] [omni.isaac.wheeled_robots.impl] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,786ms] [Warning] [omni.isaac.wheeled_robots.robots] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,786ms] [Warning] [omni.isaac.wheeled_robots.robots.holonomic_robot_usd_setup] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+2026-02-20T03:22:28Z [20,787ms] [Warning] [omni.isaac.wheeled_robots.robots.wheeled_robot] omni.isaac.wheeled_robots has been deprecated in favor of isaacsim.robot.wheeled_robots. Please update your code accordingly.
+[20.939s] [ext: omni.isaac.cortex.sample_behaviors-2.0.5] startup
+2026-02-20T03:22:28Z [20,790ms] [Warning] [omni.isaac.cortex.sample_behaviors] omni.isaac.cortex.sample_behaviors has been deprecated in favor of isaacsim.cortex.behaviors. Please update your code accordingly.
+[20.942s] [ext: isaacsim.replicator.behavior-1.1.16] startup
+[20.948s] [ext: isaacsim.core.throttling-2.2.2] startup
+[20.953s] [ext: omni.kit.menu.common-2.0.1] startup
+[20.956s] [ext: isaacsim.exp.base-5.1.0] startup
+[20.958s] [ext: isaacsim.exp.base.python-5.1.0] startup
+[20.961s] Simulation App Starting
+2026-02-20T03:22:29Z [21,675ms] [Warning] [omni.fabric.plugin] Warning: attribute viewPickingId not found for bucket id 9
+
+[21.891s] app ready
+[24.457s] Simulation App Startup Complete
+
+============================================================
+  Capstone Evaluation
+  Environment: boulder
+  Policy:      rough
+  Episodes:    40
+  Headless:    True
+  Output:      C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/production_2026-02-19_17-46-36
+============================================================
+
+Building boulder environment...
+  Boulder environment: 5 zones, 9000 boulders
+    Zone 1: edge=(0.03, 0.05), count=4500 — Gravel
+    Zone 2: edge=(0.1, 0.15), count=2400 — River rocks
+    Zone 3: edge=(0.25, 0.35), count=1200 — Large rocks
+    Zone 4: edge=(0.5, 0.7), count=600 — Small boulders
+    Zone 5: edge=(0.8, 1.2), count=300 — Large boulders
+Loading rough policy...
+2026-02-20T03:23:37Z [89,502ms] [Warning] [omni.hydra] Mesh '/__Prototype_5502785215616817134/mesh_0' has corrupted data in primvar 'st': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_3': buffer size 4080 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_3': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_5502785215616817134/mesh_0' has corrupted data in primvar 'st_1': buffer size 7710 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st': buffer size 540 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_2': buffer size 59238 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_2': buffer size 378 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_5': buffer size 240 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_6193561564502284189/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_5': buffer size 4530 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,503ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_6': buffer size 402 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,504ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_6': buffer size 228 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,504ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_1': buffer size 9711 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,504ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_1': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,504ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_4': buffer size 1830 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,504ms] [Warning] [omni.hydra] Mesh '/__Prototype_5011964022749916685/mesh_0' has corrupted data in primvar 'st_4': buffer size 1902 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,504ms] [Warning] [omni.hydra] Mesh '/__Prototype_3909270239164440123/mesh_0' has corrupted data in primvar 'st_7': buffer size 1200 doesn't match expected size 77241 in faceVarying primvars
+2026-02-20T03:23:37Z [89,505ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_3': buffer size 228 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,506ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st': buffer size 4530 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,506ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_2': buffer size 378 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,506ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_5': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,506ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_6': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,506ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_1': buffer size 1902 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,506ms] [Warning] [omni.hydra] Mesh '/__Prototype_7208870517839092412/mesh_0' has corrupted data in primvar 'st_4': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,507ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,507ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,507ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,507ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_3': buffer size 378 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,507ms] [Warning] [omni.hydra] Mesh '/__Prototype_687339949207939642/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,507ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st': buffer size 2505 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_2': buffer size 1902 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_5': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_6': buffer size 336 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_1': buffer size 4530 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_15958309575409688942/mesh_0' has corrupted data in primvar 'st_4': buffer size 228 doesn't match expected size 10659 in faceVarying primvars
+2026-02-20T03:23:37Z [89,508ms] [Warning] [omni.hydra] Mesh '/__Prototype_6236472018636293292/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,623ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st_3': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,623ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st': buffer size 198 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,623ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st_2': buffer size 1380 doesn't match expected size 3138 in faceVarying primvars
+2026-02-20T03:23:37Z [89,623ms] [Warning] [omni.hydra] Mesh '/__Prototype_1317358018275025814/mesh_0' has corrupted data in primvar 'st_1': buffer size 1362 doesn't match expected size 3138 in faceVarying primvars
+[ROUGH] Loaded actor from C:\Users\Gabriel Santiago\OneDrive\Desktop\Capstone Project\Capstone\Experiments\Alex\4_env_test\src\checkpoints\model_29999.pt
+[ROUGH]   obs=235  act=12  scale=0.25  dec=10
+[ROUGH] Default pos mapped by name (12/12 joints)
+[ROUGH] DOF order: ['fl_hx', 'fr_hx', 'hl_hx', 'hr_hx', 'fl_hy', 'fr_hy', 'hl_hy', 'hr_hy', 'fl_kn', 'fr_kn', 'hl_kn', 'hr_kn']
+[ROUGH] default_pos: [ 0.1 -0.1  0.1 -0.1  0.9  0.9  1.1  1.1 -1.5 -1.5 -1.5 -1.5]
+[ROUGH] Hip DOFs: [0, 1, 2, 3, 4, 5, 6, 7]  Knee DOFs: [8, 9, 10, 11]
+[ROUGH] Height scan: fill=0.0 (187 dims, flat ground default)
+Robot loaded and initialized.
+Stabilizing robot...
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.12106626 -0.01217436 -0.46237667]
+  gravity_b = [ 3.41489918e-04 -4.56669503e-03 -9.99989514e-01]
+  joint_pos_rel range = [-0.003, 0.001]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.610
+  [ROUGH act] eval=0 norm=5.000 range=[-2.476, 0.628] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.462 range=[-2.177, 1.194] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.780 range=[-3.439, 2.089] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.916 range=[-4.275, 3.295] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.557 range=[-4.602, 3.832] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.401 range=[-4.391, 3.707] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.639 range=[-3.690, 3.230] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.638 range=[-2.674, 2.692] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.833 range=[-1.800, 2.207] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.423 range=[-1.711, 1.972] cmd=[0.00,0.00,0.00]
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.63432181  0.35892686 -0.20942694]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.349, 0.297]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.055 range=[-1.560, 1.335] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.015 range=[-2.067, 2.065] cmd=[1.00,0.00,-0.99]
+  [ROUGH act] eval=2 norm=5.090 range=[-2.552, 2.567] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=6.862 range=[-2.912, 4.226] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=4 norm=6.763 range=[-2.487, 4.495] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=5 norm=6.126 range=[-2.205, 4.115] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=6 norm=5.466 range=[-1.858, 3.545] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=7 norm=4.921 range=[-1.491, 2.906] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=4.648 range=[-1.367, 2.864] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=4.873 range=[-1.635, 3.025] cmd=[1.00,0.00,0.01]
+  [   1/40] boulder_rough_ep0000  FELL      progress= 17.5m  zone=2  time=40.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.07635298  0.27783379 -0.14636654]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.474, 0.447]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.663 range=[-2.603, 1.566] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.694 range=[-3.406, 2.506] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=9.237 range=[-4.535, 4.715] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=3 norm=6.082 range=[-2.621, 3.226] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=4 norm=4.884 range=[-2.282, 2.550] cmd=[1.00,0.00,-0.28]
+  [ROUGH act] eval=5 norm=8.170 range=[-3.636, 6.111] cmd=[1.00,0.00,-0.35]
+  [ROUGH act] eval=6 norm=8.298 range=[-3.166, 5.593] cmd=[1.00,0.00,-0.40]
+  [ROUGH act] eval=7 norm=8.178 range=[-2.321, 5.203] cmd=[1.00,0.00,-0.42]
+  [ROUGH act] eval=8 norm=7.425 range=[-2.535, 4.426] cmd=[1.00,0.00,-0.44]
+  [ROUGH act] eval=9 norm=7.219 range=[-2.762, 4.184] cmd=[1.00,0.00,-0.46]
+  [   2/40] boulder_rough_ep0001  FELL      progress= 10.8m  zone=2  time=24.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.0107462  -0.07578183 -0.06363437]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.761, 1.055]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.267 range=[-3.681, 2.142] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.144 range=[-3.073, 2.338] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=6.232 range=[-3.457, 2.608] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=3 norm=5.199 range=[-2.334, 2.803] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=4 norm=2.600 range=[-1.774, 1.336] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=5 norm=3.711 range=[-1.798, 1.884] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=6 norm=4.563 range=[-2.555, 2.184] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=7 norm=5.658 range=[-2.675, 3.223] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=8 norm=6.318 range=[-2.435, 4.025] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=9 norm=6.903 range=[-2.317, 4.465] cmd=[1.00,0.00,-0.02]
+  [   3/40] boulder_rough_ep0002  FELL      progress= 21.2m  zone=3  time=53.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.0617951   0.16193646 -0.21761847]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.690, 0.540]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.792 range=[-2.612, 1.479] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.786 range=[-2.538, 2.315] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=4.723 range=[-2.062, 2.458] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=3 norm=5.535 range=[-1.859, 3.830] cmd=[1.00,0.00,-0.14]
+  [ROUGH act] eval=4 norm=4.990 range=[-1.507, 3.558] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=5 norm=3.236 range=[-0.906, 1.655] cmd=[1.00,0.00,-0.25]
+  [ROUGH act] eval=6 norm=4.525 range=[-2.203, 2.540] cmd=[1.00,0.00,-0.32]
+  [ROUGH act] eval=7 norm=5.460 range=[-2.341, 3.046] cmd=[1.00,0.00,-0.38]
+  [ROUGH act] eval=8 norm=5.869 range=[-2.119, 3.515] cmd=[1.00,0.00,-0.44]
+  [ROUGH act] eval=9 norm=5.885 range=[-2.087, 3.510] cmd=[1.00,0.00,-0.49]
+  [   4/40] boulder_rough_ep0003  TIMEOUT   progress= 21.8m  zone=3  time=99.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06966115 -0.03534233 -0.04656387]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.041, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.559 range=[-2.732, 1.890] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.301 range=[-0.998, 3.626] cmd=[1.00,0.00,1.89]
+  [ROUGH act] eval=2 norm=10.997 range=[-3.958, 9.180] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=3 norm=11.450 range=[-4.636, 9.517] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=4 norm=10.510 range=[-4.037, 7.730] cmd=[1.00,0.00,0.25]
+  [ROUGH act] eval=5 norm=8.859 range=[-3.635, 5.067] cmd=[1.00,0.00,0.33]
+  [ROUGH act] eval=6 norm=8.328 range=[-3.182, 5.432] cmd=[1.00,0.00,0.44]
+  [ROUGH act] eval=7 norm=5.808 range=[-2.879, 3.451] cmd=[1.00,0.00,0.54]
+  [ROUGH act] eval=8 norm=4.888 range=[-3.140, 2.498] cmd=[1.00,0.00,0.61]
+  [ROUGH act] eval=9 norm=6.183 range=[-3.044, 3.558] cmd=[1.00,0.00,0.66]
+  [   5/40] boulder_rough_ep0004  TIMEOUT   progress=  0.1m  zone=1  time=98.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-7.19768650e-05  2.19870999e-04  7.45161157e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.419, 0.454]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.751 range=[-0.903, 0.275] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.345 range=[-1.823, 1.331] cmd=[1.00,0.00,-1.99]
+  [ROUGH act] eval=2 norm=4.115 range=[-1.920, 2.275] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=6.339 range=[-2.595, 3.913] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=4 norm=6.407 range=[-2.080, 4.246] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=6.431 range=[-1.914, 4.591] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=6 norm=6.190 range=[-1.870, 4.590] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=7 norm=5.938 range=[-1.835, 4.486] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=5.824 range=[-1.843, 4.387] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=9 norm=5.781 range=[-1.843, 4.262] cmd=[1.00,0.00,-0.02]
+  [   6/40] boulder_rough_ep0005  FELL      progress= 11.6m  zone=2  time=22.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.68293983  0.52190351 -1.26732647]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 1.126]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.220 range=[-1.686, 3.636] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.066 range=[-3.688, 6.653] cmd=[1.00,0.00,-1.60]
+  [ROUGH act] eval=2 norm=12.859 range=[-4.101, 9.115] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=14.160 range=[-6.351, 10.282] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=4 norm=9.225 range=[-3.463, 5.827] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.704 range=[-3.750, 6.758] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.450 range=[-2.863, 5.173] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=7 norm=6.050 range=[-1.968, 3.524] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=8 norm=5.064 range=[-1.880, 2.581] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=9 norm=4.418 range=[-1.610, 1.932] cmd=[1.00,0.00,0.06]
+  [   7/40] boulder_rough_ep0006  FELL      progress= 21.2m  zone=3  time=59.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.16886409 -0.07835539 -0.31612518]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.122, 0.972]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.927 range=[-1.957, 2.316] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.555 range=[-1.891, 3.043] cmd=[1.00,0.00,0.93]
+  [ROUGH act] eval=2 norm=5.254 range=[-1.992, 3.897] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=3 norm=5.842 range=[-2.234, 4.159] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=4 norm=5.356 range=[-2.002, 2.940] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=5 norm=3.123 range=[-1.048, 2.094] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=6 norm=4.200 range=[-2.091, 2.080] cmd=[1.00,0.00,-0.17]
+  [ROUGH act] eval=7 norm=5.650 range=[-2.740, 2.535] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=8 norm=5.834 range=[-2.158, 3.354] cmd=[1.00,0.00,-0.25]
+  [ROUGH act] eval=9 norm=6.205 range=[-2.138, 3.674] cmd=[1.00,0.00,-0.28]
+  [   8/40] boulder_rough_ep0007  FELL      progress= 17.4m  zone=2  time=38.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.26668793  0.23493543 -0.26851833]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.814]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.738 range=[-1.330, 4.085] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.820 range=[-3.016, 4.648] cmd=[1.00,0.00,-1.61]
+  [ROUGH act] eval=2 norm=7.267 range=[-3.145, 6.006] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=3 norm=7.391 range=[-2.492, 5.746] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=4 norm=6.752 range=[-2.730, 3.514] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=5 norm=6.612 range=[-2.961, 3.939] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=6 norm=5.468 range=[-2.199, 3.150] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=7 norm=6.281 range=[-2.783, 3.614] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=8 norm=4.631 range=[-1.833, 2.326] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=9 norm=4.615 range=[-2.286, 1.848] cmd=[1.00,0.00,0.01]
+  [   9/40] boulder_rough_ep0008  TIMEOUT   progress= 20.7m  zone=3  time=96.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.11513358 -0.09140121  0.01143475]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.301, 0.558]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.070 range=[-1.853, 0.428] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.293 range=[-2.192, 2.019] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=5.153 range=[-2.358, 2.583] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=5.788 range=[-1.860, 3.493] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=4 norm=6.004 range=[-1.708, 3.745] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=5.802 range=[-1.720, 3.605] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=6 norm=5.155 range=[-1.476, 3.453] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=7 norm=3.845 range=[-1.143, 2.969] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=8 norm=2.516 range=[-1.581, 0.926] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=4.026 range=[-2.371, 2.083] cmd=[1.00,0.00,-0.00]
+  [  10/40] boulder_rough_ep0009  FELL      progress= 11.3m  zone=2  time=21.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.53043878  0.29655412 -0.77637458]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.700, 0.884]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.710 range=[-3.545, 2.732] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.821 range=[-3.970, 3.831] cmd=[1.00,0.00,-0.90]
+  [ROUGH act] eval=2 norm=8.878 range=[-2.977, 4.982] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=3 norm=6.325 range=[-1.822, 3.755] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=4 norm=3.918 range=[-1.440, 2.475] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=5 norm=1.764 range=[-0.717, 0.728] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=6 norm=3.266 range=[-1.799, 1.657] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=7 norm=4.242 range=[-2.010, 2.244] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=8 norm=4.734 range=[-2.261, 2.589] cmd=[1.00,0.00,0.24]
+  [ROUGH act] eval=9 norm=5.062 range=[-2.494, 2.720] cmd=[1.00,0.00,0.25]
+  [  11/40] boulder_rough_ep0010  FELL      progress= 22.1m  zone=3  time=66.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01086402  0.01051946 -0.23098429]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.135, 0.424]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.936 range=[-1.562, 1.488] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.560 range=[-2.111, 2.877] cmd=[1.00,0.00,-1.37]
+  [ROUGH act] eval=2 norm=5.236 range=[-2.169, 3.088] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=3 norm=3.627 range=[-1.545, 1.732] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=4 norm=4.679 range=[-2.347, 2.289] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=5 norm=5.332 range=[-2.737, 2.738] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=6 norm=5.832 range=[-2.665, 3.555] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=7 norm=6.082 range=[-2.573, 3.740] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=8 norm=5.973 range=[-2.386, 3.478] cmd=[1.00,0.00,0.21]
+  [ROUGH act] eval=9 norm=5.654 range=[-2.189, 3.050] cmd=[1.00,0.00,0.21]
+  [  12/40] boulder_rough_ep0011  FELL      progress= 16.8m  zone=2  time=35.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00350935  0.05126769 -0.11102416]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.033, 0.920]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.564 range=[-1.956, 3.293] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.920 range=[-2.920, 2.342] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.541 range=[-2.555, 3.669] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=3 norm=5.015 range=[-2.243, 3.537] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=4 norm=3.039 range=[-1.218, 1.752] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=5 norm=2.873 range=[-1.366, 1.323] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=6 norm=4.549 range=[-1.966, 2.565] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=7 norm=6.120 range=[-2.382, 3.445] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=8 norm=6.301 range=[-2.011, 3.543] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=9 norm=6.658 range=[-2.211, 3.729] cmd=[1.00,0.00,0.15]
+  [  13/40] boulder_rough_ep0012  FELL      progress= 17.0m  zone=2  time=38.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.14149728  0.06748763 -0.20514606]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.179, 0.834]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.602 range=[-1.590, 4.274] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.996 range=[-2.976, 4.966] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=8.531 range=[-3.429, 7.051] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=3 norm=6.846 range=[-3.292, 3.837] cmd=[1.00,0.00,-0.12]
+  [ROUGH act] eval=4 norm=10.792 range=[-2.714, 6.334] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=5 norm=7.077 range=[-2.248, 5.802] cmd=[1.00,0.00,-0.23]
+  [ROUGH act] eval=6 norm=6.777 range=[-2.909, 5.528] cmd=[1.00,0.00,-0.29]
+  [ROUGH act] eval=7 norm=7.317 range=[-3.904, 4.962] cmd=[1.00,0.00,-0.32]
+  [ROUGH act] eval=8 norm=5.951 range=[-2.573, 2.980] cmd=[1.00,0.00,-0.34]
+  [ROUGH act] eval=9 norm=3.351 range=[-1.990, 1.474] cmd=[1.00,0.00,-0.35]
+  [  14/40] boulder_rough_ep0013  TIMEOUT   progress= 21.2m  zone=3  time=98.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03083913 -0.01470114 -0.26608619]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.139, 1.055]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.181 range=[-2.552, 1.140] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.223 range=[-1.806, 2.666] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=5.036 range=[-2.575, 2.335] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=3 norm=5.345 range=[-1.778, 3.941] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=4 norm=3.790 range=[-0.981, 2.929] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=5 norm=5.486 range=[-2.596, 2.879] cmd=[1.00,0.00,-0.30]
+  [ROUGH act] eval=6 norm=6.200 range=[-2.204, 3.812] cmd=[1.00,0.00,-0.37]
+  [ROUGH act] eval=7 norm=6.348 range=[-2.200, 3.773] cmd=[1.00,0.00,-0.43]
+  [ROUGH act] eval=8 norm=6.182 range=[-2.290, 3.641] cmd=[1.00,0.00,-0.47]
+  [ROUGH act] eval=9 norm=6.102 range=[-2.429, 3.640] cmd=[1.00,0.00,-0.50]
+  [  15/40] boulder_rough_ep0014  TIMEOUT   progress= 21.1m  zone=3  time=98.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.15858246  0.22315548 -0.06169647]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.690, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.406 range=[-2.081, 5.871] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.671 range=[-3.371, 9.858] cmd=[1.00,0.00,-1.45]
+  [ROUGH act] eval=2 norm=13.856 range=[-5.535, 9.633] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=17.383 range=[-3.568, 15.855] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=4 norm=16.973 range=[-3.158, 15.550] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=5 norm=16.513 range=[-4.495, 14.344] cmd=[1.00,0.00,-0.07]
+  [ROUGH act] eval=6 norm=14.789 range=[-5.557, 12.341] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=7 norm=11.526 range=[-4.568, 7.394] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=8 norm=10.727 range=[-4.646, 5.732] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=9 norm=10.924 range=[-4.480, 6.029] cmd=[1.00,0.00,0.15]
+  [  16/40] boulder_rough_ep0015  TIMEOUT   progress=  0.0m  zone=1  time=99.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.0003927  -0.00042318  0.00671703]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.821, 0.335]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.453 range=[-1.847, 0.350] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.989 range=[-1.483, 1.234] cmd=[1.00,0.00,0.62]
+  [ROUGH act] eval=2 norm=3.732 range=[-2.214, 1.624] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=5.215 range=[-2.688, 2.850] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=4 norm=5.228 range=[-1.869, 2.843] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=5 norm=3.269 range=[-0.957, 1.947] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=6 norm=3.661 range=[-1.991, 1.593] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=7 norm=4.586 range=[-2.483, 2.142] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=8 norm=5.493 range=[-2.270, 3.378] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=9 norm=6.096 range=[-2.163, 3.971] cmd=[1.00,0.00,-0.01]
+  [  17/40] boulder_rough_ep0016  FELL      progress= 13.6m  zone=2  time=28.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.59409672 -0.01419368 -0.87742096]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.574, 1.045]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.919 range=[-2.438, 2.491] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.497 range=[-1.414, 3.375] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=8.287 range=[-3.247, 5.822] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=9.070 range=[-2.579, 6.398] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=4 norm=10.661 range=[-4.355, 7.193] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=5 norm=10.949 range=[-3.208, 9.268] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=6 norm=10.266 range=[-3.574, 8.110] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=7 norm=9.565 range=[-3.926, 6.143] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=8 norm=8.404 range=[-3.799, 4.153] cmd=[1.00,0.00,0.13]
+  [ROUGH act] eval=9 norm=6.320 range=[-2.905, 2.942] cmd=[1.00,0.00,0.24]
+  [  18/40] boulder_rough_ep0017  TIMEOUT   progress=  0.2m  zone=1  time=98.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 9.90543685e-06 -1.28497384e-04  7.47687044e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.463, 0.491]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.755 range=[-0.848, 0.379] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.241 range=[-1.611, 1.340] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=4.078 range=[-1.867, 2.263] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=6.333 range=[-2.599, 3.920] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=4 norm=6.390 range=[-2.005, 4.219] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=6.445 range=[-1.901, 4.530] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=6 norm=6.229 range=[-1.874, 4.573] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=7 norm=6.001 range=[-1.836, 4.512] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=5.909 range=[-1.830, 4.437] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=5.871 range=[-1.814, 4.317] cmd=[1.00,0.00,-0.01]
+  [  19/40] boulder_rough_ep0018  FELL      progress= 14.9m  zone=2  time=34.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 1.08428085 -1.07338595 -1.30633461]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.001, 0.581]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=10.025 range=[-3.285, 7.164] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.666 range=[-3.862, 6.920] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=8.349 range=[-3.752, 4.878] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=3 norm=5.758 range=[-2.659, 2.675] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=4 norm=4.185 range=[-1.582, 2.212] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=5 norm=4.306 range=[-1.593, 3.153] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=6 norm=5.051 range=[-1.888, 3.358] cmd=[1.00,0.00,0.07]
+  [ROUGH act] eval=7 norm=5.429 range=[-1.991, 3.580] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=8 norm=5.735 range=[-2.228, 3.784] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=9 norm=6.011 range=[-2.435, 3.927] cmd=[1.00,0.00,0.12]
+  [  20/40] boulder_rough_ep0019  FELL      progress= 17.7m  zone=2  time=37.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.32096204 -0.12025227 -0.42838839]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.077, 0.883]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.811 range=[-3.586, 3.165] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.404 range=[-2.506, 3.796] cmd=[1.00,0.00,0.86]
+  [ROUGH act] eval=2 norm=8.787 range=[-3.275, 6.730] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=3 norm=4.769 range=[-1.725, 2.597] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=4 norm=5.332 range=[-2.004, 3.013] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=6.086 range=[-1.978, 4.136] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=6 norm=6.401 range=[-2.151, 3.881] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=7 norm=5.952 range=[-1.814, 3.886] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=8 norm=5.790 range=[-1.994, 3.820] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=9 norm=5.754 range=[-2.142, 3.795] cmd=[1.00,0.00,-0.06]
+  [  21/40] boulder_rough_ep0020  FELL      progress= 14.5m  zone=2  time=31.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.10282215 -0.18609263 -0.79782575]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.224, 1.242]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.946 range=[-1.942, 5.083] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=13.669 range=[-3.889, 10.204] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=19.083 range=[-4.936, 14.243] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=3 norm=19.819 range=[-5.313, 14.942] cmd=[1.00,0.00,-0.23]
+  [ROUGH act] eval=4 norm=17.295 range=[-4.400, 12.664] cmd=[1.00,0.00,-0.30]
+  [ROUGH act] eval=5 norm=13.839 range=[-3.161, 8.955] cmd=[1.00,0.00,-0.37]
+  [ROUGH act] eval=6 norm=9.966 range=[-3.383, 5.741] cmd=[1.00,0.00,-0.41]
+  [ROUGH act] eval=7 norm=5.910 range=[-2.862, 3.301] cmd=[1.00,0.00,-0.43]
+  [ROUGH act] eval=8 norm=4.874 range=[-2.267, 2.404] cmd=[1.00,0.00,-0.42]
+  [ROUGH act] eval=9 norm=3.834 range=[-2.082, 1.981] cmd=[1.00,0.00,-0.40]
+  [  22/40] boulder_rough_ep0021  TIMEOUT   progress=  0.4m  zone=1  time=97.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00045065 -0.00058919  0.00695994]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.803, 0.359]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.695 range=[-1.674, 0.535] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.027 range=[-0.810, 1.343] cmd=[1.00,0.00,-1.34]
+  [ROUGH act] eval=2 norm=2.861 range=[-1.832, 1.139] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.460 range=[-2.450, 1.931] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=4 norm=6.024 range=[-3.030, 3.208] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=5 norm=6.851 range=[-2.654, 4.175] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=6 norm=7.110 range=[-2.483, 4.298] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=7 norm=7.017 range=[-2.329, 4.257] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=6.837 range=[-2.130, 4.209] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=6.629 range=[-1.967, 4.161] cmd=[1.00,0.00,-0.01]
+  [  23/40] boulder_rough_ep0022  FELL      progress= 10.8m  zone=2  time=21.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.09756849  0.21834902 -0.49218351]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.749, 0.793]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.016 range=[-2.280, 2.445] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.338 range=[-2.916, 3.860] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=6.086 range=[-1.956, 5.055] cmd=[1.00,0.00,-0.09]
+  [ROUGH act] eval=3 norm=6.287 range=[-1.801, 4.897] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=4 norm=5.074 range=[-2.183, 3.134] cmd=[1.00,0.00,-0.16]
+  [ROUGH act] eval=5 norm=2.466 range=[-1.068, 1.351] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=6 norm=3.828 range=[-2.061, 1.535] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=7 norm=4.980 range=[-2.083, 2.791] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=8 norm=5.823 range=[-2.131, 3.259] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=9 norm=6.355 range=[-2.149, 3.344] cmd=[1.00,0.00,-0.19]
+  [  24/40] boulder_rough_ep0023  FELL      progress= 11.2m  zone=2  time=37.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06082718  0.10354649 -0.10435661]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.710, 0.948]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.429 range=[-3.723, 1.162] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.465 range=[-4.006, 2.223] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=6.819 range=[-4.065, 2.511] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=7.033 range=[-2.913, 2.921] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=4 norm=6.092 range=[-2.622, 3.148] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=5 norm=4.351 range=[-1.754, 2.580] cmd=[1.00,0.00,0.02]
+  [ROUGH act] eval=6 norm=2.007 range=[-0.788, 0.827] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=7 norm=4.084 range=[-2.000, 2.025] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=8 norm=4.719 range=[-2.140, 2.738] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=9 norm=5.129 range=[-2.369, 2.887] cmd=[1.00,0.00,0.07]
+  [  25/40] boulder_rough_ep0024  FELL      progress= 10.3m  zone=2  time=21.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.31546471  0.39775488 -0.28685674]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.458, 0.952]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.397 range=[-2.779, 1.547] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.355 range=[-2.092, 2.888] cmd=[1.00,0.00,-0.85]
+  [ROUGH act] eval=2 norm=5.811 range=[-1.014, 3.823] cmd=[1.00,0.00,0.18]
+  [ROUGH act] eval=3 norm=7.520 range=[-3.697, 4.478] cmd=[1.00,0.00,0.26]
+  [ROUGH act] eval=4 norm=12.209 range=[-3.456, 9.431] cmd=[1.00,0.00,0.36]
+  [ROUGH act] eval=5 norm=12.230 range=[-3.912, 9.828] cmd=[1.00,0.00,0.42]
+  [ROUGH act] eval=6 norm=11.620 range=[-3.610, 8.370] cmd=[1.00,0.00,0.49]
+  [ROUGH act] eval=7 norm=11.012 range=[-3.008, 7.572] cmd=[1.00,0.00,0.54]
+  [ROUGH act] eval=8 norm=8.474 range=[-3.701, 4.905] cmd=[1.00,0.00,0.60]
+  [ROUGH act] eval=9 norm=5.207 range=[-2.412, 2.499] cmd=[1.00,0.00,0.67]
+  [  26/40] boulder_rough_ep0025  TIMEOUT   progress=  0.1m  zone=1  time=99.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [1.32638604e-06 1.12177157e-04 7.45479343e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.475, 0.372]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=1.977 range=[-1.184, 0.475] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.751 range=[-2.340, 1.611] cmd=[1.00,0.00,-1.37]
+  [ROUGH act] eval=2 norm=4.402 range=[-2.018, 2.739] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=3 norm=5.846 range=[-2.247, 3.835] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=4 norm=6.207 range=[-1.499, 4.092] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=5 norm=5.291 range=[-1.512, 3.900] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=6 norm=3.244 range=[-0.540, 2.559] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=7 norm=3.667 range=[-1.872, 1.680] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=4.429 range=[-2.095, 2.236] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=4.964 range=[-2.133, 2.641] cmd=[1.00,0.00,-0.01]
+  [  27/40] boulder_rough_ep0026  FELL      progress= 10.9m  zone=2  time=21.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.51826626  0.14611802 -0.42713115]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.456, 0.690]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.576 range=[-2.826, 1.691] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.744 range=[-2.740, 2.906] cmd=[1.00,0.00,-0.30]
+  [ROUGH act] eval=2 norm=8.312 range=[-3.857, 4.235] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=3 norm=7.622 range=[-2.777, 3.890] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=4 norm=6.299 range=[-1.169, 4.033] cmd=[1.00,0.00,0.08]
+  [ROUGH act] eval=5 norm=3.087 range=[-0.122, 2.255] cmd=[1.00,0.00,0.11]
+  [ROUGH act] eval=6 norm=3.090 range=[-1.260, 1.362] cmd=[1.00,0.00,0.14]
+  [ROUGH act] eval=7 norm=4.499 range=[-2.032, 2.405] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=8 norm=4.902 range=[-2.111, 3.069] cmd=[1.00,0.00,0.18]
+  [ROUGH act] eval=9 norm=5.119 range=[-2.284, 2.954] cmd=[1.00,0.00,0.20]
+  [  28/40] boulder_rough_ep0027  FELL      progress= 11.3m  zone=2  time=22.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.70273209 -0.1180056  -0.96805471]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.177, 0.542]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.594 range=[-2.367, 6.186] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.733 range=[-3.719, 8.332] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=10.917 range=[-3.856, 8.435] cmd=[1.00,0.00,-0.08]
+  [ROUGH act] eval=3 norm=11.795 range=[-4.287, 7.329] cmd=[1.00,0.00,-0.11]
+  [ROUGH act] eval=4 norm=19.116 range=[-4.268, 12.466] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=5 norm=15.789 range=[-4.935, 12.624] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=6 norm=19.540 range=[-8.876, 10.975] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=7 norm=22.412 range=[-12.129, 14.156] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=8 norm=16.079 range=[-5.486, 8.970] cmd=[1.00,0.00,-0.36]
+  [ROUGH act] eval=9 norm=14.057 range=[-4.062, 10.703] cmd=[1.00,0.00,-0.43]
+  [  29/40] boulder_rough_ep0028  FELL      progress= 18.6m  zone=2  time=38.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.09847767 -0.50003302 -0.30399418]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.676, 0.707]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.890 range=[-2.702, 2.856] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.861 range=[-2.355, 4.671] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=6.360 range=[-2.348, 4.791] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=3 norm=5.535 range=[-2.010, 4.407] cmd=[1.00,0.00,0.06]
+  [ROUGH act] eval=4 norm=4.966 range=[-1.741, 3.787] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=5 norm=3.669 range=[-1.515, 2.041] cmd=[1.00,0.00,0.05]
+  [ROUGH act] eval=6 norm=3.746 range=[-1.739, 1.544] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=7 norm=5.569 range=[-3.031, 2.868] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=8 norm=6.102 range=[-2.834, 4.219] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=9 norm=6.115 range=[-2.594, 4.505] cmd=[1.00,0.00,-0.01]
+  [  30/40] boulder_rough_ep0029  FELL      progress= 11.4m  zone=2  time=47.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03518188 -0.06531174 -0.0320721 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.697, 0.625]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.259 range=[-1.920, 1.384] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.999 range=[-1.992, 0.944] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=4.482 range=[-2.594, 2.126] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=3 norm=5.814 range=[-2.662, 4.144] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=4 norm=7.178 range=[-2.314, 4.643] cmd=[1.00,0.00,0.01]
+  [ROUGH act] eval=5 norm=7.778 range=[-2.461, 5.227] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.525 range=[-2.404, 5.235] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=7 norm=6.573 range=[-1.828, 5.060] cmd=[1.00,0.00,-0.02]
+  [ROUGH act] eval=8 norm=4.516 range=[-2.489, 1.855] cmd=[1.00,0.00,-0.03]
+  [ROUGH act] eval=9 norm=5.200 range=[-2.354, 2.317] cmd=[1.00,0.00,-0.03]
+  [  31/40] boulder_rough_ep0030  FELL      progress= 11.0m  zone=2  time=21.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.29426447 -0.36244753 -0.60319364]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.620, 0.668]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.429 range=[-3.842, 5.090] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.127 range=[-4.743, 7.183] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=11.067 range=[-3.593, 8.118] cmd=[1.00,0.00,-0.19]
+  [ROUGH act] eval=3 norm=11.460 range=[-3.651, 8.584] cmd=[1.00,0.00,-0.27]
+  [ROUGH act] eval=4 norm=14.300 range=[-4.991, 8.286] cmd=[1.00,0.00,-0.32]
+  [ROUGH act] eval=5 norm=14.390 range=[-5.262, 10.766] cmd=[1.00,0.00,-0.36]
+  [ROUGH act] eval=6 norm=19.898 range=[-8.665, 14.516] cmd=[1.00,0.00,-0.49]
+  [ROUGH act] eval=7 norm=19.076 range=[-6.856, 9.278] cmd=[1.00,0.00,-0.69]
+  [ROUGH act] eval=8 norm=14.191 range=[-6.649, 8.616] cmd=[1.00,0.00,-0.91]
+  [ROUGH act] eval=9 norm=6.939 range=[-2.842, 3.742] cmd=[1.00,0.00,-1.08]
+  [  32/40] boulder_rough_ep0031  FELL      progress= 13.0m  zone=2  time=24.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.35420549  0.17761384 -0.26236141]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.169, 1.253]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.470 range=[-2.589, 4.741] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=11.854 range=[-3.802, 8.893] cmd=[1.00,0.00,-0.42]
+  [ROUGH act] eval=2 norm=16.992 range=[-4.951, 12.681] cmd=[1.00,0.00,0.12]
+  [ROUGH act] eval=3 norm=19.699 range=[-5.333, 13.186] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=4 norm=14.967 range=[-4.043, 9.640] cmd=[1.00,0.00,0.25]
+  [ROUGH act] eval=5 norm=11.988 range=[-4.632, 9.101] cmd=[1.00,0.00,0.31]
+  [ROUGH act] eval=6 norm=6.923 range=[-3.304, 4.534] cmd=[1.00,0.00,0.36]
+  [ROUGH act] eval=7 norm=6.653 range=[-3.212, 4.652] cmd=[1.00,0.00,0.37]
+  [ROUGH act] eval=8 norm=5.710 range=[-2.628, 3.074] cmd=[1.00,0.00,0.37]
+  [ROUGH act] eval=9 norm=5.369 range=[-2.379, 2.577] cmd=[1.00,0.00,0.37]
+  [  33/40] boulder_rough_ep0032  TIMEOUT   progress=  0.3m  zone=1  time=99.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-1.88475569e-05  3.72055570e-06  7.45860161e-03]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.671, 0.322]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.641 range=[-1.707, 0.470] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=2.827 range=[-1.507, 1.084] cmd=[1.00,0.00,-1.52]
+  [ROUGH act] eval=2 norm=4.016 range=[-2.167, 1.822] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.023 range=[-2.577, 2.784] cmd=[1.00,0.00,-0.00]
+  [ROUGH act] eval=4 norm=6.124 range=[-2.514, 3.521] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=5 norm=6.897 range=[-2.463, 4.214] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=6 norm=7.034 range=[-2.445, 4.228] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=7 norm=6.938 range=[-2.346, 4.271] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=8 norm=6.722 range=[-2.143, 4.360] cmd=[1.00,0.00,-0.01]
+  [ROUGH act] eval=9 norm=6.453 range=[-1.943, 4.374] cmd=[1.00,0.00,-0.00]
+  [  34/40] boulder_rough_ep0033  FELL      progress= 11.1m  zone=2  time=22.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02216821  0.04517193 -0.48648712]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.728, 0.929]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.058 range=[-3.799, 3.349] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.030 range=[-2.932, 2.849] cmd=[1.00,0.00,0.03]
+  [ROUGH act] eval=2 norm=4.920 range=[-2.208, 2.367] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=3 norm=5.336 range=[-2.250, 3.324] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=4 norm=6.882 range=[-2.875, 4.039] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=5 norm=8.116 range=[-2.481, 5.148] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=6 norm=8.511 range=[-2.689, 5.582] cmd=[1.00,0.00,-0.04]
+  [ROUGH act] eval=7 norm=4.326 range=[-1.485, 2.736] cmd=[1.00,0.00,-0.05]
+  [ROUGH act] eval=8 norm=4.940 range=[-2.236, 2.839] cmd=[1.00,0.00,-0.07]
+  [ROUGH act] eval=9 norm=4.541 range=[-1.599, 2.485] cmd=[1.00,0.00,-0.08]
+  [  35/40] boulder_rough_ep0034  FELL      progress= 10.7m  zone=2  time=20.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.26290858 -0.68688488 -0.55183846]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.674, 0.452]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.870 range=[-4.187, 2.856] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.656 range=[-4.209, 4.467] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=9.227 range=[-3.618, 4.919] cmd=[1.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.972 range=[-2.986, 5.338] cmd=[1.00,0.00,0.04]
+  [ROUGH act] eval=4 norm=6.546 range=[-3.798, 3.641] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=5 norm=8.463 range=[-2.350, 7.740] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=6 norm=9.007 range=[-2.508, 7.419] cmd=[1.00,0.00,0.19]
+  [ROUGH act] eval=7 norm=9.004 range=[-2.461, 6.605] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=8 norm=7.678 range=[-2.234, 5.023] cmd=[1.00,0.00,0.25]
+  [ROUGH act] eval=9 norm=6.587 range=[-2.160, 3.882] cmd=[1.00,0.00,0.26]
+  [  36/40] boulder_rough_ep0035  FELL      progress= 11.3m  zone=2  time=22.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01912953 -0.1252887  -0.86594731]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.188, 0.729]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.302 range=[-4.242, 2.585] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.546 range=[-3.920, 4.440] cmd=[1.00,0.00,1.55]
+  [ROUGH act] eval=2 norm=10.646 range=[-4.281, 5.699] cmd=[1.00,0.00,0.10]
+  [ROUGH act] eval=3 norm=9.206 range=[-4.566, 4.880] cmd=[1.00,0.00,0.16]
+  [ROUGH act] eval=4 norm=8.960 range=[-3.756, 7.147] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=5 norm=9.854 range=[-2.965, 8.237] cmd=[1.00,0.00,0.30]
+  [ROUGH act] eval=6 norm=8.705 range=[-2.045, 6.668] cmd=[1.00,0.00,0.34]
+  [ROUGH act] eval=7 norm=7.783 range=[-1.706, 5.372] cmd=[1.00,0.00,0.36]
+  [ROUGH act] eval=8 norm=7.029 range=[-1.711, 4.638] cmd=[1.00,0.00,0.36]
+  [ROUGH act] eval=9 norm=6.634 range=[-1.798, 4.225] cmd=[1.00,0.00,0.36]
+  [  37/40] boulder_rough_ep0036  FELL      progress= 14.5m  zone=2  time=30.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.44757625  0.00183579 -0.33885109]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.892, 0.529]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.161 range=[-2.358, 1.824] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.920 range=[-2.282, 5.733] cmd=[1.00,0.00,-0.44]
+  [ROUGH act] eval=2 norm=3.780 range=[-1.108, 2.962] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=3 norm=3.310 range=[-1.208, 1.771] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=4 norm=6.653 range=[-2.790, 4.959] cmd=[1.00,0.00,-0.24]
+  [ROUGH act] eval=5 norm=7.722 range=[-2.604, 5.415] cmd=[1.00,0.00,-0.28]
+  [ROUGH act] eval=6 norm=7.531 range=[-2.517, 5.124] cmd=[1.00,0.00,-0.31]
+  [ROUGH act] eval=7 norm=7.029 range=[-2.146, 4.796] cmd=[1.00,0.00,-0.35]
+  [ROUGH act] eval=8 norm=6.352 range=[-2.130, 4.378] cmd=[1.00,0.00,-0.37]
+  [ROUGH act] eval=9 norm=5.383 range=[-1.726, 3.616] cmd=[1.00,0.00,-0.40]
+  [  38/40] boulder_rough_ep0037  TIMEOUT   progress= 22.9m  zone=3  time=101.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01648537 -0.01505915 -0.04002991]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.032, 0.809]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.519 range=[-1.447, 1.282] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=3.364 range=[-2.095, 1.560] cmd=[1.00,0.00,2.00]
+  [ROUGH act] eval=2 norm=4.618 range=[-2.142, 2.386] cmd=[1.00,0.00,-0.06]
+  [ROUGH act] eval=3 norm=6.003 range=[-2.227, 3.865] cmd=[1.00,0.00,-0.10]
+  [ROUGH act] eval=4 norm=6.248 range=[-2.371, 3.614] cmd=[1.00,0.00,-0.13]
+  [ROUGH act] eval=5 norm=6.109 range=[-2.149, 3.818] cmd=[1.00,0.00,-0.15]
+  [ROUGH act] eval=6 norm=5.962 range=[-2.285, 3.771] cmd=[1.00,0.00,-0.18]
+  [ROUGH act] eval=7 norm=5.913 range=[-2.245, 3.723] cmd=[1.00,0.00,-0.20]
+  [ROUGH act] eval=8 norm=5.955 range=[-2.189, 3.725] cmd=[1.00,0.00,-0.21]
+  [ROUGH act] eval=9 norm=5.994 range=[-2.121, 3.703] cmd=[1.00,0.00,-0.22]
+  [  39/40] boulder_rough_ep0038  TIMEOUT   progress= 22.3m  zone=3  time=99.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.07949795  0.40498719 -0.51401883]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.736, 0.583]
+  height_scan range = [0.000, 0.000]
+  height_scan mean  = 0.000
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.878 range=[-1.500, 1.118] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.579 range=[-1.659, 2.948] cmd=[1.00,0.00,-2.00]
+  [ROUGH act] eval=2 norm=5.723 range=[-2.182, 3.715] cmd=[1.00,0.00,0.09]
+  [ROUGH act] eval=3 norm=6.961 range=[-2.709, 4.622] cmd=[1.00,0.00,0.15]
+  [ROUGH act] eval=4 norm=7.573 range=[-2.177, 5.137] cmd=[1.00,0.00,0.20]
+  [ROUGH act] eval=5 norm=7.505 range=[-2.320, 4.831] cmd=[1.00,0.00,0.22]
+  [ROUGH act] eval=6 norm=7.008 range=[-2.320, 4.409] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=7 norm=6.448 range=[-2.221, 4.165] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=8 norm=6.134 range=[-2.041, 4.017] cmd=[1.00,0.00,0.23]
+  [ROUGH act] eval=9 norm=6.011 range=[-1.757, 3.989] cmd=[1.00,0.00,0.22]
+  [  40/40] boulder_rough_ep0039  TIMEOUT   progress= 21.6m  zone=3  time=98.0s
+Saved 40 episodes to C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/production_2026-02-19_17-46-36\boulder_rough_episodes.jsonl
+
+============================================================
+  Evaluation complete!
+  Total episodes: 40
+  Total time:     2168.3s (36.1min)
+  Avg per episode: 54.2s
+  Results saved to: C:/Users/Gabriel Santiago/OneDrive/Desktop/Capstone Project/Capstone/Experiments/Alex/4_env_test/results/production_2026-02-19_17-46-36
+============================================================
+
+Exiting (skipping SimulationApp.close to avoid GPU hang).
