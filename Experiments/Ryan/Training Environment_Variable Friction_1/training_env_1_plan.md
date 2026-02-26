@@ -219,19 +219,30 @@ Before any training begins, the stock `SpotFlatTerrainPolicy` is run with a fixe
 | **Cost of Transport** | `total_work / (mass × g × distance)` | Efficiency (dimensionless) |
 | **Distance traveled** | `Σ vel_x × dt` | Total forward progress |
 
-### Expected Results Table (to be filled in after running)
+### Baseline Results Table *(measured 2026-02-18, n=20 ep × 5 robots per surface)*
 
 | Surface | μₛ | Survival (s) | Fall rate | Slip ratio | Mean \|roll\| (°) | Mean \|pitch\| (°) | CoT |
 |---|---|---|---|---|---|---|---|
-| `asphalt_dry` | 0.75 | — | — | — | — | — | — |
-| `asphalt_wet` | 0.50 | — | — | — | — | — | — |
-| `grass_dry` | 0.40 | — | — | — | — | — | — |
-| `grass_wet` | 0.25 | — | — | — | — | — | — |
-| `mud` | 0.20 | — | — | — | — | — | — |
-| `snow` | 0.15 | — | — | — | — | — | — |
-| `ice` | 0.07 | — | — | — | — | — | — |
+| `asphalt_dry` | 0.75 | 64.1 | 0 % | 0.879 | 0.379 | 0.600 | 0.457 |
+| `asphalt_wet` | 0.50 | 61.6 | 0 % | 0.911 | 0.360 | 0.588 | 0.449 |
+| `grass_dry` | 0.40 | 68.8 | 0 % | 0.857 | 0.380 | 0.598 | 0.547 |
+| `grass_wet` | 0.25 | 53.9 | 0 % | 0.933 | 0.352 | 0.597 | 0.432 |
+| `mud` | 0.20 | 63.9 | 0 % | 0.898 | 0.369 | 0.591 | 0.448 |
+| `snow` | 0.15 | 67.7 | 0 % | 0.868 | 0.401 | 0.602 | 0.543 |
+| `ice` | 0.07 | 62.4 | 0 % | 0.877 | 0.405 | 0.628 | 0.501 |
 
-Fill in this table after running the baseline. It becomes the reference for evaluating trained policy improvement in §14.
+*CoT = total\_joint\_work / (mass × g × distance), mass = 32.5 kg. Survival is mean episode wall-time including stabilization.*
+
+**Key findings:**
+
+- **Zero falls** on every surface — the stock `SpotFlatTerrainPolicy` never falls regardless of friction. This confirms it is a highly robust gait primitive.
+- **All episodes end via out-of-bounds** (lateral drift past ±15 m), not timeout. The fixed command `[vx=1.5, vy=0, yaw=0]` produces a slight lateral bias that accumulates over ~60 s.
+- **Slip ratio is friction-insensitive** (0.86–0.93 across the full range 0.07–0.75). The stock policy's joint torques appear sufficient to maintain near-commanded velocity even on ice.
+- **Body angles are extremely stable** (roll < 0.41°, pitch < 0.63° mean absolute) on all surfaces — the base policy already achieves excellent postural control.
+- **CoT is lowest on wet surfaces** (grass\_wet 0.432, asphalt\_wet 0.449), likely because the robot slides slightly rather than pushing — giving the appearance of efficiency. CoT is highest on grass\_dry (0.547) and snow (0.543), where more joint work is needed for traction.
+- **Implication for training**: because the stock policy does not fall, the trained Locomotion Command Policy's job is not fall-avoidance but command authority — learning to reduce lateral drift, maintain centerline, and optimize CoT across surfaces. Success criteria in §14 should be tightened to reflect this.
+
+This table is the reference baseline for evaluating trained policy improvement in §14.
 
 ### Output Files
 

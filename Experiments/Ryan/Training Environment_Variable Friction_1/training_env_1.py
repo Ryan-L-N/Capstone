@@ -138,6 +138,8 @@ def set_ground_friction(static_mu: float, dynamic_mu: float) -> bool:
         if attr_static.IsValid() and attr_dynamic.IsValid():
             attr_static.Set(float(static_mu))
             attr_dynamic.Set(float(dynamic_mu))
+            print(f"[Friction] Strategy 1 OK  path={prim.GetPath()}  "
+                  f"readback us={attr_static.Get():.4f}  uk={attr_dynamic.Get():.4f}")
             return True
 
     # Strategy 2: UsdPhysics.MaterialAPI applied to a prim
@@ -150,6 +152,8 @@ def set_ground_friction(static_mu: float, dynamic_mu: float) -> bool:
                 if sf.IsValid() and df.IsValid():
                     sf.Set(float(static_mu))
                     df.Set(float(dynamic_mu))
+                    print(f"[Friction] Strategy 2 OK  path={prim.GetPath()}  "
+                          f"readback us={sf.Get():.4f}  uk={df.Get():.4f}")
                     return True
         except Exception:
             pass
@@ -161,6 +165,8 @@ def set_ground_friction(static_mu: float, dynamic_mu: float) -> bool:
         if attr_static.IsValid() and attr_dynamic.IsValid():
             attr_static.Set(float(static_mu))
             attr_dynamic.Set(float(dynamic_mu))
+            print(f"[Friction] Strategy 3 OK  path={prim.GetPath()}  "
+                  f"readback us={attr_static.Get():.4f}  uk={attr_dynamic.Get():.4f}")
             return True
 
     print(
