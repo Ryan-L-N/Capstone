@@ -4,6 +4,13 @@
 **Server:** `172.24.254.24` (hostname: `ai2ct2`)  
 **Login:** `ssh t2user@172.24.254.24` — Password: `!QAZ@WSX3edc4rfv`
 
+# Out of Band Recovery & BMC
+
+**BMC IP:** `172.24.254.24`
+**Username:** `ADMIN` (Case Sensitive)
+**Password:** `VORURHWKXB`
+
+
 ---
 
 ## Quick Reference
