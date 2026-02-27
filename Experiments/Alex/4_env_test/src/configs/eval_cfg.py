@@ -1,6 +1,7 @@
 """Evaluation configuration constants for the 4-environment capstone test.
 
 All values derived from rough_env_cfg.py and LESSONS_LEARNED.md.
+Supports both Spot and Vision60 robots.
 """
 
 from .zone_params import ZONE_PARAMS, ZONE_LENGTH, ARENA_WIDTH, ARENA_LENGTH, NUM_ZONES
@@ -20,12 +21,41 @@ COMPLETION_X = 49.0             # meters — x >= this = completed
 # --- Arena ---
 SPAWN_POSITION = (0.0, 15.0, 0.6)  # center of Y-axis, 0.6m above ground
 
-# --- Robot PD gains (from LESSONS_LEARNED.md deployment checklist) ---
+# =============================================================================
+# Spot PD gains (default — from LESSONS_LEARNED.md deployment checklist)
+# =============================================================================
 STIFFNESS = 60.0                # Kp
 DAMPING = 1.5                   # Kd
 ACTION_SCALE = 0.25
 HIP_EFFORT_LIMIT = 45.0        # N·m
 KNEE_EFFORT_LIMIT = 110.0      # N·m
+
+# =============================================================================
+# Vision60 PD gains (from vision60_asset_cfg.py / URDF)
+# =============================================================================
+V60_STIFFNESS = 80.0            # Kp
+V60_DAMPING = 2.0               # Kd
+V60_ACTION_SCALE = 0.25
+V60_EFFORT_LIMIT = 87.5         # N·m (uniform, all joints)
+V60_SPAWN_POSITION = (0.0, 15.0, 0.65)  # slightly higher than Spot
+
+# --- Per-robot config dict for easy lookup ---
+ROBOT_CONFIGS = {
+    "spot": {
+        "stiffness": STIFFNESS,
+        "damping": DAMPING,
+        "action_scale": ACTION_SCALE,
+        "spawn_position": SPAWN_POSITION,
+        "fall_threshold": FALL_THRESHOLD,
+    },
+    "vision60": {
+        "stiffness": V60_STIFFNESS,
+        "damping": V60_DAMPING,
+        "action_scale": V60_ACTION_SCALE,
+        "spawn_position": V60_SPAWN_POSITION,
+        "fall_threshold": 0.20,  # Vision60 is taller — higher threshold
+    },
+}
 
 # --- Observation space ---
 OBS_DIM = 235                   # 48 proprioceptive + 187 height scan
