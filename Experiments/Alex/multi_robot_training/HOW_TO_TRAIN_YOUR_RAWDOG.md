@@ -19,7 +19,8 @@
 9. [The Bug Museum: Every Disaster and How We Survived](#9-the-bug-museum-every-disaster-and-how-we-survived)
 10. [Lessons That Will Save Your Future Self](#10-lessons-that-will-save-your-future-self)
 11. [How Good Engineers Think](#11-how-good-engineers-think)
-12. [Quick Reference: Commands and Paths](#12-quick-reference-commands-and-paths)
+12. [Training Run Log](#12-training-run-log)
+13. [Quick Reference: Commands and Paths](#13-quick-reference-commands-and-paths)
 
 ---
 
@@ -727,6 +728,78 @@ Importing `omni.isaac.core`, `isaaclab.envs`, or even `torch.cuda` before `AppLa
 
 ---
 
+### Bug #11: "The Hand-Tuned Weights That Were 2-6x Too Harsh"
+
+**What happened:** After fixing Bugs #3 (do-nothing policy) and #4 (Spot's instant death), we pushed reward weights in the *opposite* direction -- boosting positive rewards and adjusting penalties based on intuition. This seemed to fix the do-nothing problem, but Spot still couldn't learn. By iteration 1,750 the training metrics told a familiar story:
+
+```
+body_contact termination:  12.6% (iter 0) --> 99.9% (iter 1750)
+mean episode length:       27.0 steps     --> 3.9 steps
+terrain_levels:            3.39           --> 0.009
+```
+
+The robot was falling *faster* as training progressed. Not just failing to learn -- actively getting worse.
+
+**Root cause:** Our "intuitive" reward weights were significantly harsher than the paper's empirically validated coefficients. Here's the side-by-side comparison:
+
+| Term | Our Weight | Paper Weight | How Wrong |
+|------|-----------|-------------|-----------|
+| `base_linear_velocity` | +12.0 | +5.0 | 2.4x too high |
+| `gait` | +15.0 | +5.0 | 3x too high |
+| `air_time` | +3.0 | +5.0 | 0.6x (too low) |
+| `foot_clearance` | +3.5 | +0.75 | 4.7x too high |
+| `base_orientation` | -5.0 | -3.0 | 1.7x too harsh |
+| `base_motion` | -4.0 | -2.0 | 2x too harsh |
+| `foot_slip` | -3.0 | -0.5 | 6x too harsh |
+| `joint_pos` | -2.0 | -0.7 | 2.9x too harsh |
+| `joint_acc` | -5e-4 | -1e-4 | 5x too harsh |
+| `joint_torques` | -2e-3 | -5e-4 | 4x too harsh |
+| `joint_vel` | -5e-2 | -1e-2 | 5x too harsh |
+| `dof_pos_limits` | -10.0 | -5.0 | 2x too harsh |
+| `body_height_tracking` | -2.0 | -1.0 | 2x too harsh |
+| `stumble` | -0.3 | -0.1 | 3x too harsh |
+
+**The subtle trap:** After fixing Bug #3, we overcorrected. We cranked up `base_linear_velocity` to +12.0 and `gait` to +15.0, thinking bigger positive rewards would overpower the penalties. But we also left the penalties much higher than the paper's values. The result was a chaotic reward landscape where the robot was being *pulled* toward movement by huge rewards and simultaneously *punished* for every aspect of actually moving. The gradient was incoherent -- not "do nothing" this time, but "do everything at once and crash."
+
+**What made it worse:** We also had parameter mismatches beyond just weights:
+- `mode_time`: 0.3 (ours) vs 0.2 (paper) -- longer required air time made gait harder to achieve
+- `velocity_threshold`: 0.5 (ours) vs 0.25 (paper) -- required faster speed before rewarding gait
+- `target_height` (foot clearance): 0.10 (ours) vs 0.125 (paper) -- different clearance expectation
+- `joint_names` for `joint_acc`/`joint_vel`: `".*_h[xy]"` (ours, hip joints only) vs `".*"` (paper, all joints)
+
+These parameter differences meant the reward functions weren't just scaled wrong -- they were *shaped* differently.
+
+**The fix:** We went back to the paper's source code (`Robust_RL/quadruped_locomotion/.../spot_reward_env_cfg.py`) and copied every single coefficient and parameter verbatim. No interpretation, no "but I think this should be higher." Just copy-paste the numbers that took the paper's authors months to validate.
+
+**The lesson:** When you have a published paper with working coefficients, **use them exactly.** Human intuition about reward magnitudes is terrible. A penalty of -0.5 "feels" too small for foot slip, so you bump it to -3.0 -- but the paper's authors ran dozens of experiments to find that -0.5 is exactly right for the reward *landscape* they designed. Each term interacts with every other term. Changing one coefficient ripples through the entire optimization. Unless you have time to run your own hyperparameter sweep, trust the people who already did.
+
+---
+
+### Bug #12: "GPU Contention -- Two Isaac Sims Walk, Both Crawl"
+
+**What happened:** We launched Spot and Vision60 training simultaneously on the same H100 (96GB). Both processes ran -- no crashes this time (unlike Bug #9 which was a total crash). But each iteration took ~27 seconds instead of the expected ~15 seconds. Both robots were training at half speed.
+
+**Root cause:** Two Isaac Sim instances running GPU PhysX on the same device don't crash (if you're lucky), but they time-slice the GPU. With both active:
+- GPU utilization: 83% at only 139W/400W (low for H100)
+- Each process got roughly half the compute bandwidth
+- Collection phase (PhysX stepping) doubled from ~10s to ~21s per iteration
+
+**The math that killed our timeline:**
+```
+Parallel (both at 27s/iter):  V60 is bottleneck at 44s/iter = ~15 days total
+Sequential (one at ~16s/iter): Spot 4.4d + V60 7.4d = ~12 days total
+```
+
+Sequential training is 3 days *faster* than parallel on a single GPU. The parallelism overhead cost more than it saved.
+
+**The fix:** Kill Vision60, let Spot have the full GPU. Spot's iteration time immediately dropped from 27s to 17.2s (collection: 20.8s to 10.3s, fps: 10,921 to 18,588). Run them sequentially.
+
+**Bonus horror:** When we killed Vision60, it became a D-state zombie holding 20.7 GB of VRAM (Bug #6 strikes again). The zombie wasn't computing anymore, so Spot got the compute bandwidth back, but the VRAM was still locked. Eventually required a GPU reset.
+
+**The lesson:** On a single GPU, sequential beats parallel for heavy simulation workloads. The GPU can't meaningfully parallelize two independent PhysX simulations -- it just context-switches between them. Save the "run both at once" strategy for multi-GPU machines with `CUDA_VISIBLE_DEVICES` isolation.
+
+---
+
 ## 10. Lessons That Will Save Your Future Self
 
 ### On Reward Engineering
@@ -774,6 +847,20 @@ Importing `omni.isaac.core`, `isaaclab.envs`, or even `torch.cuda` before `AppLa
 **17. `@configclass` is your friend.** Isaac Lab's config system is verbose, but it catches type errors at initialization, serializes to YAML for reproducibility, and makes experiment configs diffable. Embrace the verbosity.
 
 **18. Monkey-patching is pragmatic.** Forking RSL-RL to add cosine LR would create merge conflicts on every upstream update. Wrapping `runner.alg.update()` achieves the same thing with zero library modifications and clear isolation of your changes.
+
+### On Trusting Published Work
+
+**19. Use the paper's exact coefficients. Not "inspired by." Exact.** We spent days hand-tuning reward weights based on intuition. Every attempt failed -- too harsh, too lenient, reward conflicts, degenerate policies. The paper's authors spent *months* finding the right balance across all 19 terms. Their coefficients encode a working equilibrium that isn't obvious from reading the equations. Copy the numbers exactly. Tune later if needed, but start from a known-working baseline.
+
+**20. Reward weights are not independent knobs.** Changing `foot_slip` from -0.5 to -3.0 doesn't just make slip 6x more penalized. It changes the relative gradient contribution of every other term. The policy will now over-optimize for slip avoidance at the expense of velocity tracking, gait timing, and everything else. Reward engineering is system design, not parameter tuning.
+
+**21. Check parameters, not just weights.** Two reward functions with the same weight can behave completely differently if their internal parameters differ. Our `mode_time=0.3` vs the paper's `mode_time=0.2` changed when the gait reward activated. Our `velocity_threshold=0.5` vs the paper's `0.25` changed what counted as "moving." These aren't cosmetic differences -- they reshape the entire reward surface.
+
+### On GPU Resource Management
+
+**22. Sequential beats parallel on a single GPU for heavy simulations.** Two Isaac Sim instances on one H100 each ran at half speed. Sequential was 3 days faster over the full training horizon. GPU PhysX can't meaningfully parallelize independent simulations -- it just context-switches.
+
+**23. Zombie processes hold VRAM but not compute.** A D-state zombie from a killed Isaac Sim holds GPU memory (preventing new allocations) but doesn't consume compute cycles. If you have headroom, the remaining process will speed up. But eventually you need to reset the GPU to reclaim the memory.
 
 ---
 
@@ -829,7 +916,95 @@ Thinking about failure modes before they happen is the difference between a 2-mi
 
 ---
 
-## 12. Quick Reference: Commands and Paths
+## 12. Training Run Log
+
+This is the chronological record of every significant training attempt, what happened, and what we changed. This is the raw empirical history of the project.
+
+### Trial 1: First Multi-Robot Launch (Feb 27, 2026)
+
+**Config:** Custom-tuned weights (Bug #3 fix: boosted positive rewards, reduced some penalties)
+**Envs:** 10,000 per robot | **Hardware:** H100 96GB (shared between both robots)
+**Setup:** Spot + Vision60 launched simultaneously in separate screen sessions
+
+**What happened:**
+- Both processes launched successfully (no PhysX crash this time -- Bug #9 was intermittent)
+- Both running at half speed due to GPU contention (~27s/iter instead of ~15s)
+- Vision60 was progressing faster than Spot in early iterations
+- Decision: Kill Vision60 to give Spot full GPU (Spot is priority)
+- V60 became D-state zombie holding 20.7 GB VRAM (Bug #6)
+- Spot sped up to 17.2s/iter with solo GPU access
+
+**Spot results after ~1,750 iterations:**
+```
+body_contact termination:  12.6% --> 99.9%
+mean episode length:       27.0  --> 3.9 steps
+terrain_levels:            3.39  --> 0.009
+```
+
+**Diagnosis:** Reward weights 2-6x harsher than paper (Bug #11). Robot getting worse, not better.
+
+**Outcome:** FAILED -- killed training, deployed paper-matched coefficients.
+
+---
+
+### Trial 2: Paper-Matched Coefficients (Feb 28, 2026) -- IN PROGRESS
+
+**Config:** Exact paper coefficients from `Robust_RL/quadruped_locomotion/.../spot_reward_env_cfg.py`
+**Envs:** 10,000 Spot only | **Hardware:** H100 96GB (solo, clean GPU after reset)
+**Log dir:** `spot_robust_ppo/2026-02-28_08-52-14/`
+
+**Key coefficient changes from Trial 1:**
+```
+base_linear_velocity:  +12.0 --> +5.0    (paper)
+gait:                  +15.0 --> +5.0    (paper)
+air_time:              +3.0  --> +5.0    (paper)
+foot_clearance:        +3.5  --> +0.75   (paper)
+foot_slip:             -3.0  --> -0.5    (paper)
+base_orientation:      -5.0  --> -3.0    (paper)
+base_motion:           -4.0  --> -2.0    (paper)
+joint_pos:             -2.0  --> -0.7    (paper)
+joint_acc:             -5e-4 --> -1e-4   (paper)
+joint_torques:         -2e-3 --> -5e-4   (paper)
+joint_vel:             -5e-2 --> -1e-2   (paper)
+dof_pos_limits:        -10.0 --> -5.0    (paper)
+body_height:           -2.0  --> -1.0    (paper)
+stumble:               -0.3  --> -0.1    (paper)
+```
+
+Also fixed parameter mismatches:
+- `mode_time`: 0.3 --> 0.2 (paper)
+- `velocity_threshold`: 0.5 --> 0.25 (paper)
+- `target_height`: 0.10 --> 0.125 (paper)
+- `joint_names` for acc/vel: `".*_h[xy]"` --> `".*"` (paper, all joints not just hips)
+
+**Performance:** ~16s/iter, ~18,500 fps, 49C GPU temp
+
+**Early metrics (first iterations):**
+- body_contact: 99.98% (expected -- fresh random weights, robot hasn't learned yet)
+- Penalty magnitudes noticeably smaller than Trial 1
+- ETA: ~16.5 hours for 30,000 iterations
+
+**Status:** RUNNING. Check TensorBoard at `http://172.24.254.24:6006`
+
+**What to watch for:**
+- body_contact should start dropping below 90% by iter ~500 (sign of learning)
+- episode_length should climb above 10 by iter ~1000
+- terrain_levels should start advancing by iter ~2000
+- If none of these happen by iter 3000, the config still needs work
+
+---
+
+### Trial 3: Vision60 (PLANNED)
+
+After Spot's Trial 2 completes (or reaches a good checkpoint), relaunch Vision60 with:
+- Paper-matched coefficients adapted for V60 body parameters
+- V60-specific adjustments: reduced air_time, foot_slip, base_motion per heavier robot dynamics
+- Progressive DR (mild to aggressive over 15K iterations)
+- Full solo GPU
+
+---
+
+## 13. Quick Reference: Commands and Paths
 
 ### Training Commands (H100)
 

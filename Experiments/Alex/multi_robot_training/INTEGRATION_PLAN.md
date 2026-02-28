@@ -38,6 +38,8 @@ The existing `100hr_env_run/`, `vision60_training/`, and `hybrid_ST_RL/` pipelin
 10. [Vision60 Weight Adjustments](#10-vision60-weight-adjustments)
 11. [Verification Plan](#11-verification-plan)
 12. [Known Gotchas](#12-known-gotchas)
+13. [Training Trial Log](#13-training-trial-log)
+14. [Lessons Learned from Trials](#14-lessons-learned-from-trials)
 
 ---
 
@@ -64,30 +66,32 @@ The existing `100hr_env_run/`, `vision60_training/`, and `hybrid_ST_RL/` pipelin
 
 **Grid:** 10 rows (difficulty 0-9) × 40 columns (variety) = 400 patches, 8m × 8m each.
 
-### 1.2 Reward Terms (19 Total)
+### 1.2 Reward Terms (19 Total) — Paper-Matched Coefficients
+
+> **Note:** These weights were updated on Feb 28, 2026 to match the paper's exact values. Our original hand-tuned weights were 2-6x too harsh and caused training collapse (see Section 13, Trial 1).
 
 **7 Positive (task) rewards:**
-- `base_linear_velocity` (7.0) — track commanded forward/lateral speed
-- `gait` (10.0) — enforce trot gait timing
+- `base_linear_velocity` (5.0) — track commanded forward/lateral speed
+- `gait` (5.0) — enforce trot gait timing (mode_time=0.2, vel_thresh=0.25)
 - `base_angular_velocity` (5.0) — track commanded yaw rate
-- `foot_clearance` (3.5) — encourage swing foot lift
-- `air_time` (3.0 Spot / 2.0 V60) — encourage proper gait timing
+- `foot_clearance` (0.75) — encourage swing foot lift (target=0.125m)
+- `air_time` (5.0 Spot / 3.0 V60) — encourage proper gait timing
 - `velocity_modulation` (2.0) — terrain-adaptive speed tracking
 - `vegetation_drag` (-0.001) — physics modifier + small penalty
 
 **12 Negative (penalty) rewards:**
-- `base_orientation` (-5.0) — penalize tilt
-- `base_motion` (-4.0 / -3.0) — penalize body bouncing
-- `foot_slip` (-3.0 / -2.0) — penalize foot sliding during contact
-- `action_smoothness` (-2.0) — penalize jerky actions
-- `body_height_tracking` (-2.0) — keep nominal height
-- `stumble` (-2.0) — penalize hitting obstacles at knee height
+- `base_orientation` (-3.0) — penalize tilt
+- `base_motion` (-2.0 / -1.5) — penalize body bouncing
+- `foot_slip` (-0.5 / -0.3) — penalize foot sliding during contact
+- `action_smoothness` (-1.0) — penalize jerky actions
+- `body_height_tracking` (-1.0) — keep nominal height
+- `stumble` (-0.1) — penalize hitting obstacles at knee height
 - `air_time_variance` (-1.0) — symmetric gait enforcement
-- `joint_pos` (-1.0) — penalize deviation from default
-- `contact_force_smoothness` (-0.5) — gentle foot placement
-- `joint_vel` (-0.05 / -0.03) — smooth joint movement
-- `joint_torques` (-0.002) — energy efficiency
-- `joint_acc` (-0.0005) — smooth acceleration
+- `joint_pos` (-0.7) — penalize deviation from default (all joints, vel_thresh=0.25)
+- `contact_force_smoothness` (-0.01) — gentle foot placement
+- `joint_vel` (-0.01) — smooth joint movement (all joints, not just hips)
+- `joint_torques` (-5e-4) — energy efficiency
+- `joint_acc` (-1e-4) — smooth acceleration (all joints, not just hips)
 
 ### 1.3 Cosine LR Annealing
 
@@ -326,29 +330,45 @@ The 4-arena evaluation pipeline (`4_env_test/`) can be extended by:
 
 ## 8. Reward Term Reference
 
-| # | Term | Type | Weight (Spot) | Weight (V60) | Source |
-|---|------|------|--------------|-------------|--------|
-| 1 | `base_linear_velocity` | + | 7.0 | 7.0 | spot_mdp |
-| 2 | `gait` | + | 10.0 | 10.0 | spot_mdp (GaitReward) |
-| 3 | `base_angular_velocity` | + | 5.0 | 5.0 | spot_mdp |
-| 4 | `foot_clearance` | + | 3.5 | 3.5 | spot_mdp |
-| 5 | `air_time` | + | 3.0 | **2.0** | spot_mdp |
-| 6 | `velocity_modulation` | + | 2.0 | 2.0 | shared/reward_terms |
-| 7 | `vegetation_drag` | - | -0.001 | -0.001 | shared/reward_terms |
-| 8 | `base_orientation` | - | -5.0 | -5.0 | spot_mdp |
-| 9 | `base_motion` | - | -4.0 | **-3.0** | spot_mdp |
-| 10 | `foot_slip` | - | -3.0 | **-2.0** | spot_mdp |
-| 11 | `action_smoothness` | - | -2.0 | -2.0 | spot_mdp |
-| 12 | `body_height_tracking` | - | -2.0 | -2.0 | shared/reward_terms |
-| 13 | `stumble` | - | -2.0 | -2.0 | shared/reward_terms |
-| 14 | `air_time_variance` | - | -1.0 | -1.0 | spot_mdp |
-| 15 | `joint_pos` | - | -1.0 | -1.0 | spot_mdp |
-| 16 | `contact_force_smoothness` | - | -0.5 | -0.5 | shared/reward_terms |
-| 17 | `joint_vel` | - | -0.05 | **-0.03** | spot_mdp |
-| 18 | `joint_torques` | - | -0.002 | -0.002 | spot_mdp |
-| 19 | `joint_acc` | - | -0.0005 | -0.0005 | spot_mdp |
+> **IMPORTANT:** These are the **paper-matched** coefficients deployed in Trial 2 (Feb 28, 2026). The original custom-tuned values from Trial 1 were 2-6x too harsh and caused training collapse. See Section 13 for the full trial history.
 
-**Bold** = adjusted for Vision60.
+| # | Term | Type | Weight (Spot) | Weight (V60) | Key Params | Source |
+|---|------|------|--------------|-------------|------------|--------|
+| 1 | `base_linear_velocity` | + | 5.0 | 5.0 | std=0.25 | spot_mdp |
+| 2 | `gait` | + | 5.0 | 5.0 | std=0.1, max_err=0.2, vel_thresh=0.25 | spot_mdp (GaitReward) |
+| 3 | `base_angular_velocity` | + | 5.0 | 5.0 | std=0.25 | spot_mdp |
+| 4 | `foot_clearance` | + | 0.75 | 0.75 | std=0.05, tanh=2.0, target=0.125 | spot_mdp |
+| 5 | `air_time` | + | 5.0 | **3.0** | mode_time=0.2, vel_thresh=0.25 | spot_mdp |
+| 6 | `velocity_modulation` | + | 2.0 | 2.0 | — | shared/reward_terms |
+| 7 | `vegetation_drag` | phys | -0.001 | -0.001 | — | shared/reward_terms |
+| 8 | `action_smoothness` | - | -1.0 | -1.0 | — | spot_mdp |
+| 9 | `air_time_variance` | - | -1.0 | -1.0 | vel_thresh=0.25 | spot_mdp |
+| 10 | `base_motion` | - | -2.0 | **-1.5** | — | spot_mdp |
+| 11 | `base_orientation` | - | -3.0 | -3.0 | — | spot_mdp |
+| 12 | `foot_slip` | - | -0.5 | **-0.3** | vel_thresh=0.25 | spot_mdp |
+| 13 | `joint_acc` | - | -1e-4 | -1e-4 | joint_names=".*" | spot_mdp |
+| 14 | `joint_pos` | - | -0.7 | -0.7 | joint_names=".*", stand_still=5.0, vel_thresh=0.25 | spot_mdp |
+| 15 | `dof_pos_limits` | - | -5.0 | -5.0 | joint_names=".*" | mdp |
+| 16 | `joint_torques` | - | -5e-4 | -5e-4 | — | spot_mdp |
+| 17 | `joint_vel` | - | -1e-2 | -1e-2 | joint_names=".*" | spot_mdp |
+| 18 | `body_height_tracking` | - | -1.0 | -1.0 | target=0.42 (Spot) / 0.55 (V60) | shared/reward_terms |
+| 19 | `contact_force_smoothness` | - | -0.01 | -0.01 | — | shared/reward_terms |
+| 20 | `stumble` | - | -0.1 | -0.1 | knee_height=0.15 (Spot) / 0.20 (V60) | shared/reward_terms |
+
+**Bold** = adjusted for Vision60 (heavier robot, different dynamics).
+
+### What Changed from Our Original Weights (Trial 1 → Trial 2)
+
+| Term | Trial 1 (custom) | Trial 2 (paper) | Factor |
+|------|------------------|-----------------|--------|
+| `base_linear_velocity` | +12.0 | +5.0 | 2.4x lower |
+| `gait` | +15.0 | +5.0 | 3x lower |
+| `foot_clearance` | +3.5 | +0.75 | 4.7x lower |
+| `foot_slip` | -3.0 | -0.5 | 6x gentler |
+| `joint_acc` | -5e-4 | -1e-4 | 5x gentler |
+| `joint_vel` | -5e-2 | -1e-2 | 5x gentler |
+| `joint_torques` | -2e-3 | -5e-4 | 4x gentler |
+| `joint_pos` | -2.0 | -0.7 | 2.9x gentler |
 
 ---
 
@@ -368,14 +388,13 @@ The 4-arena evaluation pipeline (`4_env_test/`) can be extended by:
 
 ## 10. Vision60 Weight Adjustments
 
-Vision60 is lighter (13.6 kg vs ~32 kg for Spot) but has different dynamics:
+Vision60 is lighter (13.6 kg vs ~32 kg for Spot) but has different dynamics. Starting from the paper-matched Spot coefficients:
 
-| Term | Spot | V60 | Rationale |
-|------|------|-----|-----------|
-| `air_time` | 3.0 | 2.0 | Lighter → easier airtime, reduce bouncing |
-| `foot_slip` | -3.0 | -2.0 | Different traction characteristics |
-| `base_motion` | -4.0 | -3.0 | Different inertial properties |
-| `joint_vel` | -0.05 | -0.03 | Different joint dynamics |
+| Term | Spot (paper) | V60 (adjusted) | Rationale |
+|------|-------------|----------------|-----------|
+| `air_time` | 5.0 | 3.0 | Lighter → easier airtime, reduce bouncing |
+| `foot_slip` | -0.5 | -0.3 | Different traction characteristics |
+| `base_motion` | -2.0 | -1.5 | Different inertial properties |
 
 ### Tuning Protocol (4 phases)
 
@@ -419,7 +438,87 @@ Note: The current implementation enables all 19 terms from the start. Use the tu
 10. **W&B requires `pip install wandb` and `wandb login`** on H100 (one-time setup)
 11. **Obs normalization:** Enabled for Vision60, disabled for Spot (matching successful training configs)
 12. **Joint reset function:** Spot uses `spot_mdp.reset_joints_around_default`, Vision60 uses generic `mdp.reset_joints_by_offset`
+13. **Don't hand-tune reward weights.** Use the paper's exact coefficients. Our custom weights failed twice — once too lenient (do-nothing policy), once too harsh (training collapse). The paper's values encode a working equilibrium.
+14. **Two Isaac Sims on one GPU = half speed each.** Sequential training is faster than parallel. Use `CUDA_VISIBLE_DEVICES` on multi-GPU machines only.
+15. **Check reward *parameters*, not just weights.** `mode_time`, `velocity_threshold`, `target_height`, and `joint_names` reshape the reward surface as much as the weight values do.
+16. **GPU reset clears zombies but also wipes screen sessions.** After resetting the GPU to clear D-state zombies, you need to relaunch all screen sessions (training, TensorBoard).
+
+---
+
+## 13. Training Trial Log
+
+### Trial 1: Custom-Tuned Weights (Feb 27, 2026) — FAILED
+
+**Setup:** Spot + Vision60 simultaneous, 10K envs each, shared H100
+**Log dir:** `spot_robust_ppo/2026-02-27_19-33-40/`
+
+**What happened:**
+- Both robots launched on shared GPU (~27s/iter each, half speed due to contention)
+- Killed V60 to give Spot full GPU → V60 became D-state zombie
+- Spot sped up to 17.2s/iter but training was diverging
+- After 1,750 iterations: body_contact 99.9%, episode length 3.9 steps, terrain_levels 0.009
+- Robot actively getting worse, not just failing to learn
+
+**Root cause:** Reward weights 2-6x harsher than the paper's validated coefficients. Chaotic gradient landscape — robot pulled toward movement by huge rewards (+12.0, +15.0) while being crushed by disproportionate penalties (-3.0 slip, -5e-4 joint acc, -5e-2 joint vel).
+
+**Checkpoints saved:** model_0.pt, model_500.pt, model_1000.pt, model_1500.pt (all non-functional)
+
+---
+
+### Trial 2: Paper-Matched Coefficients (Feb 28, 2026) — IN PROGRESS
+
+**Setup:** Spot only, 10K envs, solo H100 (clean GPU after reset)
+**Log dir:** `spot_robust_ppo/2026-02-28_08-52-14/`
+**TensorBoard:** `http://172.24.254.24:6006`
+
+**Changes from Trial 1:**
+- All 19 reward weights set to paper's exact values (see Section 8)
+- Parameter corrections: mode_time 0.3→0.2, velocity_threshold 0.5→0.25, target_height 0.10→0.125
+- Joint names for acc/vel changed from hip-only (`.*_h[xy]`) to all joints (`.*`)
+
+**Performance:** ~16s/iter, ~18,500 fps, 49C, 125W (healthy solo GPU)
+**ETA:** ~16.5 hours for 30K iterations
+
+**What to watch for:**
+- body_contact < 90% by iter ~500 (first sign of learning)
+- episode_length > 10 by iter ~1000
+- terrain_levels advancing by iter ~2000
+- If no improvement by iter 3000, re-evaluate reward balance
+
+---
+
+### Trial 3: Vision60 Paper-Matched (PLANNED)
+
+After Spot Trial 2 succeeds:
+- Apply paper-matched coefficients with V60-specific adjustments (Section 10)
+- Progressive DR schedule (mild → aggressive over 15K iters)
+- Solo H100, 10K envs
+
+---
+
+## 14. Lessons Learned from Trials
+
+### Lesson 1: Use Published Coefficients Exactly
+
+Our hand-tuned weights failed twice (Bug #3 do-nothing, Bug #11 too-harsh). The paper's coefficients encode a working equilibrium across all 19 terms that isn't obvious from reading the equations. Each weight interacts with every other weight through the gradient. Start from the paper's exact numbers, then tune individually if needed.
+
+### Lesson 2: Reward Weights Are a System, Not Individual Knobs
+
+Changing `foot_slip` from -0.5 to -3.0 doesn't just make slip 6x more penalized. It changes the *relative* gradient contribution of every other term. The policy will over-optimize for slip avoidance at the expense of velocity tracking, gait timing, and everything else. Always consider the full reward landscape, not individual terms.
+
+### Lesson 3: Check Parameters, Not Just Weights
+
+Two reward functions with the same weight can behave completely differently based on internal parameters. Our `mode_time=0.3` vs the paper's `0.2` changed gait reward timing. Our `velocity_threshold=0.5` vs `0.25` changed what counted as "moving." Our `joint_names=".*_h[xy]"` vs `".*"` changed which joints were penalized. These shape the reward surface as much as the weights do.
+
+### Lesson 4: Sequential Beats Parallel on Single GPU
+
+Two Isaac Sim instances on one H100 each ran at ~50% speed. Sequential training was 3 days faster for the same total work. GPU PhysX context-switching between two simulations wastes more than it saves.
+
+### Lesson 5: Monitor Training From Iteration 1
+
+Our Trial 1 ran for 1,750 iterations (~8 hours) before we checked the metrics and discovered it was diverging. Earlier monitoring would have caught the problem within the first 100 iterations — body_contact was already climbing, episode_length was already dropping. Set up TensorBoard before launching, and check within the first 30 minutes.
 
 ---
 
 *Created for AI2C Tech Capstone — MS for Autonomy, February 2026*
+*Last updated: February 28, 2026 — Trial 2 (paper-matched coefficients) in progress*
