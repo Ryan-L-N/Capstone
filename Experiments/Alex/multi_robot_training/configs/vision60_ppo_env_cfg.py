@@ -292,7 +292,7 @@ class Vision60PPORewardsCfg:
     )
     base_linear_velocity = RewardTermCfg(
         func=spot_mdp.base_linear_velocity_reward,
-        weight=7.0,
+        weight=12.0,
         params={"std": 1.0, "ramp_rate": 0.5, "ramp_at_vel": 1.0, "asset_cfg": SceneEntityCfg("robot")},
     )
     foot_clearance = RewardTermCfg(
@@ -305,7 +305,7 @@ class Vision60PPORewardsCfg:
     )
     gait = RewardTermCfg(
         func=spot_mdp.GaitReward,
-        weight=10.0,
+        weight=15.0,
         params={
             "std": 0.1, "max_err": 0.2, "velocity_threshold": 0.5,
             "synced_feet_pair_names": (("lower0", "lower3"), ("lower2", "lower1")),
@@ -341,7 +341,7 @@ class Vision60PPORewardsCfg:
 
     # -- Penalties (negative) --
 
-    action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-2.0)
+    action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-0.5)
     air_time_variance = RewardTermCfg(
         func=spot_mdp.air_time_variance_penalty,
         weight=-1.0,
@@ -373,11 +373,17 @@ class Vision60PPORewardsCfg:
     )
     joint_pos = RewardTermCfg(
         func=spot_mdp.joint_position_penalty,
-        weight=-1.0,
+        weight=-2.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0, "velocity_threshold": 0.5,
         },
+    )
+    # Penalize joints approaching URDF limits — prevents leg folding
+    dof_pos_limits = RewardTermCfg(
+        func=mdp.joint_pos_limits,
+        weight=-10.0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names="joint_.*")},
     )
     joint_torques = RewardTermCfg(
         func=spot_mdp.joint_torques_penalty,
@@ -400,14 +406,14 @@ class Vision60PPORewardsCfg:
     # UPGRADED: Was weight=0.0 in vision60_training — now enabled
     contact_force_smoothness = RewardTermCfg(
         func=contact_force_smoothness_penalty,
-        weight=-0.5,
+        weight=-0.02,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="lower.*")},
     )
 
     # UPGRADED: Was weight=0.0 in vision60_training — now enabled
     stumble = RewardTermCfg(
         func=stumble_penalty,
-        weight=-2.0,
+        weight=-0.3,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="lower.*"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names="lower.*"),

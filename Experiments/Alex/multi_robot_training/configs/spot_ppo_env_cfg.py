@@ -237,7 +237,7 @@ class SpotPPORewardsCfg:
     )
     base_linear_velocity = RewardTermCfg(
         func=spot_mdp.base_linear_velocity_reward,
-        weight=7.0,
+        weight=12.0,
         params={"std": 1.0, "ramp_rate": 0.5, "ramp_at_vel": 1.0, "asset_cfg": SceneEntityCfg("robot")},
     )
     foot_clearance = RewardTermCfg(
@@ -250,7 +250,7 @@ class SpotPPORewardsCfg:
     )
     gait = RewardTermCfg(
         func=spot_mdp.GaitReward,
-        weight=10.0,
+        weight=15.0,
         params={
             "std": 0.1, "max_err": 0.2, "velocity_threshold": 0.5,
             "synced_feet_pair_names": (("fl_foot", "hr_foot"), ("fr_foot", "hl_foot")),
@@ -282,7 +282,7 @@ class SpotPPORewardsCfg:
 
     # -- Penalties (negative) --
 
-    action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-2.0)
+    action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-0.5)
     air_time_variance = RewardTermCfg(
         func=spot_mdp.air_time_variance_penalty,
         weight=-1.0,
@@ -314,11 +314,17 @@ class SpotPPORewardsCfg:
     )
     joint_pos = RewardTermCfg(
         func=spot_mdp.joint_position_penalty,
-        weight=-1.0,
+        weight=-2.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0, "velocity_threshold": 0.5,
         },
+    )
+    # Penalize joints approaching URDF limits — prevents leg folding
+    dof_pos_limits = RewardTermCfg(
+        func=mdp.joint_pos_limits,
+        weight=-10.0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     joint_torques = RewardTermCfg(
         func=spot_mdp.joint_torques_penalty,
@@ -337,12 +343,12 @@ class SpotPPORewardsCfg:
     )
     contact_force_smoothness = RewardTermCfg(
         func=contact_force_smoothness_penalty,
-        weight=-0.5,
+        weight=-0.02,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
     )
     stumble = RewardTermCfg(
         func=stumble_penalty,
-        weight=-2.0,
+        weight=-0.3,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
@@ -362,7 +368,7 @@ class SpotPPOTerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     body_contact = DoneTerm(
         func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["body", ".*leg"]), "threshold": 1.0},
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["body"]), "threshold": 1.0},
     )
     terrain_out_of_bounds = DoneTerm(
         func=mdp.terrain_out_of_bounds,

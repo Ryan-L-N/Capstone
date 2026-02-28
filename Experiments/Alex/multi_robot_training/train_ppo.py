@@ -48,7 +48,7 @@ parser.add_argument("--lr_max", type=float, default=1e-3,
                     help="Max learning rate for cosine annealing")
 parser.add_argument("--lr_min", type=float, default=1e-5,
                     help="Min learning rate for cosine annealing")
-parser.add_argument("--warmup_iters", type=int, default=3000,
+parser.add_argument("--warmup_iters", type=int, default=500,
                     help="LR warmup iterations")
 parser.add_argument("--dr_expansion_iters", type=int, default=15000,
                     help="Iterations over which DR expands (Vision60 only)")
@@ -331,4 +331,4 @@ if __name__ == "__main__":
     main()
     # Use os._exit(0) to avoid CUDA deadlock on close
     import os as _os
-    _os.exit(0)
+    _os._exit(0)
