@@ -7,6 +7,8 @@ Template: 100hr_env_run/configs/env_cfg.py
 Created for AI2C Tech Capstone — MS for Autonomy, February 2026
 """
 
+import math
+
 import isaaclab.sim as sim_utils
 from isaaclab.envs import ViewerCfg
 from isaaclab.managers import CurriculumTermCfg as CurrTerm
@@ -111,7 +113,7 @@ class SpotPPOActionsCfg:
     """12-dim joint position actions."""
 
     joint_pos = mdp.JointPositionActionCfg(
-        asset_name="robot", joint_names=[".*"], scale=0.25, use_default_offset=True
+        asset_name="robot", joint_names=[".*"], scale=0.2, use_default_offset=True
     )
 
 
@@ -149,8 +151,8 @@ class SpotPPOEventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.05, 1.5),
-            "dynamic_friction_range": (0.02, 1.2),
+            "static_friction_range": (0.3, 1.5),
+            "dynamic_friction_range": (0.3, 1.2),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 256,
         },
@@ -282,6 +284,12 @@ class SpotPPORewardsCfg:
 
     # -- Penalties (negative) -- Paper-matched coefficients --
 
+    # Soft penalty for body contact (replaces hard termination — paper's approach)
+    undesired_contacts = RewardTermCfg(
+        func=mdp.undesired_contacts,
+        weight=-2.0,
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["body"]), "threshold": 1.0},
+    )
     action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-1.0)
     air_time_variance = RewardTermCfg(
         func=spot_mdp.air_time_variance_penalty,
@@ -363,12 +371,20 @@ class SpotPPORewardsCfg:
 
 @configclass
 class SpotPPOTerminationsCfg:
-    """Termination terms for Spot."""
+    """Termination terms for Spot.
+
+    NOTE: body_contact termination is deliberately DISABLED (matching paper's
+    spot_env_cfg.py lines 528-532). The paper found that Spot's low body geometry
+    triggers false positives during normal locomotion. Instead, body contact is
+    penalized via the undesired_contacts reward term (-2.0), and only a full
+    flip-over (150 deg) terminates the episode.
+    """
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
-    body_contact = DoneTerm(
-        func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["body"]), "threshold": 1.0},
+    # body_contact REMOVED — replaced by undesired_contacts reward penalty
+    body_flip_over = DoneTerm(
+        func=mdp.bad_orientation,
+        params={"asset_cfg": SceneEntityCfg("robot"), "limit_angle": math.radians(150.0)},
     )
     terrain_out_of_bounds = DoneTerm(
         func=mdp.terrain_out_of_bounds,
@@ -418,6 +434,7 @@ class SpotPPOEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.episode_length_s = 30.0
         self.sim.dt = 0.002
         self.sim.render_interval = self.decimation
+        self.sim.disable_contact_processing = True
         self.sim.physics_material.static_friction = 1.0
         self.sim.physics_material.dynamic_friction = 1.0
         self.sim.physics_material.friction_combine_mode = "multiply"

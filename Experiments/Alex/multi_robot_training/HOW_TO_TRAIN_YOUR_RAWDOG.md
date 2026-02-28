@@ -775,6 +775,52 @@ These parameter differences meant the reward functions weren't just scaled wrong
 
 ---
 
+### Bug #13: "The Termination That Should Never Have Been" (Body Contact Kill)
+
+**What happened:** Even after matching the paper's exact reward coefficients (Trial 2), Spot still couldn't learn. body_contact termination climbed to 99.3%, episode length shrank to 4.68 steps. Same death spiral, just slower.
+
+**Root cause:** We did a **full config comparison** -- not just rewards, but every section -- between our config and the paper's actual Spot terrain training config (`spot_env_cfg.py`). The smoking gun:
+
+```python
+# Paper's config (spot_env_cfg.py, lines 528-532):
+# # Base contact termination
+# body_contact = DoneTerm(
+#     func=mdp.illegal_contact,
+#     params={"sensor_cfg": ..., "threshold": 1.0},
+# )
+# ^^^ COMMENTED OUT. Deliberately disabled.
+
+# Our config:
+body_contact = DoneTerm(
+    func=mdp.illegal_contact,
+    params={"sensor_cfg": ..., "threshold": 1.0},
+)
+# ^^^ ACTIVE. Killing 99.3% of episodes.
+```
+
+The paper's authors discovered that Spot's low body geometry inevitably makes brief ground contact during normal locomotion -- stepping off a curb, recovering from a push, traversing rough terrain. A 1-Newton threshold is triggered by the slightest brush. With this termination active, the robot can never survive more than a few steps, so it never gets enough experience to learn.
+
+**What the paper does instead:**
+1. **`body_flip_over`** termination at 150 degrees -- only kills if the robot is nearly upside down
+2. **`undesired_contacts`** reward penalty at -2.0 -- teaches the robot to *avoid* body contact via gradient signal, not death
+
+**Additional findings from the full config comparison:**
+- Our friction minimums (0.02-0.05) were near-zero ice. Paper uses 0.3 minimum.
+- Our action scale (0.25) was 25% larger than the paper's (0.2), causing more violent random movements.
+- Paper sets `disable_contact_processing = True` in PhysX. We didn't.
+
+**The fix (4 changes):**
+1. Replace `body_contact` termination with `body_flip_over` (bad_orientation, 150 deg)
+2. Add `undesired_contacts` reward penalty (-2.0)
+3. Raise friction minimums to 0.3
+4. Reduce action scale to 0.2
+
+**The result:** At iteration 0 of Trial 3, episode length jumped from 27.0 to 31.77. Only 0.24% flip-over terminations vs 12.6% body_contact. The robot is surviving full episodes from the very first iteration.
+
+**The lesson:** Reward coefficients are only half the story. Termination conditions, physics parameters, friction ranges, and action scaling are equally critical. When matching a paper, compare **every single section** of the config -- not just the reward table. The paper's authors commented out body_contact for a reason. That reason cost us two failed trials and 15+ hours of GPU time.
+
+---
+
 ### Bug #12: "GPU Contention -- Two Isaac Sims Walk, Both Crawl"
 
 **What happened:** We launched Spot and Vision60 training simultaneously on the same H100 (96GB). Both processes ran -- no crashes this time (unlike Bug #9 which was a total crash). But each iteration took ~27 seconds instead of the expected ~15 seconds. Both robots were training at half speed.
@@ -860,7 +906,11 @@ Sequential training is 3 days *faster* than parallel on a single GPU. The parall
 
 **22. Sequential beats parallel on a single GPU for heavy simulations.** Two Isaac Sim instances on one H100 each ran at half speed. Sequential was 3 days faster over the full training horizon. GPU PhysX can't meaningfully parallelize independent simulations -- it just context-switches.
 
-**23. Zombie processes hold VRAM but not compute.** A D-state zombie from a killed Isaac Sim holds GPU memory (preventing new allocations) but doesn't consume compute cycles. If you have headroom, the remaining process will speed up. But eventually you need to reset the GPU to reclaim the memory.
+**23. Compare the FULL config, not just the rewards.** We matched the paper's reward coefficients exactly and still failed -- because the body_contact termination was killing 99% of episodes before the rewards could do anything. Termination conditions, friction ranges, action scale, and physics settings are just as important as reward weights. When reproducing a paper, diff every section of the config.
+
+**24. Hard terminations are training killers.** A hard termination (instant episode death) gives zero gradient information -- the policy just learns "don't be in that state" without learning what to do instead. A reward penalty (-2.0 for body contact) gives a smooth gradient that teaches the policy to gradually avoid the behavior. Replace hard terminations with soft penalties whenever possible, especially during early training.
+
+**25. Zombie processes hold VRAM but not compute.** A D-state zombie from a killed Isaac Sim holds GPU memory (preventing new allocations) but doesn't consume compute cycles. If you have headroom, the remaining process will speed up. But eventually you need to reset the GPU to reclaim the memory.
 
 ---
 
@@ -947,7 +997,7 @@ terrain_levels:            3.39  --> 0.009
 
 ---
 
-### Trial 2: Paper-Matched Coefficients (Feb 28, 2026) -- IN PROGRESS
+### Trial 2: Paper-Matched Coefficients (Feb 28, 2026) -- FAILED
 
 **Config:** Exact paper coefficients from `Robust_RL/quadruped_locomotion/.../spot_reward_env_cfg.py`
 **Envs:** 10,000 Spot only | **Hardware:** H100 96GB (solo, clean GPU after reset)
@@ -955,50 +1005,70 @@ terrain_levels:            3.39  --> 0.009
 
 **Key coefficient changes from Trial 1:**
 ```
-base_linear_velocity:  +12.0 --> +5.0    (paper)
-gait:                  +15.0 --> +5.0    (paper)
-air_time:              +3.0  --> +5.0    (paper)
-foot_clearance:        +3.5  --> +0.75   (paper)
-foot_slip:             -3.0  --> -0.5    (paper)
-base_orientation:      -5.0  --> -3.0    (paper)
-base_motion:           -4.0  --> -2.0    (paper)
-joint_pos:             -2.0  --> -0.7    (paper)
-joint_acc:             -5e-4 --> -1e-4   (paper)
-joint_torques:         -2e-3 --> -5e-4   (paper)
-joint_vel:             -5e-2 --> -1e-2   (paper)
-dof_pos_limits:        -10.0 --> -5.0    (paper)
-body_height:           -2.0  --> -1.0    (paper)
-stumble:               -0.3  --> -0.1    (paper)
+base_linear_velocity:  +12.0 --> +5.0    gait:  +15.0 --> +5.0
+foot_clearance:        +3.5  --> +0.75   foot_slip:  -3.0  --> -0.5
+base_orientation:      -5.0  --> -3.0    base_motion: -4.0  --> -2.0
+joint_pos:             -2.0  --> -0.7    joint_acc:   -5e-4 --> -1e-4
+joint_torques:         -2e-3 --> -5e-4   joint_vel:   -5e-2 --> -1e-2
+dof_pos_limits:        -10.0 --> -5.0    stumble:     -0.3  --> -0.1
 ```
 
-Also fixed parameter mismatches:
-- `mode_time`: 0.3 --> 0.2 (paper)
-- `velocity_threshold`: 0.5 --> 0.25 (paper)
-- `target_height`: 0.10 --> 0.125 (paper)
-- `joint_names` for acc/vel: `".*_h[xy]"` --> `".*"` (paper, all joints not just hips)
+**Results after 1,471 iterations (~7 hours):**
+```
+body_contact termination:  12.6% --> 99.3%
+mean episode length:       27.0  --> 4.68 steps
+terrain_levels:            3.39  --> 0.017
+time_out:                  1.0%  --> 0.7% (peaked at 3.1% mid-run, then fell back)
+mean_reward:               -4.09 --> +0.20 (positive but stagnant)
+```
 
-**Performance:** ~16s/iter, ~18,500 fps, 49C GPU temp
+**Diagnosis:** Reward weights were correct but the **termination condition was the real problem** (Bug #13). A thorough comparison of our full config against the paper's actual Spot terrain config (`spot_env_cfg.py`) revealed that the paper **deliberately disabled body_contact termination** for Spot and replaced it with a flip-over check + reward penalty. Our robot was dying in 4.68 steps from momentary body-ground contact during normal locomotion.
 
-**Early metrics (first iterations):**
-- body_contact: 99.98% (expected -- fresh random weights, robot hasn't learned yet)
-- Penalty magnitudes noticeably smaller than Trial 1
-- ETA: ~16.5 hours for 30,000 iterations
-
-**Status:** RUNNING. Check TensorBoard at `http://172.24.254.24:6006`
-
-**What to watch for:**
-- body_contact should start dropping below 90% by iter ~500 (sign of learning)
-- episode_length should climb above 10 by iter ~1000
-- terrain_levels should start advancing by iter ~2000
-- If none of these happen by iter 3000, the config still needs work
+**Outcome:** FAILED -- same trajectory as Trial 1 (just slower). Killed training, applied structural fixes.
 
 ---
 
-### Trial 3: Vision60 (PLANNED)
+### Trial 3: Structural Fixes — No Body Contact Kill (Feb 28, 2026) -- IN PROGRESS
 
-After Spot's Trial 2 completes (or reaches a good checkpoint), relaunch Vision60 with:
-- Paper-matched coefficients adapted for V60 body parameters
-- V60-specific adjustments: reduced air_time, foot_slip, base_motion per heavier robot dynamics
+**Config:** Paper-matched coefficients + 4 structural fixes from full config comparison
+**Envs:** 10,000 Spot only | **Hardware:** H100 96GB (solo, clean GPU after reset)
+**Log dir:** `spot_robust_ppo/2026-02-28_16-05-11/`
+
+**What changed from Trial 2 (4 fixes):**
+
+1. **REMOVED body_contact termination** → Added `body_flip_over` (bad_orientation at 150 deg, only kills if nearly upside-down). This is the paper's approach: body contact is penalized via reward, not termination.
+2. **Added `undesired_contacts` reward** (weight=-2.0) — soft penalty for body contact that provides gradient signal instead of instant death.
+3. **Raised friction minimums** — static (0.05→0.3, 1.5), dynamic (0.02→0.3, 1.2). Paper's minimum is 0.3, not near-zero ice.
+4. **Reduced action scale** — 0.25 → 0.2. Less violent random joint movements during early exploration.
+5. **Added `disable_contact_processing = True`** — matches paper's PhysX setting.
+
+**Iteration 0 metrics (night-and-day difference):**
+```
+episode_length:       31.77 (was 27.0 in Trial 2 — surviving FULL episodes!)
+body_flip_over:       0.24% (was 12.6% body_contact in Trial 2)
+time_out:             1.14% (episodes reaching time limit from step 0)
+terrain_levels:       3.50  (starting on real terrain, not collapsed to 0)
+undesired_contacts:   -0.0002 (tiny penalty, not instant death)
+```
+
+**Performance:** ~18.4s/iter, ~17,350 fps, 38C GPU temp
+**ETA:** ~9.5 hours for 30,000 iterations
+
+**Status:** RUNNING. TensorBoard at `http://172.24.254.24:6006`
+
+**What to watch for:**
+- episode_length should stay above 20 and ideally climb toward 30+ (full episodes)
+- terrain_levels should remain above 2.0 and climb as the robot improves
+- mean_reward should trend upward (started at -6.93, should improve)
+- gait and velocity rewards should grow as the robot learns to walk instead of just survive
+
+---
+
+### Trial 4: Vision60 (PLANNED)
+
+After Spot Trial 3 succeeds:
+- Apply same structural fixes (flip-over termination, undesired_contacts, raised friction)
+- Paper-matched coefficients with V60-specific adjustments (Section 10)
 - Progressive DR (mild to aggressive over 15K iterations)
 - Full solo GPU
 
