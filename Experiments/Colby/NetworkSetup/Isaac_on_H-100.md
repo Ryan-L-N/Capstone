@@ -7,9 +7,15 @@
 # Out of Band Recovery & BMC
 
 **BMC IP:** `172.24.254.24`  
-**Username:** `ADMIN` (Case Sensitive)  
-**Password:** `VORURHWKXB`  
+**Username:** `ADMIi04D6pc5UvA` (Case Sensitive)  
+**Password:** `9gJu4HX35CR88p5OzL`
 
+
+**OOB Adtl. User**
+**USER:** `OOBAdm2`
+**PW:** `q13GK64CHXbGnxwFaS`
+**AUTHKEY:** `3hOGCCly8rP9wPzF8H`
+**ENC KEY:** `3hOGCCly8rP9wPzF8H`
 
 ---
 
