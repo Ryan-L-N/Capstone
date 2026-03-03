@@ -48,16 +48,20 @@ parser.add_argument("--lr_max", type=float, default=1e-3,
                     help="Max learning rate for cosine annealing")
 parser.add_argument("--lr_min", type=float, default=1e-5,
                     help="Min learning rate for cosine annealing")
-parser.add_argument("--warmup_iters", type=int, default=500,
-                    help="LR warmup iterations")
+parser.add_argument("--warmup_iters", type=int, default=50,
+                    help="LR warmup iterations (default 50; was 500 which caused value explosion in Trial 6)")
 parser.add_argument("--dr_expansion_iters", type=int, default=15000,
                     help="Iterations over which DR expands (Vision60 only)")
 parser.add_argument("--no_wandb", action="store_true", default=False,
                     help="Disable Weights & Biases logging")
+parser.add_argument("--terrain", type=str, default="robust", choices=["robust", "robust_easy", "flat", "transition"],
+                    help="Terrain type: 'robust' (12-type, full difficulty), 'robust_easy' (12-type, capped difficulty), 'flat' (100%% flat), or 'transition' (50%% flat + gentle rough)")
 parser.add_argument("--min_noise_std", type=float, default=0.3,
                     help="Minimum noise std floor")
-parser.add_argument("--max_noise_std", type=float, default=2.0,
-                    help="Maximum noise std ceiling")
+parser.add_argument("--max_noise_std", type=float, default=1.0,
+                    help="Maximum noise std ceiling (was 2.0, reduced to prevent flip spiral)")
+parser.add_argument("--save_interval", type=int, default=None,
+                    help="Override checkpoint save interval (default: use config value)")
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
 sys.argv = [sys.argv[0]]
@@ -89,7 +93,10 @@ if _THIS_DIR not in sys.path:
 
 from shared.lr_schedule import cosine_annealing_lr, set_learning_rate
 from shared.dr_schedule import update_dr_params, DR_SCHEDULE
-from shared.training_utils import configure_tf32, clamp_noise_std
+from shared.training_utils import configure_tf32, clamp_noise_std, register_std_safety_clamp
+
+import isaaclab.terrains as terrain_gen
+from isaaclab.terrains.terrain_generator_cfg import TerrainGeneratorCfg
 
 # Enable TF32
 configure_tf32()
@@ -123,6 +130,92 @@ def main():
     env_cfg.seed = args_cli.seed
     agent_cfg.max_iterations = args_cli.max_iterations
     agent_cfg.seed = args_cli.seed
+    if args_cli.save_interval is not None:
+        agent_cfg.save_interval = args_cli.save_interval
+
+    # Flat terrain override for warmup training (Bug #14 fix: learn to walk before rough terrain)
+    if args_cli.terrain == "flat":
+        print("[TERRAIN] Overriding to 100% FLAT terrain for warmup phase", flush=True)
+        env_cfg.scene.terrain.terrain_generator = TerrainGeneratorCfg(
+            size=(8.0, 8.0),
+            border_width=20.0,
+            num_rows=10,
+            num_cols=20,
+            horizontal_scale=0.1,
+            vertical_scale=0.005,
+            slope_threshold=0.75,
+            use_cache=False,
+            curriculum=True,
+            sub_terrains={
+                "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=1.0),
+            },
+        )
+    elif args_cli.terrain == "transition":
+        print("[TERRAIN] Overriding to TRANSITION terrain (50% flat + gentle slopes/rough)", flush=True)
+        env_cfg.scene.terrain.terrain_generator = TerrainGeneratorCfg(
+            size=(8.0, 8.0),
+            border_width=20.0,
+            num_rows=5,
+            num_cols=20,
+            horizontal_scale=0.1,
+            vertical_scale=0.005,
+            slope_threshold=0.75,
+            use_cache=False,
+            curriculum=True,
+            sub_terrains={
+                # 50% flat — safe zone, policy can still practice walking
+                "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.50),
+                # 15% gentle slopes (max 0.25 rad ~14 deg, easy curriculum)
+                "slope_up": terrain_gen.HfPyramidSlopedTerrainCfg(
+                    proportion=0.15,
+                    slope_range=(0.0, 0.25),
+                    platform_width=2.0,
+                    border_width=0.25,
+                ),
+                # 10% slight random roughness (very mild bumps)
+                "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
+                    proportion=0.10,
+                    noise_range=(0.01, 0.06),
+                    noise_step=0.01,
+                    border_width=0.25,
+                ),
+                # 10% gentle stairs (max 0.10m step — half of robust)
+                "stairs_up": terrain_gen.MeshPyramidStairsTerrainCfg(
+                    proportion=0.10,
+                    step_height_range=(0.03, 0.10),
+                    step_width=0.3,
+                    platform_width=3.0,
+                    border_width=1.0,
+                    holes=False,
+                ),
+                # 10% wave terrain (gentle undulations)
+                "wave": terrain_gen.HfWaveTerrainCfg(
+                    proportion=0.10,
+                    amplitude_range=(0.02, 0.08),
+                    num_waves=2,
+                    border_width=0.25,
+                ),
+                # 5% friction plane (for vegetation drag training)
+                "vegetation_plane": terrain_gen.MeshPlaneTerrainCfg(
+                    proportion=0.05,
+                ),
+            },
+        )
+    elif args_cli.terrain == "robust_easy":
+        print("[TERRAIN] Overriding to ROBUST_EASY terrain (all 12 types, 3 difficulty rows)", flush=True)
+        from shared.terrain_cfg import ROBUST_TERRAINS_CFG
+        import copy
+        robust_easy = copy.deepcopy(ROBUST_TERRAINS_CFG)
+        robust_easy.num_rows = 3   # cap difficulty: only easy/medium rows
+        robust_easy.num_cols = 20  # fewer columns for faster terrain gen
+        env_cfg.scene.terrain.terrain_generator = robust_easy
+
+    # Disable body_height_tracking on non-flat terrain (Bug #22: uses world-frame Z,
+    # not height above terrain surface — penalizes robot for standing on top of stairs)
+    if args_cli.terrain in ("robust", "robust_easy", "transition"):
+        if hasattr(env_cfg.rewards, "body_height_tracking"):
+            env_cfg.rewards.body_height_tracking.weight = 0.0
+            print("[REWARDS] Disabled body_height_tracking (world-frame Z is meaningless on rough terrain)", flush=True)
 
     # W&B toggle
     if args_cli.no_wandb:
@@ -152,6 +245,7 @@ def main():
     print(f"  Steps per env:    {agent_cfg.num_steps_per_env}", flush=True)
     print(f"  Network:          {agent_cfg.policy.actor_hidden_dims}", flush=True)
     print(f"  Episode length:   {env_cfg.episode_length_s}s", flush=True)
+    print(f"  Terrain:          {args_cli.terrain.upper()}", flush=True)
     print(f"  Logger:           {agent_cfg.logger}", flush=True)
     print(f"  Log dir:          {log_dir}", flush=True)
     print(f"  Steps/iteration:  {steps_per_iter:,}", flush=True)
@@ -185,6 +279,12 @@ def main():
         env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device
     )
 
+    # ── Safety: clamp std inside PPO update mini-batches ────────────────
+    # Prevents RuntimeError: normal expects all elements of std >= 0.0
+    # when optimizer step pushes std negative between mini-batches.
+    register_std_safety_clamp(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
+    print(f"[SAFETY] Registered std clamp on policy.act(): [{args_cli.min_noise_std}, {args_cli.max_noise_std}]", flush=True)
+
     # ── Resume if requested ─────────────────────────────────────────────
     start_iteration = 0
     if args_cli.resume:
@@ -215,6 +315,7 @@ def main():
         f.write(f"seed: {args_cli.seed}\n")
         f.write(f"steps_per_iter: {steps_per_iter}\n")
         f.write(f"network: {agent_cfg.policy.actor_hidden_dims}\n")
+        f.write(f"terrain: {args_cli.terrain}\n")
         f.write(f"logger: {agent_cfg.logger}\n")
 
     # ── W&B custom logging setup ────────────────────────────────────────

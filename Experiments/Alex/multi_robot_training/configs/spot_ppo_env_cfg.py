@@ -41,6 +41,7 @@ from shared.terrain_cfg import ROBUST_TERRAINS_CFG
 from shared.reward_terms import (
     VegetationDragReward,
     body_height_tracking_penalty,
+    body_scraping_penalty,
     contact_force_smoothness_penalty,
     stumble_penalty,
     velocity_modulation_reward,
@@ -163,7 +164,7 @@ class SpotPPOEventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="body"),
-            "mass_distribution_params": (-8.0, 8.0),
+            "mass_distribution_params": (-5.0, 5.0),  # was ±8 — match reference
             "operation": "add",
         },
     )
@@ -173,8 +174,8 @@ class SpotPPOEventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="body"),
-            "force_range": (-8.0, 8.0),
-            "torque_range": (-3.0, 3.0),
+            "force_range": (0.0, 0.0),   # was ±8 — reference uses zero
+            "torque_range": (0.0, 0.0),  # was ±3 — reference uses zero
         },
     )
 
@@ -196,7 +197,7 @@ class SpotPPOEventCfg:
         mode="reset",
         params={
             "position_range": (-0.2, 0.2),
-            "velocity_range": (-3.0, 3.0),
+            "velocity_range": (-2.5, 2.5),  # was ±3.0 — match reference
             "asset_cfg": SceneEntityCfg("robot"),
         },
     )
@@ -204,10 +205,10 @@ class SpotPPOEventCfg:
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
-        interval_range_s=(5.0, 12.0),
+        interval_range_s=(10.0, 15.0),  # was (5, 12) — match reference
         params={
             "asset_cfg": SceneEntityCfg("robot"),
-            "velocity_range": {"x": (-1.5, 1.5), "y": (-1.5, 1.5)},
+            "velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)},  # was ±1.5 — match reference
         },
     )
 
@@ -244,7 +245,7 @@ class SpotPPORewardsCfg:
     )
     foot_clearance = RewardTermCfg(
         func=spot_mdp.foot_clearance_reward,
-        weight=0.75,
+        weight=2.0,  # was 0.75 — match reference for stair climbing
         params={
             "std": 0.05, "tanh_mult": 2.0, "target_height": 0.125,
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot"),
@@ -252,7 +253,7 @@ class SpotPPORewardsCfg:
     )
     gait = RewardTermCfg(
         func=spot_mdp.GaitReward,
-        weight=5.0,
+        weight=10.0,  # was 5.0 — match reference for stronger gait enforcement
         params={
             "std": 0.1, "max_err": 0.2, "velocity_threshold": 0.25,
             "synced_feet_pair_names": (("fl_foot", "hr_foot"), ("fr_foot", "hl_foot")),
@@ -287,8 +288,19 @@ class SpotPPORewardsCfg:
     # Soft penalty for body contact (replaces hard termination — paper's approach)
     undesired_contacts = RewardTermCfg(
         func=mdp.undesired_contacts,
-        weight=-2.0,
+        weight=-1.5,  # was -5.0 — lowered for Phase B rough terrain (bumps are unavoidable)
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["body"]), "threshold": 1.0},
+    )
+    # Penalize belly-dragging: body contact × forward speed (scraping = bad, bumping = ok)
+    body_scraping = RewardTermCfg(
+        func=body_scraping_penalty,
+        weight=-2.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["body"]),
+            "contact_threshold": 1.0,
+            "velocity_threshold": 0.3,
+        },
     )
     action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-1.0)
     air_time_variance = RewardTermCfg(

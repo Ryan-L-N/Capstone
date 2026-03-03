@@ -181,6 +181,43 @@ class VegetationDragReward(ManagerTermBase):
         return total_drag
 
 
+def body_scraping_penalty(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    sensor_cfg: SceneEntityCfg,
+    contact_threshold: float = 1.0,
+    velocity_threshold: float = 0.3,
+) -> torch.Tensor:
+    """Penalize body contact while the robot is moving (belly-dragging behavior).
+
+    Returns a penalty proportional to forward/lateral speed when the body
+    is in contact with terrain. This specifically targets scraping/dragging
+    gaits without penalizing momentary obstacle bumps at low velocity.
+
+    - Robot bumps obstacle and stops → near zero (contact but no velocity)
+    - Robot climbs ledge, brief scrape → small (low speed × short contact)
+    - Robot drags belly at full speed → large penalty (high speed × sustained contact)
+
+    Args:
+        contact_threshold: Minimum contact force to count as "touching" (N).
+        velocity_threshold: Minimum speed to count as "moving" (m/s).
+    """
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    asset: RigidObject = env.scene[asset_cfg.name]
+
+    # Body contact force
+    net_forces = contact_sensor.data.net_forces_w_history[:, 0, sensor_cfg.body_ids]
+    contact_mag = torch.max(torch.norm(net_forces, dim=-1), dim=1)[0]
+    has_contact = contact_mag > contact_threshold
+
+    # Forward/lateral speed (body frame)
+    speed = torch.norm(asset.data.root_lin_vel_b[:, :2], dim=-1)
+    is_moving = speed > velocity_threshold
+
+    # Scraping = contact while moving, scaled by speed
+    return (has_contact & is_moving).float() * speed
+
+
 def velocity_modulation_reward(
     env: ManagerBasedRLEnv,
     asset_cfg: SceneEntityCfg,

@@ -846,6 +846,161 @@ Sequential training is 3 days *faster* than parallel on a single GPU. The parall
 
 ---
 
+### Bug #14: "The Noise That Ate the Robot" (Exploration Death Spiral)
+
+**What happened:** After fixing Bug #13 (body contact termination), Trial 3 started beautifully -- 0.24% flip-over at iteration 0. By iteration 100: 97.8% flip-over. The robot hadn't learned to do anything except fall over more aggressively.
+
+**Root cause:** `init_noise_std=1.0` with `action_scale=0.2` produces action noise of ~N(0, 0.2) radians -- that's ±11 degrees of random joint movement per step. For a top-heavy robot like Spot, this is violent enough to flip it over. Without the hard `body_contact` kill (removed in Bug #13 fix), the 150-degree flip-over threshold is lenient -- the robot can flail for many steps before triggering it. The result:
+
+1. Random policy (noise=1.0) flips robot in most episodes
+2. No useful gradient signal (everything ends the same way)
+3. PPO increases noise_std to "explore more"
+4. Higher noise = more violent actions = more flips = even less signal
+5. Positive feedback loop until noise hits ceiling (1.68 in Trial 3, 2.0 in Trial 4)
+
+This ran for **8,745 iterations** in Trial 3 (~40 hours of GPU time) before the value function exploded to infinity. The robot never learned a single thing.
+
+**The fix:** Lower `init_noise_std` to 0.5 (actions ±6° instead of ±11°) and cap `max_noise_std` at 1.0. Conservative enough to maintain balance while still discovering gaits.
+
+**The lesson:** Removing a termination condition doesn't just change what kills the robot -- it changes the entire exploration landscape. With body_contact killing episodes in <5 steps, high noise was immediately punished (short episodes = low returns). Without it, high noise episodes survive longer (reaching the lenient 150° threshold slowly), so the return signal is *noisier* (pun intended), and PPO interprets this as "need more exploration." The termination was also serving as an implicit noise regularizer. When you remove it, you need explicit noise control.
+
+---
+
+### Bug #15: "The LR Schedule That Wasn't" (Adaptive Overrides Cosine)
+
+**What happened:** Training script applied cosine LR annealing before each PPO update. TensorBoard showed the LR collapsing to near-zero for 8,700 iterations, then spiking to 0.01 at the end. The cosine schedule was being ignored.
+
+**Root cause:** RSL-RL's `schedule="adaptive"` adjusts the learning rate *inside* `PPO.update()` based on KL divergence vs `desired_kl`. Our cosine annealing sets the optimizer LR *before* calling `update()`. Then the adaptive schedule immediately overwrites it:
+
+```python
+# Our code (before update):
+optimizer.param_groups[0]["lr"] = cosine_lr(iter)  # e.g., 5e-4
+
+# RSL-RL's PPO.update() (inside update):
+if kl > 2 * desired_kl:
+    optimizer.param_groups[0]["lr"] /= 1.5  # overwritten to 3.3e-4
+```
+
+With the robot not learning (Bug #14), KL stayed near zero for thousands of iterations. The adaptive schedule kept multiplying by 1.5 (low KL = "not exploring enough"). But our cosine kept resetting to a lower value each iteration. The net effect was chaos -- LR crushed to ~0 for most of training, then a sudden spike when conditions changed.
+
+**The fix:** Set `schedule="fixed"` in the PPO config. Let the cosine annealing monkey-patch be the sole LR controller.
+
+**The lesson:** When overriding internal optimizer behavior from the outside, make sure the framework isn't also overriding it from the inside. Read the source code of `PPO.update()` to understand what `schedule="adaptive"` actually does before combining it with your own schedule.
+
+---
+
+### Bug #16: "Domain Randomization Before Locomotion" (Aggressive DR on Untrained Robot)
+
+**What happened:** Trial 3 used ±8N external forces, ±3Nm torques, ±1.5 m/s pushes, and ±8kg mass randomization. The Isaac Lab reference config for Spot uses: zero forces, zero torques, ±0.5 m/s pushes, ±5kg mass.
+
+**Root cause:** We copied the "aggressive DR" from the 100hr config paper without realizing that config was designed for a *pre-trained* robot being fine-tuned for robustness. For a robot learning from scratch, these perturbations are catastrophic. Getting hit with 8N of force every reset while trying to learn basic balance is like teaching a baby to walk by repeatedly pushing them over.
+
+**The fix (Trial 4):** Match the reference config exactly: zero external forces/torques, ±0.5 pushes, ±5kg mass, (10,15)s push interval. This delayed the death spiral by ~70 iterations (flip_over at iter 8 was 76% vs Trial 3's 97.8% at iter 100).
+
+**The lesson:** DR is for robustness, not learning. The robot needs to learn basic locomotion first with gentle conditions, THEN you can gradually increase perturbations. Start from the reference config's DR values, prove the robot walks, then dial up.
+
+---
+
+### Bug #18: "The Warmup That Never Ended" (LR Climbing for Entire Run)
+
+**What happened:** Trial 6 trained beautifully for 273 iterations -- reward hit 384, robot walking perfectly, only 5.4% flip-over. Then value_loss jumped from 0.2 to 1,233 to 3.3 billion to infinity in 5 iterations. The entire policy was lost because save_interval was 500 (no intermediate checkpoints).
+
+**Root cause:** `warmup_iters=500` on a `max_iterations=500` run. The LR linearly increased from 1e-5 toward 1e-3 for the *entire* training run -- it never transitioned to cosine decay. By iter 273, LR was ~5.5e-4 and still climbing. Combined with noise growing to 0.77, the value function couldn't handle updates that large.
+
+**The fix (Trial 7):** `warmup_iters=50` (quick warmup, then cosine decay) and `save_interval=50` (checkpoint every 50 iterations). But `lr_max=1e-3` was still too high -- Trial 7 exploded at iter 102 when LR peaked near 9.7e-4.
+
+**The real fix (Trial 7b):** `lr_max=3e-4`. The value function stayed stable for the entire 500-iteration run. Noise decreased from 0.52 to 0.38. Policy converged cleanly.
+
+**The lesson:** LR must match training stability. A warmup run with a fragile early policy needs a lower LR than a mature training run. Save checkpoints frequently during experimental runs -- disk is cheap, lost training is not.
+
+---
+
+### Bug #22: "The Height That Wasn't" (World-Frame Z on Rough Terrain)
+
+**What happened:** Trial 10b disabled the action smoothness explosion (by capping terrain difficulty) but a new killer emerged: `body_height_tracking = -52.45`. The robot was being massively penalized just for standing on top of stairs.
+
+**Root cause:** The `body_height_tracking_penalty` uses `root_pos_w[:, 2]` -- the robot's Z position in **world frame** -- with a target of 0.42m. On flat terrain at z=0, a robot at z=0.42 gets error=0 (perfect). On stairs where the ground is at z=1.0, the robot at z=1.42 gets error = (1.42-0.42)² = 1.0. On a 2m pyramid: error = (2.42-0.42)² = 4.0. The penalty grows **quadratically with terrain elevation**.
+
+This bug hid for 9 trials because flat terrain has ground at z=0, making world-frame Z identical to height-above-ground. The moment we introduced real terrain elevation, the penalty exploded.
+
+**The fix:** `env_cfg.rewards.body_height_tracking.weight = 0.0` for any non-flat terrain. A proper fix would use height above local terrain surface (from the height scan), but disabling it works for now.
+
+**The lesson:** Any reward term that uses absolute world-frame position will break on non-flat terrain. Always check whether your rewards are terrain-relative or world-frame. This includes height tracking, base position tracking, and any distance-from-origin measurements.
+
+---
+
+### Bug #23: "The Value Function Whiplash" (LR Too High for Terrain Transitions)
+
+**What happened:** Trial 10c fixed the height bug but used `lr_max=3e-4` (same as Phase A and A.5). Value loss went 31 → 101 → 4,670 in 25 iterations. Crashed.
+
+**Root cause:** The value function was trained on transition terrain (50% flat + gentle rough). On robust_easy (0% flat, 12 terrain types), its predictions are completely wrong -- it expects flat-terrain returns but sees rough-terrain returns. At lr=3e-4, each gradient update massively overcorrects the value function, causing oscillation that amplifies each iteration.
+
+**The fix (Trial 10d):** `lr_max=1e-4`. The value loss still spiked (39 → 967) but then recovered (967 → 53 → 7.9) instead of exploding. The lower LR gives the value function time to adapt gradually to the new terrain distribution.
+
+**The lesson:** Every terrain transition is a distribution shift for the value function. The safe learning rate decreases with each transition because the value predictions become less accurate. Phase A (flat): lr=3e-4 works. Phase A.5 (transition): lr=3e-4 works. Phase B-easy (robust): need lr=1e-4. The pattern: when you change the terrain, cut the LR.
+
+---
+
+### Bug #21: "The Action Smoothness Landmine" (Squared Penalties + Chaotic Falls = Infinity)
+
+**What happened:** Trial 10 resumed from the transition-trained model_998.pt onto full robust terrain. After ~15 iterations, action_smoothness exploded to -103 trillion, noise std went negative, crash.
+
+**Root cause:** The action smoothness penalty computes the squared difference between consecutive actions. When the robot falls chaotically on unfamiliar hard terrain, its actions become extreme and erratic. Squaring those differences creates exponential penalty growth: if the action difference is 100x normal, the squared penalty is 10,000x normal. This cascading overflow corrupted the entire policy in a single update step.
+
+**The fix (Trial 10b):** `--terrain robust_easy` with `num_rows=3` instead of 10. Same 12 terrain types but capped difficulty. The robot falls less chaotically → action differences stay bounded → smoothness penalty stays finite. 8.6% flip_over vs 63%.
+
+**The lesson:** Squared penalties (action smoothness, joint acceleration) are landmines during terrain transitions. They amplify chaotic behavior exponentially. When introducing new terrain types, cap the difficulty low enough that the robot's failures are "graceful stumbles" not "catastrophic flips." The penalty scaling handles the rest.
+
+---
+
+### Bug #20: "Terrain Shock" (Flat to Robust Is Too Big a Jump)
+
+**What happened:** Trial 8 resumed from the flat-trained model_498.pt (99.3% survival, noise 0.38) onto the full 12-type robust terrain. Within 40 iterations: flip_over 96.5%, noise at ceiling (1.00), value_loss 482,431, reward -101 and falling. Same death spiral as Trials 3-5.
+
+**Root cause:** The curriculum controls difficulty *within* each terrain type (row 0 = easy stairs, row 9 = hard stairs). But even easy stairs are qualitatively different from flat ground -- the robot has never experienced height changes under its feet. With 12 terrain types, the robot encounters stairs, gaps, slopes, stepping stones, and obstacles all at once. It fails on ~95% of patches and gets no useful gradient.
+
+**The fix (Trial 9):** Added `--terrain transition` -- an intermediate phase with 50% flat + gentle versions of 5 terrain types (slopes at half angle, stairs at half height, roughness at half amplitude). The flat-trained policy survives immediately (1.2% flip_over) while learning new skills.
+
+**The lesson:** Curriculum steps must be small enough that the policy can transfer without catastrophic failure. If survival drops below ~70% on the new terrain, the step is too big. The number of new terrain *types* matters as much as the difficulty within each type.
+
+---
+
+### Bug #24: "The Clamp That Didn't" (NaN Passes Through clamp_)
+
+**What happened:** Trial 10d crashed overnight with `RuntimeError: normal expects all elements of std >= 0.0`. We added a safety clamp that runs `policy.std.clamp_(min=0.3, max=1.0)` before every `policy.act()` call. Trial 10e crashed with the *exact same error* -- the clamp was visibly in the stack trace but didn't prevent the crash.
+
+**Root cause:** `torch.clamp_()` does **not** fix NaN values. `NaN.clamp_(min=0.3)` returns NaN, not 0.3. When the optimizer pushes std parameters to NaN (via gradient explosion from a value function blowup), clamping is useless -- NaN is not less than 0.3, not greater than 1.0, not anything. It passes through every comparison unchanged.
+
+```python
+# This does NOT work:
+policy.std.clamp_(min=0.3, max=1.0)  # NaN stays NaN
+
+# This works:
+bad = torch.isnan(param.data) | torch.isinf(param.data) | (param.data < 0)
+param.data[bad] = min_val  # Replace NaN/Inf/negative with safe value
+param.data.clamp_(min=min_val, max=max_val)  # Then clamp
+```
+
+**The fix:** `_sanitize_std()` in `shared/training_utils.py` -- explicitly detects and replaces NaN, Inf, and negative values before clamping. Registered via `register_std_safety_clamp()` which monkey-patches `policy.act()` to sanitize before every forward pass.
+
+**The lesson:** Never assume `clamp_()` handles pathological values. NaN is not a number -- it's a black hole that swallows every operation. When guarding against gradient explosions, always check for NaN/Inf explicitly. This applies to any safety mechanism in training: if your safety net assumes finite values, NaN will walk right through it.
+
+---
+
+### Bug #19: "The Learning Rate Ceiling" (1e-3 Is Too Hot for Early Training)
+
+**What happened:** Trial 7 fixed the warmup (50 iters) but kept `lr_max=1e-3`. The robot was learning well (reward 133, ep_len 1,181 at iter 100), then noise suddenly spiked from 0.70 to 0.86 and value_loss went from 0.61 to 3.4e24 in a single iteration.
+
+**Root cause:** After the cosine warmup completed at iter 50, the LR was near its peak of 1e-3. At this rate, a single noisy batch can produce a catastrophically large update to the value function. The noise spike (0.70 → 0.86) created one such batch, and the value function never recovered.
+
+**The pattern:** Trial 6 exploded at iter 274 when LR reached ~5.5e-4. Trial 7 exploded at iter 102 when LR was ~9.7e-4. Both times: growing noise + high LR → value explosion. The safe LR ceiling appears to be around 3-5e-4 for early-stage training.
+
+**The fix (Trial 7b):** `lr_max=3e-4`. Stayed stable for 500 iterations with monotonically decreasing noise. The value function converged smoothly to 0.09.
+
+**The lesson:** The maximum safe learning rate depends on the training phase. Early training (unstable policy, high noise) needs lower LR. Mature training (stable policy, low noise) can tolerate higher LR. When in doubt, use 3e-4 and let cosine annealing handle the schedule.
+
+---
+
 ## 10. Lessons That Will Save Your Future Self
 
 ### On Reward Engineering
@@ -911,6 +1066,28 @@ Sequential training is 3 days *faster* than parallel on a single GPU. The parall
 **24. Hard terminations are training killers.** A hard termination (instant episode death) gives zero gradient information -- the policy just learns "don't be in that state" without learning what to do instead. A reward penalty (-2.0 for body contact) gives a smooth gradient that teaches the policy to gradually avoid the behavior. Replace hard terminations with soft penalties whenever possible, especially during early training.
 
 **25. Zombie processes hold VRAM but not compute.** A D-state zombie from a killed Isaac Sim holds GPU memory (preventing new allocations) but doesn't consume compute cycles. If you have headroom, the remaining process will speed up. But eventually you need to reset the GPU to reclaim the memory.
+
+### On Curriculum Learning
+
+**26. Flat terrain first, always.** Five consecutive trials (Trials 1-5) failed trying to teach locomotion and terrain traversal simultaneously. Trial 6 proved the robot could learn to walk in 200 iterations on flat terrain. The gradient on flat terrain is 100% locomotion signal. On rough terrain, it's dominated by "don't trip" noise. Master the prerequisite skill before adding complexity.
+
+**27. Save checkpoints like your training depends on it (because it does).** Trial 6 trained perfectly for 273 iterations, then exploded and we lost everything because `save_interval=500`. Trial 7 saved every 50 iterations and we recovered from `model_50.pt` to eventually complete the run. 21MB per checkpoint × 10 checkpoints = 210MB. That's nothing compared to the 1.7 hours of GPU time each run costs.
+
+**28. Learning rate must match training maturity.** `lr_max=1e-3` works for a mature policy on a long training run. It's catastrophic for an early-training fragile policy on a short warmup. Trial 7 exploded at iter 102 with LR near 1e-3. Trial 7b ran to completion with `lr_max=3e-4`. The safe ceiling during Phase A warmup is ~3-5e-4. Phase B with a stable policy may tolerate higher.
+
+**29. Noise trend is your canary.** In every failed trial, noise_std grew monotonically (0.5 → 0.77 → 0.86). In the successful Trial 7b, noise *decreased* (0.52 → 0.38). If noise is growing, the policy isn't converging -- it's becoming more uncertain. This is the earliest warning sign, often visible 50-100 iterations before a crash.
+
+**30. When the terrain changes, re-evaluate your penalties.** A penalty that makes sense on flat terrain can be catastrophic on rough terrain. `undesired_contacts=-5.0` was fine for Phase A (flat terrain, body contact = the robot fell). On Phase B's 12-terrain curriculum, the robot WILL contact obstacles with its body -- that's physics, not failure. We lowered it to -1.5 and added a targeted `body_scraping` term that penalizes *sustained* belly contact while moving, not momentary bumps. The principle: prefer targeted penalties over blanket punishments, and always ask "is this penalty still valid in the new environment?"
+
+**31. Curriculum steps must be survivable.** Trial 8 proved that flat --> 12-type robust is too large a jump (96.5% flip_over). Trial 9's transition terrain (50% flat + gentle rough) achieved 1.2% flip_over from iteration 1. The rule of thumb: if the policy's survival rate drops below ~70% on the new terrain, the curriculum step is too large. The number of new terrain *types* matters as much as difficulty -- stairs, gaps, and slopes are qualitatively different from flat, regardless of how "easy" they are. Bridge the gap with an intermediate phase.
+
+**32. Terrain complexity has two axes: type novelty and difficulty.** Trial 10 showed that even after transition training, full robust (12 types × 10 difficulty rows) crashed in 15 iterations with 63% flip_over. Trial 10b uses the same 12 types but only 3 difficulty rows and it's stable at 8.6% flip_over. The robot can learn many new terrain types if difficulty is capped, or hard difficulty on familiar types -- but not both at once. The four-phase curriculum separates these: flat (walk) --> transition (gentle types) --> robust_easy (all types, low difficulty) --> robust (all types, full difficulty).
+
+**33. Squared penalties are exponential landmines.** Action smoothness and joint acceleration penalties compute squared differences. When the robot falls chaotically, actions become 100x normal -- the squared penalty becomes 10,000x normal. Trial 10's action_smoothness hit -103 trillion from one bad iteration. These terms are safe during stable training but become weapons during terrain transitions. Cap terrain difficulty low enough that failures are "stumbles" not "catastrophic flips."
+
+**34. World-frame rewards are terrain-specific.** `body_height_tracking` uses absolute Z position, not height above terrain. It worked perfectly on flat terrain (ground at z=0) and hid for 9 trials. The moment we added real elevation, it penalized the robot for standing on stairs. Check every reward term: does it use world-frame coordinates? If yes, it will break on rough terrain. Disable or rewrite before terrain transitions.
+
+**35. Cut the learning rate at every terrain transition.** Each terrain change is a distribution shift for the value function. Phase A to A.5: lr=3e-4 was fine. Phase A.5 to B-easy: lr=3e-4 caused value explosion in 25 iters, lr=1e-4 stabilized. The value function's predictions become less accurate with each transition, so it needs smaller updates to converge instead of oscillate. When in doubt, halve the LR.
 
 ---
 
@@ -1028,49 +1205,392 @@ mean_reward:               -4.09 --> +0.20 (positive but stagnant)
 
 ---
 
-### Trial 3: Structural Fixes — No Body Contact Kill (Feb 28, 2026) -- IN PROGRESS
+### Trial 3: Structural Fixes — No Body Contact Kill (Feb 28, 2026) -- FAILED
 
-**Config:** Paper-matched coefficients + 4 structural fixes from full config comparison
+**Config:** Paper-matched coefficients + 5 structural fixes from full config comparison
 **Envs:** 10,000 Spot only | **Hardware:** H100 96GB (solo, clean GPU after reset)
 **Log dir:** `spot_robust_ppo/2026-02-28_16-05-11/`
 
-**What changed from Trial 2 (4 fixes):**
+**What changed from Trial 2 (5 fixes):**
 
-1. **REMOVED body_contact termination** → Added `body_flip_over` (bad_orientation at 150 deg, only kills if nearly upside-down). This is the paper's approach: body contact is penalized via reward, not termination.
-2. **Added `undesired_contacts` reward** (weight=-2.0) — soft penalty for body contact that provides gradient signal instead of instant death.
-3. **Raised friction minimums** — static (0.05→0.3, 1.5), dynamic (0.02→0.3, 1.2). Paper's minimum is 0.3, not near-zero ice.
-4. **Reduced action scale** — 0.25 → 0.2. Less violent random joint movements during early exploration.
-5. **Added `disable_contact_processing = True`** — matches paper's PhysX setting.
+1. **REMOVED body_contact termination** → Added `body_flip_over` (bad_orientation at 150 deg)
+2. **Added `undesired_contacts` reward** (weight=-2.0) — soft penalty replaces hard kill
+3. **Raised friction minimums** — static (0.05→0.3), dynamic (0.02→0.3)
+4. **Reduced action scale** — 0.25 → 0.2
+5. **Added `disable_contact_processing = True`**
 
-**Iteration 0 metrics (night-and-day difference):**
+**What happened:** Ran for 8,745 iterations (~40 hours) before crashing. By iteration 100, body_flip_over hit 97.8% — the *exact same death spiral* as Trials 1 and 2, just with a different termination name. The robot was flipping over instead of making body contact, but just as dead.
+
 ```
-episode_length:       31.77 (was 27.0 in Trial 2 — surviving FULL episodes!)
-body_flip_over:       0.24% (was 12.6% body_contact in Trial 2)
-time_out:             1.14% (episodes reaching time limit from step 0)
-terrain_levels:       3.50  (starting on real terrain, not collapsed to 0)
-undesired_contacts:   -0.0002 (tiny penalty, not instant death)
+iter 0:    flip_over=0.24%   ep_len=31.8   noise_std=1.0   value_loss=13.8
+iter 100:  flip_over=97.8%   ep_len=21.7   noise_std=1.68  value_loss=1.8
+iter 8000: flip_over=96.4%   ep_len=45.2   noise_std=1.39  value_loss=1.78
+iter 8745: flip_over=96.0%   ep_len=21.2   noise_std=1.79  value_loss=INF  <-- CRASH
 ```
 
-**Performance:** ~18.4s/iter, ~17,350 fps, 38C GPU temp
-**ETA:** ~9.5 hours for 30,000 iterations
+**Two bugs discovered (Bug #14 and Bug #15):**
 
-**Status:** RUNNING. TensorBoard at `http://172.24.254.24:6006`
+1. **Bug #14 — Exploration Noise Death Spiral:** `init_noise_std=1.0` with `action_scale=0.2` produces actions ~N(0, 0.2) rad (±11°). Violent enough to flip Spot. Without hard termination to instantly punish flipping, the 150° threshold is too lenient. Most actions flip the robot → no useful gradient → noise_std *increases* → more violent actions → more flips. Classic positive feedback loop. Noise went 1.0 → 1.68 by iter 100.
 
-**What to watch for:**
-- episode_length should stay above 20 and ideally climb toward 30+ (full episodes)
-- terrain_levels should remain above 2.0 and climb as the robot improves
-- mean_reward should trend upward (started at -6.93, should improve)
-- gait and velocity rewards should grow as the robot learns to walk instead of just survive
+2. **Bug #15 — LR Schedule Override:** RSL-RL's `schedule="adaptive"` overrides our cosine annealing inside `PPO.update()`. The adaptive schedule crushed LR to ~0 for 8,700 iterations (no learning), then spiked to 0.01 → value function → inf → crash.
+
+**Also discovered:** DR was 3-16x more aggressive than the Isaac Lab reference config (±8N forces vs zero, ±3Nm torques vs zero, ±1.5 push vs ±0.5). See Bug #16.
 
 ---
 
-### Trial 4: Vision60 (PLANNED)
+### Trial 4: DR + LR + Reward Fixes (Mar 2, 2026) -- FAILED
 
-After Spot Trial 3 succeeds:
-- Apply same structural fixes (flip-over termination, undesired_contacts, raised friction)
-- Paper-matched coefficients with V60-specific adjustments (Section 10)
-- Progressive DR (mild to aggressive over 15K iterations)
-- Full solo GPU
+**Config:** Reference-matched DR + LR fix + reward boost
+**Envs:** 10,000 Spot only | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-02_10-39-33/`
+
+**8 changes from Trial 3:**
+1. Zeroed external forces (±8N → 0) and torques (±3Nm → 0)
+2. Reduced mass DR: ±8kg → ±5kg
+3. Reduced push velocity: ±1.5 → ±0.5 m/s
+4. Increased push interval: (5,12) → (10,15)s
+5. Reduced joint reset velocity: ±3.0 → ±2.5
+6. Increased gait weight: 5.0 → 10.0
+7. Increased foot_clearance: 0.75 → 2.0
+8. Fixed LR: `schedule="adaptive"` → `schedule="fixed"` (cosine annealing works correctly)
+
+**What happened:** Crashed at iteration ~80. DR fixes delayed the death spiral by ~70 iterations — 76% flip_over at iter 8 vs Trial 3's 97.8% at iter 100. Episode length peaked at 118 steps (4x Trial 3's peak). But the fundamental noise spiral (Bug #14) still killed it.
+
+```
+iter 0:   flip_over=0.24%  ep_len=31.9   noise_std=1.0   value_loss=12.5
+iter 8:   flip_over=76.1%  ep_len=82.3   noise_std=1.02  value_loss=8.6
+iter 77:  flip_over=95.5%  ep_len=117.9  noise_std=2.0   value_loss=212,568  <-- CRASH
+```
+
+**Diagnosis:** DR fixes were necessary but not sufficient. The exploration noise is the root cause. With `init_noise_std=1.0`, the random actions are too violent for Spot's balance regardless of DR settings.
+
+---
+
+### Trial 5: Noise Stabilization (Mar 2, 2026) -- FAILED
+
+**Config:** Trial 4 config + noise fixes targeting Bug #14
+**Envs:** 10,000 Spot only | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-02_12-15-09/`
+
+**3 changes from Trial 4:**
+1. `init_noise_std`: 1.0 → 0.5
+2. `max_noise_std`: 2.0 → 1.0
+3. `undesired_contacts` weight: -2.0 → -5.0
+
+**What happened:** Best early metrics yet — 21.6% flip_over at iter 1, episode length peaked at 216 steps at iter 26, value loss stayed stable at 3.71 (vs 212K crash in Trial 4). But by iter 101, flip_over climbed back to 96.2% and noise hit the 1.0 ceiling. The noise ceiling prevented a crash but the robot still couldn't learn.
+
+```
+iter 0:   flip_over=0.18%  ep_len=31.9   noise=0.50  value_loss=6.2
+iter 1:   flip_over=21.6%  ep_len=62.6   noise=0.50  value_loss=6.1
+iter 26:  flip_over=80.6%  ep_len=216.2  noise=0.58  value_loss=7.9
+iter 101: flip_over=96.2%  ep_len=54.2   noise=1.00  value_loss=3.7
+```
+
+**Diagnosis (Bug #17):** The robot is on 12-type rough terrain from step 0. Even with gentle noise, it trips on stairs/gaps/slopes and flips. The gradient is dominated by "don't trip on terrain" instead of "learn to walk." Five trials have now proven that learning locomotion and terrain traversal simultaneously doesn't work for Spot. The robot needs to learn to walk on flat terrain first.
+
+---
+
+### Trial 6: Flat Terrain Warmup (Mar 2, 2026) -- FAILED (value explosion at iter 274)
+
+**Config:** Trial 5 config + flat terrain warmup (two-phase training)
+**Envs:** 10,000 Spot only | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-02_13-01-42/`
+
+The flat terrain approach *worked beautifully* for 273 iterations -- reward hit 384, episode length maxed at 1,500, only 5.4% flip-over. The robot actually learned to walk! Then the value function exploded to infinity and the entire run was lost.
+
+| Iter | Reward | Ep Length | Flip Over | Noise Std | Value Loss |
+|------|--------|-----------|-----------|-----------|------------|
+| 2 | 2.87 | 70 | 50.8% | 0.50 | 0.397 |
+| 199 | 374 | 1,500 | 5.4% | 0.58 | 0.216 |
+| 273 | 318 | 1,279 | 3.8% | 0.77 | 1,233 |
+| 274 | -8,844 | — | — | 0.77 | **inf** |
+
+**Diagnosis (Bug #18):** `warmup_iters=500` on a 500-iteration run = LR never stopped climbing (5.5e-4 at crash). `save_interval=500` = zero intermediate checkpoints. Entire policy lost.
+
+---
+
+### Trial 7: Lower LR Warmup (Mar 2, 2026) -- FAILED (value explosion at iter 102)
+
+**Config:** Trial 6 + `warmup_iters=50`, `save_interval=50`
+**Envs:** 10,000 Spot only | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-02_15-21-03/`
+
+Fixed the warmup but kept `lr_max=1e-3`. The robot was learning well (reward 133, ep_len 1,181 at iter 100), then noise spiked 0.70 → 0.86 and the value function detonated at iter 102.
+
+**Diagnosis:** `lr_max=1e-3` is too high for a fragile early-training policy. At iter 100 the cosine schedule had LR at ~9.7e-4. In Trial 6, the same explosion happened when LR reached ~5.5e-4 at iter 274. The threshold is somewhere around 5e-4.
+
+**Saved:** `model_50.pt` (clean, noise=0.59) -- the save_interval fix worked!
+
+---
+
+### Trial 7b: Lower LR + Resume (Mar 2, 2026) -- SUCCESS (Phase A COMPLETE)
+
+**Config:** Resume from Trial 7 `model_50.pt` + `lr_max=3e-4`
+**Envs:** 10,000 Spot only | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-02_15-55-25/`
+
+The winning combination. Lower learning rate kept the value function stable for the entire run.
+
+| Iter | Reward | Ep Length | Flip Over | Time Out | Noise Std | Value Loss |
+|------|--------|-----------|-----------|----------|-----------|------------|
+| 51 (resume) | 1.6 | 30 | 0.03% | 1.0% | 0.52 | 0.975 |
+| 110 | 141 | 1,155 | 28.1% | 71.9% | 0.54 | 0.220 |
+| 199 | 375 | 1,500 | 5.4% | 94.6% | 0.58 | 0.216 |
+| 300 | 520 | 1,500 | 1.5% | 98.5% | 0.42 | 0.100 |
+| **498** | **567** | **1,500** | **0.7%** | **99.3%** | **0.38** | **0.09** |
+
+**This is the first successful training run in the entire project.** Key results:
+- 99.3% of episodes survive the full length (0.7% flip over)
+- Noise *decreased* from 0.52 to 0.38 -- the policy learned precision
+- Value loss converged to 0.09 -- no explosion
+- 10 checkpoints saved across the run
+- 143M timesteps, 1.7 hours wall time, 24K steps/sec
+
+**Checkpoint:** `model_498.pt` (20.6 MB) -- flat terrain walking policy, ready for Phase B.
+
+**What we learned:** Flat terrain + low LR + frequent checkpoints = stable training. The robot has 7 trials of failures behind it and finally knows how to walk.
+
+---
+
+### Trial 8: Phase B -- Direct Rough Terrain Transfer (Mar 2, 2026) -- FAILED
+
+**Config:** Phase A checkpoint (model_498.pt) + 2 reward changes for rough terrain
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB (solo, clean GPU)
+**Log dir:** `spot_robust_ppo/2026-03-02_19-33-05/`
+**Resume from:** `spot_robust_ppo/2026-03-02_15-55-25/model_498.pt`
+
+**What changed from Phase A:**
+```
+undesired_contacts:  -5.0 --> -1.5   (rough terrain = body bumps are unavoidable)
+body_scraping:       NEW  --> -2.0   (penalize belly-dragging at speed, allow momentary bumps)
+terrain:             flat --> robust  (12-type curriculum, 400 patches)
+```
+
+**Results (~40 iterations after resume):**
+```
+flip_over:       95.0% --> 96.5%      (not improving at all)
+noise_std:       0.50  --> 1.00       (hit ceiling -- death spiral)
+value_loss:      ---   --> 482,431    (exploding)
+reward:          -54   --> -101       (getting worse)
+terrain_levels:  1.30  --> 1.18       (stuck at bottom)
+```
+
+**Diagnosis (Bug #20):** The jump from 100% flat to 12-type rough terrain was too large. Even the easiest curriculum rows have stairs, gaps, and slopes -- terrain *types* the robot has never seen. The flat-trained policy flips on 96.5% of patches, gets no gradient signal, noise grows to ceiling, same death spiral as Trials 3-5. The curriculum controls *difficulty* within each type, but can't make stairs feel like flat ground.
+
+**Outcome:** FAILED -- killed at iter 538. Added `--terrain transition` option.
+
+---
+
+### Trial 9: Phase A.5 -- Transition Terrain (Mar 2, 2026) -- IN PROGRESS
+
+**Config:** Phase A checkpoint (model_498.pt) + transition terrain (50% flat + gentle rough)
+**Envs:** 10,000 Spot | **Hardware:** H100 96GB (solo, clean GPU)
+**Resume from:** `spot_robust_ppo/2026-03-02_15-55-25/model_498.pt`
+
+**The idea:** Bridge the gap between flat and robust. Instead of 12 harsh terrain types, use 6 gentle ones:
+```
+50% flat               (safe zone -- policy can keep practicing walking)
+15% gentle slopes      (max 14 degrees, half of robust's 29 degrees)
+10% slight roughness   (noise 0.01-0.06, half of robust's 0.02-0.15)
+10% gentle stairs      (max 0.10m step, half of robust's 0.25m)
+10% wave terrain       (amplitude 0.02-0.08, half of robust's 0.05-0.20)
+5%  vegetation plane   (drag training)
+```
+
+Only 5 difficulty rows (vs robust's 10), 20 columns. The robot gets to practice walking on mostly-flat terrain while gradually encountering gentle obstacles.
+
+**Early results (iter 502, ~4 iterations after resume):**
+
+| Metric | Failed Phase B | **Phase A.5** |
+|--------|---------------|---------------|
+| flip_over | 96.5% | **1.2%** |
+| noise_std | 1.00 (ceiling) | **0.39** (stable!) |
+| value_loss | 482,431 | **8.5** |
+| reward | -101 | **+10.35** |
+| terrain_levels | 1.18 (stuck) | **2.29** (climbing!) |
+| time_out | 2.8% | **10.1%** |
+
+Night and day. The transition terrain is gentle enough that the flat-trained policy can survive while learning new skills. Stumble penalty (-1.12) is the biggest hit -- the robot is learning to deal with obstacles for the first time.
+
+**Plan:** 1000 iterations on transition terrain, then proceed to full robust terrain (Phase B).
+
+---
+
+### Trial 10: Phase B -- Full Robust Terrain (Mar 2, 2026) -- FAILED
+
+**Config:** Phase A.5 checkpoint (model_998.pt) + full ROBUST_TERRAINS_CFG (12 types, 10 rows)
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB (solo, clean GPU)
+**Log dir:** `spot_robust_ppo/2026-03-02_21-58-52/`
+
+**What happened:** Crashed after ~15 iterations.
+```
+action_smoothness:  -103,329,900,265,472  (negative 103 TRILLION)
+flip_over:          63%
+crash:              RuntimeError: normal expects all elements of std >= 0.0
+```
+
+The action smoothness term exploded because the robot was falling chaotically on unfamiliar hard terrain -- actions became extreme, squared differences went to infinity, corrupted the entire policy. Noise std went negative (NaN), crash.
+
+**Diagnosis (Bug #21):** Transition terrain (50% flat) to full robust (~10% flat) is still too steep. 63% flip_over is better than Trial 8's 95% (so transition training helped) but not enough. The action smoothness penalty is a landmine -- it squares action differences, so chaotic falling creates exponential penalty growth.
+
+**Key insight:** The robot needs to see all 12 terrain types at LOW difficulty before seeing them at FULL difficulty. Two independent axes: terrain type novelty × terrain difficulty. Can't crank both at once.
+
+---
+
+### Trial 10b: Phase B -- Robust Easy (Mar 2, 2026) -- IN PROGRESS (overnight)
+
+**Config:** Phase A.5 checkpoint (model_998.pt) + all 12 terrain types, `num_rows=3` (capped difficulty)
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB (solo, clean GPU)
+**Resume from:** `spot_robust_ppo/2026-03-02_19-53-10/model_998.pt`
+
+**The idea:** Same 12 terrain types as full robust, but only 3 difficulty rows instead of 10. The robot sees stairs, gaps, slopes, stepping stones -- everything -- but only the easy-to-medium versions. Max stair ~0.10m instead of 0.25m, max gap ~0.20m instead of 0.50m.
+
+**First iteration results:**
+```
+flip_over:          8.6%      (vs 63% on full robust -- stable!)
+action_smoothness:  -0.35     (vs -103 trillion -- normal!)
+value_loss:         39.7      (elevated but stable, not exploding)
+ep_length:          89.8      (short but surviving)
+reward:             -26.6     (negative but learning)
+```
+
+Running overnight. 30K iterations, ~21 hour ETA. Checkpoints every 500 iterations.
+
+---
+
+### Trial 10c: Phase B -- Robust Easy, Height Fix (Mar 2, 2026) -- FAILED
+
+**Config:** Phase A.5 checkpoint + `body_height_tracking` disabled (Bug #22 fix) + `lr_max=3e-4`
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-02_22-34-19/`
+
+**What happened:** Fixed the height tracking bug but LR was still too high for the terrain distribution shift. Value loss went 31 → 101 → 4,670 in 25 iterations. Flip_over climbed 15% → 39% → 59%. Crashed.
+
+**Diagnosis:** The value function was trained on transition terrain (50% flat). On robust_easy (0% flat, 12 types), its predictions are wildly wrong. At lr=3e-4, each update overcorrects, causing oscillation → explosion. Need lower LR to let the value function converge gradually.
+
+---
+
+### Trial 10d: Phase B -- Robust Easy, Lower LR (Mar 2, 2026) -- FAILED (NaN crash at iter ~1319)
+
+**Config:** Phase A.5 checkpoint + height tracking disabled + `lr_max=1e-4`
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-02_22-50-53/`
+**Log file:** `~/phase_b_easy3.log`
+**Resume from:** `spot_robust_ppo/2026-03-02_19-53-10/model_998.pt`
+
+**The journey to get here:**
+```
+Trial 8:   flat --> robust (12 types, 10 rows)      = 95% flip, terrain shock
+Trial 9:   flat --> transition (50% flat, gentle)    = SUCCESS (93% survival)
+Trial 10:  transition --> robust (12 types, 10 rows) = 63% flip, action_smooth=-103T, crash
+Trial 10b: transition --> robust_easy (12 types, 3 rows) = 52% flip, height_tracking=-52, crash
+Trial 10c: same + height tracking disabled           = 59% flip, value explosion at lr=3e-4
+Trial 10d: same + lr=1e-4                            = STABILIZING... then crashed
+```
+
+Seven attempts to get from flat terrain to rough terrain. Each failure taught us something:
+- Trial 8: need intermediate terrain phase
+- Trial 9: transition terrain works
+- Trial 10: need to cap terrain difficulty
+- Trial 10b: world-frame height rewards break on rough terrain
+- Trial 10c: LR must decrease at each terrain transition
+- Trial 10d: lr=1e-4 lets value function adapt gradually
+
+**Results (the first successful rough terrain training -- until it crashed):**
+
+| Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss | Gait |
+|------|--------|-----------|-----------|----------|------------|------|
+| 1000 (resume) | -16 | 91 | 7.9% | 5.0% | 39 | 0.27 |
+| ~1025 (danger zone) | +8 | 430 | 49.4% | 23.0% | 967 | 1.82 |
+| 1094 (recovery) | **+117** | **1,099** | **42.3%** | **55.8%** | **53** | **4.73** |
+| 1160 (stable) | **+116** | **1,041** | **33.5%** | **64.3%** | **7.9** | **4.97** |
+| ~1319 (crash) | — | — | 26.1% | 71.5% | — | — |
+
+The value loss spiked to 967 at iteration ~1025 (at lr=3e-4 this same spike hit 4,670 and crashed). With lr=1e-4, it recovered: 967 → 53 → 198 → 7.9. Flip_over peaked at 49% then started falling. By iter 1160, two-thirds of episodes survive, gait is near-perfect, and value loss is healthy.
+
+**Crashed overnight at ~iter 1319** (1h43m elapsed, 209M timesteps) with:
+```
+RuntimeError: normal expects all elements of std >= 0.0
+```
+
+The noise std was at the ceiling (1.00) for most of the run. During a PPO mini-batch update, an optimizer step pushed the `policy.std` parameter to NaN. The post-update `clamp_noise_std()` never got to run because the crash happened mid-update. See Bug #24.
+
+**Only checkpoint:** `model_1000.pt` (saved at iter 1000, before any B-easy learning). All 319 iterations of progress were lost.
+
+**Lesson:** Save more frequently during dangerous terrain transitions. `save_interval=100` would have preserved progress.
+
+---
+
+### Trial 10e: Phase B -- Robust Easy, NaN Clamp Fix (Mar 3, 2026) -- FAILED (NaN crash at iter ~1035)
+
+**Config:** Trial 10d config + `register_std_safety_clamp()` monkey-patch on `policy.act()` + **lr_max=3e-4** (mistake)
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-03_07-59-37/`
+**Log file:** `~/phase_b_easy4.log`
+**Resume from:** `spot_robust_ppo/2026-03-02_22-50-53/model_1000.pt`
+
+**The fix attempt:** Added a monkey-patch on `policy.act()` to clamp `policy.std` to [0.3, 1.0] before every forward pass, not just after the full PPO update. This should catch the std going negative between mini-batches.
+
+**What happened:** Same crash at iter ~1035. The safety clamp DID execute (visible in stack trace), but `clamp_()` does **not fix NaN values** -- `NaN.clamp_(min=0.3)` returns NaN. The optimizer pushed std to NaN (not just negative), and our clamp passed NaN through unchanged. See Bug #24.
+
+Also used `lr_max=3e-4` instead of 10d's working `1e-4`. This was a mistake -- the curriculum template says 3e-4 but the empirical evidence from 10c and 10d clearly shows 1e-4 is needed for B-easy. Two bugs stacked: wrong LR + insufficient NaN handling.
+
+---
+
+### Trial 10f: Phase B -- Robust Easy, NaN Sanitizer (Mar 3, 2026) -- FAILED (NaN-corrupted policy)
+
+**Config:** Trial 10e config + `_sanitize_std()` replacing clamp with NaN/Inf/negative detection + **lr_max=3e-4** (same mistake)
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-03_08-15-23/`
+**Log file:** `~/phase_b_easy5.log`
+**Resume from:** `spot_robust_ppo/2026-03-02_22-50-53/model_1000.pt`
+
+**The fix:** Replaced `policy.std.clamp_()` with a proper sanitizer:
+```python
+bad = torch.isnan(param.data) | torch.isinf(param.data) | (param.data < 0)
+if bad.any():
+    param.data[bad] = min_val
+param.data.clamp_(min=min_val, max=max_val)
+```
+
+**What happened:** The sanitizer prevented the crash! Training kept running. But at `lr_max=3e-4`, the policy weights NaN-corrupted within ~35 iterations. The sanitizer kept std valid so `Normal.sample()` didn't crash, but the rest of the network (actor, critic) was producing NaN outputs. By iter ~1035: noise_std=NaN, value_loss=NaN, most rewards=NaN, flip_over=81.7%.
+
+The training was a zombie -- alive but brain-dead.
+
+**Diagnosis:** The NaN sanitizer is necessary (prevents crashes) but not sufficient. The root cause is `lr_max=3e-4` causing value explosion that corrupts all network weights, not just std. Once the actor weights are NaN, sanitizing std is like putting a band-aid on a corpse.
+
+---
+
+### Trial 10g: Phase B -- Robust Easy, Full Fix (Mar 3, 2026) -- IN PROGRESS
+
+**Config:** NaN sanitizer + **lr_max=1e-4** (matching Trial 10d's working config)
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB (fresh reboot, clean GPU, zero zombies)
+**Log dir:** `spot_robust_ppo/2026-03-03_08-50-56/`
+**Log file:** `~/phase_b_easy7.log`
+**Resume from:** `spot_robust_ppo/2026-03-02_22-50-53/model_1000.pt`
+
+**What's different from 10d (the good overnight run):**
+1. `_sanitize_std()` replaces NaN/Inf/negative values before clamping (Bug #24 fix)
+2. `register_std_safety_clamp()` runs sanitizer before every `policy.act()` call (not just post-update)
+3. H100 fresh-rebooted -- no zombie processes, no D-state CUDA deadlocks, clean GPU memory
+
+**What's the same as 10d:** `lr_max=1e-4`, `robust_easy` terrain, 20,480 envs, 30K max iterations, resume from `model_1000.pt`.
+
+**Expected trajectory (from 10d):** Flip_over spikes to ~50% around iter 1025, recovers to ~26% by iter 1319, then continues improving. With the NaN sanitizer, the crash at ~1319 should not recur. First checkpoint at iter 1500.
+
+**Running now.** TensorBoard: `http://172.24.254.24:6006` (this run only).
+
+---
+
+### Trial 11: Phase B -- Full Robust (PLANNED)
+
+Resume from Trial 10g with `--terrain robust` (10 difficulty rows). `lr_max=1e-4`.
+
+---
+
+### Trial 12: Vision60 (PLANNED)
+
+After Spot succeeds -- same four-phase approach (flat --> transition --> robust_easy --> robust).
 
 ---
 

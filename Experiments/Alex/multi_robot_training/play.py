@@ -119,12 +119,12 @@ def main():
 
     # Run inference
     policy = runner.get_inference_policy(device=agent_cfg.device)
-    obs, _ = env.get_observations()
+    obs = env.get_observations()
 
     while simulation_app.is_running():
         with torch.no_grad():
             actions = policy(obs)
-        obs, _, _, _, _ = env.step(actions)
+        obs, _, _, _ = env.step(actions)
 
     env.close()
 

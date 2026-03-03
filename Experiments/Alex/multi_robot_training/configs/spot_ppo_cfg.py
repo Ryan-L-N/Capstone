@@ -37,7 +37,7 @@ class SpotPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     wandb_project = "capstone-quadruped-rl"
 
     policy = RslRlPpoActorCriticCfg(
-        init_noise_std=1.0,
+        init_noise_std=0.5,  # was 1.0 — reduced to prevent flip-over spiral (Lesson 8)
         actor_obs_normalization=False,
         critic_obs_normalization=False,
         actor_hidden_dims=[1024, 512, 256],
@@ -53,7 +53,7 @@ class SpotPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         num_learning_epochs=8,
         num_mini_batches=64,
         learning_rate=1.0e-3,
-        schedule="adaptive",
+        schedule="fixed",  # cosine annealing applied in train_ppo.py; "adaptive" overrides it
         gamma=0.99,
         lam=0.95,
         desired_kl=0.01,

@@ -30,6 +30,44 @@ def clamp_noise_std(policy, min_std: float, max_std: float):
             policy.std.clamp_(min=min_std, max=max_std)
 
 
+def _sanitize_std(param, min_val: float, max_val: float):
+    """Replace NaN/Inf/negative values in a std parameter, then clamp.
+
+    clamp_() alone does NOT fix NaN — NaN.clamp_(min=0.3) is still NaN.
+    We must explicitly replace bad values first.
+    """
+    bad = torch.isnan(param.data) | torch.isinf(param.data) | (param.data < 0)
+    if bad.any():
+        param.data[bad] = min_val
+    param.data.clamp_(min=min_val, max=max_val)
+
+
+def register_std_safety_clamp(policy, min_std: float, max_std: float):
+    """Monkey-patch policy.act() to sanitize std before every forward pass.
+
+    The post-update clamp_noise_std only runs AFTER the full PPO update returns.
+    But during the update's 8 epochs × 64 mini-batches, an optimizer step can
+    push std to NaN or negative, causing the NEXT policy.act() call to crash with:
+        RuntimeError: normal expects all elements of std >= 0.0
+
+    Plain clamp_() does NOT fix NaN values. This fix replaces NaN/Inf/negative
+    values with min_std, then clamps to [min_std, max_std].
+    """
+    original_act = policy.act
+
+    def safe_act(*args, **kwargs):
+        with torch.no_grad():
+            if hasattr(policy, 'noise_std_type') and policy.noise_std_type == "log":
+                _sanitize_std(policy.log_std,
+                              torch.log(torch.tensor(min_std)).item(),
+                              torch.log(torch.tensor(max_std)).item())
+            else:
+                _sanitize_std(policy.std, min_std, max_std)
+        return original_act(*args, **kwargs)
+
+    policy.act = safe_act
+
+
 def add_common_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """Add common training arguments to an ArgumentParser.
 
