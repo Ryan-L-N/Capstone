@@ -349,8 +349,17 @@ def main():
     _lr_log_interval = 1000
     _iteration_counter = [start_iteration]
 
+    # ── Value loss watchdog (Bug #25 fix) ────────────────────────────────
+    # Detects value function loss spikes and temporarily halves the LR
+    # to break the oscillation → amplification → NaN cascade.
+    _VL_THRESHOLD = 100.0       # value loss above this triggers the guard
+    _VL_COOLDOWN_ITERS = 50     # how many iters to keep reduced LR
+    _vl_penalty = [1.0]         # mutable: current LR multiplier (1.0 = normal)
+    _vl_cooldown = [0]          # mutable: remaining cooldown iters
+    _vl_spike_count = [0]       # mutable: total spike count for logging
+
     def update_with_schedule(*args, **kwargs):
-        """Wrapper: cosine LR + progressive DR (if Vision60) + noise clamp."""
+        """Wrapper: cosine LR + progressive DR (if Vision60) + noise clamp + value loss guard."""
         it = _iteration_counter[0]
 
         # Cosine LR annealing
@@ -358,6 +367,15 @@ def main():
             it, agent_cfg.max_iterations,
             args_cli.lr_max, args_cli.lr_min, args_cli.warmup_iters
         )
+
+        # Apply value loss watchdog penalty if active
+        if _vl_cooldown[0] > 0:
+            lr *= _vl_penalty[0]
+            _vl_cooldown[0] -= 1
+            if _vl_cooldown[0] == 0:
+                _vl_penalty[0] = 1.0
+                print(f"[GUARD] Value loss cooldown expired, restoring scheduled LR", flush=True)
+
         set_learning_rate(runner, lr)
 
         # Progressive DR for Vision60
@@ -367,6 +385,18 @@ def main():
 
         # Run the actual PPO update
         result = original_update(*args, **kwargs)
+
+        # ── Value loss watchdog check ────────────────────────────────
+        vl = result.get("value_function", 0.0) if isinstance(result, dict) else 0.0
+        if vl > _VL_THRESHOLD:
+            _vl_penalty[0] = 0.5
+            _vl_cooldown[0] = _VL_COOLDOWN_ITERS
+            _vl_spike_count[0] += 1
+            print(
+                f"[GUARD] Value loss spike: {vl:.1f} > {_VL_THRESHOLD} at iter {it} "
+                f"(spike #{_vl_spike_count[0]}). Halving LR for {_VL_COOLDOWN_ITERS} iters.",
+                flush=True,
+            )
 
         # Safety: clamp noise std
         clamp_noise_std(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
@@ -392,11 +422,16 @@ def main():
             if dr_info is not None:
                 dr_str = f"  dr={dr_info['dr_fraction']:.1%}"
 
+            guard_str = ""
+            if _vl_cooldown[0] > 0:
+                guard_str = f"  [GUARD active: LR×{_vl_penalty[0]}, {_vl_cooldown[0]} iters left]"
+
             print(
                 f"[TRAIN] iter={it:6d}/{agent_cfg.max_iterations}  "
                 f"lr={lr:.2e}{dr_str}  "
                 f"noise={noise:.3f}  "
-                f"elapsed={hours:.1f}h  fps={fps:.0f}",
+                f"elapsed={hours:.1f}h  fps={fps:.0f}"
+                f"{guard_str}",
                 flush=True,
             )
 

@@ -5,7 +5,7 @@
 > Run phases individually — stop, verify, then proceed.
 >
 > **Hardware:** NVIDIA H100 NVL 96GB
-> **Last updated:** March 2, 2026
+> **Last updated:** March 3, 2026
 
 ---
 
@@ -147,7 +147,7 @@ screen -dmS spot_train bash -c '
     export OMNI_KIT_ACCEPT_EULA=YES && export PYTHONUNBUFFERED=1 &&
     ./isaaclab.sh -p ~/multi_robot_training/train_ppo.py --headless \
         --robot spot --terrain robust_easy --num_envs 20480 --max_iterations 30000 \
-        --warmup_iters 500 --save_interval 500 --lr_max 1e-4 \
+        --warmup_iters 500 --save_interval 100 --lr_max 5e-5 \
         --resume --load_run <PHASE_A5_RUN_DIR> --load_checkpoint <BEST_MODEL>.pt \
         --no_wandb --seed 42 2>&1 | tee ~/phase_b_easy.log
 '
@@ -171,7 +171,8 @@ screen -dmS spot_train bash -c '
 | terrain | robust_easy | All 12 types, 3 difficulty rows |
 | num_envs | 20,480 | Full H100 scale for diverse terrain sampling |
 | max_iterations | 30,000 | Long run — let the robot master all types |
-| save_interval | 500 | ~60 checkpoints over the run |
+| lr_max | 5e-5 | 1e-4 causes value explosion at ~1134; 3e-4 crashes instantly |
+| save_interval | 100 | Frequent checkpoints (~65M steps each, prevents progress loss) |
 
 **What to watch:**
 - Flip_over should stay below 15% from the start (if >50%, something is wrong)
@@ -179,17 +180,17 @@ screen -dmS spot_train bash -c '
 - Value loss should stay below 100
 - Terrain_levels should climb above 1.5
 
-**Expected results (from Trial 10d, lr_max=1e-4):**
+**Expected results (from Trial 10h, lr_max=5e-5):**
 
-| Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss |
-|------|--------|-----------|-----------|----------|------------|
-| 1000 (resume) | -16 | 91 | 7.9% | 5.0% | 39 |
-| ~1025 (danger zone) | +8 | 430 | 49.4% | 23.0% | 967 |
-| 1094 (recovery) | +117 | 1,099 | 42.3% | 55.8% | 53 |
-| 1160 (stable) | +116 | 1,041 | 33.5% | 64.3% | 7.9 |
-| ~1319 (10d crashed here) | — | — | 26.1% | 71.5% | — |
+| Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss | Terrain Levels |
+|------|--------|-----------|-----------|----------|------------|----------------|
+| 1000 (resume) | ~-16 | ~91 | ~8% | ~5% | ~39 | ~0.3 |
+| ~1025 (danger zone) | ~+8 | ~430 | ~49% | ~23% | ~967 | ~0.5 |
+| 1100 (recovery) | ~117 | ~1,099 | ~42% | ~56% | ~53 | ~0.6 |
+| 1400 | ~145 | ~1,127 | ~24% | ~74% | ~7 | ~0.8 |
+| 1608 | ~155 | ~1,180 | ~23% | ~75% | ~16 | ~0.8 |
 
-**WARNING:** Expect a value_loss spike to ~1000 around iter 1025. At `lr_max=1e-4` this recovers. At `lr_max=3e-4` this spike hits 4,670+ and crashes (Trials 10c/10e/10f). Do NOT use lr_max > 1e-4 for Phase B-easy.
+**WARNING:** Expect a value_loss spike to ~1000 around iter 1025. At `lr_max=5e-5` this recovers and stays stable (<20). At `lr_max=1e-4` it recovers but re-explodes around iter 1134 (Trial 10g). At `lr_max=3e-4` the spike hits 4,670+ and crashes instantly (Trials 10c/10e/10f). Do NOT use lr_max > 5e-5 for Phase B-easy.
 
 **Output:** Best checkpoint from this run (~21MB)
 
@@ -281,13 +282,13 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | noise_std hits ceiling (1.0) | Terrain too hard, no gradient | Go back one phase, train longer |
-| value_loss > 1000 | LR too high or noise exploding | Kill immediately, resume from last checkpoint with lower lr_max |
+| value_loss > 1000 | LR too high or noise exploding | Kill immediately, resume from last checkpoint with lower lr_max (5e-5 for B-easy) |
 | flip_over > 70% on new terrain | Curriculum step too large | Add intermediate terrain phase |
 | reward negative and falling | Penalties dominate rewards | Check per-term breakdown, lower dominant penalty |
 | terrain_levels stuck at 0-1 | Robot can't advance curriculum | Check if too many terrain types are novel |
-| Training crashes with inf | Value explosion | Resume from 2-3 checkpoints back, use lr_max=3e-4 |
+| Training crashes with inf | Value explosion | Resume from 2-3 checkpoints back, use lr_max=5e-5 for B-easy |
 | action_smoothness explodes to trillions | Chaotic falls on hard terrain | Terrain step too big; use robust_easy first |
-| `normal expects std >= 0.0` crash | Policy std hit NaN from gradient explosion | `_sanitize_std()` in training_utils.py handles NaN/Inf/negative. Also ensure `lr_max=1e-4` for B-easy (3e-4 causes the explosion). Resume from earlier checkpoint. |
+| `normal expects std >= 0.0` crash | Policy std hit NaN from gradient explosion | `_sanitize_std()` in training_utils.py handles NaN/Inf/negative. Also ensure `lr_max=5e-5` for B-easy (1e-4 still explodes at ~1134, 3e-4 crashes instantly). Resume from earlier checkpoint. |
 
 ---
 
@@ -301,13 +302,14 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 10 | B | robust | ~15 | 3e-4 | FAILED — 63% flip, action_smooth=-103T, crash | — |
 | 10b | B-easy | robust_easy | ~20 | 3e-4 | FAILED — 52% flip, height_tracking=-52, crash | — |
 | 10c | B-easy | robust_easy | ~25 | 3e-4 | FAILED — 59% flip, value explosion, Bug #22 fixed | — |
-| 10d | B-easy | robust_easy | ~319 | **1e-4** | FAILED — 71% survival at crash, NaN std (Bug #24) | model_1000.pt |
+| 10d | B-easy | robust_easy | ~319 | 1e-4 | FAILED — 71% survival at crash, NaN std (Bug #24) | model_1000.pt |
 | 10e | B-easy | robust_easy | ~35 | 3e-4 | FAILED — clamp doesn't fix NaN, wrong lr | — |
 | 10f | B-easy | robust_easy | ~35 | 3e-4 | FAILED — NaN sanitizer works but lr too high, zombie policy | — |
-| **10g** | **B-easy** | **robust_easy** | **30K** | **1e-4** | **IN PROGRESS — NaN sanitizer + correct lr** | **TBD** |
-| 11 | B | robust | 30K | 1e-4 | PLANNED — after 10g | TBD |
+| 10g | B-easy | robust_easy | ~134 | 1e-4 | FAILED — value explosion at iter ~1134 (2.4×10²¹) | — |
+| **10h** | **B-easy** | **robust_easy** | **30K** | **5e-5** | **IN PROGRESS — iter 1608, reward 155, 75% survival** | **model_1600.pt** |
+| 11 | B | robust | 30K | TBD | PLANNED — after 10h | TBD |
 
-**Key insight from B-easy attempts:** `lr_max=1e-4` is mandatory for terrain transitions (Bug #23). `lr_max=3e-4` works for Phase A and A.5 but causes value explosion on B-easy. The NaN sanitizer (Bug #24) prevents crashes but can't save a policy corrupted by high LR.
+**Key insight from B-easy attempts:** LR must decrease aggressively for terrain transitions. `lr_max=3e-4` → instant crash. `lr_max=1e-4` → crash at iter ~1134-1319. `lr_max=5e-5` → stable (Trial 10h at iter 1608+). The NaN sanitizer (Bug #24) prevents std crashes but can't save a policy corrupted by high LR.
 
 ---
 

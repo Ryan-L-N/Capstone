@@ -935,9 +935,9 @@ This bug hid for 9 trials because flat terrain has ground at z=0, making world-f
 
 **Root cause:** The value function was trained on transition terrain (50% flat + gentle rough). On robust_easy (0% flat, 12 terrain types), its predictions are completely wrong -- it expects flat-terrain returns but sees rough-terrain returns. At lr=3e-4, each gradient update massively overcorrects the value function, causing oscillation that amplifies each iteration.
 
-**The fix (Trial 10d):** `lr_max=1e-4`. The value loss still spiked (39 → 967) but then recovered (967 → 53 → 7.9) instead of exploding. The lower LR gives the value function time to adapt gradually to the new terrain distribution.
+**The fix:** Progressive LR reduction. Trial 10d (`lr_max=1e-4`) survived to iter ~1319 before NaN crash. Trial 10g (`lr_max=1e-4` + NaN fix) survived to iter ~1134 before value explosion to 2.4×10²¹. Trial 10h (`lr_max=5e-5`) is stable past iter 1608 with value_loss at 7-16.
 
-**The lesson:** Every terrain transition is a distribution shift for the value function. The safe learning rate decreases with each transition because the value predictions become less accurate. Phase A (flat): lr=3e-4 works. Phase A.5 (transition): lr=3e-4 works. Phase B-easy (robust): need lr=1e-4. The pattern: when you change the terrain, cut the LR.
+**The lesson:** Every terrain transition is a distribution shift for the value function. The safe learning rate decreases with each transition because the value predictions become less accurate. Phase A (flat): lr=3e-4 works. Phase A.5 (transition): lr=3e-4 works. Phase B-easy (robust): need lr=5e-5. The pattern: when you change the terrain, cut the LR aggressively — halving is not enough, you may need 6x reduction.
 
 ---
 
@@ -984,6 +984,26 @@ param.data.clamp_(min=min_val, max=max_val)  # Then clamp
 **The fix:** `_sanitize_std()` in `shared/training_utils.py` -- explicitly detects and replaces NaN, Inf, and negative values before clamping. Registered via `register_std_safety_clamp()` which monkey-patches `policy.act()` to sanitize before every forward pass.
 
 **The lesson:** Never assume `clamp_()` handles pathological values. NaN is not a number -- it's a black hole that swallows every operation. When guarding against gradient explosions, always check for NaN/Inf explicitly. This applies to any safety mechanism in training: if your safety net assumes finite values, NaN will walk right through it.
+
+---
+
+### Bug #25: "The Slow Bleed" (Value Loss Oscillation Cascade)
+
+**What happened:** Trial 10h (lr_max=5e-5) looked stable past iter 1608 where 1e-4 had crashed. Reward climbed to ~155 at iter 1900-2200, then *slowly* declined: 155 → 142 → 112 → 58 → 8 over 2000 iterations. At iter 4037, value_function_loss went 7.6 → 411K → 170M → 8.5B → NaN. The NaN sanitizer (`_sanitize_std`) did not trigger because the NaN originated in the value function, not in the action noise std.
+
+**Root cause:** Same disease as Bug #23 (value function whiplash from terrain distribution shift), but in slow motion. At lr=5e-5, the value loss didn't explode instantly -- instead it *oscillated wildly* even during the "good" period: 10 → 56 → 193 → 210 → 973 → 28 → 8 → 5792 → 11734. Each spike partially damaged the policy. Over thousands of iterations, these accumulated damages degraded performance until the value function finally exploded to NaN. Lowering LR (3e-4 → 1e-4 → 5e-5) only delays the crash; it doesn't break the oscillation → amplification cycle.
+
+**The fix:** Added a **value loss watchdog** in `train_ppo.py`'s `update_with_schedule` wrapper. After each PPO update, it checks `result["value_function"]`. If value_loss exceeds a threshold (100.0), the effective LR is halved for 50 iterations. This breaks the amplification cycle: a spike triggers reduced LR, which prevents the overcorrection, which prevents the next spike. Also lowered lr_max to 3e-5 for additional margin.
+
+```python
+# Value loss watchdog (in update_with_schedule):
+vl = result.get("value_function", 0.0)
+if vl > _VL_THRESHOLD:  # 100.0
+    _vl_penalty[0] = 0.5
+    _vl_cooldown[0] = 50  # halve LR for 50 iters
+```
+
+**The lesson:** Safety mechanisms must guard the actual failure point. The NaN sanitizer guarded std (the *symptom*), but the disease was in the value function. When a training failure has a slow onset (hours of gradual decline before catastrophic collapse), look for oscillating metrics -- they're the early warning sign that a cascade is building. A reactive guard (detect spike → reduce LR) is more robust than a fixed LR because it adapts to the actual instability rather than guessing how low the LR needs to be.
 
 ---
 
@@ -1087,7 +1107,11 @@ param.data.clamp_(min=min_val, max=max_val)  # Then clamp
 
 **34. World-frame rewards are terrain-specific.** `body_height_tracking` uses absolute Z position, not height above terrain. It worked perfectly on flat terrain (ground at z=0) and hid for 9 trials. The moment we added real elevation, it penalized the robot for standing on stairs. Check every reward term: does it use world-frame coordinates? If yes, it will break on rough terrain. Disable or rewrite before terrain transitions.
 
-**35. Cut the learning rate at every terrain transition.** Each terrain change is a distribution shift for the value function. Phase A to A.5: lr=3e-4 was fine. Phase A.5 to B-easy: lr=3e-4 caused value explosion in 25 iters, lr=1e-4 stabilized. The value function's predictions become less accurate with each transition, so it needs smaller updates to converge instead of oscillate. When in doubt, halve the LR.
+**35. Cut the learning rate aggressively at every terrain transition.** Each terrain change is a distribution shift for the value function. Phase A to A.5: lr=3e-4 was fine. Phase A.5 to B-easy: lr=3e-4 exploded in 25 iters, lr=1e-4 survived ~300 iters then exploded, lr=5e-5 is stable past iter 1600+. The value function's predictions become less accurate with each transition, and "halving the LR" isn't enough — you may need a 6x reduction. The pattern: 3e-4 → 3e-4 → 5e-5 across A → A.5 → B-easy.
+
+**36. NaN propagates through clamp_().** `torch.clamp_(min=0.3, max=1.0)` does NOT fix NaN values — NaN.clamp_(min=0.3) returns NaN. When gradient explosions push policy std to NaN during PPO mini-batch updates, you must explicitly detect and replace bad values with `torch.isnan() | torch.isinf() | (data < 0)` before clamping. See `_sanitize_std()` in `training_utils.py`.
+
+**37. save_interval=100 prevents catastrophic progress loss.** At 20,480 envs, each iteration is ~655K steps. save_interval=500 means ~328M steps between checkpoints — if the run crashes, you lose hours of training. save_interval=100 (~65M steps) costs only ~2.1GB per 1000 iters and lets you recover from within 33 minutes of the crash point.
 
 ---
 
@@ -1485,28 +1509,36 @@ Trial 9:   flat --> transition (50% flat, gentle)    = SUCCESS (93% survival)
 Trial 10:  transition --> robust (12 types, 10 rows) = 63% flip, action_smooth=-103T, crash
 Trial 10b: transition --> robust_easy (12 types, 3 rows) = 52% flip, height_tracking=-52, crash
 Trial 10c: same + height tracking disabled           = 59% flip, value explosion at lr=3e-4
-Trial 10d: same + lr=1e-4                            = STABILIZING... then crashed
+Trial 10d: same + lr=1e-4                            = 71% survival, then NaN crash at ~1319
+Trial 10e: same + NaN clamp fix + lr=3e-4 (mistake)  = clamp doesn't fix NaN, crash
+Trial 10f: same + NaN sanitizer + lr=3e-4 (mistake)  = NaN-zombie, all metrics NaN
+Trial 10g: NaN sanitizer + lr=1e-4                    = value explosion at ~1134
+Trial 10h: NaN sanitizer + lr=5e-5                    = STABLE at iter 1608+ <<<
 ```
 
-Seven attempts to get from flat terrain to rough terrain. Each failure taught us something:
+Ten attempts to get from flat terrain to rough terrain. Each failure taught us something:
 - Trial 8: need intermediate terrain phase
 - Trial 9: transition terrain works
 - Trial 10: need to cap terrain difficulty
 - Trial 10b: world-frame height rewards break on rough terrain
 - Trial 10c: LR must decrease at each terrain transition
-- Trial 10d: lr=1e-4 lets value function adapt gradually
+- Trial 10d: lr=1e-4 helps but NaN std crashes mid-update
+- Trial 10e: clamp_() does NOT fix NaN values (Bug #24)
+- Trial 10f: NaN sanitizer works but lr=3e-4 corrupts policy
+- Trial 10g: lr=1e-4 still too high — value explosion at ~1134
+- Trial 10h: lr=5e-5 is the sweet spot — stable past all previous crash points
 
-**Results (the first successful rough terrain training -- until it crashed):**
+**Results (Trial 10h — first sustained rough terrain training):**
 
-| Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss | Gait |
-|------|--------|-----------|-----------|----------|------------|------|
-| 1000 (resume) | -16 | 91 | 7.9% | 5.0% | 39 | 0.27 |
-| ~1025 (danger zone) | +8 | 430 | 49.4% | 23.0% | 967 | 1.82 |
-| 1094 (recovery) | **+117** | **1,099** | **42.3%** | **55.8%** | **53** | **4.73** |
-| 1160 (stable) | **+116** | **1,041** | **33.5%** | **64.3%** | **7.9** | **4.97** |
-| ~1319 (crash) | — | — | 26.1% | 71.5% | — | — |
+| Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss | Terrain Levels |
+|------|--------|-----------|-----------|----------|------------|----------------|
+| 1000 (resume) | -16 | 91 | 7.9% | 5.0% | 39 | 0.3 |
+| ~1025 (danger zone) | +8 | 430 | 49.4% | 23.0% | 967 | 0.5 |
+| 1100 (recovery) | **+117** | **1,099** | **42.3%** | **55.8%** | **53** | 0.6 |
+| 1400 | **+145** | **1,127** | **24.0%** | **74.0%** | **7** | 0.8 |
+| 1608 | **+155** | **1,180** | **23.0%** | **75.0%** | **16** | 0.8 |
 
-The value loss spiked to 967 at iteration ~1025 (at lr=3e-4 this same spike hit 4,670 and crashed). With lr=1e-4, it recovered: 967 → 53 → 198 → 7.9. Flip_over peaked at 49% then started falling. By iter 1160, two-thirds of episodes survive, gait is near-perfect, and value loss is healthy.
+The value loss spike to 967 at iter ~1025 is the same across all attempts — it's the value function recalibrating to rough terrain. At lr=3e-4 this spike hits 4,670 and kills the run. At lr=1e-4 it recovers initially but re-explodes around iter 1134. At lr=5e-5 it recovers and stays stable (7-16 range). The 5e-5 LR updates the value function slowly enough to avoid overshooting.
 
 **Crashed overnight at ~iter 1319** (1h43m elapsed, 209M timesteps) with:
 ```
@@ -1561,7 +1593,7 @@ The training was a zombie -- alive but brain-dead.
 
 ---
 
-### Trial 10g: Phase B -- Robust Easy, Full Fix (Mar 3, 2026) -- IN PROGRESS
+### Trial 10g: Phase B -- Robust Easy, Full Fix (Mar 3, 2026) -- FAILED (value explosion at iter ~1134)
 
 **Config:** NaN sanitizer + **lr_max=1e-4** (matching Trial 10d's working config)
 **Envs:** 20,480 Spot | **Hardware:** H100 96GB (fresh reboot, clean GPU, zero zombies)
@@ -1569,22 +1601,50 @@ The training was a zombie -- alive but brain-dead.
 **Log file:** `~/phase_b_easy7.log`
 **Resume from:** `spot_robust_ppo/2026-03-02_22-50-53/model_1000.pt`
 
-**What's different from 10d (the good overnight run):**
-1. `_sanitize_std()` replaces NaN/Inf/negative values before clamping (Bug #24 fix)
-2. `register_std_safety_clamp()` runs sanitizer before every `policy.act()` call (not just post-update)
-3. H100 fresh-rebooted -- no zombie processes, no D-state CUDA deadlocks, clean GPU memory
+**What happened:** NaN sanitizer prevented the std crash (Bug #24 fix worked), but value_loss oscillated wildly (400 → 7,500 → 668 → 828) and then exploded to 2.4×10²¹ around iter ~1134. The lr_max=1e-4 is still too aggressive for the terrain transition — the value function can't track the new terrain distribution fast enough without overshooting.
 
-**What's the same as 10d:** `lr_max=1e-4`, `robust_easy` terrain, 20,480 envs, 30K max iterations, resume from `model_1000.pt`.
+**Conclusion:** `lr_max=1e-4` is the *minimum* for stable flat/transition training but *too high* for B-easy terrain transitions. Need to go lower.
 
-**Expected trajectory (from 10d):** Flip_over spikes to ~50% around iter 1025, recovers to ~26% by iter 1319, then continues improving. With the NaN sanitizer, the crash at ~1319 should not recur. First checkpoint at iter 1500.
+---
 
-**Running now.** TensorBoard: `http://172.24.254.24:6006` (this run only).
+### Trial 10h: Phase B -- Robust Easy, Lower LR (Mar 3, 2026) -- IN PROGRESS
+
+**Config:** NaN sanitizer + **lr_max=5e-5** + **save_interval=100**
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-03_09-59-28/`
+**Log file:** `~/phase_b_easy8.log`
+**Resume from:** `spot_robust_ppo/2026-03-02_22-50-53/model_1000.pt`
+
+**What's different from 10g:**
+1. `lr_max=5e-5` (half of 10g's 1e-4) — gentler value function updates
+2. `save_interval=100` — checkpoints every 100 iters (~65M steps) to prevent progress loss
+
+**Progress at iter 1608 (3h 23m elapsed, ~14h remaining):**
+
+| Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss | Terrain Levels |
+|------|--------|-----------|-----------|----------|------------|----------------|
+| 1000 (resume) | ~-16 | ~91 | ~8% | ~5% | ~39 | ~0.3 |
+| ~1025 (danger zone) | ~+8 | ~430 | ~49% | ~23% | ~967 | ~0.5 |
+| 1100 (recovery) | ~117 | ~1,099 | ~42% | ~56% | ~53 | ~0.6 |
+| 1400 | ~145 | ~1,127 | ~24% | ~74% | ~7 | ~0.8 |
+| 1608 | ~155 | ~1,180 | ~23% | ~75% | ~16 | ~0.8 |
+
+**Key observation:** Well past the crash points of Trial 10d (iter ~1319) and 10g (iter ~1134). Value loss stable at 7-16, no signs of the oscillation (400-7500) that preceded previous collapses. The 5e-5 LR gives the value function enough time to track terrain distribution changes without overshooting.
+
+**Reward breakdown at iter 1608:**
+- Top positives: gait (+5.9), base_angular_velocity (+3.2), base_linear_velocity (+2.8)
+- Top negatives: action_smoothness (-4.7), stumble (-1.9), base_motion (-0.9)
+- body_height_tracking: 0.0 (correctly disabled for rough terrain)
+
+**7 checkpoints saved:** model_1000 through model_1600. GPU: 56°C, 132W, 23GB.
+
+**TensorBoard:** `http://172.24.254.24:6006` (this run only, dir `2026-03-03_09-59-28`).
 
 ---
 
 ### Trial 11: Phase B -- Full Robust (PLANNED)
 
-Resume from Trial 10g with `--terrain robust` (10 difficulty rows). `lr_max=1e-4`.
+Resume from Trial 10h best checkpoint with `--terrain robust` (10 difficulty rows). `lr_max` TBD (likely 5e-5 or lower).
 
 ---
 
