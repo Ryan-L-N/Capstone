@@ -1,6 +1,6 @@
-"""Robust 12-terrain configuration for multi-robot training.
+"""Robust 11-terrain configuration for multi-robot training.
 
-12 terrain types across 3 categories, optimized for training policies that
+11 terrain types across 3 categories, optimized for training policies that
 handle rough terrain, stairs (up AND down), boulders, low-friction surfaces,
 and unstructured terrain.
 
@@ -10,7 +10,7 @@ Each patch is 8m x 8m.
 Terrain breakdown:
   Category A — Geometric Obstacles (40%):
     pyramid_stairs_up (10%), pyramid_stairs_down (10%), boxes (10%),
-    stepping_stones (5%), gaps (5%)
+    stepping_stones (10%)
   Category B — Surface Variation (35%):
     random_rough (10%), hf_pyramid_slope_up (7.5%), hf_pyramid_slope_down (7.5%),
     wave_terrain (5%), friction_plane (5%), vegetation_plane (5%)
@@ -70,18 +70,11 @@ ROBUST_TERRAINS_CFG = TerrainGeneratorCfg(
 
         # Stepping stones — precise foot placement training
         "stepping_stones": terrain_gen.HfSteppingStonesTerrainCfg(
-            proportion=0.05,
+            proportion=0.10,
             stone_height_max=0.15,
             stone_width_range=(0.25, 0.5),
             stone_distance_range=(0.1, 0.4),
             border_width=0.25,
-        ),
-
-        # Gaps — stride over or jump across
-        "gaps": terrain_gen.MeshGapTerrainCfg(
-            proportion=0.05,
-            gap_width_range=(0.1, 0.5),
-            platform_width=2.0,
         ),
 
         # =================================================================

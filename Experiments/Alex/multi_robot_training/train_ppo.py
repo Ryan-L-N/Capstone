@@ -62,6 +62,8 @@ parser.add_argument("--max_noise_std", type=float, default=1.0,
                     help="Maximum noise std ceiling (was 2.0, reduced to prevent flip spiral)")
 parser.add_argument("--save_interval", type=int, default=None,
                     help="Override checkpoint save interval (default: use config value)")
+parser.add_argument("--num_learning_epochs", type=int, default=None,
+                    help="Override PPO learning epochs per iteration (default: use config value, typically 8)")
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
 sys.argv = [sys.argv[0]]
@@ -132,6 +134,8 @@ def main():
     agent_cfg.seed = args_cli.seed
     if args_cli.save_interval is not None:
         agent_cfg.save_interval = args_cli.save_interval
+    if args_cli.num_learning_epochs is not None:
+        agent_cfg.algorithm.num_learning_epochs = args_cli.num_learning_epochs
 
     # Flat terrain override for warmup training (Bug #14 fix: learn to walk before rough terrain)
     if args_cli.terrain == "flat":

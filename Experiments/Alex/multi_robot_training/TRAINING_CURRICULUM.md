@@ -285,7 +285,7 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | value_loss > 1000 | LR too high or noise exploding | Kill immediately, resume from last checkpoint with lower lr_max (5e-5 for B-easy) |
 | flip_over > 70% on new terrain | Curriculum step too large | Add intermediate terrain phase |
 | reward negative and falling | Penalties dominate rewards | Check per-term breakdown, lower dominant penalty |
-| terrain_levels stuck at 0-1 | Robot can't advance curriculum | Check if too many terrain types are novel |
+| terrain_levels stuck at 0-1 | Robot can't advance curriculum | Check if too many terrain types are novel. Also check if noise_std is at ceiling — lower max_noise_std to let policy be precise on hard terrain (Bug #26) |
 | Training crashes with inf | Value explosion | Resume from 2-3 checkpoints back, use lr_max=5e-5 for B-easy |
 | action_smoothness explodes to trillions | Chaotic falls on hard terrain | Terrain step too big; use robust_easy first |
 | `normal expects std >= 0.0` crash | Policy std hit NaN from gradient explosion | `_sanitize_std()` in training_utils.py handles NaN/Inf/negative. Also ensure `lr_max=5e-5` for B-easy (1e-4 still explodes at ~1134, 3e-4 crashes instantly). Resume from earlier checkpoint. |
@@ -306,10 +306,11 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 10e | B-easy | robust_easy | ~35 | 3e-4 | FAILED — clamp doesn't fix NaN, wrong lr | — |
 | 10f | B-easy | robust_easy | ~35 | 3e-4 | FAILED — NaN sanitizer works but lr too high, zombie policy | — |
 | 10g | B-easy | robust_easy | ~134 | 1e-4 | FAILED — value explosion at iter ~1134 (2.4×10²¹) | — |
-| **10h** | **B-easy** | **robust_easy** | **30K** | **5e-5** | **IN PROGRESS — iter 1608, reward 155, 75% survival** | **model_1600.pt** |
-| 11 | B | robust | 30K | TBD | PLANNED — after 10h | TBD |
+| 10h | B-easy | robust_easy | ~4037 | 5e-5 | FAILED — peaked at 155 (iter 2000), value loss cascade to NaN. Curriculum stalled at 0.8 (noise_std=1.0 too high) | model_2000.pt |
+| 10k | B-easy | robust_easy | 5002 | 3e-5 | FLATLINED — reward ~216, terrain 0.83 (3-row ceiling), flip 14%, value loss 9.6. Ran 20h with 40960 envs. Policy extracted max from 3-row terrain. | model_5000.pt |
+| **11** | **B** | **robust** | **8000** | **3e-5** | **IN PROGRESS — 10-row terrain, 5000 envs, gaps removed, stepping stones 10%. Resumed from 10k model_5000.pt** | **TBD** |
 
-**Key insight from B-easy attempts:** LR must decrease aggressively for terrain transitions. `lr_max=3e-4` → instant crash. `lr_max=1e-4` → crash at iter ~1134-1319. `lr_max=5e-5` → stable (Trial 10h at iter 1608+). The NaN sanitizer (Bug #24) prevents std crashes but can't save a policy corrupted by high LR.
+**Key insight from B-easy attempts:** Three knobs matter: (1) LR must decrease aggressively for terrain transitions (3e-4→1e-4→5e-5→3e-5). (2) max_noise_std must decrease for later phases (1.0→0.7) to let the policy be precise on hard terrain. (3) Value loss watchdog (Bug #25) prevents oscillation cascades that LR reduction alone can't stop.
 
 ---
 

@@ -240,6 +240,8 @@ This is good engineering. Here's why:
 
 **The catch:** Everything must stay on the GPU. The moment you move data to CPU (`tensor.cpu()`), you create a synchronization bottleneck. Isaac Lab handles this by keeping observations, rewards, and actions as CUDA tensors throughout.
 
+**FAQ: "Do the robots collide with each other?"** No. Each of the 20,480 robots exists in its own isolated physics instance (`replicate_physics=True`). They share the same GPU simulation kernel for performance, but they cannot physically interact -- no collisions, no contact forces, no shared objects. Each robot is assigned to its own 8m x 8m terrain patch by the curriculum system. The `collision_group=-1` setting on the terrain mesh means the ground collides with every robot, but robots from different environments are invisible to each other. What looks like 20,000 robots sharing a world is actually 20,000 independent physics simulations running in parallel. In `play.py`, robots appear close together (`env_spacing=2.5`) for visualization purposes only -- during headless training they're spread across a much larger terrain grid.
+
 **Key config:** `@configclass` decorator from `isaaclab.utils`. These are dataclasses-on-steroids that Isaac Lab uses for type-safe, serializable configuration. Every environment config (`SpotPPOEnvCfg`, etc.) inherits from `ManagerBasedRLEnvCfg` and defines scenes, observations, actions, rewards, termination conditions, and domain randomization events.
 
 ### RSL-RL (The Training Algorithm)
@@ -1007,6 +1009,18 @@ if vl > _VL_THRESHOLD:  # 100.0
 
 ---
 
+### Bug #26: "The Noisy Ceiling" (Curriculum Stall from Forced Exploration)
+
+**What happened:** Trial 10h reached reward ~155 with terrain_levels stuck at ~0.8 for thousands of iterations. The curriculum never advanced past the easy/medium boundary. More training made things *worse* — reward declined from 155 to 8 over 2000 iterations before NaN crash.
+
+**Root cause:** `max_noise_std=1.0` forced the policy to maintain maximum exploration. With `entropy_coef=0.01`, the optimizer kept pushing std upward and the clamp caught it every iteration. On easy terrain (row 0-1), the robot is robust enough to walk despite noisy actions. On hard terrain (row 2), the noise causes falls — 23% flip rate, stable for thousands of iterations. The curriculum creates an equilibrium: robots get promoted from easy terrain (walk >4m easily) then demoted from hard terrain (flip and walk nowhere). The policy can't learn to survive hard terrain because it's *forced to be noisy*.
+
+**The fix:** Lower `--max_noise_std` from 1.0 to 0.7. This immediately lets the policy take more precise actions on hard terrain → fewer random falls → lower flip rate → curriculum advances. In Trial 10j, reward at iter 2025 was already 130 (vs 12 with std=1.0 in Trial 10i) and survival was 41% (vs 22%).
+
+**The lesson:** Exploration (high noise std) and exploitation (low noise std) must be balanced by phase. Phase A on flat terrain benefits from high exploration — the robot needs to discover walking. Phase B on hard terrain needs exploitation — the robot already knows how to walk and needs to do it *precisely*. If the curriculum stalls, check whether noise_std is at its ceiling. A clamped std means the policy wants to explore more than it should, and the clamp is the only thing stopping it. Lower the ceiling to match the phase.
+
+---
+
 ### Bug #19: "The Learning Rate Ceiling" (1e-3 Is Too Hot for Early Training)
 
 **What happened:** Trial 7 fixed the warmup (50 iters) but kept `lr_max=1e-3`. The robot was learning well (reward 133, ep_len 1,181 at iter 100), then noise suddenly spiked from 0.70 to 0.86 and value_loss went from 0.61 to 3.4e24 in a single iteration.
@@ -1112,6 +1126,10 @@ if vl > _VL_THRESHOLD:  # 100.0
 **36. NaN propagates through clamp_().** `torch.clamp_(min=0.3, max=1.0)` does NOT fix NaN values — NaN.clamp_(min=0.3) returns NaN. When gradient explosions push policy std to NaN during PPO mini-batch updates, you must explicitly detect and replace bad values with `torch.isnan() | torch.isinf() | (data < 0)` before clamping. See `_sanitize_std()` in `training_utils.py`.
 
 **37. save_interval=100 prevents catastrophic progress loss.** At 20,480 envs, each iteration is ~655K steps. save_interval=500 means ~328M steps between checkpoints — if the run crashes, you lose hours of training. save_interval=100 (~65M steps) costs only ~2.1GB per 1000 iters and lets you recover from within 33 minutes of the crash point.
+
+**38. Lower max_noise_std for later training phases.** In Phase A (flat), high exploration (std=1.0) helps discover gaits. In Phase B (rough terrain), the robot already knows how to walk and needs *precision*. If noise_std is pinned at its ceiling every iteration, the entropy bonus is overwhelming the policy gradient's desire to exploit. Lower the ceiling: 1.0 for Phase A, 0.7 for Phase B-easy. A stalled curriculum (terrain_levels stuck) is often a sign that noise is too high — the robot can't survive hard terrain because its actions are too noisy.
+
+**39. Value loss oscillation is the early warning sign.** Before a NaN crash, the value loss oscillates by orders of magnitude (10 → 200 → 970 → 5800 → 11700). Each spike partially damages the policy. A value loss watchdog that detects spikes and temporarily reduces LR breaks the amplification cycle. Look for oscillating metrics — they mean a cascade is building.
 
 ---
 
@@ -1526,19 +1544,23 @@ Ten attempts to get from flat terrain to rough terrain. Each failure taught us s
 - Trial 10e: clamp_() does NOT fix NaN values (Bug #24)
 - Trial 10f: NaN sanitizer works but lr=3e-4 corrupts policy
 - Trial 10g: lr=1e-4 still too high — value explosion at ~1134
-- Trial 10h: lr=5e-5 is the sweet spot — stable past all previous crash points
+- Trial 10h: lr=5e-5 stable past 1600 but curriculum stalled at 0.8, then value loss cascade to NaN at 4037
+- Trial 10j: lr=3e-5 + max_noise_std=0.7 + value loss watchdog — IN PROGRESS
 
-**Results (Trial 10h — first sustained rough terrain training):**
+**Results (Trial 10h — peaked then collapsed):**
 
 | Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss | Terrain Levels |
 |------|--------|-----------|-----------|----------|------------|----------------|
 | 1000 (resume) | -16 | 91 | 7.9% | 5.0% | 39 | 0.3 |
 | ~1025 (danger zone) | +8 | 430 | 49.4% | 23.0% | 967 | 0.5 |
-| 1100 (recovery) | **+117** | **1,099** | **42.3%** | **55.8%** | **53** | 0.6 |
-| 1400 | **+145** | **1,127** | **24.0%** | **74.0%** | **7** | 0.8 |
-| 1608 | **+155** | **1,180** | **23.0%** | **75.0%** | **16** | 0.8 |
+| 1100 (recovery) | +117 | 1,099 | 42.3% | 55.8% | 53 | 0.6 |
+| 1400 | +145 | 1,127 | 24.0% | 74.0% | 7 | 0.8 |
+| **2000 (peak)** | **+155** | **1,180** | **23.0%** | **75.0%** | **16** | **0.8** |
+| 2800 (declining) | +112 | 905 | 22% | 76% | 193 | 0.79 |
+| 3500 (death spiral) | +24 | 195 | 26% | 72% | 11 | 0.74 |
+| 4037 (NaN crash) | NaN | 1,500 | 0% | 100% | NaN | 0.70 |
 
-The value loss spike to 967 at iter ~1025 is the same across all attempts — it's the value function recalibrating to rough terrain. At lr=3e-4 this spike hits 4,670 and kills the run. At lr=1e-4 it recovers initially but re-explodes around iter 1134. At lr=5e-5 it recovers and stays stable (7-16 range). The 5e-5 LR updates the value function slowly enough to avoid overshooting.
+The curriculum stalled at terrain_levels ~0.8 because noise_std was pinned at 1.0 (max), causing too many random falls on harder terrain. The value loss oscillated by orders of magnitude (10 → 193 → 973 → 5792 → 11734) throughout, eventually cascading to NaN. More training made things worse, not better.
 
 **Crashed overnight at ~iter 1319** (1h43m elapsed, 209M timesteps) with:
 ```
@@ -1607,7 +1629,7 @@ The training was a zombie -- alive but brain-dead.
 
 ---
 
-### Trial 10h: Phase B -- Robust Easy, Lower LR (Mar 3, 2026) -- IN PROGRESS
+### Trial 10h: Phase B -- Robust Easy, Lower LR (Mar 3, 2026) -- FAILED (value loss cascade at iter ~4037)
 
 **Config:** NaN sanitizer + **lr_max=5e-5** + **save_interval=100**
 **Envs:** 20,480 Spot | **Hardware:** H100 96GB
@@ -1615,36 +1637,44 @@ The training was a zombie -- alive but brain-dead.
 **Log file:** `~/phase_b_easy8.log`
 **Resume from:** `spot_robust_ppo/2026-03-02_22-50-53/model_1000.pt`
 
-**What's different from 10g:**
-1. `lr_max=5e-5` (half of 10g's 1e-4) — gentler value function updates
-2. `save_interval=100` — checkpoints every 100 iters (~65M steps) to prevent progress loss
+**What happened:** Reward climbed to ~155 at iter 1900-2200, then slowly declined to 8 over 2000 iterations. Value loss oscillated wildly throughout (10 → 193 → 973 → 5792 → 11734) before finally exploding to NaN at iter 4037. Curriculum stalled at terrain_levels ~0.8 — the 23% flip rate on harder terrain (caused by noise_std pinned at 1.0) created a promotion/demotion equilibrium that more training could not break.
 
-**Progress at iter 1608 (3h 23m elapsed, ~14h remaining):**
+**Root cause (Bug #25 + Bug #26):** Two compounding issues:
+1. Value loss oscillation cascade — same as Bug #23 but slower at lr=5e-5. NaN sanitizer only guards std, not the value function.
+2. Curriculum stall — max_noise_std=1.0 forced maximum exploration, causing too many random falls on harder terrain. The policy couldn't learn precision.
 
-| Iter | Reward | Ep Length | Flip Over | Time Out | Value Loss | Terrain Levels |
-|------|--------|-----------|-----------|----------|------------|----------------|
-| 1000 (resume) | ~-16 | ~91 | ~8% | ~5% | ~39 | ~0.3 |
-| ~1025 (danger zone) | ~+8 | ~430 | ~49% | ~23% | ~967 | ~0.5 |
-| 1100 (recovery) | ~117 | ~1,099 | ~42% | ~56% | ~53 | ~0.6 |
-| 1400 | ~145 | ~1,127 | ~24% | ~74% | ~7 | ~0.8 |
-| 1608 | ~155 | ~1,180 | ~23% | ~75% | ~16 | ~0.8 |
+**Peak checkpoint:** `model_2000.pt` (avg reward ~155, 75% survival, terrain_levels 0.8). 43 checkpoints saved (model_1000 through model_5200).
 
-**Key observation:** Well past the crash points of Trial 10d (iter ~1319) and 10g (iter ~1134). Value loss stable at 7-16, no signs of the oscillation (400-7500) that preceded previous collapses. The 5e-5 LR gives the value function enough time to track terrain distribution changes without overshooting.
+---
 
-**Reward breakdown at iter 1608:**
-- Top positives: gait (+5.9), base_angular_velocity (+3.2), base_linear_velocity (+2.8)
-- Top negatives: action_smoothness (-4.7), stumble (-1.9), base_motion (-0.9)
-- body_height_tracking: 0.0 (correctly disabled for rough terrain)
+### Trial 10j: Phase B -- Robust Easy, Value Loss Watchdog + Lower Noise (Mar 4, 2026) -- IN PROGRESS
 
-**7 checkpoints saved:** model_1000 through model_1600. GPU: 56°C, 132W, 23GB.
+**Config:** NaN sanitizer + value loss watchdog + **lr_max=3e-5** + **max_noise_std=0.7** + save_interval=100
+**Envs:** 20,480 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-04_10-30-37/`
+**Log file:** `~/phase_b_easy10.log`
+**Resume from:** `spot_robust_ppo/2026-03-03_09-59-28/model_2000.pt`
 
-**TensorBoard:** `http://172.24.254.24:6006` (this run only, dir `2026-03-03_09-59-28`).
+**What's different from 10h:**
+1. `lr_max=3e-5` (reduced from 5e-5) — gentler value function updates
+2. `max_noise_std=0.7` (reduced from 1.0) — lets policy be precise on hard terrain (Bug #26 fix)
+3. Value loss watchdog (Bug #25 fix) — halves LR for 50 iters when value_loss > 100
+
+**Early results (iter ~2025, 7 minutes elapsed):**
+- Reward: 130.6 (vs 11.8 with std=1.0 in aborted Trial 10i)
+- Ep Length: 710 (vs 371)
+- Survival: 41.3% (vs 21.6%)
+- Flip Rate: 17.6%
+- Terrain Levels: 0.95
+- Value loss watchdog caught 4 spikes in first 25 iters, all recovered
+
+**TensorBoard:** `http://172.24.254.24:6006` (this run only, dir `2026-03-04_10-30-37`).
 
 ---
 
 ### Trial 11: Phase B -- Full Robust (PLANNED)
 
-Resume from Trial 10h best checkpoint with `--terrain robust` (10 difficulty rows). `lr_max` TBD (likely 5e-5 or lower).
+Resume from Trial 10j best checkpoint with `--terrain robust` (10 difficulty rows). `lr_max=3e-5`, `max_noise_std` TBD (likely 0.5-0.7).
 
 ---
 
