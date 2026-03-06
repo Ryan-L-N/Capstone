@@ -2,7 +2,7 @@
 
 **Team:** AI2C Tech Capstone — MS for Autonomy
 **Date:** February 19, 2026
-**Version:** 2.0 (Updated March 5, 2026)
+**Version:** 2.3 (Updated March 6, 2026)
 
 ---
 
@@ -386,7 +386,7 @@ Training progresses through four phases of increasing terrain difficulty. Each p
 | A (flat) | 100% flat | 500 | 3e-4 | 20,480 | `model_498.pt` — 99.3% survival, noise 0.38 |
 | A.5 (transition) | 50% flat + gentle rough | 1,000 | 3e-4 | 20,480 | `model_998.pt` — 92.9% survival, gait 8.58 |
 | B-easy (robust_easy) | 11 terrains, 3 difficulty rows | 5,002 | 3e-5 | 40,960 | `model_5000.pt` — reward 216, terrain 0.83 |
-| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11d — terrain 4.5+ with terrain-scaled velocity and height |
+| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11f — variance-based height conditioning + terrain-scaled velocity |
 
 - **Phase A** builds a stable flat-ground gait with high survival rate as the foundation.
 - **Phase A.5** introduces gentle rough terrain while retaining 50% flat ground to prevent catastrophic forgetting of the base gait.
@@ -459,7 +459,7 @@ The reward function uses 19 terms tuned for curriculum-based training with terra
 | base_orientation | -3.0 | Penalizes roll/pitch deviation from upright |
 | body_scraping | -2.0 | Penalizes body contact while moving (velocity > 0.3 m/s) |
 | undesired_contacts | -1.5 | Penalizes body-ground contact (threshold 1.0 N) |
-| terrain_relative_height | -1.0 | Terrain-scaled height target: 0.42m (easy terrain) → 0.25m (hard terrain), interpolated by curriculum level. Uses ray-cast ground Z, replacing Bug #22's disabled body_height_tracking |
+| terrain_relative_height | -2.0 | Variance-based height target: 0.42m on flat ground (scan variance ≤ 0.001) → 0.35m on rough ground (scan variance ≥ 0.02), interpolated by height scan variance. Uses ray-cast ground Z for relative height. Direct per-step signal that works at eval time |
 | air_time_variance | -1.0 | Penalizes asymmetric gait patterns |
 | base_motion | -0.5 | Penalizes vertical bouncing and lateral sway |
 | joint_pos | -0.2 | Penalizes deviation from default stance (stand_still_scale=5.0) |
@@ -527,7 +527,7 @@ All terrain parameters scale linearly from their minimum (row 0) to maximum (row
 - **Rows 6-7:** Disaster-site terrain — rubble piles, extreme stairs, mountain scrambles
 - **Rows 8-9:** At or beyond Spot's physical hardware limits — theoretical ceiling
 
-**Training progress:** The rough terrain policy (Trial 11d, ongoing) has reached terrain level 4.5+, meaning it can handle ~14cm stairs, ±8cm rough ground, and ~22° slopes — equivalent to standard real-world obstacles. Trial 11d introduces terrain-scaled velocity commands (sprint on easy terrain, careful walk on hard terrain) and terrain-scaled height targets (stand tall on flat ground, crouch on hard terrain) to push past this level.
+**Training progress:** The rough terrain policy peaked at terrain level ~5.0 (Trial 11d, best ever), meaning it can handle ~16cm stairs (real indoor stairs), ±10cm rough ground, and ~28° slopes. Trial 11f (ongoing) replaces curriculum-level-based height conditioning with **height scan variance conditioning** — the height target is now driven directly by what the robot sees (flat scan = stand tall at 0.42m, rough scan = crouch at 0.35m). This produces a 5x calmer height penalty signal and works at evaluation time.
 
 #### Domain Randomization
 
@@ -553,7 +553,7 @@ Four layers of protection guard against training instability, discovered through
 
 4. **Noise Clamping [0.3, 0.7] (Bug #26):** Post-update safety clamp on the policy's exploration noise standard deviation. The upper bound of 0.7 (reduced from 1.0) prevents curriculum stall caused by excessive random actions on hard terrain — too many random falls prevent the curriculum from promoting robots to harder rows.
 
-Additionally, `body_height_tracking` was replaced by `terrain_relative_height_penalty` (Bug #22/#27) which uses the height scanner's center ray hit to compute local ground Z, enabling correct height enforcement on elevated terrain. The height target is terrain-scaled: 0.42m (full stand) on easy terrain, 0.25m (deep crouch) on hard terrain, interpolated by curriculum level.
+Additionally, `body_height_tracking` was replaced by `terrain_relative_height_penalty` (Bug #22/#27) which uses the height scanner's center ray hit to compute local ground Z, enabling correct height enforcement on elevated terrain. The height target is driven by **height scan variance**: the variance of the 187 ray Z-hits determines terrain roughness per robot per step. Flat ground (variance ≤ 0.001) → target 0.42m (full stand), rough ground (variance ≥ 0.02) → target 0.35m (moderate crouch), with linear interpolation between. This direct per-step signal replaced the earlier curriculum-level-based approach (Trial 11e) which was too indirect and produced oscillating penalties. Weight -2.0.
 
 **Terrain-Scaled Velocity Commands** (`shared/terrain_velocity_command.py`): A custom `TerrainScaledVelocityCommand` class queries each robot's terrain curriculum level and interpolates the velocity command range — sprint commands (0.5-3.0 m/s) on easy terrain, careful walk commands (0.0-1.0 m/s) on hard terrain. This teaches the policy to map height-scan patterns to appropriate speeds proactively.
 
@@ -654,3 +654,15 @@ Adding the 5th evaluation environment (obstacle navigation) was a team collabora
 - **Section 4.4 (Safety Mechanisms): Added** terrain-scaled velocity commands (`TerrainScaledVelocityCommand`) and terrain-scaled height penalty documentation. These two features teach the policy to map terrain difficulty to appropriate speed and posture.
 
 - **Section 4.4 (Training Progress): Updated** from Trial 11 (terrain 3.77) to Trial 11d (terrain 4.5+) with terrain-scaled velocity and height.
+
+**Version 2.2 (March 6, 2026):**
+
+- **Section 4.4 (Reward Function): Updated** `terrain_relative_height` weight from -1.0 to -2.0, height_hard from 0.25m to 0.35m (Trial 11e fix for persistent crawling behavior).
+
+- **Section 4.4 (Training Progress): Updated** from Trial 11d (terrain 4.5+) to Trial 11d peak (terrain ~5.0, best ever) and Trial 11e (ongoing, stronger height signal).
+
+**Version 2.3 (March 6, 2026):**
+
+- **Section 4.4 (Reward Function): Updated** `terrain_relative_height` from curriculum-level-based to height-scan-variance-based conditioning (Trial 11f). Height target now driven by the variance of the 187 height scan rays — flat ground (var ≤ 0.001) → 0.42m, rough ground (var ≥ 0.02) → 0.35m. Direct per-step signal that works at eval time.
+
+- **Section 4.4 (Training Progress): Updated** to Trial 11f (variance-based height). Trial 11e replaced after 14000 iters — curriculum-level conditioning too indirect, policy still knee-walking.

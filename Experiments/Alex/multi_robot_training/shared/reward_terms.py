@@ -271,7 +271,9 @@ def terrain_relative_height_penalty(
     target_height: float = 0.30,
     terrain_scaled: bool = False,
     height_easy: float = 0.42,
-    height_hard: float = 0.25,
+    height_hard: float = 0.35,
+    variance_flat: float = 0.001,
+    variance_rough: float = 0.02,
 ) -> torch.Tensor:
     """Penalize deviation from target height ABOVE LOCAL TERRAIN.
 
@@ -280,20 +282,22 @@ def terrain_relative_height_penalty(
     This correctly handles elevated terrain (stairs, boulders) where world-frame
     Z is meaningless (Bug #22 fix).
 
-    When terrain_scaled=True, the target height adapts per-robot based on
-    curriculum terrain level:
-      - Level 0: height_easy (full stand, e.g. 0.42m)
-      - Level 9: height_hard (deep crouch, e.g. 0.25m)
-      - Intermediate levels: linear interpolation
-    This teaches the policy to stand tall on easy terrain and crouch on hard
-    terrain, preventing the knee-walking-on-flat-ground problem.
+    When terrain_scaled=True, the target height adapts per-robot based on the
+    height scan variance (roughness of terrain directly under the robot):
+      - Flat ground (var <= variance_flat): height_easy (full stand, 0.42m)
+      - Rough ground (var >= variance_rough): height_hard (moderate crouch, 0.35m)
+      - Intermediate: linear interpolation
+    This is a direct, per-step signal — the robot sees flat ground and is told
+    "stand tall" every step, regardless of curriculum level. Works at eval time.
 
     Args:
         target_height: Fixed target height (used when terrain_scaled=False).
         terrain_scaled: If True, override target_height with per-robot
-                       terrain-level-based targets.
-        height_easy: Target height at terrain level 0 (full stand).
-        height_hard: Target height at terrain level 9 (deep crouch).
+                       height-scan-variance-based targets.
+        height_easy: Target height on flat terrain (full stand).
+        height_hard: Target height on rough terrain (moderate crouch).
+        variance_flat: Height scan variance at or below which terrain is "flat".
+        variance_rough: Height scan variance at or above which terrain is "rough".
         sensor_cfg: Must reference the "height_scanner" sensor.
     """
     from isaaclab.sensors import RayCaster
@@ -313,13 +317,17 @@ def terrain_relative_height_penalty(
     relative_height = body_z - ground_z
 
     if terrain_scaled:
-        # Per-robot target based on curriculum level
-        terrain = env.scene.terrain
-        levels = terrain.terrain_levels.float()  # (num_envs,) range [0, max_level]
-        max_level = terrain.max_terrain_level
-        # Normalize to [0, 1] then interpolate
-        t = torch.clamp(levels / max_level, 0.0, 1.0)
-        target = height_easy + (height_hard - height_easy) * t  # easy→hard
+        # Per-robot target based on height scan variance (terrain roughness)
+        # Use the Z-component of all 187 ray hits to compute variance
+        scan_z = ray_hits[:, :, 2]  # (num_envs, 187)
+        scan_var = scan_z.var(dim=-1)  # (num_envs,) — roughness per robot
+
+        # Normalize variance to [0, 1] between flat and rough thresholds
+        t = (scan_var - variance_flat) / (variance_rough - variance_flat + 1e-8)
+        t = torch.clamp(t, 0.0, 1.0)
+
+        # Interpolate: flat → height_easy, rough → height_hard
+        target = height_easy + (height_hard - height_easy) * t
     else:
         target = target_height
 

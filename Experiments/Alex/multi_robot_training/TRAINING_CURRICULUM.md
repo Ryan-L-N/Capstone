@@ -352,22 +352,22 @@ All terrain parameters scale linearly from their min (row 0) to max (row 9).
 
 ## Reward Changes Across Phases
 
-| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d |
-|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|
-| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
-| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
-| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 |
-| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 |
-| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 |
-| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 |
-| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 |
-| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 |
-| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 |
-| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 |
-| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 |
-| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | **-1.0 (terrain_scaled: 0.42m easy → 0.25m hard)** |
-| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced |
-| velocity command | UniformVelocity | same | same | same | same | same | **TerrainScaledVelocity (sprint on easy, careful on hard)** |
+| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f |
+|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|
+| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
+| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
+| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 |
+| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
+| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 |
+| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
+| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
+| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 |
+| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 |
+| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 |
+| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 |
+| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | **-2.0 (height-scan-variance-based: 0.42m flat → 0.35m rough)** |
+| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced |
+| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same |
 
 The `undesired_contacts` and `body_scraping` changes are baked into `spot_ppo_env_cfg.py` — they apply to all phases. On flat terrain they're negligible (body rarely contacts ground). On rough terrain they prevent belly-dragging without over-punishing legitimate bumps.
 
@@ -431,13 +431,19 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 11b | B | robust | 7400 | 3e-5 | PLATEAUED — terrain 4.0, reward ~178. Gait loosened but penalties (joint_pos, base_motion, stumble, action_smooth) still blocking hard-terrain strategies. | model_7400.pt |
 | 11c | B | robust | 7600 | 3e-5 | SHORT — Tier 1+2 applied but crawling behavior observed. Penalty reduction without height enforcement caused belly-drag exploit. | model_7600.pt |
 | 11c-v2 | B | robust | 8200 | 3e-5 | PLATEAUED — terrain ~4.5, height penalty oscillating -0.5 to -6.0. Fixed 0.30m target caused knee-walking on flat ground. | model_8200.pt |
-| **11d** | **B** | **robust** | **20000** | **3e-5** | **IN PROGRESS — TerrainScaledVelocityCommand (sprint on easy, careful on hard) + terrain_scaled height (0.42m easy → 0.25m hard). Resumed from 11c-v2 model_8200.pt. Run dir: `2026-03-05_21-13-12`** | **TBD** |
+| 11d | B | robust | 11800 | 3e-5 | PLATEAUED — terrain ~5.0, reward 242.5, 92.8% survival. Best checkpoint ever but policy still crawling on flat ground. TerrainScaledVelocity + height (0.42m easy → 0.25m hard) broke past 4.1 ceiling but 0.25m hard target too low. | model_11800.pt |
+| 11e | B | robust | 14000 | 3e-5 | REPLACED — height_hard 0.25→0.35, weight -1→-2. Height penalty still oscillating (-1.2 to -5.0) because curriculum-level-based conditioning is too indirect. Policy still knee-walking in teleop at iter 14000. | model_14000.pt |
+| **11f** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Variance-based height conditioning. Height target now driven by height scan variance (per-step, direct signal) instead of curriculum level. Flat ground (var≤0.001) → 0.42m, rough ground (var≥0.02) → 0.35m. Height penalty 5x calmer than 11e on first iters. Resumed from 11e model_14000.pt. Run dir: `2026-03-06_17-46-31`** | **TBD** |
 
 **Key insight from B-easy attempts:** Three knobs matter: (1) LR must decrease aggressively for terrain transitions (3e-4→1e-4→5e-5→3e-5). (2) max_noise_std must decrease for later phases (1.0→0.7) to let the policy be precise on hard terrain. (3) Value loss watchdog (Bug #25) prevents oscillation cascades that LR reduction alone can't stop.
 
 **Key insight from Trial 11 plateau:** The GaitReward (weight=10.0, std=0.1, 6 multiplicative sub-terms) is the primary bottleneck for terrain levels >4. It enforces strict diagonal trot gait, which becomes suboptimal on steep stairs and large obstacles where the robot needs dynamic corrections or non-trot strategies. Lowering gait weight to 3.0 and loosening tolerance (std=0.25, max_err=0.4) lets the policy discover terrain-adaptive gaits.
 
 **Key insight from Trial 11c-v2 plateau:** A fixed height target (0.30m) teaches the robot to always crouch, even on flat ground (knee-walking problem). The fix: make height target terrain-scaled — stand tall (0.42m) on easy terrain, crouch (0.25m) on hard terrain. Similarly, terrain-scaled velocity commands prevent the robot from being asked to sprint on level 8 stairs.
+
+**Key insight from Trial 11d plateau:** Terrain-scaled height with height_hard=0.25m still causes crawling because the majority of robots (at curriculum level ~5) get a target of ~0.33m — still a crouch. Plus 5,600 iters of "crouch is good" training before 11d means the asymmetric signal is too weak. Fix: raise height_hard from 0.25→0.35 (level 5 target becomes 0.381m — proper upright walking) and double weight from -1.0→-2.0 for stronger gradient signal.
+
+**Key insight from Trial 11e:** Curriculum-level-based height conditioning is too indirect — it tells the robot "you're on row 5 of the curriculum, so crouch this much" but the policy can't observe curriculum level at eval time. The fix: condition height target on **height scan variance** instead. Low variance = flat ground = stand tall (0.42m). High variance = rough ground = crouch (0.35m). This is a direct per-step signal the policy can actually observe and learn from, and it works at eval time too. Trial 11f's height penalty is 5x calmer than 11e's on first iterations.
 
 **Bug #28 (CommandTermCfg inheritance):** Custom command configs MUST inherit from `CommandTermCfg` (not standalone `@configclass`), and custom command classes must implement `_resample_command`, `_update_command`, `_update_metrics` — NOT override `reset`/`compute`/`_resample` directly.
 

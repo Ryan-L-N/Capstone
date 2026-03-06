@@ -1912,7 +1912,7 @@ terrain_relative_height = RewardTermCfg(
 
 ---
 
-### Trial 11d: Phase B -- Terrain-Scaled Everything (Mar 5, 2026) -- IN PROGRESS
+### Trial 11d: Phase B -- Terrain-Scaled Everything (Mar 5, 2026) -- PLATEAUED terrain ~5.0
 
 **Config:** All Trial 11c-v2 changes + terrain-scaled velocity + terrain-scaled height
 **Envs:** 5,000 Spot | **Hardware:** H100 96GB
@@ -1978,10 +1978,147 @@ terrain_relative_height = RewardTermCfg(
 - Terrain: 3.45, flip: 2.3%
 - All 19 reward terms firing, iter_time 12.43s, ETA ~17.5hr
 
+**Peak metrics (iter ~11800):**
+- Terrain: ~5.0 (best ever — broke past the 4.1 ceiling for the first time)
+- Reward: 242.5, survival: 92.8%
+- Best checkpoint: `model_11800.pt`
+
+**Plateau analysis:**
+- Policy reached terrain ~5.0 but crawling behavior persisted in teleop (model_11100.pt, model_11800.pt)
+- Root cause: asymmetric training signal — 5,600 iters of "crouch is good" (Trials 11c + 11c-v2) vs 2,900 iters of terrain-scaled height where the stand-tall signal is weak
+- At curriculum level 5, height target = 0.42 - (0.42-0.25) × 5/9 = 0.325m — still a crouch, not upright walking
+- Few robots at level 0-1 means the 0.42m "stand tall" signal gets minimal gradient updates
+
 **Files created/modified:**
 - `shared/terrain_velocity_command.py` — NEW: `TerrainScaledVelocityCommand` + `TerrainScaledVelocityCommandCfg`
 - `shared/reward_terms.py` — updated `terrain_relative_height_penalty` with `terrain_scaled` parameter
 - `configs/spot_ppo_env_cfg.py` — swapped velocity command + updated height reward params
+
+---
+
+### Trial 11e: Phase B -- Fix Crawling with Stronger Height Signal (Mar 6, 2026) -- REPLACED by 11f
+
+**Config:** All Trial 11d changes + raised height_hard + doubled height weight
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-06_10-03-02/`
+**Log file:** `~/phase_b_trial11e.log`
+**Resume from:** `spot_robust_ppo/2026-03-05_21-13-12/model_11800.pt` (Trial 11d)
+
+**Two config changes from 11d:**
+
+1. **height_hard: 0.25 → 0.35** — raises the minimum crouch target from deep crouch to moderate crouch
+   - Level 0 (easy): target still 0.42m (full stand)
+   - Level 5 (mid): target now 0.381m (was 0.325m) — proper upright walking instead of crouching
+   - Level 9 (hard): target now 0.35m (was 0.25m) — moderate crouch instead of belly-scraping
+   - This affects ALL robots, not just the minority on easy terrain
+
+2. **terrain_relative_height weight: -1.0 → -2.0** — doubles the gradient signal for height compliance
+   - Stronger punishment for deviation from target height
+   - Expected to overwhelm the 5,600 iters of "crouch is good" training faster
+
+```python
+# Height reward (in spot_ppo_env_cfg.py)
+terrain_relative_height = RewardTermCfg(
+    func=terrain_relative_height_penalty,
+    weight=-2.0,   # Trial 11e: doubled from -1.0
+    params={
+        "sensor_cfg": SceneEntityCfg("height_scanner"),
+        "terrain_scaled": True,
+        "height_easy": 0.42,
+        "height_hard": 0.35,  # Trial 11e: raised from 0.25
+    },
+)
+```
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+    --num_envs 5000 --max_iterations 20000 --warmup_iters 0 --save_interval 100 \
+    --lr_max 3e-5 --lr_min 1e-5 --max_noise_std 0.5 --min_noise_std 0.3 \
+    --num_learning_epochs 4 --resume --load_run 2026-03-05_21-13-12 \
+    --load_checkpoint model_11800.pt --no_wandb --seed 42
+```
+
+**First iteration metrics:**
+- terrain_relative_height: -0.998 (3x stronger signal than 11d's -0.277)
+- Terrain: 3.43 (expected drop — height penalty dominates initially)
+- Reward: -21.4 (height penalty overwhelms positive rewards temporarily)
+- All 19 reward terms firing
+
+**Results:**
+- Height penalty oscillated -1.2 to -5.0 — curriculum-level-based conditioning too indirect
+- Terrain recovered to 5.03 from initial 3.43 drop (policy adapted to taller posture)
+- Policy still knee-walking in teleop at iter 14000 (model_13900.pt tested in lava arena)
+- Root cause: curriculum level is a training-time concept — policy can't observe it at eval time
+- The indirect mapping (curriculum level → height scan pattern → posture) is too slow to override 5,600 iters of crouching
+
+**Files modified:**
+- `configs/spot_ppo_env_cfg.py` — height_hard 0.25→0.35, weight -1.0→-2.0
+
+---
+
+### Trial 11f: Phase B -- Variance-Based Height Conditioning (Mar 6, 2026) -- IN PROGRESS
+
+**Config:** All Trial 11e changes + height scan variance replaces curriculum level for height target
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-06_17-46-31/`
+**Log file:** `~/phase_b_trial11f.log`
+**Resume from:** `spot_robust_ppo/2026-03-06_10-03-02/model_14000.pt` (Trial 11e)
+
+**Key change: Height scan variance conditioning**
+
+Instead of using the curriculum terrain level (a training-time concept the policy can't observe at eval), the height target is now driven by the **variance of the 187 height scan rays** — a direct, per-step signal the policy can learn from:
+
+- **Flat ground** (scan variance ≤ 0.001): target 0.42m (full stand)
+- **Rough ground** (scan variance ≥ 0.02): target 0.35m (moderate crouch)
+- **Intermediate**: linear interpolation
+
+This is fundamentally better because:
+1. The policy can *observe* height scan variance through its 187-dim height scan input
+2. The signal is per-step, not per-curriculum-level (much higher resolution)
+3. It works at eval time — flat ground in the lava arena produces low variance → stand tall
+4. No dependency on curriculum infrastructure
+
+```python
+# In terrain_relative_height_penalty (shared/reward_terms.py)
+if terrain_scaled:
+    scan_z = ray_hits[:, :, 2]  # (num_envs, 187)
+    scan_var = scan_z.var(dim=-1)  # roughness per robot
+    t = (scan_var - variance_flat) / (variance_rough - variance_flat + 1e-8)
+    t = torch.clamp(t, 0.0, 1.0)
+    target = height_easy + (height_hard - height_easy) * t
+
+# Config (in spot_ppo_env_cfg.py)
+terrain_relative_height = RewardTermCfg(
+    func=terrain_relative_height_penalty,
+    weight=-2.0,
+    params={
+        "terrain_scaled": True,
+        "height_easy": 0.42,
+        "height_hard": 0.35,
+        "variance_flat": 0.001,
+        "variance_rough": 0.02,
+    },
+)
+```
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+    --num_envs 5000 --max_iterations 20000 --warmup_iters 0 --save_interval 100 \
+    --lr_max 3e-5 --lr_min 1e-5 --max_noise_std 0.5 --min_noise_std 0.3 \
+    --num_learning_epochs 4 --resume --load_run 2026-03-06_10-03-02 \
+    --load_checkpoint model_14000.pt --no_wandb --seed 42
+```
+
+**First iteration metrics:**
+- terrain_relative_height: -0.10 (5x calmer than 11e's -0.998!)
+- Terrain: 3.51 (starting point, will climb)
+- Height penalty stabilized to -0.56 to -0.86 within first few iters (vs 11e's -1.2 to -5.0 oscillation)
+
+**Files modified:**
+- `shared/reward_terms.py` — rewrote `terrain_relative_height_penalty` to use `scan_z.var()` instead of `terrain_levels`
+- `configs/spot_ppo_env_cfg.py` — added `variance_flat` and `variance_rough` params
 
 ---
 

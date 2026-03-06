@@ -222,7 +222,7 @@ Instead of throwing the robot onto hard terrain immediately (which causes the tr
 | **A — Flat Ground** | 100% flat terrain, 20,480 robots | 500 iterations | Learned to walk: 99.3% survival rate |
 | **A.5 — Transition** | 50% flat + 50% gentle bumps | 1,000 iterations | Learned basic rough walking: 92.9% survival |
 | **B-easy — Easy Rough** | All 11 terrain types at low difficulty | 5,002 iterations | Can handle varied terrain at moderate levels |
-| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing (Trial 11d) | Terrain level 4.5+ — climbing real stairs, navigating debris |
+| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing (Trial 11f) | Peaked terrain ~5.0 — now teaching proper posture via height scan variance |
 
 Each phase starts from where the previous one left off (transfer learning).
 
@@ -239,7 +239,7 @@ The reward function has 19 terms — think of it as a scorecard that tells the A
 
 **Things that lose points (penalties):**
 - Falling over or tilting too much (-3.0 to -5.0)
-- Not maintaining proper height above ground (-1.0) — adapts per terrain: stand tall on flat ground, crouch on hard terrain
+- Not maintaining proper height above ground (-2.0) — uses what the robot "sees" to decide posture: smooth ground = stand tall (42cm), rough ground = crouch (35cm)
 - Hitting body on ground while moving (-1.5 to -2.0)
 - Bouncing, swaying, or wobbly movement (-0.5)
 - Feet slipping on the ground (-0.5)
@@ -280,9 +280,9 @@ Difficulty increases across 10 rows — robots that survive longer get promoted 
 
 **For context:** A standard indoor stair is about 16-18cm (levels 5-6). The robot (Spot) is only 42cm tall, so a 25cm obstacle at level 9 is over half its body height — like a human trying to climb over a waist-high wall with every step.
 
-**Where our robot is now:** The training (Trial 11d) has reached level 4.5+, meaning it can handle construction-site-level terrain including 14cm stairs, rough ground with ±8cm bumps, and 22° slopes. Previous training attempts couldn't get past level 4.1 — multiple rounds of reward tuning, plus two new features, finally broke through:
+**Where our robot is now:** The training peaked at level ~5.0 (Trial 11d, best ever), meaning it can handle real indoor stairs (16cm), rough ground with ±10cm bumps, and ~28° slopes. Trial 11f (ongoing) fixes a persistent crawling behavior by conditioning the height target on what the robot actually *sees* through its height scanner:
 - **Terrain-scaled velocity:** The robot automatically runs fast on easy terrain and walks carefully on hard terrain (instead of being asked to sprint on stairs)
-- **Terrain-scaled height:** The robot stands tall on flat ground (42cm) and crouches on hard terrain (25cm), instead of always crouching everywhere
+- **Variance-based height:** The robot measures how rough the ground looks (height scan variance). Smooth ground → stand tall (42cm). Rough ground → crouch (35cm). This replaces an earlier approach that used training-time difficulty levels, which didn't translate to real-world evaluation
 
 #### Domain Randomization (Making Training Robust)
 
@@ -370,3 +370,11 @@ Adding Cole's obstacle navigation environment as a 5th test arena adds an import
 
 - **Section 4.4 updated:** Reward weights updated to reflect Trial 11d tuning (gait loosened from +10 to +1, penalties reduced). Added terrain-scaled velocity commands and terrain-scaled height targets. Updated training progress from level 4 to 4.5+.
 - **Safety Mechanisms:** Added terrain-scaled commands as a 5th mechanism.
+
+**Version 2.2 (March 6, 2026):**
+
+- **Height target updated:** height_hard raised from 25cm to 35cm, weight doubled to -2.0 (Trial 11e fix for persistent crawling). Training peaked at terrain ~5.0 (Trial 11d).
+
+**Version 2.3 (March 6, 2026):**
+
+- **Height conditioning rewritten:** Replaced curriculum-level-based height target with height-scan-variance-based conditioning (Trial 11f). The robot now uses what it sees (smooth vs rough ground) to decide posture, producing a 5x calmer training signal that works at evaluation time.
