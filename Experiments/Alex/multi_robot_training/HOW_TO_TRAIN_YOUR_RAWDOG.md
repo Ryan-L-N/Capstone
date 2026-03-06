@@ -444,6 +444,42 @@ cd ~/IsaacLab
 
 This produces a policy that can walk on diverse terrain. It takes 10-70 hours depending on environment count and iteration count.
 
+### Terrain Curriculum: 10 Difficulty Rows × 11 Terrain Types
+
+The training grid has **10 rows (difficulty 0-9) × 40 columns (terrain types) = 400 patches**, each 8m × 8m. Robots that survive get promoted to harder rows. All parameters scale linearly from min (row 0) to max (row 9).
+
+**11 Terrain Types (3 categories):**
+- **Category A — Geometric (40%):** pyramid stairs up (10%), pyramid stairs down (10%), random boxes (10%), stepping stones (10%)
+- **Category B — Surface (35%):** random rough (10%), slopes up (7.5%), slopes down (7.5%), waves (5%), friction plane (5%), vegetation plane (5%)
+- **Category C — Compound (25%):** HF stairs (10%), discrete obstacles (5%), repeated boxes (5%)
+
+**What each row feels like:**
+
+| Row | Stairs | Boxes | Rough | Slopes | Stepping Stones | Real-World Equivalent |
+|-----|--------|-------|-------|--------|-----------------|----------------------|
+| **0** | 5cm ramp | 5cm pebbles | ±2cm | ~0° flat | 50cm wide, 10cm gaps | Smooth sidewalk |
+| **1** | 7cm curb | 7cm cobblestone | ±3.5cm | ~5° | 47cm, 13cm gaps | Gravel path |
+| **2** | 9cm step | 9cm rubble | ±5cm | ~11° | 44cm, 17cm gaps | Rough hiking trail |
+| **3** | 12cm step | 12cm chunks | ±6cm | ~17° | 42cm, 20cm gaps | Rocky trail (B-easy ceiling) |
+| **4** | **14cm** half-stair | 14cm debris | ±8cm | **~22°** | 39cm, 23cm gaps | Construction site (**Trial 11 plateau**) |
+| **5** | **16cm** standard stair | 16cm rubble | ±9cm | **~28°** | 36cm, 27cm gaps | Real stairs, steep hills |
+| **6** | **18cm** tall stair | 18cm pile | ±11cm | **~33°** | 33cm, 30cm gaps | Disaster site |
+| **7** | **21cm** near leg limit | 21cm climbing | ±12cm | **~39°** | 31cm, 33cm gaps | Extreme terrain |
+| **8** | **23cm** full extension | 23cm chest-high | ±13cm | **~44°** | 28cm, 37cm gaps | Near Spot's physical limits |
+| **9** | **25cm** max | 25cm (>half Spot height) | **±15cm** | **~50°** | **25cm, 40cm gaps** | Beyond real-world stairs |
+
+**Practical meaning:**
+- **Rows 0-3:** Walking on uneven ground (most indoor/outdoor flat terrain)
+- **Rows 4-5:** Real obstacles — standard stairs, construction debris, steep hills
+- **Rows 6-7:** Disaster-site terrain — rubble piles, extreme stairs, mountain scrambles
+- **Rows 8-9:** At or beyond Spot's physical hardware limits — theoretical ceiling
+
+**Key milestones:**
+- Trial 10k (B-easy, 3 rows): flatlined at terrain 0.83 — couldn't even clear row 1
+- Trial 11 (B, 10 rows): plateaued at terrain 4.1 — strict trot gait couldn't adapt
+- Trial 11b: plateaued at terrain 4.0 — penalty stack still blocking
+- Trial 11c-v2: **broke past 4.1** — first time ever, with loosened gait + anti-crawl penalty
+
 ### Phase 2a: Teacher Training (Optional Upgrade)
 
 The Phase 1 policy only gets height scans. What if we gave it *cheats* -- exact friction coefficients, terrain type labels, clean contact forces? These are "privileged observations" that exist in simulation but not on a real robot.
@@ -1018,6 +1054,43 @@ if vl > _VL_THRESHOLD:  # 100.0
 **The fix:** Lower `--max_noise_std` from 1.0 to 0.7. This immediately lets the policy take more precise actions on hard terrain → fewer random falls → lower flip rate → curriculum advances. In Trial 10j, reward at iter 2025 was already 130 (vs 12 with std=1.0 in Trial 10i) and survival was 41% (vs 22%).
 
 **The lesson:** Exploration (high noise std) and exploitation (low noise std) must be balanced by phase. Phase A on flat terrain benefits from high exploration — the robot needs to discover walking. Phase B on hard terrain needs exploitation — the robot already knows how to walk and needs to do it *precisely*. If the curriculum stalls, check whether noise_std is at its ceiling. A clamped std means the policy wants to explore more than it should, and the clamp is the only thing stopping it. Lower the ceiling to match the phase.
+
+---
+
+### Bug #27: "The Belly-Crawl Exploit" (Penalty Reduction Without Height Enforcement)
+
+**What happened:** Trial 11c applied Tier 1+2 penalty reductions (gait 10→1, action_smooth -1→-0.1, joint_pos -0.7→-0.2, etc.) to break the terrain 4.1 plateau. When played locally (model_7400.pt in lava arena), the robot was crawling on its belly instead of walking upright.
+
+**Root cause:** `body_height_tracking` was disabled (Bug #22 fix) because world-frame Z breaks on elevated terrain. With no height penalty AND reduced penalties for joint limits/motion, the robot discovered that belly-crawling maximizes reward: lower center of gravity = fewer flips = higher survival reward. It's a classic reward hacking exploit — the robot found a valid (but undesired) local optimum.
+
+**The fix:** `terrain_relative_height_penalty` in `shared/reward_terms.py`. Uses the height scanner's center ray hit (index 93 of 187-point 17×11 grid) to compute local ground Z below the robot. Penalizes `(robot_z - ground_z - target)^2`. This works correctly on elevated terrain — standing on a 1m stair reads relative height 0.30m, not 1.30m.
+
+**The lesson:** When you remove a penalty to fix one bug, you often create a new exploit. The robot will always find the path of least resistance. If you remove a constraint, you need to replace it with something that enforces the same intent in a different way. In this case, "don't crouch" needed to be replaced with "maintain height above local terrain," not just deleted.
+
+---
+
+### Bug #28: "The Abstract API" (CommandTermCfg Must Be Inherited, Not Standalone)
+
+**What happened:** Trial 11d's first launch crashed with `TypeError: Configuration for the term 'base_velocity' is not of type CommandTermCfg`. After fixing that, second launch crashed with `Can't instantiate abstract class TerrainScaledVelocityCommand with abstract methods _resample_command, _update_command, _update_metrics`.
+
+**Root cause:** Two issues:
+1. `TerrainScaledVelocityCommandCfg` was a standalone `@configclass` — Isaac Lab's command manager validates that all command configs inherit from `CommandTermCfg`.
+2. `TerrainScaledVelocityCommand` overrode `reset()`, `compute()`, and `_resample()` directly — but the base `CommandTerm` class handles these internally (timer management, metrics, command counter). Subclasses must implement the three abstract methods: `_resample_command()`, `_update_command()`, `_update_metrics()`.
+
+**The fix:**
+```python
+# Config must inherit from CommandTermCfg
+class TerrainScaledVelocityCommandCfg(CommandTermCfg):
+    ...
+
+# Command class must implement abstract methods, not override base methods
+class TerrainScaledVelocityCommand(CommandTerm):
+    def _resample_command(self, env_ids): ...  # sampling logic here
+    def _update_command(self): pass            # no dynamic updates
+    def _update_metrics(self): pass            # no custom metrics
+```
+
+**The lesson:** When extending Isaac Lab's manager framework, always check the base class for abstract methods and validation logic. The `@configclass` decorator doesn't enforce inheritance — it's just a dataclass wrapper. The actual type checking happens at runtime in the manager's `_prepare_terms()` method. Read the source, don't guess the API.
 
 ---
 
@@ -1672,9 +1745,243 @@ The training was a zombie -- alive but brain-dead.
 
 ---
 
-### Trial 11: Phase B -- Full Robust (PLANNED)
+### Trial 11: Phase B -- Full Robust (Mar 5, 2026) -- PLATEAUED at terrain 4.1
 
-Resume from Trial 10j best checkpoint with `--terrain robust` (10 difficulty rows). `lr_max=3e-5`, `max_noise_std` TBD (likely 0.5-0.7).
+**Config:** NaN sanitizer + value loss watchdog + lr_max=3e-5 + max_noise_std=0.7 + save_interval=100
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-05_08-36-32/`
+**Log file:** `~/phase_b.log`
+**Resume from:** `spot_robust_ppo/2026-03-04_11-29-47/model_5000.pt` (Trial 10k B-easy)
+
+**What's different from 10k:**
+1. `--terrain robust` (10 difficulty rows instead of 3)
+2. `num_envs=5000` (reduced from 40960 — diverse terrain requires more GPU per env)
+3. `max_iterations=8000` (extended run)
+4. Gaps removed, stepping stones reduced to 10% (11 terrain types)
+
+**Results (6600+ iterations, ~24 hours):**
+- Reward: ~250 (steady 200-260 oscillation)
+- Terrain levels: 4.1 (plateaued since iter ~5500)
+- Flip rate: ~12%
+- Value loss: stable 4-7
+- Noise std: within [0.3, 0.7] bounds
+
+**Why it plateaued:** The GaitReward (weight=10.0, std=0.1) is the dominant reward term and enforces a strict diagonal trot pattern via 6 multiplicative sub-rewards. Any deviation from trot craters the reward. On terrain levels 4+, the robot encounters steep stairs and large obstacles where:
+- Trot is suboptimal (legs need to reach different heights)
+- Dynamic corrections are penalized by action_smoothness (-1.0)
+- The robot can't experiment with alternative footwork
+
+The policy found a local optimum: "perfect trot on medium terrain" instead of "adaptive gait on hard terrain."
+
+**Checkpoints saved:** model_5100.pt through model_6600.pt (every 100 iters). Best for resume: model_6600.pt.
+
+---
+
+### Trial 11b: Phase B -- Reward Tweaks for Terrain Breakthrough (Mar 5, 2026) -- IN PROGRESS
+
+**Config:** Same as Trial 11 + reward modifications + max_noise_std=0.5
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-05_14-54-42/`
+**Log file:** `~/phase_b_trial12.log`
+**Resume from:** `spot_robust_ppo/2026-03-05_08-36-32/model_6600.pt` (Trial 11)
+
+**Reward changes (rationale: break terrain 4.1 plateau):**
+
+| Change | Old | New | Why |
+|--------|-----|-----|-----|
+| gait weight | 10.0 | 3.0 | Allow non-trot strategies on hard terrain |
+| gait std | 0.1 | 0.25 | Wider tolerance for gait deviation |
+| gait max_err | 0.2 | 0.4 | Don't zero-out reward for imperfect timing |
+| action_smoothness | -1.0 | -0.3 | Allow dynamic corrections mid-step |
+| base_lin_vel std | 1.0 | 0.5 | Sharper speed tracking (mean cmd=0.5 m/s) |
+| foot_clearance | 2.0 | 3.0 | Incentivize lifting feet over obstacles |
+| max_noise_std | 0.7 | 0.5 | Tighter exploration for precision on hard terrain |
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+  --num_envs 5000 --max_iterations 10000 --warmup_iters 0 --save_interval 100 \
+  --lr_max 3e-5 --lr_min 1e-5 --max_noise_std 0.5 --min_noise_std 0.3 \
+  --num_learning_epochs 4 --resume --load_run 2026-03-05_08-36-32 \
+  --load_checkpoint model_6600.pt --no_wandb --seed 42 2>&1 | tee ~/phase_b_trial12.log
+```
+
+**What to watch for:**
+- Terrain levels should break past 4.1 within 500-1000 iters (if tweaks are working)
+- Gait reward will initially drop (expected — old gait was over-optimized for trot)
+- Total reward may dip temporarily, then recover as policy discovers new strategies
+- If flip rate jumps above 30%, the action_smoothness reduction may have gone too far
+
+**Results (7400 iterations, ~3 hours):**
+- Terrain recovered from 3.5 to 4.0 in ~800 iters, then plateaued again at 4.0
+- Reward: ~178 (lower than Trial 11's ~250 due to reduced gait weight)
+- Flip: 11.8%, value loss: stable 3.5-3.8
+- Gait loosening alone was insufficient — the penalty stack (joint_pos, base_motion, stumble, action_smoothness) was still blocking hard-terrain strategies
+
+**Root cause analysis:** Examined per-term reward breakdown and identified that the biggest penalty contributors were stumble (-1.28), action_smoothness (-0.92), joint_pos (-0.85), and base_motion (-0.49). These penalties directly penalize everything the robot needs to do on terrain rows 4+: reaching with legs, dynamic corrections, body movement, and shin contact.
+
+**Note:** Required BMC server reboot to clear D-state zombie from Trial 11 kill. Server rebooted via Redfish API at ~02:45 UTC Mar 6.
+
+---
+
+### Trial 11c: Phase B -- Tier 1+2 Penalty Reduction (Mar 5, 2026) -- IN PROGRESS
+
+**Config:** All Trial 11b changes + Tier 1 penalty reduction + Tier 2 gait/action_scale changes
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-05_17-57-41/`
+**Log file:** `~/phase_b_trial11c.log`
+**Resume from:** `spot_robust_ppo/2026-03-05_14-54-42/model_7400.pt` (Trial 11b)
+
+**Changes from Trial 11b (7 total):**
+
+*Tier 1 — Penalty reduction:*
+| Change | Old (11b) | New (11c) | Why |
+|--------|-----------|-----------|-----|
+| joint_pos | -0.7 | -0.2 | Stop penalizing leg reach on hard terrain |
+| base_motion | -2.0 | -0.5 | Let body move laterally/vertically to navigate |
+| stumble | -0.1 | -0.02 | Accept shin contact as cost of climbing |
+| action_smoothness | -0.3 | -0.1 | Allow dynamic mid-stride corrections |
+
+*Tier 2 — Gait + action scale:*
+| Change | Old (11b) | New (11c) | Why |
+|--------|-----------|-----------|-----|
+| gait weight | 3.0 | 1.0 | Near-minimal trot enforcement |
+| gait std/max_err | 0.25/0.4 | 0.35/0.6 | Much wider gait tolerance |
+| action_scale | 0.2 | 0.3 | Bigger joint angle range for reaching |
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+  --num_envs 5000 --max_iterations 12000 --warmup_iters 0 --save_interval 100 \
+  --lr_max 3e-5 --lr_min 1e-5 --max_noise_std 0.5 --min_noise_std 0.3 \
+  --num_learning_epochs 4 --resume --load_run 2026-03-05_14-54-42 \
+  --load_checkpoint model_7400.pt --no_wandb --seed 42 2>&1 | tee ~/phase_b_trial11c.log
+```
+
+**What to watch for:**
+- Terrain levels should break past 4.1 — if they don't with these changes, the bottleneck is structural (gait multiplicative reward or network capacity)
+- Flip rate may spike initially (more freedom = more ways to fail) — should settle < 20%
+- Watch for degenerate gaits: belly-dragging (body_scraping should catch this), flailing (undesired_contacts)
+- action_scale 0.3 is a bigger physical change — the robot can now move joints 50% more per step
+
+**Results (200 iters, ~40 minutes):**
+- Policy exhibited **belly-crawling behavior** when played locally (model_7400.pt in lava arena)
+- Root cause: body_height_tracking was disabled (Bug #22) and no replacement existed, so with all penalties reduced the robot learned that crawling = fewer flips = higher survival reward
+- Killed at iter 7600 to add terrain-relative height penalty
+
+**Bug #27: Belly-Crawl Exploit from Penalty Reduction**
+- When body_height_tracking is disabled (Bug #22 fix) AND penalties are reduced (Tier 1+2), the robot discovers that belly-crawling maximizes reward: lower center of gravity = fewer flips, no height penalty to discourage it
+- Fix: `terrain_relative_height_penalty` — uses height scanner center ray hit to compute local ground Z, then penalizes deviation from 0.30m above local terrain. Works on stairs, boulders, elevated surfaces.
+
+---
+
+### Trial 11c-v2: Phase B -- Anti-Crawl Fix (Mar 5, 2026) -- PLATEAUED
+
+**Config:** All Trial 11c changes + terrain_relative_height_penalty (NEW)
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-05_18-47-36/`
+**Log file:** `~/phase_b_trial11c_v2.log`
+**Resume from:** `spot_robust_ppo/2026-03-05_17-57-41/model_7600.pt` (Trial 11c)
+
+**New reward term:**
+```python
+terrain_relative_height = RewardTermCfg(
+    func=terrain_relative_height_penalty,  # in shared/reward_terms.py
+    weight=-1.0,
+    params={
+        "asset_cfg": SceneEntityCfg("robot"),
+        "sensor_cfg": SceneEntityCfg("height_scanner"),
+        "target_height": 0.30,  # athletic crouch — prevents crawling, allows stability crouch
+    },
+)
+```
+
+**How it works:** Uses the height scanner's center ray (index 93 of 187-point 17x11 grid) to get the terrain Z directly below the robot. Computes `relative_height = robot_z - ground_z`, then penalizes `(relative_height - 0.30)^2`. This correctly handles elevated terrain — standing on a 1m stair reads 0.30m, not 1.30m.
+
+**Results:**
+- Broke past terrain 4.1 for the first time (from 11c's 3.46 → peaked ~4.5)
+- Plateaued at terrain ~4.5 for 200+ iters — height penalty oscillating -0.5 to -6.0
+- Robot still knee-walking on flat ground when played locally (model_8200.pt)
+- Root cause: fixed 0.30m target teaches constant crouching — robot has no incentive to stand tall on easy terrain
+- Also: uniform velocity commands ask robot to sprint on hard terrain where it should be careful
+
+**Files modified:**
+- `shared/reward_terms.py` — added `terrain_relative_height_penalty()`
+- `configs/spot_ppo_env_cfg.py` — replaced `body_height_tracking` with `terrain_relative_height`
+- `train_ppo.py` — added note that terrain_relative_height is NOT disabled on rough terrain
+
+---
+
+### Trial 11d: Phase B -- Terrain-Scaled Everything (Mar 5, 2026) -- IN PROGRESS
+
+**Config:** All Trial 11c-v2 changes + terrain-scaled velocity + terrain-scaled height
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-05_21-13-12/`
+**Log file:** `~/phase_b_trial11d.log`
+**Resume from:** `spot_robust_ppo/2026-03-05_18-47-36/model_8200.pt` (Trial 11c-v2)
+
+**Two major changes:**
+
+1. **TerrainScaledVelocityCommand** (`shared/terrain_velocity_command.py`):
+   - Replaces `UniformVelocityCommandCfg` with `TerrainScaledVelocityCommandCfg`
+   - Inherits from `CommandTerm` + `CommandTermCfg` (Bug #28: must use Isaac Lab's abstract API)
+   - Interpolates velocity ranges by terrain curriculum level:
+     - Level 0 (easy): vel_x in [0.5, 3.0] m/s — sprint
+     - Level 9 (hard): vel_x in [0.0, 1.0] m/s — careful walk
+     - Intermediate: linear interpolation
+   - Policy learns height scan → appropriate speed proactively
+
+2. **Terrain-scaled height target** (`terrain_relative_height_penalty` with `terrain_scaled=True`):
+   - Level 0 (easy): target 0.42m — full stand (walk tall on flat ground)
+   - Level 9 (hard): target 0.25m — deep crouch (survival on stairs)
+   - Fixes the knee-walking-on-flat-ground problem from 11c-v2
+
+```python
+# Velocity command (in spot_ppo_env_cfg.py)
+base_velocity = TerrainScaledVelocityCommandCfg(
+    vel_x_easy_min=0.5, vel_x_easy_max=3.0,
+    vel_x_hard_min=0.0, vel_x_hard_max=1.0,
+    resampling_time_range=(10.0, 10.0),
+)
+
+# Height reward (in spot_ppo_env_cfg.py)
+terrain_relative_height = RewardTermCfg(
+    func=terrain_relative_height_penalty,
+    weight=-1.0,
+    params={
+        "sensor_cfg": SceneEntityCfg("height_scanner"),
+        "terrain_scaled": True,
+        "height_easy": 0.42,
+        "height_hard": 0.25,
+    },
+)
+```
+
+**Bug #28: CommandTermCfg Inheritance**
+- First launch failed: `TypeError: Configuration for the term 'base_velocity' is not of type CommandTermCfg`
+- Our `TerrainScaledVelocityCommandCfg` was a standalone `@configclass` — must inherit from `CommandTermCfg`
+- Second launch failed: `Can't instantiate abstract class TerrainScaledVelocityCommand with abstract methods _resample_command, _update_command, _update_metrics`
+- The base `CommandTerm` handles `reset()`, `compute()`, `_resample()` internally — subclasses must implement `_resample_command()`, `_update_command()`, `_update_metrics()` instead
+- Fix: proper inheritance + implement the 3 abstract methods (not override the base class methods)
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+    --num_envs 5000 --max_iterations 20000 --warmup_iters 0 --save_interval 100 \
+    --lr_max 3e-5 --lr_min 1e-5 --max_noise_std 0.5 --min_noise_std 0.3 \
+    --num_learning_epochs 4 --resume --load_run 2026-03-05_18-47-36 \
+    --load_checkpoint model_8200.pt --no_wandb --seed 42
+```
+
+**First iteration metrics:**
+- terrain_relative_height: -0.277 (terrain-scaled height active)
+- Terrain: 3.45, flip: 2.3%
+- All 19 reward terms firing, iter_time 12.43s, ETA ~17.5hr
+
+**Files created/modified:**
+- `shared/terrain_velocity_command.py` — NEW: `TerrainScaledVelocityCommand` + `TerrainScaledVelocityCommandCfg`
+- `shared/reward_terms.py` — updated `terrain_relative_height_penalty` with `terrain_scaled` parameter
+- `configs/spot_ppo_env_cfg.py` — swapped velocity command + updated height reward params
 
 ---
 

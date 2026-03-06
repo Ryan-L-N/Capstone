@@ -335,7 +335,7 @@ The research question is whether the additional height-scan perception and curri
   - `[24:36]` Joint velocities
   - `[36:48]` Previous action
   - `[48:235]` Height scan (17x11 grid, 0.1m resolution, 1.6m x 1.0m)
-- Actions: 12 joint position offsets, scaled by 0.2
+- Actions: 12 joint position offsets, scaled by 0.3
 - init_noise_std: 0.5
 - Decimation: 10 (policy runs at 50 Hz, physics at 500 Hz)
 - PD Gains: Kp = 60.0, Kd = 1.5 (all joints)
@@ -386,7 +386,7 @@ Training progresses through four phases of increasing terrain difficulty. Each p
 | A (flat) | 100% flat | 500 | 3e-4 | 20,480 | `model_498.pt` — 99.3% survival, noise 0.38 |
 | A.5 (transition) | 50% flat + gentle rough | 1,000 | 3e-4 | 20,480 | `model_998.pt` — 92.9% survival, gait 8.58 |
 | B-easy (robust_easy) | 11 terrains, 3 difficulty rows | 5,002 | 3e-5 | 40,960 | `model_5000.pt` — reward 216, terrain 0.83 |
-| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11 — terrain 3.77 and climbing |
+| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11d — terrain 4.5+ with terrain-scaled velocity and height |
 
 - **Phase A** builds a stable flat-ground gait with high survival rate as the foundation.
 - **Phase A.5** introduces gentle rough terrain while retaining 50% flat ground to prevent catastrophic forgetting of the base gait.
@@ -444,11 +444,11 @@ The reward function uses 19 terms tuned for curriculum-based training with terra
 
 | Term | Weight | Function |
 |---|---|---|
-| gait | +10.0 | Trot enforcer: diagonal pairs synchronized (FL-HR, FR-HL), std=0.1 |
+| gait | +1.0 | Trot enforcer: diagonal pairs synchronized (FL-HR, FR-HL), std=0.35, max_err=0.6 (loosened from 10.0/0.1/0.2 to allow terrain-adaptive gaits) |
 | air_time | +5.0 | Rewards appropriate swing/stance phase timing (mode_time=0.2s) |
-| base_linear_velocity | +5.0 | Exponential kernel on XY velocity error (std=1.0) |
+| base_linear_velocity | +5.0 | Exponential kernel on XY velocity error (std=0.5) |
 | base_angular_velocity | +5.0 | Exponential kernel on yaw rate error (std=2.0) |
-| foot_clearance | +2.0 | Rewards foot height during swing phase (target 0.125m) |
+| foot_clearance | +3.0 | Rewards foot height during swing phase (target 0.125m) |
 | velocity_modulation | +2.0 | Velocity-dependent reward scaling (std=0.5) |
 
 **Penalty rewards (negative incentives):**
@@ -458,14 +458,14 @@ The reward function uses 19 terms tuned for curriculum-based training with terra
 | dof_pos_limits | -5.0 | Hard penalty for hitting joint limits |
 | base_orientation | -3.0 | Penalizes roll/pitch deviation from upright |
 | body_scraping | -2.0 | Penalizes body contact while moving (velocity > 0.3 m/s) |
-| base_motion | -2.0 | Penalizes vertical bouncing and lateral sway |
 | undesired_contacts | -1.5 | Penalizes body-ground contact (threshold 1.0 N) |
-| action_smoothness | -1.0 | Penalizes jerky action changes between steps |
+| terrain_relative_height | -1.0 | Terrain-scaled height target: 0.42m (easy terrain) → 0.25m (hard terrain), interpolated by curriculum level. Uses ray-cast ground Z, replacing Bug #22's disabled body_height_tracking |
 | air_time_variance | -1.0 | Penalizes asymmetric gait patterns |
-| body_height_tracking | -1.0 | Target height 0.42m; **disabled on rough terrain** (Bug #22) |
-| joint_pos | -0.7 | Penalizes deviation from default stance (stand_still_scale=5.0) |
+| base_motion | -0.5 | Penalizes vertical bouncing and lateral sway |
+| joint_pos | -0.2 | Penalizes deviation from default stance (stand_still_scale=5.0) |
 | foot_slip | -0.5 | Penalizes feet sliding during ground contact |
-| stumble | -0.1 | Penalizes knee contact below 0.15m at force > 5.0 N |
+| action_smoothness | -0.1 | Penalizes jerky action changes between steps |
+| stumble | -0.02 | Penalizes knee contact below 0.15m at force > 5.0 N |
 | joint_vel | -1e-2 | Penalizes high joint velocities |
 | contact_force_smoothness | -0.01 | Penalizes abrupt contact force changes |
 | vegetation_drag | -1e-3 | Drag penalty for vegetation terrain (max drag 20.0) |
@@ -504,6 +504,31 @@ Training uses a custom `ROBUST_TERRAINS_CFG` (`shared/terrain_cfg.py`) with 11 p
 | discrete_obstacles | 5% | obstacle_width [0.25, 0.75]m, height [0.05, 0.30]m, 40 per patch |
 | repeated_boxes | 5% | 20-40 objects, height [0.05, 0.20]m, size [0.3, 0.5]m |
 
+#### Difficulty Rows — What Each Curriculum Level Means
+
+All terrain parameters scale linearly from their minimum (row 0) to maximum (row 9). The curriculum automatically promotes robots that survive longer to harder rows and demotes robots that fail.
+
+| Row | Stairs | Boxes | Rough Noise | Slopes | Stepping Stones | Real-World Equivalent |
+|-----|--------|-------|-------------|--------|-----------------|----------------------|
+| **0** | 5cm ramp | 5cm pebbles | ±2cm | ~0° flat | 50cm wide, 10cm gaps | Smooth sidewalk |
+| **1** | 7cm curb | 7cm cobblestone | ±3.5cm | ~5° | 47cm, 13cm gaps | Gravel path |
+| **2** | 9cm step | 9cm rubble | ±5cm | ~11° | 44cm, 17cm gaps | Rough hiking trail |
+| **3** | 12cm step | 12cm chunks | ±6cm | ~17° | 42cm, 20cm gaps | Rocky trail |
+| **4** | **14cm** half-stair | 14cm debris | ±8cm | **~22°** | 39cm, 23cm gaps | Construction site |
+| **5** | **16cm** standard stair | 16cm rubble | ±9cm | **~28°** | 36cm, 27cm gaps | Real stairs, steep hills |
+| **6** | **18cm** tall stair | 18cm pile | ±11cm | **~33°** | 33cm, 30cm gaps | Disaster site |
+| **7** | **21cm** near leg limit | 21cm climbing | ±12cm | **~39°** | 31cm, 33cm gaps | Extreme terrain |
+| **8** | **23cm** full extension | 23cm chest-high | ±13cm | **~44°** | 28cm, 37cm gaps | Near Spot's physical limits |
+| **9** | **25cm** max | 25cm (>half Spot height) | **±15cm** | **~50°** | **25cm, 40cm gaps** | Beyond real-world stairs |
+
+**Practical interpretation:**
+- **Rows 0-3:** Walking on uneven ground (most indoor/outdoor surfaces)
+- **Rows 4-5:** Real obstacles — standard stairs, construction debris, steep hills
+- **Rows 6-7:** Disaster-site terrain — rubble piles, extreme stairs, mountain scrambles
+- **Rows 8-9:** At or beyond Spot's physical hardware limits — theoretical ceiling
+
+**Training progress:** The rough terrain policy (Trial 11d, ongoing) has reached terrain level 4.5+, meaning it can handle ~14cm stairs, ±8cm rough ground, and ~22° slopes — equivalent to standard real-world obstacles. Trial 11d introduces terrain-scaled velocity commands (sprint on easy terrain, careful walk on hard terrain) and terrain-scaled height targets (stand tall on flat ground, crouch on hard terrain) to push past this level.
+
 #### Domain Randomization
 
 | Parameter | Range | When Applied | Purpose |
@@ -528,7 +553,9 @@ Four layers of protection guard against training instability, discovered through
 
 4. **Noise Clamping [0.3, 0.7] (Bug #26):** Post-update safety clamp on the policy's exploration noise standard deviation. The upper bound of 0.7 (reduced from 1.0) prevents curriculum stall caused by excessive random actions on hard terrain — too many random falls prevent the curriculum from promoting robots to harder rows.
 
-Additionally, `body_height_tracking` is disabled (weight=0.0) on non-flat terrain (Bug #22) because the world-frame Z penalty explodes on elevated terrain surfaces.
+Additionally, `body_height_tracking` was replaced by `terrain_relative_height_penalty` (Bug #22/#27) which uses the height scanner's center ray hit to compute local ground Z, enabling correct height enforcement on elevated terrain. The height target is terrain-scaled: 0.42m (full stand) on easy terrain, 0.25m (deep crouch) on hard terrain, interpolated by curriculum level.
+
+**Terrain-Scaled Velocity Commands** (`shared/terrain_velocity_command.py`): A custom `TerrainScaledVelocityCommand` class queries each robot's terrain curriculum level and interpolates the velocity command range — sprint commands (0.5-3.0 m/s) on easy terrain, careful walk commands (0.0-1.0 m/s) on hard terrain. This teaches the policy to map height-scan patterns to appropriate speeds proactively.
 
 #### Physics and Control Configuration
 
@@ -536,7 +563,7 @@ Additionally, `body_height_tracking` is disabled (weight=0.0) on non-flat terrai
 |---|---|
 | Physics timestep | 1/500 s (500 Hz) |
 | Control frequency | 1/50 s (50 Hz, decimation = 10) |
-| Action scale | 0.2 |
+| Action scale | 0.3 |
 | Observation clipping | [-100, 100] |
 | Action clipping | [-100, 100] |
 | PD gains | Kp = 60.0, Kd = 1.5 |
@@ -619,3 +646,11 @@ Adding the 5th evaluation environment (obstacle navigation) was a team collabora
 - **Sections 1-3: Added 5th evaluation environment (obstacle navigation).** Cole's Testing_Environment_1.py — a 100m x 100m obstacle arena with 360 randomly placed objects — was added as the `"obstacle"` environment across the data dictionary, EDA, and JSON schema. Updated all combination counts from 8 (4 envs x 2 policies) to 10 (5 envs x 2 policies).
 
 - **Section 5 (Reflection): Updated** to discuss curriculum learning vs single-phase training, bugs discovered, and team collaboration on the obstacle environment.
+
+**Version 2.1 (March 6, 2026):**
+
+- **Section 4.4 (Reward Function): Updated weights** to reflect Trial 11d tuning — gait loosened (10.0→1.0, std 0.1→0.35), penalties reduced (action_smoothness -1.0→-0.1, joint_pos -0.7→-0.2, base_motion -2.0→-0.5, stumble -0.1→-0.02), foot_clearance increased (2.0→3.0), action_scale increased (0.2→0.3). Replaced `body_height_tracking` with `terrain_relative_height` using terrain-scaled targets (0.42m easy → 0.25m hard).
+
+- **Section 4.4 (Safety Mechanisms): Added** terrain-scaled velocity commands (`TerrainScaledVelocityCommand`) and terrain-scaled height penalty documentation. These two features teach the policy to map terrain difficulty to appropriate speed and posture.
+
+- **Section 4.4 (Training Progress): Updated** from Trial 11 (terrain 3.77) to Trial 11d (terrain 4.5+) with terrain-scaled velocity and height.

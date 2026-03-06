@@ -222,7 +222,7 @@ Instead of throwing the robot onto hard terrain immediately (which causes the tr
 | **A — Flat Ground** | 100% flat terrain, 20,480 robots | 500 iterations | Learned to walk: 99.3% survival rate |
 | **A.5 — Transition** | 50% flat + 50% gentle bumps | 1,000 iterations | Learned basic rough walking: 92.9% survival |
 | **B-easy — Easy Rough** | All 11 terrain types at low difficulty | 5,002 iterations | Can handle varied terrain at moderate levels |
-| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing | Learning to climb hard stairs, navigate obstacles, etc. |
+| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing (Trial 11d) | Terrain level 4.5+ — climbing real stairs, navigating debris |
 
 Each phase starts from where the previous one left off (transfer learning).
 
@@ -233,17 +233,20 @@ The reward function has 19 terms — think of it as a scorecard that tells the A
 **Things that earn points (positive rewards):**
 - Walking at the commanded speed (+5.0)
 - Turning at the commanded rate (+5.0)
-- Maintaining a proper trot gait — diagonal legs moving in sync (+10.0)
-- Lifting feet high enough to clear obstacles (+2.0)
+- Maintaining a trot gait — diagonal legs loosely in sync (+1.0, loosened from +10.0 to allow terrain-adaptive gaits)
+- Lifting feet high enough to clear obstacles (+3.0)
 - Proper foot timing — not dragging feet (+5.0)
 
 **Things that lose points (penalties):**
 - Falling over or tilting too much (-3.0 to -5.0)
-- Bouncing, swaying, or wobbly movement (-2.0)
-- Jerky, twitchy leg movements (-1.0)
+- Not maintaining proper height above ground (-1.0) — adapts per terrain: stand tall on flat ground, crouch on hard terrain
+- Hitting body on ground while moving (-1.5 to -2.0)
+- Bouncing, swaying, or wobbly movement (-0.5)
 - Feet slipping on the ground (-0.5)
+- Deviating from default joint positions (-0.2)
+- Jerky, twitchy leg movements (-0.1)
+- Tripping on obstacles (-0.02)
 - Using too much motor power (-0.0005)
-- Hitting body on ground (-1.5 to -2.0)
 - Hitting joint limits (-5.0)
 
 The weights (numbers in parentheses) determine how much each term matters. Higher weights mean the AI cares more about that behavior.
@@ -258,7 +261,28 @@ The simulated world contains 11 different terrain types that the robot must lear
 | **Surface (40%)** | Rough ground, slopes (up/down), waves, low-friction planes, vegetation (high drag) | Adapting to different ground properties |
 | **Compound (20%)** | Heightfield stairs, discrete obstacles, repeated box patterns | Combined challenges |
 
-Difficulty increases across 10 rows — robots that survive longer get promoted to harder terrain automatically (curriculum learning).
+Difficulty increases across 10 rows — robots that survive longer get promoted to harder terrain automatically (curriculum learning). Think of it like a video game with 10 difficulty levels:
+
+#### What Each Difficulty Level Looks Like
+
+| Level | Stair Height | Ground Roughness | Slope Angle | Think of It As... |
+|-------|-------------|-----------------|-------------|-------------------|
+| **0** | 5cm (speed bump) | Barely bumpy | Flat | Walking on a sidewalk |
+| **1** | 7cm (low curb) | Gravel-like | ~5° | Walking on a gravel path |
+| **2** | 9cm (thick book) | Bumpy trail | ~11° | Hiking on a rough trail |
+| **3** | 12cm (tall curb) | Rocky | ~17° | Scrambling over a rocky trail |
+| **4** | **14cm (half-stair)** | Very rocky | **~22°** | **Walking through a construction site** |
+| **5** | **16cm (real stair)** | Rubble field | **~28°** | **Climbing actual stairs and steep hills** |
+| **6** | 18cm (tall stair) | Boulder-like | ~33° | Navigating a disaster site |
+| **7** | 21cm (very tall stair) | Extreme rocks | ~39° | Extreme terrain — near the robot's physical limits |
+| **8** | 23cm (full leg reach) | Chaotic surface | ~44° | At the robot's hardware limits |
+| **9** | 25cm (maximum) | Violent chaos | ~50° | Beyond what real stairs look like |
+
+**For context:** A standard indoor stair is about 16-18cm (levels 5-6). The robot (Spot) is only 42cm tall, so a 25cm obstacle at level 9 is over half its body height — like a human trying to climb over a waist-high wall with every step.
+
+**Where our robot is now:** The training (Trial 11d) has reached level 4.5+, meaning it can handle construction-site-level terrain including 14cm stairs, rough ground with ±8cm bumps, and 22° slopes. Previous training attempts couldn't get past level 4.1 — multiple rounds of reward tuning, plus two new features, finally broke through:
+- **Terrain-scaled velocity:** The robot automatically runs fast on easy terrain and walks carefully on hard terrain (instead of being asked to sprint on stairs)
+- **Terrain-scaled height:** The robot stands tall on flat ground (42cm) and crouches on hard terrain (25cm), instead of always crouching everywhere
 
 #### Domain Randomization (Making Training Robust)
 
@@ -282,13 +306,15 @@ Training this AI is unstable — numbers can blow up to infinity ("NaN errors") 
 
 These safeguards were developed through painful trial-and-error across 11+ training attempts. Without them, training reliably crashes within hours.
 
+5. **Terrain-Scaled Commands:** The robot receives speed commands adapted to its current terrain difficulty — sprinting on easy ground, walking carefully on hard terrain. This prevents the AI from being asked to do something impossible (like sprint on steep stairs) and teaches it to associate what it "sees" in the ground ahead with the right speed and posture.
+
 #### Physics Configuration
 
 | Setting | Value | Plain English |
 |---|---|---|
 | Physics rate | 500 Hz | The simulator computes physics 500 times per second |
 | Control rate | 50 Hz | The AI makes a decision 50 times per second |
-| Action scale | 0.2 | Each decision moves joints by at most 20% of their range |
+| Action scale | 0.3 | Each decision moves joints by at most 30% of their range |
 | PD gains | Kp=60, Kd=1.5 | How "stiff" vs "damped" the leg joints are |
 | Episode length | 30 seconds | Each practice run lasts 30 simulated seconds |
 
@@ -339,3 +365,8 @@ Adding Cole's obstacle navigation environment as a 5th test arena adds an import
 - **Section 4 completely rewritten:** Old version documented a single 48-hour training run (30K iterations, 14 rewards, 6 terrain types, smaller network). New version documents the 4-phase curriculum training (120+ hours, 19 rewards, 11 terrains, larger network, safety mechanisms).
 - **5th environment added everywhere:** Cole's obstacle navigation arena added to Sections 1, 2, 3, and 4.5. All combination counts updated from 8 to 10.
 - **Reflection updated:** Added discussion of curriculum learning and team collaboration.
+
+**Version 2.1 (March 6, 2026):**
+
+- **Section 4.4 updated:** Reward weights updated to reflect Trial 11d tuning (gait loosened from +10 to +1, penalties reduced). Added terrain-scaled velocity commands and terrain-scaled height targets. Updated training progress from level 4 to 4.5+.
+- **Safety Mechanisms:** Added terrain-scaled commands as a 5th mechanism.

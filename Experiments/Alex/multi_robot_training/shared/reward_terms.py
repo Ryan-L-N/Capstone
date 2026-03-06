@@ -249,7 +249,10 @@ def body_height_tracking_penalty(
     asset_cfg: SceneEntityCfg,
     target_height: float = 0.42,
 ) -> torch.Tensor:
-    """Penalize deviation from the target standing height.
+    """Penalize deviation from the target standing height (WORLD-FRAME).
+
+    WARNING: This uses absolute Z, which breaks on elevated terrain (Bug #22).
+    Prefer terrain_relative_height_penalty for rough terrain training.
 
     Args:
         target_height: Target body height above ground (meters).
@@ -258,6 +261,70 @@ def body_height_tracking_penalty(
     asset: RigidObject = env.scene[asset_cfg.name]
     body_height = asset.data.root_pos_w[:, 2]
     height_error = torch.square(body_height - target_height)
+    return height_error
+
+
+def terrain_relative_height_penalty(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    sensor_cfg: SceneEntityCfg,
+    target_height: float = 0.30,
+    terrain_scaled: bool = False,
+    height_easy: float = 0.42,
+    height_hard: float = 0.25,
+) -> torch.Tensor:
+    """Penalize deviation from target height ABOVE LOCAL TERRAIN.
+
+    Uses the height scanner's center ray hit to determine local ground height,
+    then penalizes the robot for deviating from target_height above that point.
+    This correctly handles elevated terrain (stairs, boulders) where world-frame
+    Z is meaningless (Bug #22 fix).
+
+    When terrain_scaled=True, the target height adapts per-robot based on
+    curriculum terrain level:
+      - Level 0: height_easy (full stand, e.g. 0.42m)
+      - Level 9: height_hard (deep crouch, e.g. 0.25m)
+      - Intermediate levels: linear interpolation
+    This teaches the policy to stand tall on easy terrain and crouch on hard
+    terrain, preventing the knee-walking-on-flat-ground problem.
+
+    Args:
+        target_height: Fixed target height (used when terrain_scaled=False).
+        terrain_scaled: If True, override target_height with per-robot
+                       terrain-level-based targets.
+        height_easy: Target height at terrain level 0 (full stand).
+        height_hard: Target height at terrain level 9 (deep crouch).
+        sensor_cfg: Must reference the "height_scanner" sensor.
+    """
+    from isaaclab.sensors import RayCaster
+
+    asset: RigidObject = env.scene[asset_cfg.name]
+    height_scanner: RayCaster = env.scene.sensors[sensor_cfg.name]
+
+    # Robot body Z in world frame
+    body_z = asset.data.root_pos_w[:, 2]
+
+    # Center ray hit = local terrain height directly below robot
+    # 17x11 grid → 187 points, center index = 93
+    ray_hits = height_scanner.data.ray_hits_w  # (num_envs, 187, 3)
+    ground_z = ray_hits[:, 93, 2]  # Z of terrain below center of robot
+
+    # Relative height above local ground
+    relative_height = body_z - ground_z
+
+    if terrain_scaled:
+        # Per-robot target based on curriculum level
+        terrain = env.scene.terrain
+        levels = terrain.terrain_levels.float()  # (num_envs,) range [0, max_level]
+        max_level = terrain.max_terrain_level
+        # Normalize to [0, 1] then interpolate
+        t = torch.clamp(levels / max_level, 0.0, 1.0)
+        target = height_easy + (height_hard - height_easy) * t  # easy→hard
+    else:
+        target = target_height
+
+    # Squared error from target
+    height_error = torch.square(relative_height - target)
     return height_error
 
 

@@ -226,6 +226,112 @@ screen -dmS spot_train bash -c '
 
 **Grid:** 10 rows (difficulty) × 40 cols = 400 patches
 
+### Difficulty Rows — What Each Level Means
+
+All terrain parameters scale linearly from their min (row 0) to max (row 9).
+
+#### Row 0 — Flat Playground
+| Terrain | Description |
+|---------|-------------|
+| Stairs Up/Down | 5cm risers — gentle ramp |
+| Boxes | 5cm blocks — pebble-like bumps |
+| Stepping Stones | Wide stones (50cm), tight gaps (10cm) |
+| Random Rough | ±2cm noise — slightly textured flat |
+| Slopes | ~0° — essentially flat |
+| Waves | 5cm amplitude — gentle rolls |
+| HF Stairs | 5cm coarse steps |
+| Discrete Obstacles | 5cm scattered blocks |
+| Repeated Boxes | 20 small boxes (5cm, 30x30cm) |
+
+#### Row 1 — Textured Ground
+5-7cm features. Gravel paths, low curbs, cobblestone. Robot starts to feel terrain.
+
+#### Row 2 — Bumpy Terrain
+7-9cm features. Rough trails, uneven rubble. Requires deliberate foot placement.
+
+#### Row 3 — Challenging Ground
+*Where Phase B-easy (Trial 10k) maxed out at terrain 0.83*
+
+10-12cm features. Rocky hiking trails, tall curbs. ~16° slopes.
+
+#### Row 4 — Real Obstacles
+*Where Trials 11/11b plateaued at 4.0-4.1. Trial 11c-v2 broke through.*
+
+| Terrain | Description |
+|---------|-------------|
+| Stairs Up/Down | **14cm risers** — residential half-step |
+| Boxes | 14cm blocks — construction site rubble |
+| Stepping Stones | 39cm wide, 23cm gaps — deliberate stepping |
+| Random Rough | ±8cm noise — rocky scramble |
+| Slopes | **~22°** — steep hillside |
+| Waves | 12cm amplitude — choppy terrain |
+| Discrete Obstacles | **16cm blocks** — ankle-height barriers |
+
+#### Row 5 — Serious Terrain
+| Terrain | Description |
+|---------|-------------|
+| Stairs Up/Down | **16cm risers** — standard indoor stair height |
+| Boxes | 16cm blocks — climbing over debris |
+| Stepping Stones | 36cm wide, 27cm gaps — careful placement |
+| Random Rough | ±9cm noise — rocky scramble trail |
+| Slopes | **~28°** — steep trail switchback |
+| Discrete Obstacles | 19cm blocks — shin-height obstacles |
+
+#### Row 6 — Expert Terrain
+*Approaching real-world disaster site difficulty*
+
+| Terrain | Description |
+|---------|-------------|
+| Stairs Up/Down | **18cm risers** — tall standard stair |
+| Boxes | 18cm blocks — serious rubble pile |
+| Stepping Stones | 33cm wide, 30cm gaps — hard to bridge |
+| Random Rough | ±11cm noise — boulder field |
+| Slopes | **~33°** — steep mountain trail |
+| Discrete Obstacles | **22cm blocks** — knee-height barriers |
+
+#### Row 7 — Extreme Terrain
+*Beyond typical quadruped benchmarks*
+
+| Terrain | Description |
+|---------|-------------|
+| Stairs Up/Down | **21cm risers** — near Spot's leg reach limit |
+| Boxes | 21cm blocks — climbing, not walking |
+| Stepping Stones | 31cm wide, 33cm gaps — barely reachable |
+| Random Rough | ±12cm noise — extreme scramble |
+| Slopes | **~39°** — near-scramble steep |
+| Discrete Obstacles | 24cm blocks |
+
+#### Row 8 — Near Physical Limits
+*Approaching Spot's mechanical limits*
+
+| Terrain | Description |
+|---------|-------------|
+| Stairs Up/Down | **23cm risers** — requires full leg extension |
+| Boxes | 23cm blocks — chest-height (for Spot) obstacles |
+| Stepping Stones | 28cm wide, 37cm gaps — at Spot's stride limit |
+| Slopes | **~44°** — nearly scrambling |
+| Discrete Obstacles | **27cm blocks** — major barriers |
+
+#### Row 9 — Maximum Difficulty
+*Theoretical ceiling — at or beyond Spot's physical hardware limits*
+
+| Terrain | Description |
+|---------|-------------|
+| Stairs Up/Down | **25cm risers** — 10 inches, taller than most real stairs |
+| Boxes | 25cm blocks — over half Spot's 42cm standing height |
+| Stepping Stones | **25cm wide, 40cm gaps** — extreme precision or leaping |
+| Random Rough | **±15cm noise** — chaotic elevation map |
+| Slopes | **~50°** — near-vertical, scrambling territory |
+| Waves | **20cm amplitude** — violent undulations |
+| Discrete Obstacles | **30cm blocks** — near body height |
+| Repeated Boxes | **40 boxes, 20cm tall, 50x50cm** — full obstacle course |
+
+**Practical meaning:**
+- Levels 0-3: Walking on uneven ground (most indoor/outdoor flat terrain)
+- Levels 4-5: Real obstacles — standard stairs, construction debris, steep hills
+- Levels 6-7: Disaster-site terrain — rubble piles, extreme stairs, mountain scrambles
+- Levels 8-9: At or beyond Spot's physical hardware limits — theoretical ceiling
+
 **Key settings:**
 | Parameter | Value | Why |
 |-----------|-------|-----|
@@ -246,13 +352,26 @@ screen -dmS spot_train bash -c '
 
 ## Reward Changes Across Phases
 
-| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B |
-|-------------|---------|-----------|-------------|---------|
-| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 |
-| body_scraping | — | -2.0 (new) | -2.0 | -2.0 |
-| All other terms | unchanged | unchanged | unchanged | unchanged |
+| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d |
+|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|
+| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
+| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
+| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 |
+| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 |
+| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 |
+| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 |
+| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 |
+| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 |
+| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 |
+| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 |
+| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 |
+| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | **-1.0 (terrain_scaled: 0.42m easy → 0.25m hard)** |
+| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced |
+| velocity command | UniformVelocity | same | same | same | same | same | **TerrainScaledVelocity (sprint on easy, careful on hard)** |
 
 The `undesired_contacts` and `body_scraping` changes are baked into `spot_ppo_env_cfg.py` — they apply to all phases. On flat terrain they're negligible (body rarely contacts ground). On rough terrain they prevent belly-dragging without over-punishing legitimate bumps.
+
+The Trial 11b reward changes target the terrain ~4.1 plateau: the strict trot gait enforcer prevented the robot from discovering terrain-adaptive strategies (non-trot footwork, dynamic corrections) needed for hard terrain.
 
 ---
 
@@ -308,9 +427,19 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 10g | B-easy | robust_easy | ~134 | 1e-4 | FAILED — value explosion at iter ~1134 (2.4×10²¹) | — |
 | 10h | B-easy | robust_easy | ~4037 | 5e-5 | FAILED — peaked at 155 (iter 2000), value loss cascade to NaN. Curriculum stalled at 0.8 (noise_std=1.0 too high) | model_2000.pt |
 | 10k | B-easy | robust_easy | 5002 | 3e-5 | FLATLINED — reward ~216, terrain 0.83 (3-row ceiling), flip 14%, value loss 9.6. Ran 20h with 40960 envs. Policy extracted max from 3-row terrain. | model_5000.pt |
-| **11** | **B** | **robust** | **8000** | **3e-5** | **IN PROGRESS — 10-row terrain, 5000 envs, gaps removed, stepping stones 10%. Resumed from 10k model_5000.pt** | **TBD** |
+| 11 | B | robust | 6600+ | 3e-5 | PLATEAUED — terrain 4.1, reward ~250, flip 12%. Gait enforcer (weight=10, std=0.1) prevents non-trot strategies needed for hard terrain. | model_6600.pt |
+| 11b | B | robust | 7400 | 3e-5 | PLATEAUED — terrain 4.0, reward ~178. Gait loosened but penalties (joint_pos, base_motion, stumble, action_smooth) still blocking hard-terrain strategies. | model_7400.pt |
+| 11c | B | robust | 7600 | 3e-5 | SHORT — Tier 1+2 applied but crawling behavior observed. Penalty reduction without height enforcement caused belly-drag exploit. | model_7600.pt |
+| 11c-v2 | B | robust | 8200 | 3e-5 | PLATEAUED — terrain ~4.5, height penalty oscillating -0.5 to -6.0. Fixed 0.30m target caused knee-walking on flat ground. | model_8200.pt |
+| **11d** | **B** | **robust** | **20000** | **3e-5** | **IN PROGRESS — TerrainScaledVelocityCommand (sprint on easy, careful on hard) + terrain_scaled height (0.42m easy → 0.25m hard). Resumed from 11c-v2 model_8200.pt. Run dir: `2026-03-05_21-13-12`** | **TBD** |
 
 **Key insight from B-easy attempts:** Three knobs matter: (1) LR must decrease aggressively for terrain transitions (3e-4→1e-4→5e-5→3e-5). (2) max_noise_std must decrease for later phases (1.0→0.7) to let the policy be precise on hard terrain. (3) Value loss watchdog (Bug #25) prevents oscillation cascades that LR reduction alone can't stop.
+
+**Key insight from Trial 11 plateau:** The GaitReward (weight=10.0, std=0.1, 6 multiplicative sub-terms) is the primary bottleneck for terrain levels >4. It enforces strict diagonal trot gait, which becomes suboptimal on steep stairs and large obstacles where the robot needs dynamic corrections or non-trot strategies. Lowering gait weight to 3.0 and loosening tolerance (std=0.25, max_err=0.4) lets the policy discover terrain-adaptive gaits.
+
+**Key insight from Trial 11c-v2 plateau:** A fixed height target (0.30m) teaches the robot to always crouch, even on flat ground (knee-walking problem). The fix: make height target terrain-scaled — stand tall (0.42m) on easy terrain, crouch (0.25m) on hard terrain. Similarly, terrain-scaled velocity commands prevent the robot from being asked to sprint on level 8 stairs.
+
+**Bug #28 (CommandTermCfg inheritance):** Custom command configs MUST inherit from `CommandTermCfg` (not standalone `@configclass`), and custom command classes must implement `_resample_command`, `_update_command`, `_update_metrics` — NOT override `reset`/`compute`/`_resample` directly.
 
 ---
 
