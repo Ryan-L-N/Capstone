@@ -1162,6 +1162,25 @@ All wrappers include `torch.where(torch.isfinite(result), result, torch.zeros_li
 
 ---
 
+### Bug #30: "The Stale Critic" (Reward Weight Changes Require Critic Reset)
+
+**What happened:** Trial 11j reached terrain 5.07, reward 286.8 — best Phase B run ever — but the gait was bouncy and hoppy on flat ground. The fix required changing 6 reward weights (stronger smoothness penalties, weaker air time rewards). But simply resuming from model_2300.pt with new weights would break training: the critic was trained to predict value ~286 under the old reward scale, and the new weights produce a completely different reward magnitude. The critic's stale value estimates would generate massive advantage errors → destructive policy updates → potential NaN cascade (similar to Bug #29's mechanism).
+
+**The fix:** Added `--actor_only_resume` flag to `train_ppo.py`:
+1. Loads only `actor.*` + `std` keys from checkpoint (9 of 17 keys)
+2. Leaves critic with fresh random initialization
+3. Does NOT load optimizer state (Adam moments are stale for new reward scale)
+4. Combined with `--critic_warmup_iters 300` which freezes actor parameters (`requires_grad=False`) for 300 iterations so the critic can calibrate to the new reward landscape without corrupting the learned locomotion policy
+
+**Implementation details:**
+- `runner.alg.policy.load_state_dict(actor_keys, strict=False)` — loads partial state dict
+- Actor freeze: iterate `named_parameters()`, set `requires_grad=False` for `actor.*` and `std`
+- Unfreeze after warmup with `requires_grad=True` and `[WARMUP]` console log
+
+**The lesson:** When changing reward weights mid-training, the critic's value estimates become invalid. A full checkpoint resume will produce garbage advantages. You must either: (a) reset the critic and warm it up while keeping the actor frozen, or (b) start from scratch. Option (a) preserves months of locomotion learning. This is the RL equivalent of transfer learning's "freeze backbone, retrain head."
+
+---
+
 ### Bug #19: "The Learning Rate Ceiling" (1e-3 Is Too Hot for Early Training)
 
 **What happened:** Trial 7 fixed the warmup (50 iters) but kept `lr_max=1e-3`. The robot was learning well (reward 133, ep_len 1,181 at iter 100), then noise suddenly spiked from 0.70 to 0.86 and value_loss went from 0.61 to 3.4e24 in a single iteration.
@@ -2292,7 +2311,7 @@ terrain_relative_height = RewardTermCfg(
 
 ---
 
-### Trial 11j: Phase B -- Clamped Penalties (Mar 7, 2026) -- IN PROGRESS
+### Trial 11j: Phase B -- Clamped Penalties (Mar 7, 2026) -- STOPPED (Best Ever, but Bouncy Gait)
 
 **Config:** Same as Trial 11i but with clamped penalty wrappers (Bug #29 fix)
 **Envs:** 5,000 Spot | **Hardware:** H100 96GB
@@ -2308,30 +2327,101 @@ terrain_relative_height = RewardTermCfg(
 - `clamped_joint_velocity_penalty` — clamp [0, 50] (normal 0-20)
 - `contact_force_smoothness_penalty` — clamp [0, 500] + nan_to_num
 
-All wrappers include `torch.where(torch.isfinite(...))` NaN safety. Updated `spot_ppo_env_cfg.py` to import these instead of `spot_mdp.*` originals.
+**Results at iter ~2000 (best Phase B run ever):**
+
+| Metric | Value |
+|--------|-------|
+| Mean reward | **286.8** |
+| Terrain levels | **5.07** |
+| Survival rate | 92.8% |
+| action_smoothness | -0.37 |
+| base_motion | -0.32 |
+| gait | +10.0 |
+| air_time | +5.0 |
+| Noise std | 0.50 |
+
+**Why stopped:** The policy is bouncy/hoppy on flat ground instead of trotting smoothly. The smoothness penalties are too weak (action_smoothness contributes only -0.37, base_motion only -0.32) while positive rewards (gait +10, air_time +5) incentivize energetic hopping. Stopped at model_2300.pt for 11k gait fix.
+
+**Output:** `model_2300.pt` — best terrain score ever (5.07), but qualitatively bouncy.
+
+---
+
+### Trial 11k: Phase B -- Smooth Gait Fix (Mar 7, 2026) -- IN PROGRESS
+
+**Config:** Actor-only resume from 11j model_2300.pt with 6 reward weight changes to fix bouncy gait
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-07_18-27-39/`
+**Log file:** `~/phase_b_trial11k.log`
+**Screen:** `spot_train`
+**Resume from:** `spot_robust_ppo/2026-03-07_08-14-41/model_2300.pt` (Trial 11j — actor only)
+
+**The problem:** Trial 11j produced the best terrain score ever (5.07) but the gait was bouncy/hoppy on flat ground. The smoothness penalties were too weak relative to the positive rewards that incentivized energetic hopping.
+
+**The fix — 6 reward weight changes:**
+
+| Term | Old (11j) | New (11k) | Why |
+|------|-----------|-----------|-----|
+| `air_time` | +5.0 | **+3.0** | Reduce bounce incentive |
+| `gait` | +10.0 | **+8.0** | Less exaggerated air time |
+| `action_smoothness` | -1.0 (unclamped) | **-3.0 (clamped)** | 3x stronger + clamped wrapper |
+| `air_time_variance` | -1.0 | **-2.0** | Force symmetric swing timing |
+| `base_motion` | -2.0 | **-5.0** | Directly penalize vertical bounce |
+| `contact_force_smoothness` | -0.01 | **-0.03** | Penalize stomping |
+
+**New feature — actor-only resume (Bug #30 prevention):**
+Changing reward weights invalidates the critic's value estimates. New `--actor_only_resume` flag in `train_ppo.py`:
+1. Loads only `actor.*` + `std` keys from checkpoint (9/17 keys)
+2. Leaves critic freshly initialized
+3. Does NOT load optimizer state (fresh Adam moments for new reward scale)
+4. `--critic_warmup_iters 300` freezes actor for 300 iters so critic calibrates
 
 **Launch command:**
 ```bash
-~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
-    --num_envs 5000 --max_iterations 20000 --save_interval 100 \
+./isaaclab.sh -p ~/multi_robot_training/train_ppo.py --headless \
+    --robot spot --terrain robust --num_envs 5000 --max_iterations 20000 \
+    --save_interval 100 --lr_max 3e-5 \
     --max_noise_std 0.5 --min_noise_std 0.3 \
-    --lr_max 3e-5 --num_learning_epochs 4 \
-    --no_wandb --headless \
-    --resume --load_run 2026-03-06_10-03-02 \
-    --load_checkpoint model_14000.pt
+    --num_learning_epochs 4 \
+    --actor_only_resume \
+    --load_run 2026-03-07_08-14-41 --load_checkpoint model_2300.pt \
+    --critic_warmup_iters 300 \
+    --no_wandb
 ```
 
-**Early metrics (iter ~15):**
-- Reward: 7.5, terrain: 1.7, action_smoothness: -0.02 (normal), zero NaN
-- Training is stable past the point where both 11h (iter 105) and 11i (iter 82) crashed
+**Early metrics (iter ~20, warmup active):**
+- Reward: -124.65 (expected — fresh critic + stronger penalties)
+- action_smoothness: -4.79 (was -0.37 in 11j — **13x stronger signal**)
+- base_motion: -1.06 (was -0.32 in 11j — 3x stronger)
+- Terrain: 3.20 (slight dip from actor-only start — normal during warmup)
+- Noise std: 0.50, zero NaN
+- Actor frozen, 280 warmup iters remaining
+
+**What to watch:**
+- Iter 0-300 (warmup): Value loss starts high, drops as critic calibrates. Actor frozen — reward stable or slight decline. Normal.
+- Iter 300-500: Actor unfreezes. Expect a learning dip then recovery.
+- Iter 500+: action_smoothness contribution should be 2-3x more negative. Reward should climb past 286.8.
+- Pull and play at iter 500, 1000 — check if trot is smoother on flat ground.
 
 **Files modified:**
-- `shared/reward_terms.py` — added 5 clamped penalty wrapper functions
-- `configs/spot_ppo_env_cfg.py` — switched penalty imports from `spot_mdp.*` to clamped wrappers
+- `configs/spot_ppo_env_cfg.py` — 6 reward weight changes + `clamped_action_smoothness_penalty` import
+- `train_ppo.py` — `--actor_only_resume` flag, `--critic_warmup_iters` flag, actor freeze/unfreeze logic
 
 ---
 
 ### Trial 12: Vision60 (PLANNED)
+
+After Spot succeeds -- same four-phase approach (flat --> transition --> robust_easy --> robust).
+
+---
+
+### Phase C: Navigation (PLANNED)
+
+After Phase B produces a smooth locomotion policy, Phase C trains a navigation layer:
+- **Architecture:** Nav policy (10 Hz) outputs [vx, vy, wz] → frozen loco policy (50 Hz) outputs [12 joints]
+- **Sensors:** LiDAR (180 rays, front 180°, 10m range) + depth camera (64x64, CNN-encoded)
+- **Input modes:** Teleop (human velocity), Waypoint (XY goal), Vector (heading + distance)
+- **Training:** Procedural arenas (30x30m) with random obstacles, 512-1024 envs
+- **New files:** `train_nav.py`, `configs/spot_nav_env_cfg.py`, `configs/spot_nav_ppo_cfg.py`, `shared/nav_rewards.py`, `shared/loco_wrapper.py`, `shared/nav_arena_cfg.py`
 
 After Spot succeeds -- same four-phase approach (flat --> transition --> robust_easy --> robust).
 

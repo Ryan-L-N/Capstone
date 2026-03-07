@@ -42,6 +42,7 @@ from shared.reward_terms import (
     VegetationDragReward,
     body_height_tracking_penalty,
     body_scraping_penalty,
+    clamped_action_smoothness_penalty,
     contact_force_smoothness_penalty,
     stumble_penalty,
     velocity_modulation_reward,
@@ -225,7 +226,7 @@ class SpotPPORewardsCfg:
 
     air_time = RewardTermCfg(
         func=spot_mdp.air_time_reward,
-        weight=5.0,
+        weight=3.0,  # was 5.0 — reduced to curb bouncy/hoppy gait (Trial 11k)
         params={
             "mode_time": 0.2,
             "velocity_threshold": 0.25,
@@ -253,7 +254,7 @@ class SpotPPORewardsCfg:
     )
     gait = RewardTermCfg(
         func=spot_mdp.GaitReward,
-        weight=10.0,  # was 5.0 — match reference for stronger gait enforcement
+        weight=8.0,  # was 10.0 — reduced to limit exaggerated air time (Trial 11k)
         params={
             "std": 0.1, "max_err": 0.2, "velocity_threshold": 0.25,
             "synced_feet_pair_names": (("fl_foot", "hr_foot"), ("fr_foot", "hl_foot")),
@@ -302,15 +303,15 @@ class SpotPPORewardsCfg:
             "velocity_threshold": 0.3,
         },
     )
-    action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-1.0)
+    action_smoothness = RewardTermCfg(func=clamped_action_smoothness_penalty, weight=-3.0)  # was -1.0 UNCLAMPED — 3x stronger + clamped (Trial 11k)
     air_time_variance = RewardTermCfg(
         func=spot_mdp.air_time_variance_penalty,
-        weight=-1.0,
+        weight=-2.0,  # was -1.0 — forces symmetric swing timing (Trial 11k)
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
     )
     base_motion = RewardTermCfg(
         func=spot_mdp.base_motion_penalty,
-        weight=-2.0,
+        weight=-5.0,  # was -2.0 — directly penalizes vertical bounce (Trial 11k)
         params={"asset_cfg": SceneEntityCfg("robot")},
     )
     base_orientation = RewardTermCfg(
@@ -363,7 +364,7 @@ class SpotPPORewardsCfg:
     )
     contact_force_smoothness = RewardTermCfg(
         func=contact_force_smoothness_penalty,
-        weight=-0.01,
+        weight=-0.03,  # was -0.01 — penalizes stomping (Trial 11k)
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
     )
     stumble = RewardTermCfg(

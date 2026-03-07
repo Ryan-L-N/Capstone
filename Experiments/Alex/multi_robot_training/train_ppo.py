@@ -64,6 +64,10 @@ parser.add_argument("--save_interval", type=int, default=None,
                     help="Override checkpoint save interval (default: use config value)")
 parser.add_argument("--num_learning_epochs", type=int, default=None,
                     help="Override PPO learning epochs per iteration (default: use config value, typically 8)")
+parser.add_argument("--actor_only_resume", action="store_true", default=False,
+                    help="Load only actor weights from checkpoint (leave critic fresh for reward weight changes)")
+parser.add_argument("--critic_warmup_iters", type=int, default=0,
+                    help="Freeze actor for N iters so critic can calibrate to new reward scale")
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
 sys.argv = [sys.argv[0]]
@@ -291,7 +295,29 @@ def main():
 
     # ── Resume if requested ─────────────────────────────────────────────
     start_iteration = 0
-    if args_cli.resume:
+    if args_cli.actor_only_resume:
+        # Actor-only resume: load actor weights only, leave critic fresh.
+        # Used when reward weights change (critic's value estimates are invalid).
+        resume_path = get_checkpoint_path(
+            log_root_path, args_cli.load_run, args_cli.load_checkpoint
+        )
+        print(f"[INFO] Actor-only resume from: {resume_path}", flush=True)
+        loaded_dict = torch.load(resume_path, weights_only=False)
+        full_state = loaded_dict["model_state_dict"]
+
+        # Filter to actor.* and std keys only
+        actor_keys = {k: v for k, v in full_state.items()
+                      if k.startswith("actor.") or k in ("std", "log_std")}
+        print(f"[INFO] Loading {len(actor_keys)}/{len(full_state)} keys (actor + std only)", flush=True)
+        runner.alg.policy.load_state_dict(actor_keys, strict=False)
+        skipped = len(full_state) - len(actor_keys)
+        print(f"[INFO] Skipped {skipped} critic keys (freshly initialized)", flush=True)
+
+        # Do NOT load optimizer — new reward scale needs fresh Adam moments
+        # Do NOT set start_iteration — new training starts from 0
+        print("[INFO] Critic + optimizer freshly initialized (reward weights changed)", flush=True)
+
+    elif args_cli.resume:
         resume_path = get_checkpoint_path(
             log_root_path, args_cli.load_run, args_cli.load_checkpoint
         )
@@ -353,6 +379,21 @@ def main():
     _lr_log_interval = 1000
     _iteration_counter = [start_iteration]
 
+    # ── Critic warmup (actor-only resume) ─────────────────────────────────
+    # When reward weights change, the critic is fresh and its value estimates
+    # are garbage. Freezing the actor lets the critic calibrate to the new
+    # reward scale without destroying the learned locomotion policy.
+    _critic_warmup_remaining = [args_cli.critic_warmup_iters]
+    _actor_frozen = [False]
+
+    if args_cli.critic_warmup_iters > 0:
+        # Freeze actor parameters
+        for name, param in runner.alg.policy.named_parameters():
+            if name.startswith("actor.") or name in ("std", "log_std"):
+                param.requires_grad = False
+        _actor_frozen[0] = True
+        print(f"[WARMUP] Actor frozen for {args_cli.critic_warmup_iters} iters (critic calibration)", flush=True)
+
     # ── Value loss watchdog (Bug #25 fix) ────────────────────────────────
     # Detects value function loss spikes and temporarily halves the LR
     # to break the oscillation → amplification → NaN cascade.
@@ -389,6 +430,17 @@ def main():
 
         # Run the actual PPO update
         result = original_update(*args, **kwargs)
+
+        # ── Critic warmup countdown ─────────────────────────────────
+        if _actor_frozen[0] and _critic_warmup_remaining[0] > 0:
+            _critic_warmup_remaining[0] -= 1
+            if _critic_warmup_remaining[0] == 0:
+                # Unfreeze actor parameters
+                for name, param in runner.alg.policy.named_parameters():
+                    if name.startswith("actor.") or name in ("std", "log_std"):
+                        param.requires_grad = True
+                _actor_frozen[0] = False
+                print(f"[WARMUP] Critic warmup complete at iter {it}. Actor unfrozen.", flush=True)
 
         # ── Value loss watchdog check ────────────────────────────────
         vl = result.get("value_function", 0.0) if isinstance(result, dict) else 0.0
@@ -430,12 +482,16 @@ def main():
             if _vl_cooldown[0] > 0:
                 guard_str = f"  [GUARD active: LR×{_vl_penalty[0]}, {_vl_cooldown[0]} iters left]"
 
+            warmup_str = ""
+            if _actor_frozen[0]:
+                warmup_str = f"  [WARMUP: actor frozen, {_critic_warmup_remaining[0]} iters left]"
+
             print(
                 f"[TRAIN] iter={it:6d}/{agent_cfg.max_iterations}  "
                 f"lr={lr:.2e}{dr_str}  "
                 f"noise={noise:.3f}  "
                 f"elapsed={hours:.1f}h  fps={fps:.0f}"
-                f"{guard_str}",
+                f"{guard_str}{warmup_str}",
                 flush=True,
             )
 
