@@ -5,7 +5,7 @@
 > Run phases individually — stop, verify, then proceed.
 >
 > **Hardware:** NVIDIA H100 NVL 96GB
-> **Last updated:** March 3, 2026
+> **Last updated:** March 6, 2026
 
 ---
 
@@ -352,22 +352,22 @@ All terrain parameters scale linearly from their min (row 0) to max (row 9).
 
 ## Reward Changes Across Phases
 
-| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f |
-|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|
-| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
-| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
-| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 |
-| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
-| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 |
-| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
-| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
-| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 |
-| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 |
-| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 |
-| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 |
-| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | **-2.0 (height-scan-variance-based: 0.42m flat → 0.35m rough)** |
-| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced |
-| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same |
+| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f | Trial 11h |
+|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|
+| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
+| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
+| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 | 1.0 |
+| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
+| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 | -0.1 |
+| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
+| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
+| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 | -0.2 |
+| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 |
+| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 | **0.0 (disabled)** |
+| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 | 0.3 |
+| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | -2.0 (variance-based, NaN) | **-2.0 (variance-based + nan_to_num + error clamped [0,1])** |
+| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced | replaced |
+| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same | same |
 
 The `undesired_contacts` and `body_scraping` changes are baked into `spot_ppo_env_cfg.py` — they apply to all phases. On flat terrain they're negligible (body rarely contacts ground). On rough terrain they prevent belly-dragging without over-punishing legitimate bumps.
 
@@ -433,7 +433,9 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 11c-v2 | B | robust | 8200 | 3e-5 | PLATEAUED — terrain ~4.5, height penalty oscillating -0.5 to -6.0. Fixed 0.30m target caused knee-walking on flat ground. | model_8200.pt |
 | 11d | B | robust | 11800 | 3e-5 | PLATEAUED — terrain ~5.0, reward 242.5, 92.8% survival. Best checkpoint ever but policy still crawling on flat ground. TerrainScaledVelocity + height (0.42m easy → 0.25m hard) broke past 4.1 ceiling but 0.25m hard target too low. | model_11800.pt |
 | 11e | B | robust | 14000 | 3e-5 | REPLACED — height_hard 0.25→0.35, weight -1→-2. Height penalty still oscillating (-1.2 to -5.0) because curriculum-level-based conditioning is too indirect. Policy still knee-walking in teleop at iter 14000. | model_14000.pt |
-| **11f** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Variance-based height conditioning. Height target now driven by height scan variance (per-step, direct signal) instead of curriculum level. Flat ground (var≤0.001) → 0.42m, rough ground (var≥0.02) → 0.35m. Height penalty 5x calmer than 11e on first iters. Resumed from 11e model_14000.pt. Run dir: `2026-03-06_17-46-31`** | **TBD** |
+| 11f | B | robust | 14100 | 3e-5 | FAILED — NaN. Introduced variance-based height conditioning (Option B). `ray_hits_w` returns `inf` for missed rays → height penalty NaN. Fixed with `torch.nan_to_num()`, but model_14100.pt CORRUPTED (17 tensors with NaN from gradient propagation). | model_14100.pt (CORRUPTED) |
+| 11g | B | robust | ~0 | 3e-5 | FAILED — NaN cascade. Resumed from corrupted model_14100.pt → entire training NaN from start. Also bumped stumble -0.02→-1.0. Killed immediately. | — |
+| **11h** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Resumed from CLEAN model_14000.pt (11e). Variance-based height + `nan_to_num` + error clamped [0,1]. Stumble DISABLED (0.0). Bugs #28/#28b/#28c fixed. Early metrics (iter 31): reward 15.3, terrain 1.29, flip 83%, noise 0.56, value_loss 0.21 (stable, no NaN). Run dir: `2026-03-06_20-57-21`** | **TBD** |
 
 **Key insight from B-easy attempts:** Three knobs matter: (1) LR must decrease aggressively for terrain transitions (3e-4→1e-4→5e-5→3e-5). (2) max_noise_std must decrease for later phases (1.0→0.7) to let the policy be precise on hard terrain. (3) Value loss watchdog (Bug #25) prevents oscillation cascades that LR reduction alone can't stop.
 
@@ -443,9 +445,15 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 
 **Key insight from Trial 11d plateau:** Terrain-scaled height with height_hard=0.25m still causes crawling because the majority of robots (at curriculum level ~5) get a target of ~0.33m — still a crouch. Plus 5,600 iters of "crouch is good" training before 11d means the asymmetric signal is too weak. Fix: raise height_hard from 0.25→0.35 (level 5 target becomes 0.381m — proper upright walking) and double weight from -1.0→-2.0 for stronger gradient signal.
 
-**Key insight from Trial 11e:** Curriculum-level-based height conditioning is too indirect — it tells the robot "you're on row 5 of the curriculum, so crouch this much" but the policy can't observe curriculum level at eval time. The fix: condition height target on **height scan variance** instead. Low variance = flat ground = stand tall (0.42m). High variance = rough ground = crouch (0.35m). This is a direct per-step signal the policy can actually observe and learn from, and it works at eval time too. Trial 11f's height penalty is 5x calmer than 11e's on first iterations.
+**Key insight from Trial 11e:** Curriculum-level-based height conditioning is too indirect — it tells the robot "you're on row 5 of the curriculum, so crouch this much" but the policy can't observe curriculum level at eval time. The fix: condition height target on **height scan variance** instead. Low variance = flat ground = stand tall (0.42m). High variance = rough ground = crouch (0.35m). This is a direct per-step signal the policy can actually observe and learn from, and it works at eval time too.
+
+**Key insight from Trial 11f/11g:** Variance-based height conditioning is correct in concept but `ray_hits_w` returns `inf` for missed rays, causing NaN in variance computation. The fix requires `torch.nan_to_num()` before computing variance. Also, `torch.square(height_error)` can produce enormous values (32.0+) when robots fall off terrain, causing gradient explosion. Must clamp height error to [0, 1] before squaring. AND: a single NaN-corrupted checkpoint (model_14100.pt with 17 NaN tensors) propagates NaN through the entire training from iter 0 — always verify checkpoints with `torch.isnan()` before resuming.
 
 **Bug #28 (CommandTermCfg inheritance):** Custom command configs MUST inherit from `CommandTermCfg` (not standalone `@configclass`), and custom command classes must implement `_resample_command`, `_update_command`, `_update_metrics` — NOT override `reset`/`compute`/`_resample` directly.
+
+**Bug #28b (Stumble penalty uses absolute Z):** `stumble_penalty` compares foot height against 0.15m in WORLD FRAME. On elevated terrain (stairs at Z=1.0m), every foot contact registers as a "stumble." Weight -1.0 caused 75% flip-over. DISABLED (weight=0.0).
+
+**Bug #28c (Unbounded height error):** `torch.square(relative_height - target)` can produce enormous values (32.0+) when robots fall. Fix: `torch.clamp(height_error, 0.0, 1.0)` before squaring.
 
 ---
 

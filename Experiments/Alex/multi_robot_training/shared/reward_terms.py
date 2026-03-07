@@ -307,20 +307,23 @@ def terrain_relative_height_penalty(
 
     # Robot body Z in world frame
     body_z = asset.data.root_pos_w[:, 2]
+    ray_hits_z = height_scanner.data.ray_hits_w[..., 2]  # (num_envs, 187)
 
-    # Center ray hit = local terrain height directly below robot
-    # 17x11 grid → 187 points, center index = 93
-    ray_hits = height_scanner.data.ray_hits_w  # (num_envs, 187, 3)
-    ground_z = ray_hits[:, 93, 2]  # Z of terrain below center of robot
+    # Relative heights: body_z - ray_hit_z for each of 187 rays
+    # Positive = ground below body, ~0.42 on flat ground at standing height
+    rel_scan = body_z.unsqueeze(1) - ray_hits_z  # (num_envs, 187)
 
-    # Relative height above local ground
-    relative_height = body_z - ground_z
+    # Replace NaN/inf with 0 (Bug #24: clamp doesn't fix NaN, must use nan_to_num)
+    rel_scan = torch.nan_to_num(rel_scan, nan=0.0, posinf=0.0, neginf=0.0)
+
+    # Center ray = relative height above ground directly below robot
+    relative_height = rel_scan[:, 93]
 
     if terrain_scaled:
         # Per-robot target based on height scan variance (terrain roughness)
-        # Use the Z-component of all 187 ray hits to compute variance
-        scan_z = ray_hits[:, :, 2]  # (num_envs, 187)
-        scan_var = scan_z.var(dim=-1)  # (num_envs,) — roughness per robot
+        # Flat ground: all rays hit same Z → variance ≈ 0 → target = height_easy
+        # Rough ground: rays hit different Z → variance >> 0 → target = height_hard
+        scan_var = rel_scan.var(dim=-1)  # (num_envs,) — roughness per robot
 
         # Normalize variance to [0, 1] between flat and rough thresholds
         t = (scan_var - variance_flat) / (variance_rough - variance_flat + 1e-8)
@@ -331,8 +334,10 @@ def terrain_relative_height_penalty(
     else:
         target = target_height
 
-    # Squared error from target
+    # Squared error from target — CLAMP to prevent gradient explosion (Bug #28b)
     height_error = torch.square(relative_height - target)
+    height_error = torch.clamp(height_error, 0.0, 1.0)  # Cap at 1.0 to prevent NaN from gradient explosion
+    height_error = torch.where(torch.isfinite(height_error), height_error, torch.zeros_like(height_error))
     return height_error
 
 

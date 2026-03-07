@@ -222,7 +222,7 @@ Instead of throwing the robot onto hard terrain immediately (which causes the tr
 | **A — Flat Ground** | 100% flat terrain, 20,480 robots | 500 iterations | Learned to walk: 99.3% survival rate |
 | **A.5 — Transition** | 50% flat + 50% gentle bumps | 1,000 iterations | Learned basic rough walking: 92.9% survival |
 | **B-easy — Easy Rough** | All 11 terrain types at low difficulty | 5,002 iterations | Can handle varied terrain at moderate levels |
-| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing (Trial 11f) | Peaked terrain ~5.0 — now teaching proper posture via height scan variance |
+| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing (Trial 11h) | Peaked terrain ~5.0 — now teaching proper posture via height scan variance (with NaN guards and error clamping) |
 
 Each phase starts from where the previous one left off (transfer learning).
 
@@ -239,13 +239,13 @@ The reward function has 19 terms — think of it as a scorecard that tells the A
 
 **Things that lose points (penalties):**
 - Falling over or tilting too much (-3.0 to -5.0)
-- Not maintaining proper height above ground (-2.0) — uses what the robot "sees" to decide posture: smooth ground = stand tall (42cm), rough ground = crouch (35cm)
+- Not maintaining proper height above ground (-2.0) — uses what the robot "sees" to decide posture: smooth ground = stand tall (42cm), rough ground = crouch (35cm). Error clamped to prevent training crashes when robots fall
 - Hitting body on ground while moving (-1.5 to -2.0)
 - Bouncing, swaying, or wobbly movement (-0.5)
 - Feet slipping on the ground (-0.5)
 - Deviating from default joint positions (-0.2)
 - Jerky, twitchy leg movements (-0.1)
-- Tripping on obstacles (-0.02)
+- Tripping on obstacles (disabled — uses world-frame height which breaks on elevated terrain)
 - Using too much motor power (-0.0005)
 - Hitting joint limits (-5.0)
 
@@ -280,9 +280,10 @@ Difficulty increases across 10 rows — robots that survive longer get promoted 
 
 **For context:** A standard indoor stair is about 16-18cm (levels 5-6). The robot (Spot) is only 42cm tall, so a 25cm obstacle at level 9 is over half its body height — like a human trying to climb over a waist-high wall with every step.
 
-**Where our robot is now:** The training peaked at level ~5.0 (Trial 11d, best ever), meaning it can handle real indoor stairs (16cm), rough ground with ±10cm bumps, and ~28° slopes. Trial 11f (ongoing) fixes a persistent crawling behavior by conditioning the height target on what the robot actually *sees* through its height scanner:
+**Where our robot is now:** The training peaked at level ~5.0 (Trial 11d, best ever), meaning it can handle real indoor stairs (16cm), rough ground with ±10cm bumps, and ~28° slopes. Trial 11h (running overnight) fixes a persistent crawling behavior by conditioning the height target on what the robot actually *sees* through its height scanner:
 - **Terrain-scaled velocity:** The robot automatically runs fast on easy terrain and walks carefully on hard terrain (instead of being asked to sprint on stairs)
 - **Variance-based height:** The robot measures how rough the ground looks (height scan variance). Smooth ground → stand tall (42cm). Rough ground → crouch (35cm). This replaces an earlier approach that used training-time difficulty levels, which didn't translate to real-world evaluation
+- **NaN guards and error clamping:** Trial 11f discovered that missed laser rays return infinity, corrupting the variance calculation. Trial 11h fixes this with explicit infinity-to-number conversion and caps the height error at 1.0 to prevent training instability when robots fall
 
 #### Domain Randomization (Making Training Robust)
 
@@ -307,6 +308,8 @@ Training this AI is unstable — numbers can blow up to infinity ("NaN errors") 
 These safeguards were developed through painful trial-and-error across 11+ training attempts. Without them, training reliably crashes within hours.
 
 5. **Terrain-Scaled Commands:** The robot receives speed commands adapted to its current terrain difficulty — sprinting on easy ground, walking carefully on hard terrain. This prevents the AI from being asked to do something impossible (like sprint on steep stairs) and teaches it to associate what it "sees" in the ground ahead with the right speed and posture.
+
+6. **Height Error Clamping (Bug #28c):** The height penalty's error term is clamped to [0, 1] before squaring. Without this, robots that fall off terrain edges produce error values of 30+ that crash training. Additionally, missed height scanner rays that return infinity are converted to finite numbers before computing terrain roughness.
 
 #### Physics Configuration
 
@@ -378,3 +381,9 @@ Adding Cole's obstacle navigation environment as a 5th test arena adds an import
 **Version 2.3 (March 6, 2026):**
 
 - **Height conditioning rewritten:** Replaced curriculum-level-based height target with height-scan-variance-based conditioning (Trial 11f). The robot now uses what it sees (smooth vs rough ground) to decide posture, producing a 5x calmer training signal that works at evaluation time.
+
+**Version 2.4 (March 6, 2026):**
+
+- **Training progress updated to Trial 11h:** Trial 11f (NaN from missed rays) and 11g (corrupted checkpoint) both failed. Trial 11h resumes from clean checkpoint with NaN guards, error clamping, and stumble penalty disabled.
+- **Safety mechanism #6 added:** Height error clamping and infinity-to-number conversion for ray hits.
+- **Stumble penalty disabled:** Uses world-frame height which incorrectly penalizes all contacts on elevated terrain.

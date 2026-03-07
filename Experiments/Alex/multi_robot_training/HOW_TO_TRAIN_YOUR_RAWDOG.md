@@ -1094,6 +1094,30 @@ class TerrainScaledVelocityCommand(CommandTerm):
 
 ---
 
+### Bug #28b: "The World-Frame Stumble" (Stumble Penalty Uses Absolute Z)
+
+**What happened:** Trial 11h (first attempt) used stumble weight -1.0 (bumped from -0.02 in Trial 11g). Robot had 75% flip-over rate immediately — far worse than expected.
+
+**Root cause:** `stumble_penalty` compares foot height against a threshold (0.15m) in WORLD FRAME. On flat terrain this is fine — feet below 0.15m are near the ground. But on elevated terrain (stairs at Z=1.0m, platforms at Z=2.0m), the foot's world-frame Z is 1.15m even when the foot is on the ground. Every foot contact on elevated terrain registers as "not a stumble" — but worse, the penalty math inverts: feet that ARE on the ground get penalized as if they're flying, creating nonsensical gradients.
+
+**The fix:** DISABLED stumble penalty entirely (weight=0.0). The correct fix would be to compute foot height relative to local terrain Z (same approach as `terrain_relative_height_penalty`), but this wasn't worth implementing when other penalties (undesired_contacts, body_scraping) already cover similar failure modes.
+
+**The lesson:** Any reward term that uses world-frame Z is suspect on non-flat terrain. After Bug #22 (body_height_tracking) and now Bug #28b (stumble), the rule is: **always use local-terrain-relative Z** for height comparisons. Grep the reward terms for `.pos_w[:, 2]` — that's the world-frame Z access pattern.
+
+---
+
+### Bug #28c: "The Gradient Bomb" (Unbounded Height Error Causes NaN)
+
+**What happened:** Trial 11f's height penalty went NaN sporadically. The `nan_to_num` fix caught the `inf` from missed rays, but NaN still appeared during training.
+
+**Root cause:** `torch.square(relative_height - target)` computes the squared error between the robot's actual height above terrain and the target height. When a robot falls off terrain (e.g., steps off an edge), `relative_height` can be -2.0 or worse. The squared error becomes 32.0+ (for a target of 0.35m, falling to -2.0m gives error = 5.5, squared = 30.25). With weight -2.0, this produces a reward of -60.5 for a SINGLE term in a SINGLE step. This enormous gradient signal destabilizes the value function, triggering the same oscillation cascade as Bug #25.
+
+**The fix:** `torch.clamp(height_error, 0.0, 1.0)` before squaring. The maximum per-step height penalty is now -2.0 (weight * 1.0^2), which is proportional to other penalty terms. Robots that fall get penalized, but not catastrophically.
+
+**The lesson:** Squared error terms are gradient bombs waiting to happen. Any `torch.square(x)` in a reward function should have its input clamped to a reasonable range. The safe pattern: `reward = -weight * torch.square(torch.clamp(error, 0.0, max_error))`.
+
+---
+
 ### Bug #19: "The Learning Rate Ceiling" (1e-3 Is Too Hot for Early Training)
 
 **What happened:** Trial 7 fixed the warmup (50 iters) but kept `lr_max=1e-3`. The robot was learning well (reward 133, ep_len 1,181 at iter 100), then noise suddenly spiked from 0.70 to 0.86 and value_loss went from 0.61 to 3.4e24 in a single iteration.
@@ -2057,7 +2081,7 @@ terrain_relative_height = RewardTermCfg(
 
 ---
 
-### Trial 11f: Phase B -- Variance-Based Height Conditioning (Mar 6, 2026) -- IN PROGRESS
+### Trial 11f: Phase B -- Variance-Based Height Conditioning (Mar 6, 2026) -- FAILED (NaN)
 
 **Config:** All Trial 11e changes + height scan variance replaces curriculum level for height target
 **Envs:** 5,000 Spot | **Hardware:** H100 96GB
@@ -2116,9 +2140,67 @@ terrain_relative_height = RewardTermCfg(
 - Terrain: 3.51 (starting point, will climb)
 - Height penalty stabilized to -0.56 to -0.86 within first few iters (vs 11e's -1.2 to -5.0 oscillation)
 
+**FAILURE:** Height penalty went NaN because `ray_hits_w` returns `inf` for missed rays. `torch.clamp()` doesn't fix NaN (Bug #24 again). Fixed with `torch.nan_to_num()`, but model_14100.pt was CORRUPTED — 17 tensors contained NaN from gradient propagation through the `inf` values.
+
 **Files modified:**
 - `shared/reward_terms.py` — rewrote `terrain_relative_height_penalty` to use `scan_z.var()` instead of `terrain_levels`
 - `configs/spot_ppo_env_cfg.py` — added `variance_flat` and `variance_rough` params
+
+---
+
+### Trial 11g: Phase B -- Corrupted Checkpoint Resume (Mar 6, 2026) -- FAILED (NaN cascade)
+
+**Config:** All Trial 11f changes + stumble weight -0.02 → -1.0
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Resume from:** Trial 11f `model_14100.pt` (CORRUPTED — 17 tensors with NaN)
+
+**What happened:** Resumed from corrupted model_14100.pt. Entire training was NaN from the very first iteration — the NaN weights propagated through every forward pass and gradient computation. Also bumped stumble penalty from -0.02 to -1.0. Killed immediately when NaN discovered.
+
+**The lesson:** Always verify checkpoint integrity before resuming: `torch.load(path)` then check every tensor with `torch.isnan().any()`. A single NaN tensor corrupts everything downstream.
+
+---
+
+### Trial 11h: Phase B -- Clean Resume with All Fixes (Mar 6, 2026) -- IN PROGRESS
+
+**Config:** All Trial 11f changes + nan_to_num + error clamped [0,1] + stumble disabled + headless fix
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-06_20-57-21/`
+**Log file:** `~/phase_b_trial11h.log`
+**Screen:** `spot_train`
+**TensorBoard:** port 6006 on `2026-03-06_20-57-21`
+**Resume from:** `spot_robust_ppo/2026-03-06_10-03-02/model_14000.pt` (Trial 11e — CLEAN, verified no NaN)
+
+**Bugs discovered and fixed during launch:**
+
+1. **Bug #28: Headless mode required** — After BMC reboot, PhysX GPU solver failed because Isaac Sim loaded `isaaclab.python.kit` (non-headless) instead of `isaaclab.python.headless.kit`. The non-headless config requires Vulkan/display which doesn't exist on the headless server. Fixed by adding `--headless` flag to train_ppo.py launch.
+
+2. **Bug #28b: Stumble penalty uses absolute Z** — `stumble_penalty` compares foot height against 0.15m in WORLD FRAME. On elevated terrain (stairs at Z=1.0m), every foot contact registers as a "stumble." Weight -1.0 caused 75% flip-over rate. Reduced to -0.1, still caused gradient issues. **DISABLED** (weight=0.0).
+
+3. **Bug #28c: Unbounded height error** — `torch.square(relative_height - target)` can produce enormous values (e.g., 32.0) when robots fall off terrain, causing gradient explosion → NaN. Fixed by adding `torch.clamp(height_error, 0.0, 1.0)`.
+
+4. **D-state zombie cleanup** — Two BMC reboots needed to clear D-state processes blocking GPU.
+
+**Config changes from Trial 11e:**
+- `terrain_relative_height_penalty`: variance-based (height_easy=0.42, height_hard=0.35, variance_flat=0.001, variance_rough=0.02) + `nan_to_num` + error clamped to [0, 1]
+- stumble weight: 0.0 (disabled)
+- Everything else same as Trial 11e
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+    --num_envs 5000 --max_iterations 20000 --warmup_iters 0 --save_interval 100 \
+    --lr_max 3e-5 --lr_min 1e-5 --max_noise_std 0.5 --min_noise_std 0.3 \
+    --num_learning_epochs 4 --resume --load_run 2026-03-06_10-03-02 \
+    --load_checkpoint model_14000.pt --no_wandb --seed 42
+```
+
+**Early metrics (iter 31):**
+- Reward: 15.3, terrain: 1.29, flip_over: 83%, noise_std: 0.56, value_loss: 0.21
+- All stable, no NaN
+
+**Files modified:**
+- `shared/reward_terms.py` — added `torch.nan_to_num()` for ray hits, `torch.clamp(height_error, 0.0, 1.0)` for bounded errors
+- `configs/spot_ppo_env_cfg.py` — stumble weight 0.0, variance-based height params
 
 ---
 

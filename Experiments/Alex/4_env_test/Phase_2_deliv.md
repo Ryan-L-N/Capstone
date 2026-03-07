@@ -2,7 +2,7 @@
 
 **Team:** AI2C Tech Capstone — MS for Autonomy
 **Date:** February 19, 2026
-**Version:** 2.3 (Updated March 6, 2026)
+**Version:** 2.4 (Updated March 6, 2026)
 
 ---
 
@@ -386,7 +386,7 @@ Training progresses through four phases of increasing terrain difficulty. Each p
 | A (flat) | 100% flat | 500 | 3e-4 | 20,480 | `model_498.pt` — 99.3% survival, noise 0.38 |
 | A.5 (transition) | 50% flat + gentle rough | 1,000 | 3e-4 | 20,480 | `model_998.pt` — 92.9% survival, gait 8.58 |
 | B-easy (robust_easy) | 11 terrains, 3 difficulty rows | 5,002 | 3e-5 | 40,960 | `model_5000.pt` — reward 216, terrain 0.83 |
-| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11f — variance-based height conditioning + terrain-scaled velocity |
+| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11h — variance-based height conditioning (with NaN guard + error clamping) + terrain-scaled velocity |
 
 - **Phase A** builds a stable flat-ground gait with high survival rate as the foundation.
 - **Phase A.5** introduces gentle rough terrain while retaining 50% flat ground to prevent catastrophic forgetting of the base gait.
@@ -459,13 +459,13 @@ The reward function uses 19 terms tuned for curriculum-based training with terra
 | base_orientation | -3.0 | Penalizes roll/pitch deviation from upright |
 | body_scraping | -2.0 | Penalizes body contact while moving (velocity > 0.3 m/s) |
 | undesired_contacts | -1.5 | Penalizes body-ground contact (threshold 1.0 N) |
-| terrain_relative_height | -2.0 | Variance-based height target: 0.42m on flat ground (scan variance ≤ 0.001) → 0.35m on rough ground (scan variance ≥ 0.02), interpolated by height scan variance. Uses ray-cast ground Z for relative height. Direct per-step signal that works at eval time |
+| terrain_relative_height | -2.0 | Variance-based height target: 0.42m on flat ground (scan variance ≤ 0.001) → 0.35m on rough ground (scan variance ≥ 0.02), interpolated by height scan variance. Uses ray-cast ground Z for relative height. Direct per-step signal that works at eval time. NaN-guarded with `nan_to_num` (missed rays return `inf`), height error clamped to [0, 1] to prevent gradient explosion |
 | air_time_variance | -1.0 | Penalizes asymmetric gait patterns |
 | base_motion | -0.5 | Penalizes vertical bouncing and lateral sway |
 | joint_pos | -0.2 | Penalizes deviation from default stance (stand_still_scale=5.0) |
 | foot_slip | -0.5 | Penalizes feet sliding during ground contact |
 | action_smoothness | -0.1 | Penalizes jerky action changes between steps |
-| stumble | -0.02 | Penalizes knee contact below 0.15m at force > 5.0 N |
+| stumble | 0.0 (disabled) | Penalizes knee contact below 0.15m at force > 5.0 N — DISABLED because world-frame Z comparison breaks on elevated terrain (Bug #28b) |
 | joint_vel | -1e-2 | Penalizes high joint velocities |
 | contact_force_smoothness | -0.01 | Penalizes abrupt contact force changes |
 | vegetation_drag | -1e-3 | Drag penalty for vegetation terrain (max drag 20.0) |
@@ -527,7 +527,7 @@ All terrain parameters scale linearly from their minimum (row 0) to maximum (row
 - **Rows 6-7:** Disaster-site terrain — rubble piles, extreme stairs, mountain scrambles
 - **Rows 8-9:** At or beyond Spot's physical hardware limits — theoretical ceiling
 
-**Training progress:** The rough terrain policy peaked at terrain level ~5.0 (Trial 11d, best ever), meaning it can handle ~16cm stairs (real indoor stairs), ±10cm rough ground, and ~28° slopes. Trial 11f (ongoing) replaces curriculum-level-based height conditioning with **height scan variance conditioning** — the height target is now driven directly by what the robot sees (flat scan = stand tall at 0.42m, rough scan = crouch at 0.35m). This produces a 5x calmer height penalty signal and works at evaluation time.
+**Training progress:** The rough terrain policy peaked at terrain level ~5.0 (Trial 11d, best ever), meaning it can handle ~16cm stairs (real indoor stairs), ±10cm rough ground, and ~28° slopes. Trial 11h (ongoing, running overnight) uses **height scan variance conditioning** — the height target is driven directly by what the robot sees (flat scan = stand tall at 0.42m, rough scan = crouch at 0.35m). Trial 11f introduced this concept but failed due to NaN from missed ray hits returning `inf`; Trial 11g failed from resuming a corrupted checkpoint. Trial 11h fixes all three issues: `nan_to_num` for ray hits, height error clamped to [0, 1] to prevent gradient explosion, and stumble penalty disabled (world-frame Z breaks on elevated terrain). Resumed from clean model_14000.pt (Trial 11e, verified no NaN). Early metrics (iter 31): reward 15.3, terrain 1.29, all stable.
 
 #### Domain Randomization
 
@@ -553,7 +553,7 @@ Four layers of protection guard against training instability, discovered through
 
 4. **Noise Clamping [0.3, 0.7] (Bug #26):** Post-update safety clamp on the policy's exploration noise standard deviation. The upper bound of 0.7 (reduced from 1.0) prevents curriculum stall caused by excessive random actions on hard terrain — too many random falls prevent the curriculum from promoting robots to harder rows.
 
-Additionally, `body_height_tracking` was replaced by `terrain_relative_height_penalty` (Bug #22/#27) which uses the height scanner's center ray hit to compute local ground Z, enabling correct height enforcement on elevated terrain. The height target is driven by **height scan variance**: the variance of the 187 ray Z-hits determines terrain roughness per robot per step. Flat ground (variance ≤ 0.001) → target 0.42m (full stand), rough ground (variance ≥ 0.02) → target 0.35m (moderate crouch), with linear interpolation between. This direct per-step signal replaced the earlier curriculum-level-based approach (Trial 11e) which was too indirect and produced oscillating penalties. Weight -2.0.
+Additionally, `body_height_tracking` was replaced by `terrain_relative_height_penalty` (Bug #22/#27) which uses the height scanner's center ray hit to compute local ground Z, enabling correct height enforcement on elevated terrain. The height target is driven by **height scan variance**: the variance of the 187 ray Z-hits determines terrain roughness per robot per step. Flat ground (variance ≤ 0.001) → target 0.42m (full stand), rough ground (variance ≥ 0.02) → target 0.35m (moderate crouch), with linear interpolation between. This direct per-step signal replaced the earlier curriculum-level-based approach (Trial 11e) which was too indirect and produced oscillating penalties. Weight -2.0. The variance computation is NaN-guarded with `torch.nan_to_num()` (missed rays return `inf`) and the height error is clamped to [0, 1] before squaring to prevent gradient explosion from fallen robots (Bug #28c). The stumble penalty was disabled (Bug #28b) because it uses world-frame Z, which incorrectly penalizes all foot contacts on elevated terrain.
 
 **Terrain-Scaled Velocity Commands** (`shared/terrain_velocity_command.py`): A custom `TerrainScaledVelocityCommand` class queries each robot's terrain curriculum level and interpolates the velocity command range — sprint commands (0.5-3.0 m/s) on easy terrain, careful walk commands (0.0-1.0 m/s) on hard terrain. This teaches the policy to map height-scan patterns to appropriate speeds proactively.
 
@@ -666,3 +666,11 @@ Adding the 5th evaluation environment (obstacle navigation) was a team collabora
 - **Section 4.4 (Reward Function): Updated** `terrain_relative_height` from curriculum-level-based to height-scan-variance-based conditioning (Trial 11f). Height target now driven by the variance of the 187 height scan rays — flat ground (var ≤ 0.001) → 0.42m, rough ground (var ≥ 0.02) → 0.35m. Direct per-step signal that works at eval time.
 
 - **Section 4.4 (Training Progress): Updated** to Trial 11f (variance-based height). Trial 11e replaced after 14000 iters — curriculum-level conditioning too indirect, policy still knee-walking.
+
+**Version 2.4 (March 6, 2026):**
+
+- **Section 4.4 (Training Progress): Updated** to Trial 11h. Trial 11f FAILED (NaN from missed ray `inf`), Trial 11g FAILED (corrupted checkpoint cascade). Trial 11h resumes from clean model_14000.pt with three fixes: `nan_to_num` for ray hits, height error clamped [0, 1], stumble disabled.
+
+- **Section 4.4 (Reward Function): Updated** stumble penalty from -0.02 to 0.0 (disabled, Bug #28b — world-frame Z breaks on elevated terrain). Updated terrain_relative_height description to note NaN guard and error clamping (Bug #28c).
+
+- **Section 4.4 (Safety Mechanisms): Updated** to document NaN guard on height scan variance, error clamping, and stumble penalty disabling.
