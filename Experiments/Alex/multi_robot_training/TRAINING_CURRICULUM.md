@@ -5,7 +5,7 @@
 > Run phases individually — stop, verify, then proceed.
 >
 > **Hardware:** NVIDIA H100 NVL 96GB
-> **Last updated:** March 6, 2026
+> **Last updated:** March 7, 2026
 
 ---
 
@@ -352,22 +352,24 @@ All terrain parameters scale linearly from their min (row 0) to max (row 9).
 
 ## Reward Changes Across Phases
 
-| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f | Trial 11h |
-|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|
-| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
-| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
-| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 | 1.0 |
-| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
-| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 | -0.1 |
-| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
-| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
-| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 | -0.2 |
-| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 |
-| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 | **0.0 (disabled)** |
-| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 | 0.3 |
-| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | -2.0 (variance-based, NaN) | **-2.0 (variance-based + nan_to_num + error clamped [0,1])** |
-| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced | replaced |
-| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same | same |
+| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f | Trial 11h | Trial 11i | Trial 11j |
+|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
+| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
+| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 |
+| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
+| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 (**clamped** [0,10]) |
+| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
+| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
+| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 |
+| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 |
+| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) |
+| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 |
+| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | -2.0 (variance-based, NaN) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (same) |
+| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced | replaced | replaced | replaced |
+| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same | same | same | same |
+| max_noise_std | 1.0 (default) | same | same | same | same | same | same | same | same | **1.0 (BUG — forgot flag!)** | **0.5 (explicit)** | 0.5 |
+| penalty clamping | none | none | none | none | none | none | none | none | none | none | none | **Bug #29: all L2 penalties clamped** |
 
 The `undesired_contacts` and `body_scraping` changes are baked into `spot_ppo_env_cfg.py` — they apply to all phases. On flat terrain they're negligible (body rarely contacts ground). On rough terrain they prevent belly-dragging without over-punishing legitimate bumps.
 
@@ -408,6 +410,8 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | Training crashes with inf | Value explosion | Resume from 2-3 checkpoints back, use lr_max=5e-5 for B-easy |
 | action_smoothness explodes to trillions | Chaotic falls on hard terrain | Terrain step too big; use robust_easy first |
 | `normal expects std >= 0.0` crash | Policy std hit NaN from gradient explosion | `_sanitize_std()` in training_utils.py handles NaN/Inf/negative. Also ensure `lr_max=5e-5` for B-easy (1e-4 still explodes at ~1134, 3e-4 crashes instantly). Resume from earlier checkpoint. |
+| NaN at iter ~100, action_smoothness in trillions | Forgot `--max_noise_std` flag — defaults to 1.0 | ALWAYS pass `--max_noise_std 0.5 --min_noise_std 0.3` explicitly. train_ppo.py defaults to 1.0. Noise climbs → wild actions → gradient explosion → NaN (Bug #28d) |
+| NaN at iter ~80-100, action_smoothness in millions, value loss 1e18+ | Unbounded L2 penalty norms explode during value function instability (e.g., from reward mismatch after resume) | Use clamped penalty wrappers in `shared/reward_terms.py` instead of `spot_mdp.*` originals. Clamp bounds: action_smoothness [0,10], joint_acc [0,10000], joint_torques [0,1000], joint_vel [0,50], contact_force_smoothness [0,500] (Bug #29) |
 
 ---
 
@@ -435,7 +439,9 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 11e | B | robust | 14000 | 3e-5 | REPLACED — height_hard 0.25→0.35, weight -1→-2. Height penalty still oscillating (-1.2 to -5.0) because curriculum-level-based conditioning is too indirect. Policy still knee-walking in teleop at iter 14000. | model_14000.pt |
 | 11f | B | robust | 14100 | 3e-5 | FAILED — NaN. Introduced variance-based height conditioning (Option B). `ray_hits_w` returns `inf` for missed rays → height penalty NaN. Fixed with `torch.nan_to_num()`, but model_14100.pt CORRUPTED (17 tensors with NaN from gradient propagation). | model_14100.pt (CORRUPTED) |
 | 11g | B | robust | ~0 | 3e-5 | FAILED — NaN cascade. Resumed from corrupted model_14100.pt → entire training NaN from start. Also bumped stumble -0.02→-1.0. Killed immediately. | — |
-| **11h** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Resumed from CLEAN model_14000.pt (11e). Variance-based height + `nan_to_num` + error clamped [0,1]. Stumble DISABLED (0.0). Bugs #28/#28b/#28c fixed. Early metrics (iter 31): reward 15.3, terrain 1.29, flip 83%, noise 0.56, value_loss 0.21 (stable, no NaN). Run dir: `2026-03-06_20-57-21`** | **TBD** |
+| 11h | B | robust | ~105 | 3e-5 | FAILED — NaN at iter 105, `action_smoothness` exploded to -1.3 TRILLION. Root cause: forgot `--max_noise_std 0.5` flag, train_ppo.py defaults to 1.0. Noise climbed to 1.0 → wild actions → gradient explosion → NaN. Last clean checkpoint: model_100.pt (200-2500 corrupted). Bug #28d. | model_100.pt |
+| 11i | B | robust | 82 | 3e-5 | FAILED — NaN at iter 82. `action_smoothness` exploded to -921,693. Value loss spiked to 6.3e18. Root cause: value function calibrated for old reward landscape (terrain 3.5, curriculum-level height) operating at terrain 0.4 with different variance-based rewards. Massive policy gradient → action spike → unbounded penalty explosion → NaN (Bug #29). | — |
+| **11j** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Resumed from CLEAN model_14000.pt (11e). Same as 11i but with clamped penalty wrappers (Bug #29 fix). Run dir: `2026-03-07_08-14-41`. Early metrics (iter ~15): reward 7.5, terrain 1.7, action_smoothness -0.02 (normal), zero NaN. Stable past the point where 11h and 11i both crashed.** | **TBD** |
 
 **Key insight from B-easy attempts:** Three knobs matter: (1) LR must decrease aggressively for terrain transitions (3e-4→1e-4→5e-5→3e-5). (2) max_noise_std must decrease for later phases (1.0→0.7) to let the policy be precise on hard terrain. (3) Value loss watchdog (Bug #25) prevents oscillation cascades that LR reduction alone can't stop.
 
@@ -454,6 +460,10 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 **Bug #28b (Stumble penalty uses absolute Z):** `stumble_penalty` compares foot height against 0.15m in WORLD FRAME. On elevated terrain (stairs at Z=1.0m), every foot contact registers as a "stumble." Weight -1.0 caused 75% flip-over. DISABLED (weight=0.0).
 
 **Bug #28c (Unbounded height error):** `torch.square(relative_height - target)` can produce enormous values (32.0+) when robots fall. Fix: `torch.clamp(height_error, 0.0, 1.0)` before squaring.
+
+**Bug #28d (max_noise_std defaults to 1.0):** `train_ppo.py` defaults `--max_noise_std` to 1.0. If you forget to pass `--max_noise_std 0.5` explicitly, noise climbs to 1.0 → wild actions → gradient explosion → NaN (Trial 11h died at iter 105, action_smoothness = -1.3 trillion). ALWAYS pass `--max_noise_std` and `--min_noise_std` explicitly.
+
+**Bug #29 (Unbounded L2 penalty norms):** Isaac Lab's built-in `spot_mdp` penalty functions (action_smoothness, joint_acc, joint_torques, joint_vel, contact_force_smoothness) return unbounded L2 norms. When the value function goes unstable (e.g., from reward landscape mismatch after resuming from a differently-trained checkpoint), this causes: massive policy update → action spike → penalty norm explodes → huge negative reward → more instability → NaN. Fix: clamped wrapper functions in `shared/reward_terms.py` with `torch.where(torch.isfinite(...))` NaN safety. Clamp bounds: action_smoothness [0,10], joint_acc [0,10000], joint_torques [0,1000], joint_vel [0,50], contact_force_smoothness [0,500].
 
 ---
 

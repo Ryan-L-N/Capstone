@@ -1118,6 +1118,50 @@ class TerrainScaledVelocityCommand(CommandTerm):
 
 ---
 
+### Bug #28d: "The Forgotten Flag" (max_noise_std Defaults to 1.0 in train_ppo.py)
+
+**What happened:** Trial 11h ran overnight and died at iter 105 with NaN. `action_smoothness` exploded to -1.3 TRILLION. The launch looked correct — all the right config was in place from the fixes in Bugs #28/#28b/#28c — but the training still crashed.
+
+**Root cause:** `train_ppo.py` has `--max_noise_std` defaulting to 1.0. The overnight launch command did not include `--max_noise_std 0.5`. Without the explicit flag, noise_std climbed from 0.56 all the way to 1.0 (the default ceiling). At noise_std=1.0, the policy's actions become near-random, producing wild leg movements. These wild actions make `action_smoothness` (which penalizes the difference between consecutive actions) spike to astronomical values. The enormous penalty gradient destabilizes the value function and triggers a NaN cascade identical to Bug #25.
+
+**The fix:** ALWAYS pass `--max_noise_std 0.5 --min_noise_std 0.3` explicitly on the command line. Never rely on `train_ppo.py` defaults for noise bounds. Confirmed in Trial 11i log: `[SAFETY] Registered std clamp on policy.act(): [0.3, 0.5]`.
+
+**The lesson:** Argument defaults are silent killers. If a critical safety parameter has a dangerous default value, the script should either (a) require it explicitly (no default), or (b) print a loud warning when using the default. For now: add `--max_noise_std` and `--min_noise_std` to the pre-launch checklist. Last clean checkpoint from 11h: model_100.pt (all later checkpoints corrupted).
+
+---
+
+### Bug #29: "The Unbounded Norms" (Isaac Lab L2 Penalties Explode During Value Instability)
+
+**What happened:** Trial 11i crashed at iter 82 with NaN. `action_smoothness` exploded to -921,693 and value loss spiked to 6.3e18 — even with noise properly clamped at [0.3, 0.5]. This was NOT a noise problem (Bug #28d was fixed). The crash pattern was different from 11h: slower onset (~82 iters vs ~105), and the action_smoothness magnitude was thousands, not trillions.
+
+**Root cause:** Isaac Lab's built-in `spot_mdp` penalty functions (`action_smoothness_l2`, `joint_acc_l2`, `joint_torques_l2`, `joint_vel_l2`, `contact_force_smoothness`) return **unbounded** L2 norms. Under normal training these values are small (action_smoothness ~0.1-2.0, joint_acc ~0-5000, etc.). But when the value function goes unstable, it creates a positive feedback loop:
+
+1. Value function is miscalibrated (trained on old reward landscape at terrain ~3.5 with curriculum-level height, now operating at terrain ~0.4 with variance-based rewards)
+2. Miscalibrated value function produces bad advantage estimates → large policy gradient
+3. Large policy update → action spike (legs flail)
+4. Flailing actions → L2 penalty norms explode (action_smoothness: 0.1 → 921,693)
+5. Huge negative reward → even worse value function calibration → repeat → NaN
+
+The key insight: the penalties are **the amplifier**, not the root cause. The root cause is value function mismatch from resuming with a different reward landscape. But bounded penalties would have contained the damage — the value function would have recovered within a few iterations instead of cascading to NaN.
+
+**The fix:** Created clamped wrapper functions in `shared/reward_terms.py` that call the original `spot_mdp` functions then clamp the output:
+
+| Wrapper | Original | Clamp Range | Normal Range |
+|---------|----------|-------------|--------------|
+| `clamped_action_smoothness_penalty` | `spot_mdp.action_smoothness_l2` | [0, 10] | ~0.1-2.0 |
+| `clamped_joint_acceleration_penalty` | `spot_mdp.joint_acc_l2` | [0, 10000] | ~0-5000 |
+| `clamped_joint_torques_penalty` | `spot_mdp.joint_torques_l2` | [0, 1000] | ~0-200 |
+| `clamped_joint_velocity_penalty` | `spot_mdp.joint_vel_l2` | [0, 50] | ~0-20 |
+| `contact_force_smoothness_penalty` | `spot_mdp.contact_force_smoothness` | [0, 500] | custom |
+
+All wrappers include `torch.where(torch.isfinite(result), result, torch.zeros_like(result))` NaN safety. Updated `spot_ppo_env_cfg.py` to import and use these instead of the `spot_mdp.*` originals.
+
+**The lesson:** Any penalty term that computes an L2 norm (sum of squares) is potentially unbounded. During stable training, the values are small and the lack of bounds doesn't matter. But during instability (value function mismatch, checkpoint resume, reward function change), unbounded penalties become amplifiers that turn recoverable wobbles into fatal NaN cascades. **Always clamp penalty outputs.** Set the upper bound at 2-5x the expected maximum during normal training — tight enough to prevent explosion, loose enough to not interfere with normal gradients.
+
+**Related bugs:** Bug #25 (value loss oscillation cascade), Bug #28d (noise-driven action explosion). Bug #29 is the final piece of the NaN defense: Bug #25's LR watchdog catches value loss spikes, Bug #28d's noise clamp prevents action randomness, and Bug #29's penalty clamping prevents L2 norm amplification. Together they form a three-layer defense against NaN cascades.
+
+---
+
 ### Bug #19: "The Learning Rate Ceiling" (1e-3 Is Too Hot for Early Training)
 
 **What happened:** Trial 7 fixed the warmup (50 iters) but kept `lr_max=1e-3`. The robot was learning well (reward 133, ep_len 1,181 at iter 100), then noise suddenly spiked from 0.70 to 0.86 and value_loss went from 0.61 to 3.4e24 in a single iteration.
@@ -2160,7 +2204,7 @@ terrain_relative_height = RewardTermCfg(
 
 ---
 
-### Trial 11h: Phase B -- Clean Resume with All Fixes (Mar 6, 2026) -- IN PROGRESS
+### Trial 11h: Phase B -- Clean Resume with All Fixes (Mar 6, 2026) -- FAILED (NaN at iter 105)
 
 **Config:** All Trial 11f changes + nan_to_num + error clamped [0,1] + stumble disabled + headless fix
 **Envs:** 5,000 Spot | **Hardware:** H100 96GB
@@ -2198,9 +2242,92 @@ terrain_relative_height = RewardTermCfg(
 - Reward: 15.3, terrain: 1.29, flip_over: 83%, noise_std: 0.56, value_loss: 0.21
 - All stable, no NaN
 
+**What happened (overnight):** NaN at iter 105. `action_smoothness` exploded to -1.3 TRILLION.
+
+**Root cause (Bug #28d):** Forgot to pass `--max_noise_std 0.5` flag. `train_ppo.py` defaults `max_noise_std` to 1.0. Even though the launch command above includes the flag, the actual overnight run did NOT include it. Noise climbed from 0.56 to 1.0, causing wild random actions that made `action_smoothness` blow up, triggering gradient explosion and NaN. Last clean checkpoint: model_100.pt. All later checkpoints (model_200 through model_2500) are corrupted.
+
+**The lesson:** ALWAYS pass `--max_noise_std` and `--min_noise_std` explicitly. Never rely on defaults. Add to pre-launch checklist.
+
 **Files modified:**
 - `shared/reward_terms.py` — added `torch.nan_to_num()` for ray hits, `torch.clamp(height_error, 0.0, 1.0)` for bounded errors
 - `configs/spot_ppo_env_cfg.py` — stumble weight 0.0, variance-based height params
+
+---
+
+### Trial 11i: Phase B -- Explicit Noise Clamp (Mar 7, 2026) -- FAILED (NaN at iter 82)
+
+**Config:** Same as Trial 11h but with `--max_noise_std 0.5 --min_noise_std 0.3` explicitly passed
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log file:** `~/phase_b_trial11i.log`
+**Screen:** `spot_train`
+**Resume from:** `spot_robust_ppo/2026-03-06_10-03-02/model_14000.pt` (Trial 11e — CLEAN)
+
+**Key fix from Trial 11h:** Added `--max_noise_std 0.5 --min_noise_std 0.3` explicitly to launch command. Confirmed in log: `[SAFETY] Registered std clamp on policy.act(): [0.3, 0.5]`.
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+    --num_envs 5000 --max_iterations 19999 --save_interval 100 \
+    --max_noise_std 0.5 --min_noise_std 0.3 \
+    --no_wandb --headless \
+    --resume --load_run 2026-03-06_10-03-02 \
+    --load_checkpoint model_14000.pt
+```
+
+**Full flags:** `--robot spot --terrain robust --num_envs 5000 --max_iterations 19999 --save_interval 100 --no_wandb --headless --max_noise_std 0.5 --min_noise_std 0.3`
+
+**Config (same as 11h):**
+- Variance-based height conditioning (clamped), stumble disabled, nan_to_num
+- lr_max=3e-5, 4 learning epochs
+
+**Early metrics (iter 12):**
+- Reward: 7.0, noise_std: 0.50, terrain: 1.84, flip: 73%, action_smoothness: -0.017 (normal)
+- All stable, no NaN
+
+**What happened:** NaN at iter 82. `action_smoothness` exploded to -921,693 and value loss spiked to 6.3e18. Noise was properly clamped at 0.5 (Bug #28d fix confirmed working), so this was NOT a noise problem.
+
+**Root cause (Bug #29):** Value function was calibrated for the old reward landscape (terrain ~3.5, curriculum-level-based height conditioning from Trial 11e) but was now operating at terrain ~0.4 with a fundamentally different variance-based reward structure. The miscalibrated value function produced bad advantage estimates, causing a large policy gradient update. This made actions spike, which caused Isaac Lab's unbounded L2 penalty norms (action_smoothness, joint_acc, joint_torques, joint_vel) to explode. The enormous negative penalties made the value function even more unstable, creating a positive feedback loop that cascaded to NaN within a few iterations.
+
+**The lesson:** Even with noise clamped and LR watchdog active, unbounded penalty terms can amplify value function instability into NaN. The penalty norms are the final amplifier in the cascade — clamp them to contain the blast radius.
+
+---
+
+### Trial 11j: Phase B -- Clamped Penalties (Mar 7, 2026) -- IN PROGRESS
+
+**Config:** Same as Trial 11i but with clamped penalty wrappers (Bug #29 fix)
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-07_08-14-41/`
+**Log file:** `~/phase_b_trial11j.log`
+**Screen:** `spot_train`
+**Resume from:** `spot_robust_ppo/2026-03-06_10-03-02/model_14000.pt` (Trial 11e — CLEAN)
+
+**Key fix from Trial 11i (Bug #29):** All L2 penalty terms replaced with clamped wrappers in `shared/reward_terms.py`:
+- `clamped_action_smoothness_penalty` — clamp [0, 10] (normal ~0.1-2.0)
+- `clamped_joint_acceleration_penalty` — clamp [0, 10000] (normal 0-5000)
+- `clamped_joint_torques_penalty` — clamp [0, 1000] (normal 0-200)
+- `clamped_joint_velocity_penalty` — clamp [0, 50] (normal 0-20)
+- `contact_force_smoothness_penalty` — clamp [0, 500] + nan_to_num
+
+All wrappers include `torch.where(torch.isfinite(...))` NaN safety. Updated `spot_ppo_env_cfg.py` to import these instead of `spot_mdp.*` originals.
+
+**Launch command:**
+```bash
+~/IsaacLab/isaaclab.sh -p train_ppo.py --headless --robot spot --terrain robust \
+    --num_envs 5000 --max_iterations 20000 --save_interval 100 \
+    --max_noise_std 0.5 --min_noise_std 0.3 \
+    --lr_max 3e-5 --num_learning_epochs 4 \
+    --no_wandb --headless \
+    --resume --load_run 2026-03-06_10-03-02 \
+    --load_checkpoint model_14000.pt
+```
+
+**Early metrics (iter ~15):**
+- Reward: 7.5, terrain: 1.7, action_smoothness: -0.02 (normal), zero NaN
+- Training is stable past the point where both 11h (iter 105) and 11i (iter 82) crashed
+
+**Files modified:**
+- `shared/reward_terms.py` — added 5 clamped penalty wrapper functions
+- `configs/spot_ppo_env_cfg.py` — switched penalty imports from `spot_mdp.*` to clamped wrappers
 
 ---
 

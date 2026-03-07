@@ -222,7 +222,7 @@ Instead of throwing the robot onto hard terrain immediately (which causes the tr
 | **A — Flat Ground** | 100% flat terrain, 20,480 robots | 500 iterations | Learned to walk: 99.3% survival rate |
 | **A.5 — Transition** | 50% flat + 50% gentle bumps | 1,000 iterations | Learned basic rough walking: 92.9% survival |
 | **B-easy — Easy Rough** | All 11 terrain types at low difficulty | 5,002 iterations | Can handle varied terrain at moderate levels |
-| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing (Trial 11h) | Peaked terrain ~5.0 — now teaching proper posture via height scan variance (with NaN guards and error clamping) |
+| **B — Full Rough** | All 11 terrain types at max difficulty | Ongoing (Trial 11j) | Peaked terrain ~5.0 — now teaching proper posture via height scan variance (with NaN guards, error clamping, explicit noise clamp [0.3, 0.5], and clamped penalty terms) |
 
 Each phase starts from where the previous one left off (transfer learning).
 
@@ -280,10 +280,12 @@ Difficulty increases across 10 rows — robots that survive longer get promoted 
 
 **For context:** A standard indoor stair is about 16-18cm (levels 5-6). The robot (Spot) is only 42cm tall, so a 25cm obstacle at level 9 is over half its body height — like a human trying to climb over a waist-high wall with every step.
 
-**Where our robot is now:** The training peaked at level ~5.0 (Trial 11d, best ever), meaning it can handle real indoor stairs (16cm), rough ground with ±10cm bumps, and ~28° slopes. Trial 11h (running overnight) fixes a persistent crawling behavior by conditioning the height target on what the robot actually *sees* through its height scanner:
+**Where our robot is now:** The training peaked at level ~5.0 (Trial 11d, best ever), meaning it can handle real indoor stairs (16cm), rough ground with ±10cm bumps, and ~28° slopes. Trial 11j (running now) fixes a persistent crawling behavior by conditioning the height target on what the robot actually *sees* through its height scanner, and clamps all penalty terms to prevent unbounded explosions:
 - **Terrain-scaled velocity:** The robot automatically runs fast on easy terrain and walks carefully on hard terrain (instead of being asked to sprint on stairs)
 - **Variance-based height:** The robot measures how rough the ground looks (height scan variance). Smooth ground → stand tall (42cm). Rough ground → crouch (35cm). This replaces an earlier approach that used training-time difficulty levels, which didn't translate to real-world evaluation
-- **NaN guards and error clamping:** Trial 11f discovered that missed laser rays return infinity, corrupting the variance calculation. Trial 11h fixes this with explicit infinity-to-number conversion and caps the height error at 1.0 to prevent training instability when robots fall
+- **NaN guards and error clamping:** Trial 11f discovered that missed laser rays return infinity, corrupting the variance calculation. Fixed with explicit infinity-to-number conversion and capped height error at 1.0 to prevent training instability when robots fall
+- **Explicit noise clamping:** Trial 11h crashed overnight because `--max_noise_std 0.5` was accidentally omitted from the launch command (train_ppo.py defaults to 1.0). Noise climbed to 1.0, causing wild actions and a trillion-scale penalty explosion at iter 105. Now explicitly passes `--max_noise_std 0.5 --min_noise_std 0.3`
+- **Clamped penalty terms (Bug #29):** Trial 11i failed at iter 82 even with noise properly clamped — the penalty for jerky actions (`action_smoothness`) exploded to -921,693 and the value loss hit 6.3 quintillion (6.3e18). Root cause: Isaac Lab's built-in penalty functions compute raw L2 norms with no upper bound, so when the value function wobbles, it creates a feedback loop where bigger penalties cause bigger instability which causes even bigger penalties. Trial 11j wraps all five unbounded penalty terms with hard upper limits (e.g., action smoothness capped at 10, joint acceleration at 10,000). Early metrics are stable: reward 15-29, terrain level 1.1, zero NaN
 
 #### Domain Randomization (Making Training Robust)
 
@@ -295,7 +297,7 @@ To prevent the AI from memorizing one specific environment, we randomize:
 
 #### Safety Mechanisms (Preventing Training Crashes)
 
-Training this AI is unstable — numbers can blow up to infinity ("NaN errors") or oscillate wildly, crashing the entire training run. We discovered and fixed four critical failure modes:
+Training this AI is unstable — numbers can blow up to infinity ("NaN errors") or oscillate wildly, crashing the entire training run. We discovered and fixed seven critical failure modes:
 
 1. **NaN Sanitizer:** Catches and fixes corrupted numbers in the neural network before they cause a crash. Normal math cleanup functions don't work on NaN (Not a Number) — you need explicit detection first.
 
@@ -303,13 +305,15 @@ Training this AI is unstable — numbers can blow up to infinity ("NaN errors") 
 
 3. **Value Loss Watchdog:** Monitors a key training metric and automatically reduces the learning rate if it detects oscillation. Like cruise control that taps the brakes when the car starts shaking.
 
-4. **Noise Clamping:** Limits how random the AI's actions can be. Too much randomness causes the robot to fall constantly on hard terrain, preventing it from learning. Capping randomness at 0.7 (from 1.0) fixed this.
+4. **Noise Clamping:** Limits how random the AI's actions can be. Too much randomness causes the robot to fall constantly on hard terrain, preventing it from learning. Capping randomness at 0.5 (from 1.0) fixed this. IMPORTANT: this must be passed explicitly via command line flags — the script defaults to 1.0 (Trial 11h crashed because this was forgotten).
 
 These safeguards were developed through painful trial-and-error across 11+ training attempts. Without them, training reliably crashes within hours.
 
 5. **Terrain-Scaled Commands:** The robot receives speed commands adapted to its current terrain difficulty — sprinting on easy ground, walking carefully on hard terrain. This prevents the AI from being asked to do something impossible (like sprint on steep stairs) and teaches it to associate what it "sees" in the ground ahead with the right speed and posture.
 
 6. **Height Error Clamping (Bug #28c):** The height penalty's error term is clamped to [0, 1] before squaring. Without this, robots that fall off terrain edges produce error values of 30+ that crash training. Additionally, missed height scanner rays that return infinity are converted to finite numbers before computing terrain roughness.
+
+7. **Clamped Penalty Terms (Bug #29):** Isaac Lab's built-in penalty functions (action smoothness, joint acceleration, joint torques, joint velocity) compute raw L2 norms with no upper bound. When the value function starts oscillating, these unbounded penalties create a positive feedback loop that amplifies instability to NaN. Trial 11i failed at iter 82 with action smoothness at -921,693 despite all other safeguards being active. Fixed by wrapping each penalty function with a hard upper limit: action smoothness capped at 10, joint acceleration at 10,000, joint torques at 1,000, joint velocity at 50, contact force smoothness at 500. Each wrapper also checks for NaN/infinity before returning.
 
 #### Physics Configuration
 
@@ -387,3 +391,13 @@ Adding Cole's obstacle navigation environment as a 5th test arena adds an import
 - **Training progress updated to Trial 11h:** Trial 11f (NaN from missed rays) and 11g (corrupted checkpoint) both failed. Trial 11h resumes from clean checkpoint with NaN guards, error clamping, and stumble penalty disabled.
 - **Safety mechanism #6 added:** Height error clamping and infinity-to-number conversion for ray hits.
 - **Stumble penalty disabled:** Uses world-frame height which incorrectly penalizes all contacts on elevated terrain.
+
+**Version 2.5 (March 7, 2026):**
+
+- **Training progress updated to Trial 11i:** Trial 11h FAILED at iter 105 — forgot `--max_noise_std 0.5` flag, noise climbed to 1.0, `action_smoothness` exploded to -1.3 trillion. Trial 11i resumes from clean model_14000.pt with explicit noise clamp flags.
+- **Noise clamping updated:** Changed from 0.7 to 0.5 and added note that it must be passed explicitly (script defaults to 1.0).
+
+**Version 2.6 (March 7, 2026):**
+
+- **Training progress updated to Trial 11j:** Trial 11i FAILED at iter 82 — action smoothness exploded to -921,693, value loss 6.3e18, even with noise clamped at 0.5. Root cause: unbounded L2 penalty norms (Bug #29). Trial 11j resumes from clean model_14000.pt with clamped penalty wrappers. Early metrics stable: reward 15-29, terrain 1.1, zero NaN.
+- **Safety mechanism #7 added:** Clamped penalty terms (Bug #29). Isaac Lab's built-in penalty functions return unbounded L2 norms that amplify value function instability. Wrapped with hard upper limits and NaN safety checks.

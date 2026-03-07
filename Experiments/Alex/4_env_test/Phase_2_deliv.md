@@ -2,7 +2,7 @@
 
 **Team:** AI2C Tech Capstone — MS for Autonomy
 **Date:** February 19, 2026
-**Version:** 2.4 (Updated March 6, 2026)
+**Version:** 2.6 (Updated March 7, 2026)
 
 ---
 
@@ -386,7 +386,7 @@ Training progresses through four phases of increasing terrain difficulty. Each p
 | A (flat) | 100% flat | 500 | 3e-4 | 20,480 | `model_498.pt` — 99.3% survival, noise 0.38 |
 | A.5 (transition) | 50% flat + gentle rough | 1,000 | 3e-4 | 20,480 | `model_998.pt` — 92.9% survival, gait 8.58 |
 | B-easy (robust_easy) | 11 terrains, 3 difficulty rows | 5,002 | 3e-5 | 40,960 | `model_5000.pt` — reward 216, terrain 0.83 |
-| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11h — variance-based height conditioning (with NaN guard + error clamping) + terrain-scaled velocity |
+| B (robust) | 11 terrains, 10 difficulty rows | ongoing | 3e-5 | 5,000 | Trial 11j — variance-based height conditioning (with NaN guard + error clamping) + terrain-scaled velocity + explicit noise clamp [0.3, 0.5] + clamped penalty terms (Bug #29) |
 
 - **Phase A** builds a stable flat-ground gait with high survival rate as the foundation.
 - **Phase A.5** introduces gentle rough terrain while retaining 50% flat ground to prevent catastrophic forgetting of the base gait.
@@ -527,7 +527,7 @@ All terrain parameters scale linearly from their minimum (row 0) to maximum (row
 - **Rows 6-7:** Disaster-site terrain — rubble piles, extreme stairs, mountain scrambles
 - **Rows 8-9:** At or beyond Spot's physical hardware limits — theoretical ceiling
 
-**Training progress:** The rough terrain policy peaked at terrain level ~5.0 (Trial 11d, best ever), meaning it can handle ~16cm stairs (real indoor stairs), ±10cm rough ground, and ~28° slopes. Trial 11h (ongoing, running overnight) uses **height scan variance conditioning** — the height target is driven directly by what the robot sees (flat scan = stand tall at 0.42m, rough scan = crouch at 0.35m). Trial 11f introduced this concept but failed due to NaN from missed ray hits returning `inf`; Trial 11g failed from resuming a corrupted checkpoint. Trial 11h fixes all three issues: `nan_to_num` for ray hits, height error clamped to [0, 1] to prevent gradient explosion, and stumble penalty disabled (world-frame Z breaks on elevated terrain). Resumed from clean model_14000.pt (Trial 11e, verified no NaN). Early metrics (iter 31): reward 15.3, terrain 1.29, all stable.
+**Training progress:** The rough terrain policy peaked at terrain level ~5.0 (Trial 11d, best ever), meaning it can handle ~16cm stairs (real indoor stairs), ±10cm rough ground, and ~28° slopes. Trial 11j (ongoing) uses **height scan variance conditioning** with **clamped penalty terms** (Bug #29). Trial 11f introduced variance conditioning but failed due to NaN from missed ray hits returning `inf`; Trial 11g failed from resuming a corrupted checkpoint; Trial 11h failed at iter 105 because `--max_noise_std 0.5` was omitted from the launch command (defaults to 1.0), causing noise to climb and `action_smoothness` to explode to -1.3 trillion (Bug #28d). Trial 11i fixed all prior issues (`nan_to_num`, error clamp, stumble disabled, explicit noise clamp) but FAILED at iter 82 — `action_smoothness` exploded to -921,693 and value loss hit 6.3e18, even with noise clamped at 0.5. Root cause: Isaac Lab's built-in penalty functions return unbounded L2 norms that amplify value function instability (Bug #29). Trial 11j adds clamped wrapper functions for all unbounded penalties and resumes from clean model_14000.pt (run dir `2026-03-07_08-14-41`). Early metrics stable: reward 15-29, terrain 1.1, zero NaN.
 
 #### Domain Randomization
 
@@ -543,7 +543,7 @@ All terrain parameters scale linearly from their minimum (row 0) to maximum (row
 
 #### Safety Mechanisms
 
-Four layers of protection guard against training instability, discovered through multiple crash-debug cycles:
+Five layers of protection guard against training instability, discovered through multiple crash-debug cycles:
 
 1. **NaN Sanitizer (Bug #24):** `_sanitize_std()` in `shared/training_utils.py` explicitly detects NaN, Inf, and negative values in the policy's standard deviation parameter, then replaces and clamps them. PyTorch's `clamp_()` alone does NOT fix NaN (`NaN.clamp_(min=0.3)` is still NaN), so explicit detection is required.
 
@@ -551,7 +551,9 @@ Four layers of protection guard against training instability, discovered through
 
 3. **Value Loss Watchdog (Bug #25):** Monitors `value_loss` each iteration. When it exceeds 100 for 50 consecutive iterations, the learning rate is halved to break oscillation cascades that otherwise escalate to NaN.
 
-4. **Noise Clamping [0.3, 0.7] (Bug #26):** Post-update safety clamp on the policy's exploration noise standard deviation. The upper bound of 0.7 (reduced from 1.0) prevents curriculum stall caused by excessive random actions on hard terrain — too many random falls prevent the curriculum from promoting robots to harder rows.
+4. **Noise Clamping [0.3, 0.5] (Bugs #26, #28d):** Post-update safety clamp on the policy's exploration noise standard deviation. The upper bound must be explicitly passed via `--max_noise_std` (train_ppo.py defaults to 1.0). Trial 11h crashed at iter 105 because this flag was omitted — noise climbed to 1.0, causing `action_smoothness` to explode to -1.3 trillion and triggering NaN. ALWAYS pass `--max_noise_std 0.5 --min_noise_std 0.3` explicitly.
+
+5. **Clamped Penalty Terms (Bug #29):** Isaac Lab's built-in penalty functions (`action_smoothness_l2`, `joint_acc_l2`, `joint_torques_l2`, `joint_vel_l2`) return unbounded L2 norms. When the value function goes unstable, a positive feedback loop forms: policy spike -> norm explosion -> penalty explosion -> value loss explosion -> NaN. Trial 11i failed at iter 82 with `action_smoothness` at -921,693 and `value_loss` at 6.3e18 despite noise clamped at 0.5. Fixed with clamped wrapper functions in `shared/reward_terms.py`: `clamped_action_smoothness_penalty` [0, 10], `clamped_joint_acceleration_penalty` [0, 10000], `clamped_joint_torques_penalty` [0, 1000], `clamped_joint_velocity_penalty` [0, 50], `contact_force_smoothness_penalty` [0, 500]. All wrappers include `torch.where(torch.isfinite(...))` NaN safety.
 
 Additionally, `body_height_tracking` was replaced by `terrain_relative_height_penalty` (Bug #22/#27) which uses the height scanner's center ray hit to compute local ground Z, enabling correct height enforcement on elevated terrain. The height target is driven by **height scan variance**: the variance of the 187 ray Z-hits determines terrain roughness per robot per step. Flat ground (variance ≤ 0.001) → target 0.42m (full stand), rough ground (variance ≥ 0.02) → target 0.35m (moderate crouch), with linear interpolation between. This direct per-step signal replaced the earlier curriculum-level-based approach (Trial 11e) which was too indirect and produced oscillating penalties. Weight -2.0. The variance computation is NaN-guarded with `torch.nan_to_num()` (missed rays return `inf`) and the height error is clamped to [0, 1] before squaring to prevent gradient explosion from fallen robots (Bug #28c). The stumble penalty was disabled (Bug #28b) because it uses world-frame Z, which incorrectly penalizes all foot contacts on elevated terrain.
 
@@ -674,3 +676,15 @@ Adding the 5th evaluation environment (obstacle navigation) was a team collabora
 - **Section 4.4 (Reward Function): Updated** stumble penalty from -0.02 to 0.0 (disabled, Bug #28b — world-frame Z breaks on elevated terrain). Updated terrain_relative_height description to note NaN guard and error clamping (Bug #28c).
 
 - **Section 4.4 (Safety Mechanisms): Updated** to document NaN guard on height scan variance, error clamping, and stumble penalty disabling.
+
+**Version 2.5 (March 7, 2026):**
+
+- **Section 4.4 (Training Progress): Updated** to Trial 11i. Trial 11h FAILED at iter 105 — forgot `--max_noise_std 0.5` flag, noise climbed to 1.0, `action_smoothness` exploded to -1.3 trillion (Bug #28d). Trial 11i resumes from clean model_14000.pt with explicit `--max_noise_std 0.5 --min_noise_std 0.3`.
+
+- **Section 4.4 (Safety Mechanisms): Updated** noise clamping from [0.3, 0.7] to [0.3, 0.5] and added Bug #28d documentation — `--max_noise_std` must always be passed explicitly (train_ppo.py defaults to 1.0).
+
+**Version 2.6 (March 7, 2026):**
+
+- **Section 4.4 (Training Progress): Updated** to Trial 11j. Trial 11i FAILED at iter 82 — `action_smoothness` exploded to -921,693, value loss 6.3e18, even with noise clamped at 0.5. Root cause: unbounded L2 penalty norms (Bug #29). Trial 11j resumes from clean model_14000.pt with clamped penalty wrappers (run dir `2026-03-07_08-14-41`). Early metrics stable: reward 15-29, terrain 1.1, zero NaN.
+
+- **Section 4.4 (Safety Mechanisms): Added** Bug #29 clamped penalty terms as 5th safety layer. Isaac Lab's built-in penalty functions return unbounded L2 norms that amplify value function instability into a positive feedback loop. Fixed with clamped wrappers: `clamped_action_smoothness_penalty` [0, 10], `clamped_joint_acceleration_penalty` [0, 10000], `clamped_joint_torques_penalty` [0, 1000], `clamped_joint_velocity_penalty` [0, 50], `contact_force_smoothness_penalty` [0, 500]. All include `torch.where(torch.isfinite(...))` NaN safety.

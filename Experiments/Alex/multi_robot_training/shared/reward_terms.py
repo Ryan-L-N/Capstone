@@ -345,7 +345,10 @@ def contact_force_smoothness_penalty(
     env: ManagerBasedRLEnv,
     sensor_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Penalize sudden spikes in ground reaction forces."""
+    """Penalize sudden spikes in ground reaction forces.
+
+    Clamped to [0, 500] to prevent gradient explosion (Bug #29).
+    """
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
 
     if contact_sensor.cfg.history_length < 2:
@@ -355,7 +358,72 @@ def contact_force_smoothness_penalty(
     prev_forces = contact_sensor.data.net_forces_w_history[:, 1, sensor_cfg.body_ids]
 
     force_diff = torch.norm(current_forces - prev_forces, dim=-1)
-    return torch.sum(force_diff, dim=1)
+    result = torch.sum(force_diff, dim=1)
+    result = torch.clamp(result, 0.0, 500.0)
+    return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
+
+
+# =============================================================================
+# Clamped wrappers for Isaac Lab built-in penalty terms (Bug #29)
+#
+# The built-in spot_mdp penalty functions return unbounded L2 norms.
+# When the value function goes unstable → massive policy update → actions spike
+# → norm explodes → huge negative reward → more instability → NaN.
+# Clamping caps the output AND zeroes the gradient, breaking the feedback loop.
+# =============================================================================
+
+def clamped_action_smoothness_penalty(env: ManagerBasedRLEnv) -> torch.Tensor:
+    """Penalize large action changes — CLAMPED to [0, 10].
+
+    Normal range ~0.1-2.0. Values above 10 are pathological (action spike).
+    Original: spot_mdp.action_smoothness_penalty (unbounded L2 norm).
+    """
+    diff = env.action_manager.action - env.action_manager.prev_action
+    result = torch.linalg.norm(diff, dim=1)
+    result = torch.clamp(result, 0.0, 10.0)
+    return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
+
+
+def clamped_joint_acceleration_penalty(
+    env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg
+) -> torch.Tensor:
+    """Penalize joint accelerations — CLAMPED to [0, 10000].
+
+    Normal range 0-5000. Weight -1e-4 → max contribution -1.0/step.
+    Original: spot_mdp.joint_acceleration_penalty (unbounded L2 norm).
+    """
+    asset: Articulation = env.scene[asset_cfg.name]
+    result = torch.linalg.norm(asset.data.joint_acc, dim=1)
+    result = torch.clamp(result, 0.0, 10000.0)
+    return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
+
+
+def clamped_joint_torques_penalty(
+    env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg
+) -> torch.Tensor:
+    """Penalize joint torques — CLAMPED to [0, 1000].
+
+    Normal range 0-200. Weight -5e-4 → max contribution -0.5/step.
+    Original: spot_mdp.joint_torques_penalty (unbounded L2 norm).
+    """
+    asset: Articulation = env.scene[asset_cfg.name]
+    result = torch.linalg.norm(asset.data.applied_torque, dim=1)
+    result = torch.clamp(result, 0.0, 1000.0)
+    return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
+
+
+def clamped_joint_velocity_penalty(
+    env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg
+) -> torch.Tensor:
+    """Penalize joint velocities — CLAMPED to [0, 50].
+
+    Normal range 0-20. Weight -1e-2 → max contribution -0.5/step.
+    Original: spot_mdp.joint_velocity_penalty (unbounded L2 norm).
+    """
+    asset: Articulation = env.scene[asset_cfg.name]
+    result = torch.linalg.norm(asset.data.joint_vel, dim=1)
+    result = torch.clamp(result, 0.0, 50.0)
+    return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
 
 
 def stumble_penalty(
