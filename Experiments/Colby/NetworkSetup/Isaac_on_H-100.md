@@ -2,7 +2,20 @@
 
 **Date:** February 12, 2026  
 **Server:** `172.24.254.24` (hostname: `ai2ct2`)  
-**Login:** `ssh t2user@172.24.254.24` — Password: `!QAZ@WSX3edc4rfv`
+**Login:** `ssh t2user@172.24.254.24` — Password: `!QAZ@WSX3edc4rfv`  
+
+# Out of Band Recovery & BMC
+
+**BMC IP:** `172.24.254.24`  
+**Username:** `ADMIi04D6pc5UvA` (Case Sensitive)  
+**Password:** `9gJu4HX35CR88p5OzL`
+
+
+**OOB Adtl. User**  
+**USER:** `OOBAdm2`  
+**PW:** `q13GK64CHXbGnxwFaS`  
+**AUTHKEY:** `3hOGCCly8rP9wPzF8H`  
+**ENC KEY:** `3hOGCCly8rP9wPzF8H`
 
 ---
 

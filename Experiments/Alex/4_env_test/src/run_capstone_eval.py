@@ -1,22 +1,24 @@
 """Main entry point for headless and rendered capstone evaluation.
 
-Runs N episodes per (environment, policy) pair, collecting per-episode metrics
-and optionally capturing video.
+Runs N episodes per (robot, environment, policy) combination, collecting
+per-episode metrics and optionally capturing video.
+Supports both Spot and Vision60 robots via --robot flag.
 
-Usage (headless on H100):
+Usage (Spot — headless on H100):
     ./isaaclab.sh -p src/run_capstone_eval.py --headless \
-        --num_episodes 1000 --policy flat --env friction \
+        --robot spot --num_episodes 1000 --policy flat --env friction \
         --output_dir results/
 
-Usage (rendered with video):
+Usage (Vision60 — rough policy):
+    ./isaaclab.sh -p src/run_capstone_eval.py --headless \
+        --robot vision60 --policy rough --env stairs \
+        --checkpoint /path/to/vision60_best.pt \
+        --num_episodes 100 --output_dir results/v60/
+
+Usage (Spot — rendered with video):
     ./isaaclab.sh -p src/run_capstone_eval.py \
         --num_episodes 10 --policy rough --env stairs \
         --rendered --capture_video --output_dir results/rendered/
-
-Usage (debug — 5 iterations):
-    ./isaaclab.sh -p src/run_capstone_eval.py --headless \
-        --num_episodes 5 --policy flat --env friction \
-        --output_dir results/debug/
 
 Reuses patterns from:
 - ARL_DELIVERY/05_Training_Package/spot_rough_48h_cfg.py (AppLauncher, headless)
@@ -60,6 +62,9 @@ signal.signal(signal.SIGINT, _graceful_shutdown)
 signal.signal(signal.SIGTERM, _graceful_shutdown)
 
 parser = argparse.ArgumentParser(description="Capstone 4-environment evaluation")
+parser.add_argument("--robot", type=str, default="spot",
+                    choices=["spot", "vision60"],
+                    help="Robot to evaluate (default: spot)")
 parser.add_argument("--env", type=str, required=True,
                     choices=["friction", "grass", "boulder", "stairs"],
                     help="Environment to evaluate")
@@ -74,6 +79,8 @@ parser.add_argument("--rendered", action="store_true", default=False,
                     help="Force rendered mode (overrides --headless)")
 parser.add_argument("--capture_video", action="store_true", default=False,
                     help="Capture video of episodes (requires rendered)")
+parser.add_argument("--checkpoint", type=str, default=None,
+                    help="Path to rough policy checkpoint (.pt)")
 parser.add_argument("--output_dir", type=str, default="results/",
                     help="Output directory for JSONL and video files")
 parser.add_argument("--seed", type=int, default=42,
@@ -107,6 +114,7 @@ from configs.eval_cfg import (
     PHYSICS_DT, RENDERING_DT, CONTROL_DT, DECIMATION,
     MAX_CONTROL_STEPS, FALL_THRESHOLD, COMPLETION_X,
     SPAWN_POSITION, STIFFNESS, DAMPING, ACTION_SCALE,
+    ROBOT_CONFIGS,
 )
 from configs.zone_params import ZONE_PARAMS
 from envs import build_environment
@@ -125,13 +133,17 @@ if args.env == "stairs":
 
 # ── Constants ───────────────────────────────────────────────────────────
 STABILIZE_STEPS = 100  # 2 seconds at 50 Hz
-SPAWN_POS = np.array(SPAWN_POSITION)
 SPAWN_QUAT = np.array([1.0, 0.0, 0.0, 0.0])  # identity — facing +X
 
 
 def main():
+    robot = args.robot
+    robot_cfg = ROBOT_CONFIGS[robot]
+    spawn_pos = robot_cfg["spawn_position"]
+
     print(f"\n{'='*60}")
     print(f"  Capstone Evaluation")
+    print(f"  Robot:       {robot.upper()}")
     print(f"  Environment: {args.env}")
     print(f"  Policy:      {args.policy}")
     print(f"  Episodes:    {args.num_episodes}")
@@ -160,44 +172,83 @@ def main():
     build_environment(args.env, stage, None)
 
     # ── 6. Load policy and spawn robot ──────────────────────────────────
-    print(f"Loading {args.policy} policy...", flush=True)
-
-    from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
-
-    if args.policy == "flat":
-        spot = SpotFlatTerrainPolicy(
-            prim_path="/World/Spot",
-            name="Spot",
-            position=np.array(SPAWN_POSITION),
-        )
-    else:
-        # Rough needs flat as base for shared articulation
-        spot = SpotFlatTerrainPolicy(
-            prim_path="/World/Spot",
-            name="Spot",
-            position=np.array(SPAWN_POSITION),
-        )
-
-    # Start physics timeline
-    world.reset()
-
-    # Initialize inside first physics step (per official quadruped_example.py)
-    world.step(render=not headless)
-    spot.initialize()
-    spot.post_reset()
+    print(f"Loading {args.policy} policy for {robot.upper()}...", flush=True)
 
     # Ground height function for stairs (used by both metrics and height scanner)
     ground_fn = get_stair_elevation if args.env == "stairs" else None
 
-    if args.policy == "rough":
-        from spot_rough_terrain_policy import SpotRoughTerrainPolicy
-        spot = SpotRoughTerrainPolicy(
-            flat_policy=spot,
-            ground_height_fn=ground_fn,
-        )
-        spot.initialize()
+    if robot == "spot":
+        from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
 
-    print("Robot loaded and initialized.", flush=True)
+        flat_policy = SpotFlatTerrainPolicy(
+            prim_path="/World/Robot",
+            name="Robot",
+            position=np.array(spawn_pos),
+        )
+
+        world.reset()
+        world.step(render=not headless)
+        flat_policy.initialize()
+        flat_policy.post_reset()
+
+        if args.policy == "rough":
+            from spot_rough_terrain_policy import SpotRoughTerrainPolicy
+            robot_policy = SpotRoughTerrainPolicy(
+                flat_policy=flat_policy,
+                checkpoint_path=args.checkpoint,
+                ground_height_fn=ground_fn,
+            )
+            robot_policy.initialize()
+        else:
+            robot_policy = flat_policy
+
+    else:  # vision60
+        # Vision60 uses the same flat policy spawner pattern
+        # but with a different URDF and PD gains
+        from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
+
+        # Vision60 doesn't have an official Isaac Sim flat policy,
+        # so we need the rough policy with a trained checkpoint
+        if args.policy == "rough":
+            if args.checkpoint is None:
+                print("[ERROR] --checkpoint is required for Vision60 rough policy", flush=True)
+                os._exit(1)
+
+            # Spawn a flat policy as the articulation base
+            flat_policy = SpotFlatTerrainPolicy(
+                prim_path="/World/Robot",
+                name="Robot",
+                position=np.array(spawn_pos),
+            )
+
+            world.reset()
+            world.step(render=not headless)
+            flat_policy.initialize()
+            flat_policy.post_reset()
+
+            # Import Vision60 rough terrain policy from multi_robot_training
+            multi_robot_dir = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "..", "..", "multi_robot_training", "eval"
+            )
+            if multi_robot_dir not in sys.path:
+                sys.path.insert(0, multi_robot_dir)
+
+            from vision60_rough_terrain_policy import Vision60RoughTerrainPolicy
+            robot_policy = Vision60RoughTerrainPolicy(
+                flat_policy=flat_policy,
+                checkpoint_path=args.checkpoint,
+                ground_height_fn=ground_fn,
+            )
+            robot_policy.initialize()
+        else:
+            print("[ERROR] Vision60 flat policy not available — use --policy rough", flush=True)
+            os._exit(1)
+
+    # Alias for backward compatibility with rest of script
+    spot = robot_policy
+
+    print(f"{robot.upper()} loaded and initialized.", flush=True)
 
     # ── 7. Create navigation and metrics ────────────────────────────────
     waypoint_follower = WaypointFollower()
@@ -226,7 +277,7 @@ def main():
 
         # Reset robot to spawn
         spot.robot.set_world_pose(
-            position=SPAWN_POS,
+            position=np.array(spawn_pos),
             orientation=SPAWN_QUAT,
         )
 
