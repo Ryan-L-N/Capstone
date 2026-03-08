@@ -369,7 +369,7 @@ class SpotPPORewardsCfg:
     )
     stumble = RewardTermCfg(
         func=stumble_penalty,
-        weight=-0.1,
+        weight=0.0,  # DISABLED Bug #28b: world-frame Z breaks on elevated terrain
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),

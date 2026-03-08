@@ -2407,7 +2407,7 @@ Changing reward weights invalidates the critic's value estimates. New `--actor_o
 
 All other weights identical to 11j. `clamped_action_smoothness_penalty` kept at -1.0 (Bug #29 safety from 11k).
 
-**Launch command:**
+**Initial launch (v1):** Actor-only resume from 11j model_2300.pt with 300-iter critic warmup.
 ```bash
 ./isaaclab.sh -p ~/multi_robot_training/train_ppo.py --headless \
     --robot spot --terrain robust --num_envs 5000 --max_iterations 20000 \
@@ -2420,22 +2420,36 @@ All other weights identical to 11j. `clamped_action_smoothness_penalty` kept at 
     --no_wandb
 ```
 
-**Early metrics (iter ~10):**
-- Reward: -1.33 (much better than 11k's -124 — smaller reward shift)
-- Terrain: 3.52 (healthy — already climbing back from actor-only reset)
-- Flip over: 0% (vs 88% in 11k — minimal weight changes preserved walking ability)
-- Noise std: 0.50, zero NaN
+**v1 metrics at iter ~1027 (run dir `2026-03-08_09-12-35`):**
+- Reward: 132-170, terrain 4.28, flip 18.2%, survival 80.6%
+- Stumble contributing **-2.19** — Bug #28b still active (weight was -0.1 on H100, not 0.0)
+- Stumble uses world-frame Z, misclassifying every foot contact on elevated terrain as a "stumble"
+- This was actively hurting terrain advancement
+
+**Mid-run fix:** Stopped at iter 1027, fixed stumble weight to 0.0 on H100, relaunched with full resume (no warmup — removing a penalty is a small reward landscape change).
+
+**Relaunch (v2):** Full resume from 11l v1 model_1000.pt, stumble=0.0.
+```bash
+./isaaclab.sh -p ~/multi_robot_training/train_ppo.py --headless \
+    --robot spot --terrain robust --num_envs 5000 --max_iterations 20000 \
+    --save_interval 100 --lr_max 3e-5 \
+    --max_noise_std 0.5 --min_noise_std 0.3 \
+    --num_learning_epochs 4 \
+    --load_run 2026-03-08_09-12-35 --load_checkpoint model_1000.pt \
+    --no_wandb
+```
+**Run dir v2:** `spot_robust_ppo/2026-03-08_12-40-08/`
 
 **What to watch:**
-- Iter 0-300 (warmup): Critic calibrates, actor frozen. Reward should be stable.
-- Iter 300-500: Actor unfreezes. Joints should start exploring wider ROM.
-- Iter 1000+: Terrain should push past 5.07 (11j's best) as freed joints enable harder terrain strategies.
-- Pull and play at iter 500, 1000 — check if legs are less stiff, deeper knee bends on stairs.
+- First 50-100 iters: curriculum resets on new run dir, expect high flip rate that stabilizes quickly
+- Iter 200+: Terrain should recover past 4.28 and push toward 5.07+
+- Stumble should show 0.0000 (confirmed working)
+- Pull and play at iter 500, 1000 — check if legs are less stiff, deeper knee bends on stairs
 
 **Expected outcome:** Terrain levels 6-7 (18-21cm stairs, 33-39° slopes), less stiff-legged gait.
 
 **Files modified:**
-- `configs/spot_ppo_env_cfg.py` — `joint_pos` -0.7→-0.3, `dof_pos_limits` -5.0→-3.0, `clamped_action_smoothness_penalty` import kept
+- `configs/spot_ppo_env_cfg.py` — `joint_pos` -0.7→-0.3, `dof_pos_limits` -5.0→-3.0, `stumble` -0.1→0.0 (Bug #28b), `clamped_action_smoothness_penalty` import kept
 
 ---
 
