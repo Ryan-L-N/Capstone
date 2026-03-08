@@ -1,1 +1,22 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Training artifacts (checkpoints and logs)
+checkpoints/
+*.pt
+*training_log*.txt
+*.log
+
+# Virtual environments
 isaacSim_env/
+.venv/
+venv/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
