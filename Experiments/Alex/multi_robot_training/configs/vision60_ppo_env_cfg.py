@@ -40,9 +40,13 @@ if _PROJECT_DIR not in sys.path:
 from shared.terrain_cfg import ROBUST_TERRAINS_CFG
 from shared.reward_terms import (
     VegetationDragReward,
-    body_height_tracking_penalty,
+    clamped_action_smoothness_penalty,
+    clamped_joint_acceleration_penalty,
+    clamped_joint_torques_penalty,
+    clamped_joint_velocity_penalty,
     contact_force_smoothness_penalty,
     stumble_penalty,
+    terrain_relative_height_penalty,
     velocity_modulation_reward,
 )
 
@@ -82,7 +86,7 @@ VISION60_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.6),
+        pos=(0.0, 0.0, 0.65),
         joint_pos={
             "joint_0": 0.9, "joint_2": 0.9, "joint_4": 0.9, "joint_6": 0.9,
             "joint_1": 1.67, "joint_3": 1.67, "joint_5": 1.67, "joint_7": 1.67,
@@ -211,12 +215,15 @@ class Vision60PPOEventCfg:
         },
     )
 
+    # URDF body mass is 13.6 kg (total 39.6 kg = 87 lbs).
+    # Real Vision60 is 120 lbs (54.4 kg) — deficit of 14.8 kg on body.
+    # Center randomization on +14.8 with ±5 kg DR range.
     add_base_mass = EventTerm(
         func=mdp.randomize_rigid_body_mass,
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="body"),
-            "mass_distribution_params": (-5.0, 5.0),
+            "mass_distribution_params": (9.8, 19.8),
             "operation": "add",
         },
     )
@@ -341,7 +348,7 @@ class Vision60PPORewardsCfg:
 
     # -- Penalties (negative) --
 
-    action_smoothness = RewardTermCfg(func=spot_mdp.action_smoothness_penalty, weight=-0.5)
+    action_smoothness = RewardTermCfg(func=clamped_action_smoothness_penalty, weight=-0.5)
     air_time_variance = RewardTermCfg(
         func=spot_mdp.air_time_variance_penalty,
         weight=-1.0,
@@ -367,7 +374,7 @@ class Vision60PPORewardsCfg:
         },
     )
     joint_acc = RewardTermCfg(
-        func=spot_mdp.joint_acceleration_penalty,
+        func=clamped_joint_acceleration_penalty,
         weight=-5.0e-4,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names="joint_.*")},
     )
@@ -386,21 +393,30 @@ class Vision60PPORewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot", joint_names="joint_.*")},
     )
     joint_torques = RewardTermCfg(
-        func=spot_mdp.joint_torques_penalty,
+        func=clamped_joint_torques_penalty,
         weight=-2.0e-3,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     joint_vel = RewardTermCfg(
-        func=spot_mdp.joint_velocity_penalty,
+        func=clamped_joint_velocity_penalty,
         weight=-3.0e-2,  # Reduced from Spot's -5e-2 — more inertia
         params={"asset_cfg": SceneEntityCfg("robot", joint_names="joint_.*")},
     )
 
-    # UPGRADED: Was weight=0.0 in vision60_training — now enabled
-    body_height_tracking = RewardTermCfg(
-        func=body_height_tracking_penalty,
+    # Terrain-relative height penalty (Bug #22 fix — world-frame Z broken on rough terrain).
+    # Vision60 stands taller than Spot: 0.55m flat, 0.45m rough.
+    terrain_relative_height = RewardTermCfg(
+        func=terrain_relative_height_penalty,
         weight=-2.0,
-        params={"asset_cfg": SceneEntityCfg("robot"), "target_height": 0.55},
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("height_scanner"),
+            "terrain_scaled": True,
+            "height_easy": 0.55,
+            "height_hard": 0.45,
+            "variance_flat": 0.001,
+            "variance_rough": 0.02,
+        },
     )
 
     # UPGRADED: Was weight=0.0 in vision60_training — now enabled
@@ -410,10 +426,10 @@ class Vision60PPORewardsCfg:
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="lower.*")},
     )
 
-    # UPGRADED: Was weight=0.0 in vision60_training — now enabled
+    # DISABLED: stumble uses world-frame Z which breaks on elevated terrain (Bug #28b)
     stumble = RewardTermCfg(
         func=stumble_penalty,
-        weight=-0.3,
+        weight=0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="lower.*"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names="lower.*"),

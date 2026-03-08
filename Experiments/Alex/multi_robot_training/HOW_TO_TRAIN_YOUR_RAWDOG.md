@@ -2346,18 +2346,16 @@ terrain_relative_height = RewardTermCfg(
 
 ---
 
-### Trial 11k: Phase B -- Smooth Gait Fix (Mar 7, 2026) -- IN PROGRESS
+### Trial 11k: Phase B -- Smooth Gait Fix (Mar 7, 2026) -- FAILED
 
 **Config:** Actor-only resume from 11j model_2300.pt with 6 reward weight changes to fix bouncy gait
 **Envs:** 5,000 Spot | **Hardware:** H100 96GB
 **Log dir:** `spot_robust_ppo/2026-03-07_18-27-39/`
-**Log file:** `~/phase_b_trial11k.log`
-**Screen:** `spot_train`
 **Resume from:** `spot_robust_ppo/2026-03-07_08-14-41/model_2300.pt` (Trial 11j — actor only)
 
 **The problem:** Trial 11j produced the best terrain score ever (5.07) but the gait was bouncy/hoppy on flat ground. The smoothness penalties were too weak relative to the positive rewards that incentivized energetic hopping.
 
-**The fix — 6 reward weight changes:**
+**The attempted fix — 6 reward weight changes:**
 
 | Term | Old (11j) | New (11k) | Why |
 |------|-----------|-----------|-----|
@@ -2375,6 +2373,40 @@ Changing reward weights invalidates the critic's value estimates. New `--actor_o
 3. Does NOT load optimizer state (fresh Adam moments for new reward scale)
 4. `--critic_warmup_iters 300` freezes actor for 300 iters so critic calibrates
 
+**Result: TOTAL COLLAPSE**
+- 88% flip over, terrain collapsed to 0.12 within ~500 iterations
+- The policy forgot how to walk entirely
+- Changing 6 reward weights simultaneously shifted the reward landscape too far — even with actor-only resume and critic warmup, the actor couldn't adapt to such a dramatically different reward signal
+- The actor-only resume mechanism worked correctly (no NaN, no crashes) — the problem was scope, not implementation
+
+**Lesson learned:** Change at most 2-3 related reward weights at a time. The actor needs a recognizable reward landscape to maintain its learned behaviors while adapting to new incentives.
+
+**Files modified (reverted for 11l):**
+- `configs/spot_ppo_env_cfg.py` — 6 reward weight changes reverted back to 11j values
+- `train_ppo.py` — `--actor_only_resume` and `--critic_warmup_iters` kept (working correctly)
+
+---
+
+### Trial 11l: Phase B -- Joint Freedom Fix (Mar 8, 2026) -- IN PROGRESS
+
+**Config:** Actor-only resume from 11j model_2300.pt with only 2 weight changes to free up joints
+**Envs:** 5,000 Spot | **Hardware:** H100 96GB
+**Log dir:** `spot_robust_ppo/2026-03-08_09-12-35/`
+**Log file:** `~/phase_b_trial11l.log`
+**Screen:** `spot_train`
+**Resume from:** `spot_robust_ppo/2026-03-07_08-14-41/model_2300.pt` (Trial 11j — actor only)
+
+**The real problem:** The stiff-legged bouncy gait wasn't primarily a smoothness issue — it was a joint freedom issue. `joint_pos -0.7` heavily penalizes any deviation from default standing angles, which directly conflicts with what the robot needs for hard terrain: deep knee bends, wide hip angles, full leg extension. Combined with `dof_pos_limits -5.0`, the policy learned a stiff-legged compromise that capped terrain at ~5-6. Freeing up these two weights should unlock terrain levels 6-7.
+
+**The fix — only 2 weight changes (learning from 11k's failure):**
+
+| Term | Old (11j) | New (11l) | Why |
+|------|-----------|-----------|-----|
+| `joint_pos` | -0.7 | **-0.3** | Let joints deviate freely for terrain adaptation |
+| `dof_pos_limits` | -5.0 | **-3.0** | Allow full ROM on hard terrain |
+
+All other weights identical to 11j. `clamped_action_smoothness_penalty` kept at -1.0 (Bug #29 safety from 11k).
+
 **Launch command:**
 ```bash
 ./isaaclab.sh -p ~/multi_robot_training/train_ppo.py --headless \
@@ -2388,23 +2420,22 @@ Changing reward weights invalidates the critic's value estimates. New `--actor_o
     --no_wandb
 ```
 
-**Early metrics (iter ~20, warmup active):**
-- Reward: -124.65 (expected — fresh critic + stronger penalties)
-- action_smoothness: -4.79 (was -0.37 in 11j — **13x stronger signal**)
-- base_motion: -1.06 (was -0.32 in 11j — 3x stronger)
-- Terrain: 3.20 (slight dip from actor-only start — normal during warmup)
+**Early metrics (iter ~10):**
+- Reward: -1.33 (much better than 11k's -124 — smaller reward shift)
+- Terrain: 3.52 (healthy — already climbing back from actor-only reset)
+- Flip over: 0% (vs 88% in 11k — minimal weight changes preserved walking ability)
 - Noise std: 0.50, zero NaN
-- Actor frozen, 280 warmup iters remaining
 
 **What to watch:**
-- Iter 0-300 (warmup): Value loss starts high, drops as critic calibrates. Actor frozen — reward stable or slight decline. Normal.
-- Iter 300-500: Actor unfreezes. Expect a learning dip then recovery.
-- Iter 500+: action_smoothness contribution should be 2-3x more negative. Reward should climb past 286.8.
-- Pull and play at iter 500, 1000 — check if trot is smoother on flat ground.
+- Iter 0-300 (warmup): Critic calibrates, actor frozen. Reward should be stable.
+- Iter 300-500: Actor unfreezes. Joints should start exploring wider ROM.
+- Iter 1000+: Terrain should push past 5.07 (11j's best) as freed joints enable harder terrain strategies.
+- Pull and play at iter 500, 1000 — check if legs are less stiff, deeper knee bends on stairs.
+
+**Expected outcome:** Terrain levels 6-7 (18-21cm stairs, 33-39° slopes), less stiff-legged gait.
 
 **Files modified:**
-- `configs/spot_ppo_env_cfg.py` — 6 reward weight changes + `clamped_action_smoothness_penalty` import
-- `train_ppo.py` — `--actor_only_resume` flag, `--critic_warmup_iters` flag, actor freeze/unfreeze logic
+- `configs/spot_ppo_env_cfg.py` — `joint_pos` -0.7→-0.3, `dof_pos_limits` -5.0→-3.0, `clamped_action_smoothness_penalty` import kept
 
 ---
 
