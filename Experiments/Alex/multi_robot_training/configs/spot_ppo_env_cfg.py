@@ -45,6 +45,7 @@ from shared.reward_terms import (
     clamped_action_smoothness_penalty,
     contact_force_smoothness_penalty,
     stumble_penalty,
+    terrain_relative_height_penalty,
     velocity_modulation_reward,
 )
 
@@ -359,8 +360,21 @@ class SpotPPORewardsCfg:
     )
     body_height_tracking = RewardTermCfg(
         func=body_height_tracking_penalty,
-        weight=-1.0,
+        weight=0.0,  # DISABLED Bug #22: world-frame Z
         params={"asset_cfg": SceneEntityCfg("robot"), "target_height": 0.42},
+    )
+    terrain_relative_height = RewardTermCfg(
+        func=terrain_relative_height_penalty,
+        weight=-2.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("height_scanner"),
+            "terrain_scaled": True,
+            "height_easy": 0.42,
+            "height_hard": 0.35,
+            "variance_flat": 0.001,
+            "variance_rough": 0.02,
+        },
     )
     contact_force_smoothness = RewardTermCfg(
         func=contact_force_smoothness_penalty,

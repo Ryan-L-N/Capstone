@@ -2440,16 +2440,51 @@ All other weights identical to 11j. `clamped_action_smoothness_penalty` kept at 
 ```
 **Run dir v2:** `spot_robust_ppo/2026-03-08_12-40-08/`
 
-**What to watch:**
-- First 50-100 iters: curriculum resets on new run dir, expect high flip rate that stabilizes quickly
-- Iter 200+: Terrain should recover past 4.28 and push toward 5.07+
-- Stumble should show 0.0000 (confirmed working)
-- Pull and play at iter 500, 1000 — check if legs are less stiff, deeper knee bends on stairs
+**v2 results (run dir `2026-03-08_12-40-08`):**
+- Terrain climbed from 0.46 → 2.86 over 1900 iters, then PLATEAUED
+- Reward hit 300-345 (new all-time high) but terrain stuck at 2.82 for 500+ iters
+- Root cause 1: `max_noise_std=0.5` — noise ceiling caused enough random falls to prevent curriculum promotion
+- Root cause 2: `body_height_tracking` was STILL at -1.0 on H100 (Bug #22 never deployed!) — robot penalized for crouching on elevated terrain
+- Root cause 3: `terrain_relative_height_penalty` was MISSING entirely from H100 config — the variance-based height target was never active
 
-**Expected outcome:** Terrain levels 6-7 (18-21cm stairs, 33-39° slopes), less stiff-legged gait.
+**v3 (noise fix):** Lowered `max_noise_std` from 0.5 to 0.4. Training process exited before metrics could be captured — config still had Bug #22.
+
+**v4 (full config fix):** Actor-only resume from v2 model_1900.pt with 300-iter critic warmup. Fixed:
+1. `body_height_tracking` -1.0 → **0.0** (Bug #22 — was never disabled on H100!)
+2. `terrain_relative_height_penalty` **added at -2.0** (variance-based, was completely missing from H100 config)
+3. `max_noise_std` 0.5 → **0.4** (break terrain plateau)
+
+**v4 launch command:**
+```bash
+./isaaclab.sh -p ~/multi_robot_training/train_ppo.py --headless \
+    --robot spot --terrain robust --num_envs 5000 --max_iterations 20000 \
+    --save_interval 100 --lr_max 3e-5 \
+    --max_noise_std 0.4 --min_noise_std 0.3 \
+    --num_learning_epochs 4 \
+    --actor_only_resume \
+    --load_run 2026-03-08_12-40-08 --load_checkpoint model_1900.pt \
+    --critic_warmup_iters 300 \
+    --no_wandb
+```
+**Run dir v4:** `spot_robust_ppo/2026-03-08_19-04-32/`
+
+**v4 early metrics (iter ~4):**
+- Terrain: 3.45 (already higher than v2 ever reached!)
+- Flip: 1.1% (extremely low)
+- terrain_relative_height: -0.012 (active and contributing)
+- body_height_tracking: 0.000 (disabled)
+- stumble: 0.000 (disabled)
+
+**What to watch:**
+- Iter 0-300 (warmup): Critic calibrates to new reward landscape (added terrain_relative_height). Actor frozen.
+- Iter 300+: Actor unfreezes. Terrain should climb past 5.07 (11j's best).
+- Iter 1000+: Look for terrain 6-7 as freed joints + proper height signal + tighter noise combine.
+- Pull and play at iter 500, 1000 — check if robot crouches on rough terrain, stands tall on flat.
+
+**Expected outcome:** Terrain levels 6-7+, adaptive height (tall on flat, crouch on rough), less stiff-legged gait.
 
 **Files modified:**
-- `configs/spot_ppo_env_cfg.py` — `joint_pos` -0.7→-0.3, `dof_pos_limits` -5.0→-3.0, `stumble` -0.1→0.0 (Bug #28b), `clamped_action_smoothness_penalty` import kept
+- `configs/spot_ppo_env_cfg.py` — `joint_pos` -0.7→-0.3, `dof_pos_limits` -5.0→-3.0, `stumble` -0.1→0.0 (Bug #28b), `body_height_tracking` -1.0→0.0 (Bug #22), `terrain_relative_height_penalty` added at -2.0 (was missing!), `clamped_action_smoothness_penalty` import kept
 
 ---
 
