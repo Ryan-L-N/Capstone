@@ -45,6 +45,7 @@ from shared.reward_terms import (
     clamped_action_smoothness_penalty,
     contact_force_smoothness_penalty,
     stumble_penalty,
+    terrain_relative_height_penalty,
     velocity_modulation_reward,
 )
 
@@ -226,7 +227,7 @@ class SpotPPORewardsCfg:
 
     air_time = RewardTermCfg(
         func=spot_mdp.air_time_reward,
-        weight=3.0,  # was 5.0 — reduced to curb bouncy/hoppy gait (Trial 11k)
+        weight=5.0,
         params={
             "mode_time": 0.2,
             "velocity_threshold": 0.25,
@@ -254,7 +255,7 @@ class SpotPPORewardsCfg:
     )
     gait = RewardTermCfg(
         func=spot_mdp.GaitReward,
-        weight=8.0,  # was 10.0 — reduced to limit exaggerated air time (Trial 11k)
+        weight=10.0,
         params={
             "std": 0.1, "max_err": 0.2, "velocity_threshold": 0.25,
             "synced_feet_pair_names": (("fl_foot", "hr_foot"), ("fr_foot", "hl_foot")),
@@ -303,15 +304,15 @@ class SpotPPORewardsCfg:
             "velocity_threshold": 0.3,
         },
     )
-    action_smoothness = RewardTermCfg(func=clamped_action_smoothness_penalty, weight=-3.0)  # was -1.0 UNCLAMPED — 3x stronger + clamped (Trial 11k)
+    action_smoothness = RewardTermCfg(func=clamped_action_smoothness_penalty, weight=-1.0)  # clamped wrapper (Bug #29), weight same as 11j
     air_time_variance = RewardTermCfg(
         func=spot_mdp.air_time_variance_penalty,
-        weight=-2.0,  # was -1.0 — forces symmetric swing timing (Trial 11k)
+        weight=-1.0,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
     )
     base_motion = RewardTermCfg(
         func=spot_mdp.base_motion_penalty,
-        weight=-5.0,  # was -2.0 — directly penalizes vertical bounce (Trial 11k)
+        weight=-2.0,
         params={"asset_cfg": SceneEntityCfg("robot")},
     )
     base_orientation = RewardTermCfg(
@@ -335,7 +336,7 @@ class SpotPPORewardsCfg:
     )
     joint_pos = RewardTermCfg(
         func=spot_mdp.joint_position_penalty,
-        weight=-0.7,
+        weight=-0.3,  # was -0.7 — free up joints for terrain adaptation (Trial 11l)
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0, "velocity_threshold": 0.25,
@@ -344,7 +345,7 @@ class SpotPPORewardsCfg:
     # Penalize joints approaching URDF limits — prevents leg folding
     dof_pos_limits = RewardTermCfg(
         func=mdp.joint_pos_limits,
-        weight=-5.0,
+        weight=-3.0,  # was -5.0 — allow full ROM on hard terrain (Trial 11l)
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     joint_torques = RewardTermCfg(
@@ -359,17 +360,30 @@ class SpotPPORewardsCfg:
     )
     body_height_tracking = RewardTermCfg(
         func=body_height_tracking_penalty,
-        weight=-1.0,
+        weight=0.0,  # DISABLED Bug #22: world-frame Z
         params={"asset_cfg": SceneEntityCfg("robot"), "target_height": 0.42},
+    )
+    terrain_relative_height = RewardTermCfg(
+        func=terrain_relative_height_penalty,
+        weight=-2.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("height_scanner"),
+            "terrain_scaled": True,
+            "height_easy": 0.42,
+            "height_hard": 0.35,
+            "variance_flat": 0.001,
+            "variance_rough": 0.02,
+        },
     )
     contact_force_smoothness = RewardTermCfg(
         func=contact_force_smoothness_penalty,
-        weight=-0.03,  # was -0.01 — penalizes stomping (Trial 11k)
+        weight=-0.01,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
     )
     stumble = RewardTermCfg(
         func=stumble_penalty,
-        weight=-0.1,
+        weight=0.0,  # DISABLED Bug #28b: world-frame Z breaks on elevated terrain
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),

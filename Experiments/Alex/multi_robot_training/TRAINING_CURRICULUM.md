@@ -352,29 +352,29 @@ All terrain parameters scale linearly from their min (row 0) to max (row 9).
 
 ## Reward Changes Across Phases
 
-| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f | Trial 11h | Trial 11i | Trial 11j | Trial 11k |
-|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
-| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
-| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
-| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | **8.0** |
-| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
-| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 (**clamped** [0,10]) | **-3.0 (clamped)** |
-| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
-| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
-| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 |
-| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | **-5.0** |
-| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) |
-| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 |
-| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | -2.0 (variance-based, NaN) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (same) | -2.0 (same) |
-| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced | replaced | replaced | replaced | replaced |
-| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same | same | same | same | same |
-| max_noise_std | 1.0 (default) | same | same | same | same | same | same | same | same | **1.0 (BUG — forgot flag!)** | **0.5 (explicit)** | 0.5 | 0.5 |
-| penalty clamping | none | none | none | none | none | none | none | none | none | none | none | **Bug #29: all L2 penalties clamped** | same |
-| air_time | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | **3.0** |
-| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | **-5.0** |
-| air_time_variance | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | **-2.0** |
-| contact_force_smooth | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | **-0.03** |
-| actor_only_resume | — | — | — | — | — | — | — | — | — | — | — | — | **yes (+ 300 iter critic warmup)** |
+| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f | Trial 11h | Trial 11i | Trial 11j | Trial 11k (FAILED) | Trial 11l |
+|-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
+| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
+| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | **8.0** | 1.0 |
+| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
+| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 (**clamped** [0,10]) | **-3.0 (clamped)** | -1.0 (clamped) |
+| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
+| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
+| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | **-0.3** |
+| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | **-5.0** | -0.5 |
+| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) |
+| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 |
+| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | -2.0 (variance-based, NaN) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (same) | -2.0 (same) | **-2.0 (was MISSING from H100 — added in v4)** |
+| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced | replaced | replaced | replaced | replaced | **0.0 (Bug #22 was still -1.0 on H100!)** |
+| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same | same | same | same | same | same |
+| max_noise_std | 1.0 (default) | same | same | same | same | same | same | same | same | **1.0 (BUG — forgot flag!)** | **0.5 (explicit)** | 0.5 | 0.5 | **0.4 (lowered to break terrain plateau)** |
+| penalty clamping | none | none | none | none | none | none | none | none | none | none | none | **Bug #29: all L2 penalties clamped** | same | same |
+| air_time | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | **3.0** | 5.0 |
+| air_time_variance | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | **-2.0** | -1.0 |
+| contact_force_smooth | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | **-0.03** | -0.01 |
+| dof_pos_limits | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | **-3.0** |
+| actor_only_resume | — | — | — | — | — | — | — | — | — | — | — | — | **yes (+ 300 iter critic warmup)** | **yes (+ 300 iter critic warmup)** |
 
 The `undesired_contacts` and `body_scraping` changes are baked into `spot_ppo_env_cfg.py` — they apply to all phases. On flat terrain they're negligible (body rarely contacts ground). On rough terrain they prevent belly-dragging without over-punishing legitimate bumps.
 
@@ -417,6 +417,8 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | `normal expects std >= 0.0` crash | Policy std hit NaN from gradient explosion | `_sanitize_std()` in training_utils.py handles NaN/Inf/negative. Also ensure `lr_max=5e-5` for B-easy (1e-4 still explodes at ~1134, 3e-4 crashes instantly). Resume from earlier checkpoint. |
 | NaN at iter ~100, action_smoothness in trillions | Forgot `--max_noise_std` flag — defaults to 1.0 | ALWAYS pass `--max_noise_std 0.5 --min_noise_std 0.3` explicitly. train_ppo.py defaults to 1.0. Noise climbs → wild actions → gradient explosion → NaN (Bug #28d) |
 | NaN at iter ~80-100, action_smoothness in millions, value loss 1e18+ | Unbounded L2 penalty norms explode during value function instability (e.g., from reward mismatch after resume) | Use clamped penalty wrappers in `shared/reward_terms.py` instead of `spot_mdp.*` originals. Clamp bounds: action_smoothness [0,10], joint_acc [0,10000], joint_torques [0,1000], joint_vel [0,50], contact_force_smoothness [0,500] (Bug #29) |
+| 88%+ flip over after actor-only resume, terrain collapses to 0 | Too many reward weights changed simultaneously — reward landscape shifted too far for actor to adapt | Change at most 2-3 related weights at a time. Actor-only resume works mechanically but the actor still needs a recognizable reward landscape. Trial 11k changed 6 weights → total collapse. Trial 11l changed 2 weights → stable. |
+| Stiff-legged gait, terrain stuck at 5-6 | joint_pos penalty too high (-0.7) — penalizes deviations from default standing angles that are needed for hard terrain | Lower joint_pos to -0.3, dof_pos_limits to -3.0. Robot needs deep knee bends and full ROM for 16cm+ stairs and 28°+ slopes. |
 
 ---
 
@@ -447,7 +449,8 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 11h | B | robust | ~105 | 3e-5 | FAILED — NaN at iter 105, `action_smoothness` exploded to -1.3 TRILLION. Root cause: forgot `--max_noise_std 0.5` flag, train_ppo.py defaults to 1.0. Noise climbed to 1.0 → wild actions → gradient explosion → NaN. Last clean checkpoint: model_100.pt (200-2500 corrupted). Bug #28d. | model_100.pt |
 | 11i | B | robust | 82 | 3e-5 | FAILED — NaN at iter 82. `action_smoothness` exploded to -921,693. Value loss spiked to 6.3e18. Root cause: value function calibrated for old reward landscape (terrain 3.5, curriculum-level height) operating at terrain 0.4 with different variance-based rewards. Massive policy gradient → action spike → unbounded penalty explosion → NaN (Bug #29). | — |
 | 11j | B | robust | 2300+ | 3e-5 | STOPPED for 11k — terrain 5.07, reward 286.8 (best ever), 92.8% survival. Clamped penalties (Bug #29 fix) worked. BUT: bouncy/hoppy gait on flat ground — smoothness penalties too weak (action_smoothness -0.37, base_motion -0.32) while positive rewards (gait +10, air_time +5) incentivize energetic hopping. | model_2300.pt |
-| **11k** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Smooth gait fix. Actor-only resume from 11j model_2300.pt (critic reset for new reward weights). 6 weight changes: air_time 5→3, gait 10→8, action_smoothness -1→-3 (clamped), air_time_variance -1→-2, base_motion -2→-5, contact_force_smoothness -0.01→-0.03. 300-iter critic warmup (actor frozen). Run dir: `2026-03-07_18-27-39`. Early metrics: action_smoothness -4.8 (13x stronger than 11j), warmup active.** | **TBD** |
+| 11k | B | robust | ~500 | 3e-5 | FAILED — 88% flip over, terrain collapsed to 0.12. Changed 6 reward weights simultaneously (too aggressive). Policy forgot how to walk. Actor-only resume + critic warmup worked mechanically but the reward landscape shift was too large. Run dir: `2026-03-07_18-27-39`. | — |
+| **11l** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Full config fix. 4 iterations: v1 (joint freedom), v2 (stumble fix), v3 (noise 0.5→0.4), v4 (terrain_relative_height added + body_height_tracking disabled). Actor-only resume from 11j model_2300.pt → v2 model_1900.pt. Changes: joint_pos -0.7→-0.3, dof_pos_limits -5.0→-3.0, stumble 0.0, body_height_tracking 0.0 (Bug #22 was STILL -1.0 on H100!), terrain_relative_height -2.0 (was MISSING), noise 0.4. Run dirs: v1 `09-12-35`, v2 `12-40-08`, v4 `19-04-32`. v4 early: terrain 3.45, flip 1.1%.** | **TBD** |
 
 **Key insight from B-easy attempts:** Three knobs matter: (1) LR must decrease aggressively for terrain transitions (3e-4→1e-4→5e-5→3e-5). (2) max_noise_std must decrease for later phases (1.0→0.7) to let the policy be precise on hard terrain. (3) Value loss watchdog (Bug #25) prevents oscillation cascades that LR reduction alone can't stop.
 
@@ -473,8 +476,16 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 
 **Key insight from Trial 11k (actor-only resume):** When changing reward weights mid-training, the critic becomes stale — its value estimates are calibrated for the old reward scale. Simply resuming would cause massive advantage errors. The `--actor_only_resume` flag loads only actor weights, leaves critic fresh, and `--critic_warmup_iters` freezes the actor while the critic calibrates. This is the RL equivalent of "freeze backbone, retrain head."
 
+**Key insight from Trial 11k (FAILED — too many changes at once):** Changing 6 reward weights simultaneously (air_time, gait, action_smoothness, air_time_variance, base_motion, contact_force_smoothness) was too aggressive even with actor-only resume and critic warmup. The policy collapsed to 88% flip over within ~500 iters — it forgot how to walk entirely. The reward landscape shifted so dramatically that even a properly calibrated critic couldn't guide the actor back. **Rule: change at most 2-3 related weights at a time.** The actor-only resume mechanism works — the problem was scope, not implementation.
+
+**Key insight from Trial 11l (joint freedom):** The stiff-legged gait in 11j wasn't primarily a smoothness problem — it was a joint freedom problem. `joint_pos -0.7` penalizes any deviation from default standing angles, which directly conflicts with terrain demands for deep knee bends, wide hip angles, and full leg extension on 16cm+ stairs and 28°+ slopes. Combined with `dof_pos_limits -5.0` punishing near-limit positions, the policy learned a stiff compromise that capped terrain at ~5-6. Fixing just these 2 weights (joint_pos -0.7→-0.3, dof_pos_limits -5.0→-3.0) should unlock terrain levels 6-7 without destabilizing the rest of the reward landscape.
+
 **Bug #29 (Unbounded L2 penalty norms):** Isaac Lab's built-in `spot_mdp` penalty functions (action_smoothness, joint_acc, joint_torques, joint_vel, contact_force_smoothness) return unbounded L2 norms. When the value function goes unstable (e.g., from reward landscape mismatch after resuming from a differently-trained checkpoint), this causes: massive policy update → action spike → penalty norm explodes → huge negative reward → more instability → NaN. Fix: clamped wrapper functions in `shared/reward_terms.py` with `torch.where(torch.isfinite(...))` NaN safety. Clamp bounds: action_smoothness [0,10], joint_acc [0,10000], joint_torques [0,1000], joint_vel [0,50], contact_force_smoothness [0,500].
 
 ---
+
+**Key insight from Trial 11l (config deployment gap):** The H100 config was missing `terrain_relative_height_penalty` entirely and still had `body_height_tracking` at -1.0 (Bug #22). This means Trials 11j through 11l v1-v3 were training with world-frame Z height tracking — the robot was being told to stand at 0.42m in world frame, which is meaningless on elevated terrain. Terrain stalled at ~2.8 because the robot couldn't crouch on harder terrain without getting penalized. The fix: disable `body_height_tracking` (0.0) and add `terrain_relative_height_penalty` (-2.0, variance-based). **Always verify the deployed config matches what you think is deployed.**
+
+**Key insight from Trial 11l (noise ceiling = terrain ceiling):** With `max_noise_std=0.5`, the policy was at the noise ceiling. Random exploration caused enough falls on edge-case terrain to prevent curriculum promotion. Lowering to 0.4 lets the policy be more precise — fewer random deaths means the curriculum can promote robots that have actually learned the terrain.
 
 *"Don't throw the robot off a cliff. Walk it to the edge first. Then walk it to a shorter cliff."*
