@@ -131,15 +131,17 @@ class VegetationDragReward(ManagerTermBase):
 
         if self.terrain_aware:
             terrain: TerrainImporter = self._env_ref.scene.terrain
-            robot_cols = terrain.terrain_types[env_ids]
+            # terrain_types only exists on curriculum/generated terrains, not plane
+            if hasattr(terrain, "terrain_types"):
+                robot_cols = terrain.terrain_types[env_ids]
 
-            on_friction = self.is_friction_col[robot_cols]
-            drag_vals[on_friction] = 0.0
+                on_friction = self.is_friction_col[robot_cols]
+                drag_vals[on_friction] = 0.0
 
-            on_vegetation = self.is_vegetation_col[robot_cols]
-            n_veg = int(on_vegetation.sum())
-            if n_veg > 0:
-                drag_vals[on_vegetation] = torch.empty(n_veg, 1, device=dev).uniform_(0.5, self.drag_max)
+                on_vegetation = self.is_vegetation_col[robot_cols]
+                n_veg = int(on_vegetation.sum())
+                if n_veg > 0:
+                    drag_vals[on_vegetation] = torch.empty(n_veg, 1, device=dev).uniform_(0.5, self.drag_max)
 
         self.drag_coeff[env_ids] = drag_vals
 

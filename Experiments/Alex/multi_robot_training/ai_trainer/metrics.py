@@ -149,12 +149,13 @@ class MetricsCollector:
             env_unwrapped = self.env.unwrapped
             if hasattr(env_unwrapped, "reward_manager"):
                 rm = env_unwrapped.reward_manager
-                # Isaac Lab RewardManager stores terms with configs
-                if hasattr(rm, "_term_cfgs"):
-                    for name, cfg in rm._term_cfgs.items():
+                # Isaac Lab RewardManager: _term_cfgs is a list, names in _term_names
+                if hasattr(rm, "_term_names") and hasattr(rm, "_term_cfgs"):
+                    for name, cfg in zip(rm._term_names, rm._term_cfgs):
                         weights[name] = cfg.weight
-                elif hasattr(rm, "active_terms"):
-                    for name, (term, cfg) in rm.active_terms.items():
+                # Fallback: dict-style API (older versions)
+                elif hasattr(rm, "_term_cfgs") and hasattr(rm._term_cfgs, "items"):
+                    for name, cfg in rm._term_cfgs.items():
                         weights[name] = cfg.weight
         except Exception:
             pass

@@ -35,15 +35,17 @@ class Actuator:
 
         for name, new_weight in changes.items():
             old_weight = None
-            # Try _term_cfgs (Isaac Lab standard)
-            if hasattr(rm, "_term_cfgs") and name in rm._term_cfgs:
-                old_weight = rm._term_cfgs[name].weight
-                rm._term_cfgs[name].weight = new_weight
-            # Try active_terms dict
-            elif hasattr(rm, "active_terms") and name in rm.active_terms:
-                term, cfg = rm.active_terms[name]
-                old_weight = cfg.weight
-                cfg.weight = new_weight
+            # Isaac Lab RewardManager: _term_cfgs is a list, names in _term_names
+            if hasattr(rm, "_term_names") and hasattr(rm, "_term_cfgs"):
+                if name in rm._term_names:
+                    idx = rm._term_names.index(name)
+                    old_weight = rm._term_cfgs[idx].weight
+                    rm._term_cfgs[idx].weight = new_weight
+            # Fallback: dict-style API (older versions)
+            elif hasattr(rm, "_term_cfgs") and hasattr(rm._term_cfgs, "items"):
+                if name in rm._term_cfgs:
+                    old_weight = rm._term_cfgs[name].weight
+                    rm._term_cfgs[name].weight = new_weight
 
             if old_weight is not None:
                 applied[name] = (old_weight, new_weight)

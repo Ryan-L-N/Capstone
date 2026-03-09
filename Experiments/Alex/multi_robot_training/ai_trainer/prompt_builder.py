@@ -52,6 +52,8 @@ def build_system_prompt(coach_cfg: CoachConfig, phase_cfg: PhaseConfig) -> str:
 | action_smoothness < -10000 | Unbounded explosion | EMERGENCY: auto-stopped |
 | Stiff-legged gait | joint_pos penalty too high | Lower joint_pos toward -0.2 |
 | Bouncy gait | air_time and gait rewards too high | Lower air_time, consider raising action_smoothness penalty |
+| Legs crossing / unstable gait | joint_pos penalty too low, action_smoothness too weak | Increase joint_pos penalty (toward -0.5), increase action_smoothness (toward -1.5), consider increasing base_motion penalty |
+| Hard to control / poor velocity tracking | base_linear_velocity or base_angular_velocity reward too low relative to other rewards | Increase velocity tracking rewards or reduce competing rewards |
 
 ## Decision Format
 Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
@@ -144,4 +146,38 @@ def build_user_message(
                 for name, (old, new) in d["applied_changes"].items():
                     msg += f"  - {name}: {old} → {new}\n"
 
+    # Human observations (from human_notes.txt in run dir or home dir)
+    human_notes = _read_human_notes()
+    if human_notes:
+        msg += f"\n## Human Observation (from visual evaluation)\n{human_notes}\n"
+        msg += "NOTE: These are qualitative observations from a human watching the policy in simulation. Weight them heavily — numerical metrics cannot capture gait quality.\n"
+
     return msg
+
+
+def _read_human_notes() -> str | None:
+    """Read human observations from human_notes.txt if it exists.
+
+    Checks two locations:
+    1. ~/human_notes.txt (easiest to write via SSH)
+    2. Run directory's human_notes.txt
+
+    After reading, the file is renamed to human_notes_consumed.txt
+    so the same note isn't sent to every future consultation.
+    """
+    search_paths = [
+        os.path.expanduser("~/human_notes.txt"),
+    ]
+    for path in search_paths:
+        if os.path.isfile(path):
+            try:
+                with open(path, "r") as f:
+                    content = f.read().strip()
+                if content:
+                    # Rename so it's only consumed once
+                    consumed = path.replace(".txt", "_consumed.txt")
+                    os.rename(path, consumed)
+                    return content
+            except Exception:
+                pass
+    return None

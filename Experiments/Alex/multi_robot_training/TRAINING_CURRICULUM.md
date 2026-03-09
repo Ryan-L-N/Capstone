@@ -5,7 +5,7 @@
 > Run phases individually — stop, verify, then proceed.
 >
 > **Hardware:** NVIDIA H100 NVL 96GB
-> **Last updated:** March 7, 2026 (Trial 11k — smooth gait fix)
+> **Last updated:** March 8, 2026 (Trial 11l v6 — AI coach metrics fix)
 
 ---
 
@@ -352,29 +352,31 @@ All terrain parameters scale linearly from their min (row 0) to max (row 9).
 
 ## Reward Changes Across Phases
 
-| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f | Trial 11h | Trial 11i | Trial 11j | Trial 11k (FAILED) | Trial 11l |
+| Reward Term | Phase A | Phase A.5 | Phase B-easy | Phase B | Trial 11b | Trial 11c | Trial 11d | Trial 11e | Trial 11f | Trial 11h | Trial 11i | Trial 11j | Trial 11k (FAILED) | Trial 11l | 11l-v5 (AI Rev.) |
 |-------------|---------|-----------|-------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
-| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 |
-| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 |
-| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | **8.0** | 1.0 |
-| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
-| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 (**clamped** [0,10]) | **-3.0 (clamped)** | -1.0 (clamped) |
-| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
-| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 |
-| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | **-0.3** |
-| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | **-5.0** | -0.5 |
-| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) |
-| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 |
-| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | -2.0 (variance-based, NaN) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (same) | -2.0 (same) | **-2.0 (was MISSING from H100 — added in v4)** |
-| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced | replaced | replaced | replaced | replaced | **0.0 (Bug #22 was still -1.0 on H100!)** |
-| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same | same | same | same | same | same |
-| max_noise_std | 1.0 (default) | same | same | same | same | same | same | same | same | **1.0 (BUG — forgot flag!)** | **0.5 (explicit)** | 0.5 | 0.5 | **0.4 (lowered to break terrain plateau)** |
-| penalty clamping | none | none | none | none | none | none | none | none | none | none | none | **Bug #29: all L2 penalties clamped** | same | same |
-| air_time | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | **3.0** | 5.0 |
-| air_time_variance | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | **-2.0** | -1.0 |
-| contact_force_smooth | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | **-0.03** | -0.01 |
-| dof_pos_limits | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | **-3.0** |
-| actor_only_resume | — | — | — | — | — | — | — | — | — | — | — | — | **yes (+ 300 iter critic warmup)** | **yes (+ 300 iter critic warmup)** |
+| undesired_contacts | -5.0 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 | -1.5 (AI-tunable) |
+| body_scraping | — | -2.0 (new) | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 (AI-tunable) |
+| gait weight | 10.0 | 10.0 | 10.0 | 10.0 | 3.0 | **1.0** | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | **8.0** | 1.0 | 1.0 (AI-tunable) |
+| gait std/max_err | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.1/0.2 | 0.25/0.4 | **0.35/0.6** | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 | 0.35/0.6 |
+| action_smoothness | -1.0 | -1.0 | -1.0 | -1.0 | -0.3 | **-0.1** | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 (**clamped** [0,10]) | **-3.0 (clamped)** | -1.0 (clamped) | -1.0 (AI-tunable) |
+| base_lin_vel std | 1.0 | 1.0 | 1.0 | 1.0 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 | 0.5 |
+| foot_clearance | 2.0 | 2.0 | 2.0 | 2.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 (AI-tunable) |
+| joint_pos | -0.7 | -0.7 | -0.7 | -0.7 | -0.7 | **-0.2** | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | -0.2 | **-0.3** | -0.3 (AI-tunable) |
+| base_motion | -2.0 | -2.0 | -2.0 | -2.0 | -2.0 | **-0.5** | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | -0.5 | **-5.0** | -0.5 | -0.5 (AI-tunable) |
+| stumble | -0.1 | -0.1 | -0.1 | -0.1 | -0.1 | **-0.02** | -0.02 | -0.02 | -0.02 | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (disabled) | 0.0 (FROZEN) |
+| action_scale | 0.2 | 0.2 | 0.2 | 0.2 | 0.2 | **0.3** | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 |
+| terrain_relative_height | — | — | — | — | — | -1.0 (fixed 0.30m) | -1.0 (terrain_scaled: 0.42m easy → 0.25m hard) | -2.0 (curriculum-level-based: 0.42m easy → 0.35m hard) | -2.0 (variance-based, NaN) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (variance-based + nan_to_num + error clamped [0,1]) | -2.0 (same) | -2.0 (same) | **-2.0 (was MISSING from H100 — added in v4)** | -2.0 (AI-tunable) |
+| body_height_tracking | -1.0 (disabled on rough) | same | same | same | same | replaced | replaced | replaced | replaced | replaced | replaced | replaced | replaced | **0.0 (Bug #22 was still -1.0 on H100!)** | 0.0 (FROZEN) |
+| velocity command | UniformVelocity | same | same | same | same | same | TerrainScaledVelocity (sprint on easy, careful on hard) | same | same | same | same | same | same | same | same |
+| max_noise_std | 1.0 (default) | same | same | same | same | same | same | same | same | **1.0 (BUG — forgot flag!)** | **0.5 (explicit)** | 0.5 | 0.5 | **0.4 (lowered to break terrain plateau)** | **0.35 (AI-tunable)** |
+| penalty clamping | none | none | none | none | none | none | none | none | none | none | none | **Bug #29: all L2 penalties clamped** | same | same | same |
+| air_time | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | 5.0 | **3.0** | 5.0 | 5.0 (AI-tunable) |
+| air_time_variance | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | -1.0 | **-2.0** | -1.0 | -1.0 (AI-tunable) |
+| contact_force_smooth | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | -0.01 | **-0.03** | -0.01 | -0.01 (AI-tunable) |
+| dof_pos_limits | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | -5.0 | **-3.0** | -3.0 (AI-tunable) |
+| actor_only_resume | — | — | — | — | — | — | — | — | — | — | — | — | **yes (+ 300 iter critic warmup)** | **yes (+ 300 iter critic warmup)** | full resume from v4 model_400 |
+| **training script** | train_ppo.py | same | same | same | same | same | same | same | same | same | same | same | same | same | **train_ai.py (AI coach)** |
+| **AI coach** | — | — | — | — | — | — | — | — | — | — | — | — | — | — | **Claude Sonnet, every 100 iters** |
 
 The `undesired_contacts` and `body_scraping` changes are baked into `spot_ppo_env_cfg.py` — they apply to all phases. On flat terrain they're negligible (body rarely contacts ground). On rough terrain they prevent belly-dragging without over-punishing legitimate bumps.
 
@@ -450,7 +452,7 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 | 11i | B | robust | 82 | 3e-5 | FAILED — NaN at iter 82. `action_smoothness` exploded to -921,693. Value loss spiked to 6.3e18. Root cause: value function calibrated for old reward landscape (terrain 3.5, curriculum-level height) operating at terrain 0.4 with different variance-based rewards. Massive policy gradient → action spike → unbounded penalty explosion → NaN (Bug #29). | — |
 | 11j | B | robust | 2300+ | 3e-5 | STOPPED for 11k — terrain 5.07, reward 286.8 (best ever), 92.8% survival. Clamped penalties (Bug #29 fix) worked. BUT: bouncy/hoppy gait on flat ground — smoothness penalties too weak (action_smoothness -0.37, base_motion -0.32) while positive rewards (gait +10, air_time +5) incentivize energetic hopping. | model_2300.pt |
 | 11k | B | robust | ~500 | 3e-5 | FAILED — 88% flip over, terrain collapsed to 0.12. Changed 6 reward weights simultaneously (too aggressive). Policy forgot how to walk. Actor-only resume + critic warmup worked mechanically but the reward landscape shift was too large. Run dir: `2026-03-07_18-27-39`. | — |
-| **11l** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — Full config fix. 4 iterations: v1 (joint freedom), v2 (stumble fix), v3 (noise 0.5→0.4), v4 (terrain_relative_height added + body_height_tracking disabled). Actor-only resume from 11j model_2300.pt → v2 model_1900.pt. Changes: joint_pos -0.7→-0.3, dof_pos_limits -5.0→-3.0, stumble 0.0, body_height_tracking 0.0 (Bug #22 was STILL -1.0 on H100!), terrain_relative_height -2.0 (was MISSING), noise 0.4. Run dirs: v1 `09-12-35`, v2 `12-40-08`, v4 `19-04-32`. v4 early: terrain 3.45, flip 1.1%.** | **TBD** |
+| **11l** | **B** | **robust** | **ongoing** | **3e-5** | **IN PROGRESS — "The AI Revelation Trial." 7 iterations: v1 (joint freedom), v2 (stumble fix, plateaued 2.82), v3 (noise fix, died), v4 (full config fix, plateaued 2.89), v5 (AI TAKEOVER — switched to train_ai.py, terrain 2.89→3.36), v6 (Bug #33 partial fix — coach still blind to value_loss/noise_std/weights), v7 (FULL METRICS FIX — loss_dict parsing, list-style RewardManager, direct noise read + human visual observation injection). v7 run dir: `22-13-32`. At iter 2600 (11h): terrain 4.32, reward 283.8, survival 89.8%. Coach made 2 interventions: iter 1200 (gait 10→8.5, broke 3.0 plateau → terrain 3.36→4.25) and iter 2500 (human feedback: joint_pos -0.3→-0.36, action_smoothness -1.0→-1.2, base_motion -2.0→-2.4 for leg crossing/instability). 25 of 27 consultations correctly returned no_change.** | **TBD** |
 
 **Key insight from B-easy attempts:** Three knobs matter: (1) LR must decrease aggressively for terrain transitions (3e-4→1e-4→5e-5→3e-5). (2) max_noise_std must decrease for later phases (1.0→0.7) to let the policy be precise on hard terrain. (3) Value loss watchdog (Bug #25) prevents oscillation cascades that LR reduction alone can't stop.
 
@@ -486,6 +488,14 @@ If ANY metric fails, do NOT proceed. Diagnose first.
 
 **Key insight from Trial 11l (config deployment gap):** The H100 config was missing `terrain_relative_height_penalty` entirely and still had `body_height_tracking` at -1.0 (Bug #22). This means Trials 11j through 11l v1-v3 were training with world-frame Z height tracking — the robot was being told to stand at 0.42m in world frame, which is meaningless on elevated terrain. Terrain stalled at ~2.8 because the robot couldn't crouch on harder terrain without getting penalized. The fix: disable `body_height_tracking` (0.0) and add `terrain_relative_height_penalty` (-2.0, variance-based). **Always verify the deployed config matches what you think is deployed.**
 
-**Key insight from Trial 11l (noise ceiling = terrain ceiling):** With `max_noise_std=0.5`, the policy was at the noise ceiling. Random exploration caused enough falls on edge-case terrain to prevent curriculum promotion. Lowering to 0.4 lets the policy be more precise — fewer random deaths means the curriculum can promote robots that have actually learned the terrain.
+**Key insight from Trial 11l (noise ceiling = terrain ceiling):** With `max_noise_std=0.5`, the policy was at the noise ceiling. Random exploration caused enough falls on edge-case terrain to prevent curriculum promotion. Lowering to 0.4 lets the policy be more precise — fewer random deaths means the curriculum can promote robots that have actually learned the terrain. Even 0.4 plateaued at 2.89 — had to go to 0.35.
 
-*"Don't throw the robot off a cliff. Walk it to the edge first. Then walk it to a shorter cliff."*
+**Key insight from Trial 11l (The AI Revelation):** We spent Trials 11a through 11l-v4 doing the same loop: watch TensorBoard → diagnose issue → edit config on H100 → kill training → restart. Each cycle burned 1-2 hours of human wall time. The AI-guided training system (`train_ai.py`) replaces this with an automated loop: the Claude API reads the same metrics a human reads, applies the same troubleshooting table (encoded as guardrails), and adjusts parameters at runtime — no restart needed. The first AI-guided intervention (lowering noise from 0.40→0.35) caused terrain to jump from 2.89→3.36 in 8 iterations. The AI coach can now continue tuning autonomously while the team sleeps. This is the equivalent of hiring a senior RL engineer to babysit TensorBoard 24/7 — except the engineer has perfect recall of all 30 bugs and never forgets to deploy a config change.
+
+**Bug #33 (Blind Coach — RSL-RL metrics not captured):** The AI coach's `MetricsCollector` looked for keys like `"Mean reward"` in `env.unwrapped.extras["log"]`, but RSL-RL keeps these as local variables inside `learn()` — they never appear in the environment extras. Fix: monkey-patch `runner.log()` to intercept the `locals()` dict and capture `rewbuffer`, `lenbuffer`, losses, and noise_std. v6 partially fixed this; v7 completed it by reading from `loss_dict` (not separate scalars), reading noise directly from `runner.alg.policy.action_std`, and fixing the list-style `RewardManager._term_cfgs` API for weight reads/writes.
+
+**Key insight from Trial 11l (AI Coach — autonomous terrain breakout):** The AI coach's first real intervention at iter 1200 identified gait reward dominance (7.25/episode — largest single term) as the cause of a terrain plateau at ~3.0. It reduced gait 10→8.5 and base_orientation -3.0→-2.4. Terrain immediately resumed climbing: 3.36→4.32 over the next 1400 iterations. This was the same plateau that took humans 4 manual restarts (v1 through v4) to diagnose. The coach solved it in one consultation with zero downtime.
+
+**Key insight from Trial 11l (Human-AI collaboration loop):** At iter 2500, a human pulled model_2900.pt into the lava arena and observed legs crossing, instability, and poor velocity tracking — gait quality issues invisible to numerical metrics. The observation was injected into the JSONL decision log as a `human_observation` entry (zero-downtime, no restart needed). The coach read it and made 3 targeted changes: joint_pos -0.3→-0.36, action_smoothness -1.0→-1.2, base_motion -2.0→-2.4. This is the designed collaboration: AI monitors 24/7 and tunes parameters, human provides visual quality assessment that numbers can't capture, both feed into the same decision loop without stopping training.
+
+*"Don't throw the robot off a cliff. Walk it to the edge first. Then walk it to a shorter cliff. And if you're smart, have the AI hold the leash, make sure it can see, and let it listen when you tell it what you saw."*

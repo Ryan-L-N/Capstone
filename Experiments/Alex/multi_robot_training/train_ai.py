@@ -112,11 +112,11 @@ def load_robot_configs(robot: str):
     if robot == "spot":
         from configs.spot_ppo_env_cfg import SpotPPOEnvCfg
         from configs.spot_ppo_cfg import SpotPPORunnerCfg
-        return SpotPPOEnvCfg(), SpotPPORunnerCfg(), "Isaac-Velocity-Spot-PPO-v0"
+        return SpotPPOEnvCfg(), SpotPPORunnerCfg(), "Isaac-Velocity-Robust-Spot-PPO-v0"
     elif robot == "vision60":
         from configs.vision60_ppo_env_cfg import Vision60PPOEnvCfg
         from configs.vision60_ppo_cfg import Vision60PPORunnerCfg
-        return Vision60PPOEnvCfg(), Vision60PPORunnerCfg(), "Isaac-Velocity-Vision60-PPO-v0"
+        return Vision60PPOEnvCfg(), Vision60PPORunnerCfg(), "Isaac-Velocity-Robust-Vision60-PPO-v0"
     else:
         raise ValueError(f"Unknown robot: {robot}")
 
@@ -127,6 +127,10 @@ def apply_phase_terrain(env_cfg, phase_name: str):
     if terrain == "flat":
         if hasattr(env_cfg.scene, "terrain"):
             env_cfg.scene.terrain.terrain_type = "plane"
+        # Disable terrain curriculum — terrain_levels_vel requires generated terrain
+        if hasattr(env_cfg, "curriculum") and env_cfg.curriculum is not None:
+            if hasattr(env_cfg.curriculum, "terrain_levels"):
+                env_cfg.curriculum.terrain_levels = None
     elif terrain in ("transition", "robust_easy", "robust"):
         if hasattr(env_cfg, "terrain_cfg_name"):
             env_cfg.terrain_cfg_name = terrain
@@ -242,6 +246,58 @@ def train_phase(
     actuator.register_noise_control(noise_bounds)
     decision_log = DecisionLog(os.path.join(log_dir, coach_cfg.decision_log_path))
 
+    # ── TensorBoard writer for AI coach metrics ──────────────────────
+    # RSL-RL creates runner.writer after learn() starts, so we grab it lazily
+    _tb_writer = [None]  # lazy init from runner.writer
+
+    def _get_tb_writer():
+        if _tb_writer[0] is None and hasattr(runner, "writer") and runner.writer:
+            _tb_writer[0] = runner.writer
+        return _tb_writer[0]
+
+    def _tb_log_coach(it, snapshot, decision, applied, latency, guardrail_msgs):
+        """Log AI coach activity to TensorBoard."""
+        w = _get_tb_writer()
+        if w is None:
+            return
+
+        # Coach decision type as integer (for plotting)
+        action_map = {
+            "no_change": 0, "adjust_weights": 1, "adjust_noise": 2,
+            "adjust_lr": 3, "advance_phase": 4, "emergency_stop": 5,
+        }
+        w.add_scalar("AI_Coach/action_code", action_map.get(decision.action, -1), it)
+        w.add_scalar("AI_Coach/confidence", decision.confidence, it)
+        w.add_scalar("AI_Coach/api_latency_ms", latency, it)
+        w.add_scalar("AI_Coach/num_changes_applied", len(applied), it)
+        w.add_scalar("AI_Coach/guardrail_blocks", len(guardrail_msgs), it)
+
+        # Log each current weight so we can track drift over time
+        for name, weight in snapshot.current_weights.items():
+            w.add_scalar(f"Reward_Weights/{name}", weight, it)
+
+        # Log per-reward contributions
+        for name, val in snapshot.reward_breakdown.items():
+            w.add_scalar(f"Reward_Contrib/{name}", val, it)
+
+        # Trends
+        w.add_scalar("AI_Coach/reward_trend", snapshot.reward_trend, it)
+        w.add_scalar("AI_Coach/terrain_trend", snapshot.terrain_trend, it)
+        w.add_scalar("AI_Coach/value_loss_trend", snapshot.value_loss_trend, it)
+
+        # Specific weight changes applied this step
+        for name, (old, new) in applied.items():
+            w.add_scalar(f"Weight_Changes/{name}", new - old, it)
+
+    def _tb_log_emergency(it, action, details):
+        """Log emergency events to TensorBoard."""
+        w = _get_tb_writer()
+        if w is None:
+            return
+        emergency_map = {"nan_rollback": 3, "halve_lr": 2, "emergency_stop": 3}
+        w.add_scalar("AI_Coach/emergency", emergency_map.get(action, 1), it)
+        w.add_text("AI_Coach/emergency_log", f"{action}: {details}", it)
+
     # ── Training loop with AI coaching ──────────────────────────────────
     start_time = time.time()
     best_reward = -float("inf")
@@ -261,10 +317,75 @@ def train_phase(
     # Storage for per-iteration reward info (captured from runner logging)
     _last_reward_info = [{}]
 
+    _initial_weights_logged = [False]
+
+    # ── Capture RSL-RL internal metrics via log() interception ────────
+    # RSL-RL's learn() computes mean_reward, mean_episode_length, losses,
+    # and noise_std as local variables, then passes them to self.log(locals()).
+    # We intercept log() to capture these values for the AI coach.
+    # (1-iteration delay is negligible for coach checks every 100 iters.)
+    _runner_log_metrics = {
+        "mean_reward": 0.0,
+        "mean_episode_length": 0.0,
+        "mean_value_loss": 0.0,
+        "mean_surrogate_loss": 0.0,
+        "mean_std": 0.0,
+    }
+
+    import statistics as _stats
+    _original_runner_log = runner.log
+
+    def _intercepting_log(locs, *a, **kw):
+        """Intercept runner.log() to capture rewbuffer/lenbuffer/losses/noise."""
+        try:
+            if "rewbuffer" in locs and len(locs["rewbuffer"]) > 0:
+                _runner_log_metrics["mean_reward"] = _stats.mean(locs["rewbuffer"])
+            if "lenbuffer" in locs and len(locs["lenbuffer"]) > 0:
+                _runner_log_metrics["mean_episode_length"] = _stats.mean(locs["lenbuffer"])
+            # RSL-RL stores losses in loss_dict (not as separate vars)
+            if "loss_dict" in locs and isinstance(locs["loss_dict"], dict):
+                ld = locs["loss_dict"]
+                if "value_function" in ld:
+                    _runner_log_metrics["mean_value_loss"] = float(ld["value_function"])
+                if "surrogate" in ld:
+                    _runner_log_metrics["mean_surrogate_loss"] = float(ld["surrogate"])
+            # Fallback: some RSL-RL versions use mean_value_loss directly
+            if "mean_value_loss" in locs:
+                v = locs["mean_value_loss"]
+                _runner_log_metrics["mean_value_loss"] = float(v.item() if hasattr(v, "item") else v)
+            if "mean_surrogate_loss" in locs:
+                v = locs["mean_surrogate_loss"]
+                _runner_log_metrics["mean_surrogate_loss"] = float(v.item() if hasattr(v, "item") else v)
+            # mean_std is computed inside log(), not in learn() locals.
+            # Read directly from policy instead.
+            try:
+                _runner_log_metrics["mean_std"] = float(
+                    runner.alg.policy.action_std.mean().item())
+            except Exception:
+                pass
+        except Exception:
+            pass
+        return _original_runner_log(locs, *a, **kw)
+
+    runner.log = _intercepting_log
+
     def update_with_ai_coach(*args, **kwargs):
         it = _iteration_counter[0]
         elapsed = time.time() - start_time
         hours = elapsed / 3600
+
+        # Log initial reward weights once (after runner.writer is created)
+        if not _initial_weights_logged[0]:
+            w = _get_tb_writer()
+            if w is not None:
+                try:
+                    rm = env.unwrapped.reward_manager
+                    if hasattr(rm, "_term_cfgs"):
+                        for name, cfg in rm._term_cfgs.items():
+                            w.add_scalar(f"Reward_Weights/{name}", cfg.weight, 0)
+                    _initial_weights_logged[0] = True
+                except Exception:
+                    pass
 
         # -- LR schedule --
         if _lr_cooldown[0] > 0:
@@ -290,6 +411,14 @@ def train_phase(
             _last_reward_info[0] = log_data
         except Exception:
             pass
+
+        # -- Inject RSL-RL internal metrics (captured from runner.log) --
+        # These are the keys that MetricsCollector.collect() looks up:
+        _last_reward_info[0]["Mean reward"] = _runner_log_metrics["mean_reward"]
+        _last_reward_info[0]["Mean episode length"] = _runner_log_metrics["mean_episode_length"]
+        _last_reward_info[0]["Mean value_function loss"] = _runner_log_metrics["mean_value_loss"]
+        _last_reward_info[0]["Mean surrogate loss"] = _runner_log_metrics["mean_surrogate_loss"]
+        _last_reward_info[0]["Mean action noise std"] = _runner_log_metrics["mean_std"]
 
         # -- Periodic logging --
         if it % _log_interval == 0:
@@ -330,28 +459,28 @@ def train_phase(
         emergency = guardrails.check_emergency(snapshot)
         if emergency:
             if emergency == "nan_rollback":
+                msg = "NaN in policy parameters"
                 print(f"[AI-COACH] EMERGENCY: NaN detected at iter {it}!",
                       flush=True)
-                decision_log.log_emergency(it, phase_name, "nan_rollback",
-                                           "NaN in policy parameters")
-                # Save what we can and exit
+                decision_log.log_emergency(it, phase_name, "nan_rollback", msg)
+                _tb_log_emergency(it, "nan_rollback", msg)
                 env.close()
                 return
 
             elif emergency == "halve_lr":
                 new_lr = actuator.emergency_halve_lr()
                 _lr_cooldown[0] = 50  # hold for 50 iters
-                decision_log.log_emergency(
-                    it, phase_name, "halve_lr",
-                    f"Value loss {snapshot.value_loss:.1f} > 100, "
-                    f"LR halved to {new_lr:.2e}")
+                msg = (f"Value loss {snapshot.value_loss:.1f} > 100, "
+                       f"LR halved to {new_lr:.2e}")
+                decision_log.log_emergency(it, phase_name, "halve_lr", msg)
+                _tb_log_emergency(it, "halve_lr", msg)
                 return
 
             elif emergency == "emergency_stop":
+                msg = f"action_smoothness={snapshot.reward_breakdown.get('action_smoothness', 'N/A')}"
                 print(f"[AI-COACH] EMERGENCY STOP at iter {it}!", flush=True)
-                decision_log.log_emergency(
-                    it, phase_name, "emergency_stop",
-                    f"action_smoothness={snapshot.reward_breakdown.get('action_smoothness', 'N/A')}")
+                decision_log.log_emergency(it, phase_name, "emergency_stop", msg)
+                _tb_log_emergency(it, "emergency_stop", msg)
                 return
 
         # 2. Consult AI coach
@@ -419,6 +548,9 @@ def train_phase(
                              for k, v in applied.items()},
             api_latency_ms=latency,
         )
+
+        # 5. Log to TensorBoard
+        _tb_log_coach(it, snapshot, decision, applied, latency, all_msgs)
 
     runner.alg.update = update_with_ai_coach
 

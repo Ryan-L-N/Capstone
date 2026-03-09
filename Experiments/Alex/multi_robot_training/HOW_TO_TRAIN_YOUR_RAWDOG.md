@@ -1181,6 +1181,38 @@ All wrappers include `torch.where(torch.isfinite(result), result, torch.zeros_li
 
 ---
 
+### Bug #33: "The Blind Coach" (AI Coach Sees Zeros for Key Metrics)
+
+**What happened:** Trial 11l v5's AI coach fired its first consultation at iter 100 and saw `mean_reward=0.0`, `mean_episode_length=0.0`, `value_loss=0.0`, `noise_std=0.0` — while the actual training metrics were reward ~350, episode length ~1400, value loss ~1.4, noise 0.35. The reward breakdown (per-term contributions), survival rate, flip rate, and terrain level all worked fine. Only the top-level training health metrics were blind.
+
+**Root cause:** Two completely different data sources, only one captured. The `MetricsCollector.collect()` method looks for keys like `"Mean reward"` and `"Mean value_function loss"` in `reward_info`, which comes from `env.unwrapped.extras["log"]`. But those keys only exist as **local variables inside RSL-RL's `learn()` method** — `rewbuffer`, `lenbuffer`, `mean_value_loss`, `mean_surrogate_loss`, and `mean_std`. RSL-RL computes these internally, prints them to the console, writes them to TensorBoard, and then **throws them away**. They are never stored in any dict accessible from the monkey-patched `update()` hook.
+
+What DID work: Isaac Lab's environment puts `Episode_Reward/*`, `Episode_Termination/*`, and `Curriculum/*` keys into `extras["log"]` every step. These are a completely separate data pipeline from RSL-RL's internal metrics.
+
+**The fix:** Monkey-patch `runner.log()` in addition to `runner.alg.update()`. RSL-RL's `learn()` method calls `self.log(locals())` every iteration, passing all local variables including `rewbuffer`, `lenbuffer`, `mean_value_loss`, `mean_surrogate_loss`, and `mean_std`. We intercept this call to capture the values into a shared dict, then inject them into `_last_reward_info` with the exact key names that `MetricsCollector.collect()` expects.
+
+```python
+_original_runner_log = runner.log
+
+def _intercepting_log(locs, *a, **kw):
+    if "rewbuffer" in locs and len(locs["rewbuffer"]) > 0:
+        _runner_log_metrics["mean_reward"] = statistics.mean(locs["rewbuffer"])
+    if "lenbuffer" in locs and len(locs["lenbuffer"]) > 0:
+        _runner_log_metrics["mean_episode_length"] = statistics.mean(locs["lenbuffer"])
+    # ... capture losses and noise_std similarly
+    return _original_runner_log(locs, *a, **kw)
+
+runner.log = _intercepting_log
+```
+
+There is a 1-iteration delay (since `log()` runs after `update()`), which is negligible for a coach that checks every 100 iterations.
+
+**The lesson:** When monkey-patching a training framework, map out **every data source** and which pipeline it belongs to. RSL-RL has two completely separate data flows: (1) the environment's `extras["log"]` (per-step, accessible from the `update()` hook), and (2) the runner's internal metrics (per-iteration, only accessible from the `log()` hook). If you only intercept one, you get half the picture — and the coach makes decisions blind.
+
+**Impact:** Without this fix, the AI coach couldn't assess overall training health (is reward climbing? is value loss stable? is noise converging?). It could only see individual reward term breakdowns and termination rates. This is like a doctor who can read individual blood test results but can't see the patient's vital signs.
+
+---
+
 ### Bug #19: "The Learning Rate Ceiling" (1e-3 Is Too Hot for Early Training)
 
 **What happened:** Trial 7 fixed the warmup (50 iters) but kept `lr_max=1e-3`. The robot was learning well (reward 133, ep_len 1,181 at iter 100), then noise suddenly spiked from 0.70 to 0.86 and value_loss went from 0.61 to 3.4e24 in a single iteration.
@@ -2481,10 +2513,153 @@ All other weights identical to 11j. `clamped_action_smoothness_penalty` kept at 
 - Iter 1000+: Look for terrain 6-7 as freed joints + proper height signal + tighter noise combine.
 - Pull and play at iter 500, 1000 — check if robot crouches on rough terrain, stands tall on flat.
 
-**Expected outcome:** Terrain levels 6-7+, adaptive height (tall on flat, crouch on rough), less stiff-legged gait.
+**v4 metrics at iter ~430:**
+- Terrain: 2.89, **stuck again** — noise ceiling of 0.40 still too high
+- Reward: 298-338 (healthy, oscillating)
+- Gait: 6.5-7.5 (strong)
+- Flip: 11.1%, survival: 88.9%
+- action_smoothness: -2.5 (well controlled)
+- Noise: 0.40 (pinned at ceiling)
+- terrain_relative_height: -0.17 (active)
+- stumble: 0.0 (correct), body_height_tracking: 0.0 (correct)
+- **Diagnosis:** Same pattern as v2 — noise ceiling causes enough random falls to prevent curriculum promotion
 
-**Files modified:**
+#### The AI Revelation (v5): train_ai.py Takes Over
+
+At iter ~440 we made a pivotal decision: instead of killing and restarting with a lower noise ceiling yet again, we deployed the AI-guided training system (`train_ai.py`) to the H100. This replaced the manual `train_ppo.py` training loop with an LLM-monitored loop that can adjust noise, reward weights, and learning rate at runtime — no more kill-restart cycles for parameter tuning.
+
+**What we did:**
+1. Installed `anthropic` SDK on H100 (`pip install anthropic`)
+2. Deployed `ai_trainer/` folder + `train_ai.py` to H100
+3. Killed v4 at iter ~440
+4. Resumed from v4's `model_400.pt` with `train_ai.py`, `--max_noise_std 0.35`, `--coach_interval 100`
+
+**v5 (AI Revelation) launch command:**
+```bash
+./isaaclab.sh -p ~/multi_robot_training/train_ai.py --headless \
+    --robot spot --start_phase robust --end_phase robust \
+    --num_envs 5000 --max_noise_std 0.35 --min_noise_std 0.3 \
+    --coach_interval 100 --save_interval 100 \
+    --anthropic_api_key <KEY> \
+    --load_run 2026-03-08_19-04-32 --load_checkpoint model_400.pt \
+    --no_wandb
+```
+**Run dir v5:** `spot_robust_ppo/2026-03-08_20-38-10/`
+**Log file:** `~/phase_b_trial11l_ai.log`
+
+**v5 immediate results (iter ~408, ~5 min after launch):**
+- Terrain: **3.36** (jumped from 2.89 → 3.36 in 8 iterations just from lower noise!)
+- Flip: 3.2% (down from 11.1%)
+- Noise: 0.35 (new ceiling, down from 0.40)
+- All correct: stumble=0.0, body_height_tracking=0.0, terrain_relative_height active
+
+**What the AI coach does:**
+- Monitors training metrics every 100 iterations
+- Calls Claude (Sonnet) API with full metrics + reward breakdown + trends
+- Returns structured decisions: adjust weights, noise, LR, or no_change
+- All decisions pass through guardrails: max 3 changes, 20% max delta, frozen weights, sign constraints
+- Logs every decision to JSONL audit trail + TensorBoard custom panels
+
+**AI Coach TensorBoard panels** (on `http://172.24.254.24:6006`):
+- `AI_Coach/action_code` — what the coach decided (0=no_change, 1=adjust_weights)
+- `AI_Coach/confidence` — self-assessed confidence
+- `Reward_Weights/*` — tracks all 22 weights as the coach adjusts them
+- `Reward_Contrib/*` — per-reward contributions at each coach check
+- `Weight_Changes/*` — deltas applied when coach adjusts something
+
+**Why this is a turning point:** We spent Trial 11l v1 through v4 doing the exact same thing a machine could do — watching TensorBoard, diagnosing issues, editing config files on the server, and restarting. Each cycle took 1-2 hours of wall time for a human to notice the problem, diagnose it, make the fix, and relaunch. The AI coach does this automatically every 100 iterations (~20 min), with the full Bug Museum encoded as hard guardrails. No more kill-restart cycles, no more "I forgot to deploy that config change."
+
+**Expected outcome:** Terrain 6-7+ as the coach tunes weights in response to training dynamics. The coach can lower noise further if terrain stalls, adjust penalty weights if a specific reward dominates, and detect plateaus automatically.
+
+**Files modified (v5):**
 - `configs/spot_ppo_env_cfg.py` — `joint_pos` -0.7→-0.3, `dof_pos_limits` -5.0→-3.0, `stumble` -0.1→0.0 (Bug #28b), `body_height_tracking` -1.0→0.0 (Bug #22), `terrain_relative_height_penalty` added at -2.0 (was missing!), `clamped_action_smoothness_penalty` import kept
+- `train_ai.py` — deployed to H100 (replaces `train_ppo.py` for this run)
+- `ai_trainer/` — full AI coach system deployed to H100
+- `shared/reward_terms.py` — Bug #30 fix (flat terrain `terrain_types` guard)
+
+#### The Blind Coach Fix (v6): Metrics Interception
+
+At iter ~550, we discovered the AI coach was operating blind — `mean_reward=0.0`, `value_loss=0.0`, `noise_std=0.0` in the decision log, even though the actual metrics were healthy (reward ~350, value_loss ~1.4). Only the per-reward breakdown and termination rates were populated. Root cause: RSL-RL keeps these metrics as local variables inside `learn()`, never putting them into any accessible dict (Bug #33).
+
+**What we did:**
+1. Added `runner.log()` interception to `train_ai.py` — captures `rewbuffer`, `lenbuffer`, losses, and noise_std from the `locals()` dict that RSL-RL passes to its `log()` method
+2. Injected captured values into `_last_reward_info` with the exact key names `MetricsCollector` expects
+3. Killed v5 at iter ~550, hit D-state zombie (Isaac Sim CUDA deadlock), BMC rebooted
+4. Uploaded fixed `train_ai.py`, resumed from v5's `model_500.pt`
+
+**v6 launch command:**
+```bash
+./isaaclab.sh -p ~/multi_robot_training/train_ai.py --headless \
+    --robot spot --start_phase robust --end_phase robust \
+    --num_envs 5000 --max_noise_std 0.35 --min_noise_std 0.3 \
+    --coach_interval 100 --save_interval 100 \
+    --anthropic_api_key <KEY> \
+    --load_run 2026-03-08_20-38-10 --load_checkpoint model_500.pt \
+    --no_wandb
+```
+**Run dir v6:** `spot_robust_ppo/2026-03-08_21-25-50/`
+**Log file:** `~/phase_b_trial11l_ai_v6.log`
+
+**v6 early metrics (iter ~3, ~47s after launch):**
+- Terrain: **3.47** (climbing from 3.07)
+- Flip: 0.67% (excellent)
+- Value loss: healthy
+- First AI coach call (with full metrics) at iter 100 (~25 min)
+
+**What changes:** The coach can now see all 5 previously-blind metrics (mean_reward, mean_episode_length, value_loss, policy_loss, noise_std). This means it can assess overall training health, detect value loss spikes, track noise convergence, and make properly informed decisions about when to adjust weights vs. when to leave training alone.
+
+#### The Full Fix (v7): Complete Metrics Pipeline + Human-in-the-Loop
+
+v6 was a partial fix — `value_loss` and `noise_std` were still zero because H100's RSL-RL stores losses in `loss_dict` (a dict with keys `"value_function"`, `"surrogate"`), not as separate scalar locals. And `mean_std` is computed inside `log()`, not in `learn()` locals. Also, `current_weights` was empty because H100's Isaac Lab stores `RewardManager._term_cfgs` as a **list** (with names in `_term_names`), not a dict.
+
+**v7 fixes (3 files):**
+1. **`train_ai.py`** — Read `loss_dict["value_function"]` and `loss_dict["surrogate"]` instead of `mean_value_loss`/`mean_surrogate_loss`. Read noise directly from `runner.alg.policy.action_std.mean()`.
+2. **`ai_trainer/metrics.py`** — `_read_weights()` uses `zip(rm._term_names, rm._term_cfgs)` for list-style RewardManager, with fallback to `.items()` for dict-style.
+3. **`ai_trainer/actuator.py`** — `apply_weight_changes()` uses `rm._term_names.index(name)` to find the config index, then `rm._term_cfgs[idx].weight = new_weight`.
+
+**v7 also added human visual observation injection:**
+- **`ai_trainer/prompt_builder.py`** — `_read_human_notes()` checks `~/human_notes.txt`. If found, content is appended to the coach prompt under "## Human Observation (from visual evaluation)" with a note to weight qualitative observations heavily. File is renamed to `human_notes_consumed.txt` after reading so the same note isn't sent twice.
+- **Zero-downtime JSONL injection** — For immediate feedback without waiting for the next coach interval, append a fake `human_observation` entry directly to `ai_coach_decisions.jsonl`. The coach's "Recent Decisions" section reads the last 3 entries from this file, so the observation appears in the next prompt automatically. No restart needed.
+
+**Run dir v7:** `spot_robust_ppo/2026-03-08_22-13-32/`
+**Resumed from:** v5 `model_500.pt` (same as v6)
+
+#### The AI Coach in Action (v7 Results)
+
+Over 2,600 iterations (11 hours), the AI coach made 27 consultations:
+
+**Iter 100-1100 (11 consultations): Patience.**
+The coach correctly returned `no_change` for every check. Terrain hovered around 3.0-3.2, reward was healthy (314-365), survival >88%. The coach noted metrics were "within healthy ranges" and "need more data points." This is exactly the behavior we wanted — most of the time, `no_change` IS the right answer.
+
+**Iter 1200: First Autonomous Intervention — Gait Reward Dominance.**
+The coach identified that reward had declined from 350.8 to 309.4 over 400 iterations while value loss rose from 1.07 to 1.50. Its diagnosis: gait reward was dominating the reward landscape (7.25 per episode — the single largest reward term), preventing the policy from exploring terrain-adaptive strategies. Decision:
+- `gait`: 10.0 → **8.5** (reduce dominance)
+- `base_orientation`: -3.0 → **-2.4** (reduce competing penalty)
+
+**Result:** Terrain immediately resumed climbing. From 3.36 at iter 1200, the policy advanced through 3.55 → 3.69 → 3.81 → 3.97 → 4.03 → 4.17 → 4.25 over the next 1200 iterations. **The coach diagnosed and fixed the same terrain plateau that took humans 4 manual restarts to identify (v1 through v4).**
+
+**Iter 1300-2400 (12 consultations): Continued Patience.**
+With terrain steadily climbing, the coach correctly held steady. Even when flip rate briefly hit 12.5% at iter 2200, the coach noted "intervention could disrupt terrain progression" — exactly the patience principle we encoded.
+
+**Iter 2500: Human-Informed Intervention — Gait Quality.**
+A human pulled `model_2900.pt` into the lava arena and observed: "legs crossing, very unstable, hard to control." This observation was injected into the JSONL decision log as a `human_observation` entry. At iter 2500, the coach read this and made 3 targeted changes:
+- `joint_pos`: -0.3 → **-0.36** (guardrail limited from -0.5; penalize leg crossing)
+- `action_smoothness`: -1.0 → **-1.2** (smoother joint commands)
+- `base_motion`: -2.0 → **-2.4** (reduce instability/bounce)
+
+The coach's reasoning: "Human visual evaluation identified critical gait quality issues: leg crossing, instability, and poor control despite adequate terrain numbers."
+
+**Iter 2600: Letting Changes Settle.**
+Reward dipped from 318.4 to 283.8 — expected after weight changes as the policy adapts. Coach correctly said `no_change`: "Recent weight adjustments need time to take effect."
+
+**Current state (iter 2600, 11 hours):**
+- Terrain: **4.32** (from 3.0 at start — steady climb)
+- Reward: 283.8 (temporary dip, recovering)
+- Survival: 89.8%, Flip: 9.7%
+- Value loss: 1.21 (healthy)
+- Terrain trend: +0.056/iter (strong positive)
+
+**Why this matters:** The AI coach made 2 interventions in 2,600 iterations. Both were correct. The first (iter 1200) broke a terrain plateau that humans couldn't fix in 4 manual restarts. The second (iter 2500) combined human qualitative feedback with the coach's quantitative analysis — the human noticed gait problems the numbers couldn't capture, the coach translated that into specific, guardrail-safe weight changes. This is the human-AI collaboration loop working exactly as designed: AI handles the 24/7 monitoring and parameter tuning, human provides visual quality assessment that numerical metrics can't capture, and the system acts on both without downtime.
 
 ---
 
