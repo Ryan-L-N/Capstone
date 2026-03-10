@@ -91,6 +91,27 @@ PHASE_CONFIGS = {
         min_survival_rate=0.85,
         max_flip_rate=0.12,
     ),
+    "mason_hybrid": PhaseConfig(
+        name="mason_hybrid",
+        terrain="robust",
+        num_envs=4096,
+        max_iterations=20000,
+        lr_max=1e-3,          # Mason's — managed by adaptive KL schedule
+        lr_min=1e-5,
+        warmup_iters=0,       # No warmup — adaptive schedule handles it
+        max_noise_std=1.0,    # Mason's init_noise_std — adaptive schedule manages
+        min_noise_std=0.2,
+        save_interval=100,
+        num_learning_epochs=5,
+        min_terrain_level=6.0,
+        min_survival_rate=0.80,   # Slightly lower — harder terrain
+        max_flip_rate=0.15,
+        max_value_loss=15.0,
+        frozen_weights={
+            "stumble",              # Bug #28b
+            "body_height_tracking", # Bug #22
+        },
+    ),
 }
 
 # Ordered phase progression
@@ -112,6 +133,11 @@ class CoachConfig:
     max_stall_iters: int = 500         # plateau detection threshold
     history_window: int = 200          # rolling metric history size
     decision_history: int = 5          # past decisions sent to coach
+
+    # Deferred coach activation — silent for N iters, then passive, then active
+    activation_threshold: int = 0      # 0 = immediate, >0 = deferred
+    lr_change_enabled: bool = True     # False = coach cannot change LR
+    noise_change_enabled: bool = True  # False = coach cannot change noise
 
     # Weight bounds — absolute limits the coach cannot exceed
     # Positive rewards: (min, max), Negative penalties: (max_negative, min_negative)
@@ -141,10 +167,33 @@ class CoachConfig:
         "vegetation_drag":         (-1.0, -0.001),
     })
 
+    # Tighter bounds for mason_hybrid — centered on Mason's proven values
+    mason_hybrid_bounds: dict = field(default_factory=lambda: {
+        # Positive rewards — tight range around Mason's 5.0/10.0
+        "air_time":                (2.0, 8.0),
+        "base_angular_velocity":   (3.0, 7.0),
+        "base_linear_velocity":    (3.0, 7.0),
+        "foot_clearance":          (0.2, 1.5),
+        "gait":                    (5.0, 12.0),
+        # Negative penalties — tight range around Mason's values
+        "action_smoothness":       (-3.0, -0.3),
+        "air_time_variance":       (-3.0, -0.3),
+        "base_motion":             (-4.0, -1.0),
+        "base_orientation":        (-5.0, -1.5),
+        "foot_slip":               (-2.0, -0.2),
+        "joint_acc":               (-5e-3, -5e-5),
+        "joint_pos":               (-1.0, -0.3),  # NEVER loosen below -0.3
+        "joint_torques":           (-5e-3, -5e-5),
+        "joint_vel":               (-5e-2, -5e-3),
+        "dof_pos_limits":          (-5.0, -1.0),
+        "terrain_relative_height": (-4.0, -1.0),
+    })
+
     # Phase-specific LR ceilings — NEVER exceed these
     phase_lr_limits: dict = field(default_factory=lambda: {
         "flat": 3e-4,
         "transition": 3e-4,
         "robust_easy": 5e-5,
         "robust": 3e-5,
+        "mason_hybrid": 1e-3,  # Managed by adaptive KL schedule
     })

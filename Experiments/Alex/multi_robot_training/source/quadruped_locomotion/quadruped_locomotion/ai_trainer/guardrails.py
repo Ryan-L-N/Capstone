@@ -97,8 +97,12 @@ class Guardrails:
                     f"REJECTED {name}: penalty cannot be positive")
                 continue
 
-            # Absolute bounds
-            bounds = self.coach_cfg.weight_bounds.get(name)
+            # Absolute bounds — use tighter mason_hybrid bounds if available
+            bounds = None
+            if self.phase_cfg.name == "mason_hybrid" and hasattr(self.coach_cfg, "mason_hybrid_bounds"):
+                bounds = self.coach_cfg.mason_hybrid_bounds.get(name)
+            if bounds is None:
+                bounds = self.coach_cfg.weight_bounds.get(name)
             if bounds:
                 lo, hi = bounds
                 if new_val < lo:
@@ -143,6 +147,10 @@ class Guardrails:
         if new_lr is None:
             return None, []
 
+        # LR changes disabled (e.g. mason_hybrid uses adaptive KL schedule)
+        if not self.coach_cfg.lr_change_enabled:
+            return None, ["REJECTED LR change: disabled for this run (adaptive schedule manages LR)"]
+
         messages = []
         phase_max = self.coach_cfg.phase_lr_limits.get(
             self.phase_cfg.name, 3e-5)
@@ -165,6 +173,10 @@ class Guardrails:
         """Validate proposed noise std change."""
         if new_noise is None:
             return None, []
+
+        # Noise changes disabled (e.g. mason_hybrid uses adaptive schedule)
+        if not self.coach_cfg.noise_change_enabled:
+            return None, ["REJECTED noise change: disabled for this run (adaptive schedule manages noise)"]
 
         messages = []
         if new_noise > self.phase_cfg.max_noise_std:

@@ -50,14 +50,22 @@ class Coach:
         self.coach_cfg = coach_cfg
         self.phase_cfg = phase_cfg
         self.client = anthropic.Anthropic(api_key=api_key)
-        self.system_prompt = build_system_prompt(coach_cfg, phase_cfg)
+        self._passive_mode = False
+        self.system_prompt = build_system_prompt(coach_cfg, phase_cfg, passive_mode=False)
         self._consecutive_failures = 0
         self._max_failures = 3
+
+    def set_passive_mode(self, passive: bool):
+        """Enable/disable passive mode (biased toward no_change)."""
+        self._passive_mode = passive
+        self.system_prompt = build_system_prompt(
+            self.coach_cfg, self.phase_cfg, passive_mode=passive)
 
     def update_phase(self, phase_cfg: PhaseConfig):
         """Update the coach's phase config (after phase transition)."""
         self.phase_cfg = phase_cfg
-        self.system_prompt = build_system_prompt(self.coach_cfg, phase_cfg)
+        self.system_prompt = build_system_prompt(
+            self.coach_cfg, phase_cfg, passive_mode=self._passive_mode)
 
     def get_decision(
         self,

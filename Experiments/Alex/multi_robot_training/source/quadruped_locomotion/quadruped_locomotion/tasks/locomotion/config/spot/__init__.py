@@ -52,3 +52,23 @@ gym.register(
         "env_cfg_entry_point": f"{__name__}.env_cfg:SpotLocomotionEnvCfg",
     },
 )
+
+gym.register(
+    id="Locomotion-MasonHybrid-Spot-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.mason_hybrid_env_cfg:SpotMasonHybridEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{__name__}.agents.rsl_rl_mason_hybrid_cfg:SpotMasonHybridPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="Locomotion-MasonHybrid-Spot-Play-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.mason_hybrid_env_cfg:SpotMasonHybridEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{__name__}.agents.rsl_rl_mason_hybrid_cfg:SpotMasonHybridPPORunnerCfg",
+    },
+)

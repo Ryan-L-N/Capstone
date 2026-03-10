@@ -34,10 +34,10 @@ parser = argparse.ArgumentParser(description="AI-guided PPO training for Spot")
 parser.add_argument("--robot", type=str, default="spot",
                     choices=["spot", "vision60"])
 parser.add_argument("--start_phase", type=str, default="flat",
-                    choices=["flat", "transition", "robust_easy", "robust"],
+                    choices=["flat", "transition", "robust_easy", "robust", "mason_hybrid"],
                     help="Which phase to start from")
 parser.add_argument("--end_phase", type=str, default="robust",
-                    choices=["flat", "transition", "robust_easy", "robust"],
+                    choices=["flat", "transition", "robust_easy", "robust", "mason_hybrid"],
                     help="Which phase to end at")
 parser.add_argument("--num_envs", type=int, default=5000)
 parser.add_argument("--seed", type=int, default=42)
@@ -64,6 +64,13 @@ parser.add_argument("--anthropic_api_key", type=str, default=None,
 # Resume args
 parser.add_argument("--load_run", type=str, default=None)
 parser.add_argument("--load_checkpoint", type=str, default=None)
+
+# Deferred coach activation (mason_hybrid mode)
+parser.add_argument("--coach_mode", type=str, default="immediate",
+                    choices=["immediate", "deferred"],
+                    help="immediate=coach active from iter 0, deferred=3-stage activation")
+parser.add_argument("--activation_threshold", type=int, default=3000,
+                    help="Iterations before coach activates (deferred mode only)")
 
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
@@ -104,9 +111,13 @@ configure_tf32()
 
 # ── 2. Config Loading ───────────────────────────────────────────────────
 
-def load_robot_configs(robot: str):
-    """Load env and PPO configs for the specified robot."""
-    if robot == "spot":
+def load_robot_configs(robot: str, phase: str = "robust"):
+    """Load env and PPO configs for the specified robot and phase."""
+    if robot == "spot" and phase == "mason_hybrid":
+        from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
+        from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import SpotMasonHybridPPORunnerCfg
+        return SpotMasonHybridEnvCfg(), SpotMasonHybridPPORunnerCfg(), "Locomotion-MasonHybrid-Spot-v0"
+    elif robot == "spot":
         from quadruped_locomotion.tasks.locomotion.config.spot.env_cfg import SpotLocomotionEnvCfg
         from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_ppo_cfg import SpotPPORunnerCfg
         return SpotLocomotionEnvCfg(), SpotPPORunnerCfg(), "Locomotion-Robust-Spot-v0"
@@ -300,14 +311,24 @@ def train_phase(
     best_reward = -float("inf")
     best_checkpoint = None
 
-    initial_lr = cosine_annealing_lr(
-        0, agent_cfg.max_iterations, lr_max, lr_min, args_cli.warmup_iters
-    )
-    set_learning_rate(runner, initial_lr)
+    # When resuming, the runner's iteration counter starts at the checkpoint
+    # iteration (e.g. 3900), but the coach counter was starting at 0.
+    # This caused a mismatch: training shows iter 10400 but coach logs iter 6500.
+    # Fix: offset the coach counter so it matches checkpoint/runner iterations.
+    _resume_offset = getattr(runner, "current_learning_iteration", 0)
+
+    # Detect if RSL-RL is using adaptive LR schedule (mason_hybrid mode)
+    _use_adaptive_lr = (agent_cfg.to_dict().get("algorithm", {}).get("schedule") == "adaptive")
+
+    if not _use_adaptive_lr:
+        initial_lr = cosine_annealing_lr(
+            0, agent_cfg.max_iterations, lr_max, lr_min, args_cli.warmup_iters
+        )
+        set_learning_rate(runner, initial_lr)
 
     # Monkey-patch the update function for LR schedule + AI coaching
     original_update = runner.alg.update
-    _iteration_counter = [0]
+    _iteration_counter = [_resume_offset]
     _log_interval = 100
     _lr_cooldown = [0]  # iterations remaining on emergency LR cooldown
 
@@ -384,15 +405,16 @@ def train_phase(
                 except Exception:
                     pass
 
-        # -- LR schedule --
-        if _lr_cooldown[0] > 0:
-            _lr_cooldown[0] -= 1
-        else:
-            lr = cosine_annealing_lr(
-                it, agent_cfg.max_iterations, lr_max, lr_min,
-                args_cli.warmup_iters
-            )
-            set_learning_rate(runner, lr)
+        # -- LR schedule (skip if using adaptive KL schedule) --
+        if not _use_adaptive_lr:
+            if _lr_cooldown[0] > 0:
+                _lr_cooldown[0] -= 1
+            else:
+                lr = cosine_annealing_lr(
+                    it - _resume_offset, agent_cfg.max_iterations, lr_max, lr_min,
+                    args_cli.warmup_iters
+                )
+                set_learning_rate(runner, lr)
 
         # -- Run the actual PPO update --
         result = original_update(*args, **kwargs)
@@ -420,9 +442,10 @@ def train_phase(
         # -- Periodic logging --
         if it % _log_interval == 0:
             current_lr = runner.alg.optimizer.param_groups[0]["lr"]
-            fps = it * steps_per_iter / max(elapsed, 1) if it > 0 else 0
+            total_iters = agent_cfg.max_iterations + _resume_offset
+            fps = (it - _resume_offset) * steps_per_iter / max(elapsed, 1) if it > _resume_offset else 0
             print(
-                f"[AI-TRAIN] iter={it:6d}/{agent_cfg.max_iterations}  "
+                f"[AI-TRAIN] iter={it:6d}/{total_iters}  "
                 f"lr={current_lr:.2e}  elapsed={hours:.1f}h  fps={fps:.0f}",
                 flush=True,
             )
@@ -434,17 +457,37 @@ def train_phase(
         _iteration_counter[0] += 1
         return result
 
-    def _run_coach_check(it: int, hours: float):
-        """Run the AI coach check at the current iteration."""
-        current_lr = runner.alg.optimizer.param_groups[0]["lr"]
+    # 3-stage activation state for deferred mode
+    _coach_activated = [args_cli.coach_mode == "immediate"]
+    _first_plateau_seen = [False]
+    _activation_threshold = args_cli.activation_threshold if args_cli.coach_mode == "deferred" else 0
 
-        # Collect metrics
+    def _run_coach_check(it: int, hours: float):
+        """Run the AI coach check at the current iteration.
+
+        3-stage activation (deferred mode):
+          Stage 1 (silent):  it < activation_threshold → collect metrics only, no API
+          Stage 2 (passive): it >= threshold, no plateau yet → API call, biased no_change
+          Stage 3 (active):  plateau detected → full coach intervention
+        """
+        current_lr = runner.alg.optimizer.param_groups[0]["lr"]
+        relative_it = it - _resume_offset  # iterations since this run started
+
+        # Collect metrics (always — needed for plateau detection)
         snapshot = metrics_collector.collect(
             iteration=it,
             elapsed_hours=hours,
             reward_info=_last_reward_info[0],
             lr=current_lr,
         )
+
+        # Stage 1: Silent mode — metrics only, no API call
+        if _activation_threshold > 0 and relative_it < _activation_threshold:
+            if relative_it % 500 == 0:
+                print(f"[AI-COACH] Silent mode — {_activation_threshold - relative_it} "
+                      f"iters until activation (terrain={snapshot.mean_terrain_level:.2f})",
+                      flush=True)
+            return
 
         # Track best reward
         nonlocal best_reward, best_checkpoint
@@ -480,11 +523,24 @@ def train_phase(
                 _tb_log_emergency(it, "emergency_stop", msg)
                 return
 
-        # 2. Consult AI coach
+        # 2. Activate coach if in deferred mode
+        if not _coach_activated[0]:
+            _coach_activated[0] = True
+            coach.set_passive_mode(True)
+            print(f"[AI-COACH] Activated in PASSIVE mode at iter {it}", flush=True)
+
+        # 2b. Consult AI coach
         if not coach.is_available:
             return
 
         plateau = metrics_collector.is_plateau()
+
+        # Transition from passive to active on first plateau
+        if plateau and not _first_plateau_seen[0]:
+            _first_plateau_seen[0] = True
+            coach.set_passive_mode(False)
+            print(f"[AI-COACH] PLATEAU DETECTED — switching to ACTIVE mode at iter {it}",
+                  flush=True)
         recent_history = list(metrics_collector.history)
         recent_decisions = decision_log.get_recent(coach_cfg.decision_history)
 
@@ -592,6 +648,12 @@ def main():
         api_model=args_cli.coach_model,
     )
 
+    # Mason hybrid mode — use tighter bounds, disable LR/noise changes
+    if args_cli.start_phase == "mason_hybrid":
+        coach_cfg.activation_threshold = args_cli.activation_threshold
+        coach_cfg.lr_change_enabled = False   # Adaptive KL schedule manages LR
+        coach_cfg.noise_change_enabled = False # Adaptive schedule manages noise
+
     # Initialize AI coach
     coach = None
     if not args_cli.no_coach:
@@ -600,14 +662,20 @@ def main():
             start_phase_cfg = PHASE_CONFIGS[args_cli.start_phase]
             coach = Coach(coach_cfg, start_phase_cfg, api_key=api_key)
             print("[AI-TRAIN] AI Coach initialized", flush=True)
+            if args_cli.coach_mode == "deferred":
+                print(f"[AI-TRAIN] Coach mode: DEFERRED (silent for {args_cli.activation_threshold} iters)",
+                      flush=True)
         else:
             print("[AI-TRAIN] WARNING: No API key, running without AI coach",
                   flush=True)
 
-    # Determine phase range
-    start_idx = PHASE_ORDER.index(args_cli.start_phase)
-    end_idx = PHASE_ORDER.index(args_cli.end_phase)
-    phases = PHASE_ORDER[start_idx:end_idx + 1]
+    # Determine phase range — mason_hybrid is a single-phase run
+    if args_cli.start_phase == "mason_hybrid":
+        phases = ["mason_hybrid"]
+    else:
+        start_idx = PHASE_ORDER.index(args_cli.start_phase)
+        end_idx = PHASE_ORDER.index(args_cli.end_phase)
+        phases = PHASE_ORDER[start_idx:end_idx + 1]
 
     print(f"[AI-TRAIN] Training phases: {' → '.join(phases)}", flush=True)
 
@@ -623,8 +691,9 @@ def main():
             coach.update_phase(PHASE_CONFIGS[phase_name])
 
         # Load fresh configs for each phase (terrain changes need new env)
-        env_cfg, agent_cfg, env_id = load_robot_configs(args_cli.robot)
-        apply_phase_terrain(env_cfg, phase_name)
+        env_cfg, agent_cfg, env_id = load_robot_configs(args_cli.robot, phase_name)
+        if phase_name != "mason_hybrid":
+            apply_phase_terrain(env_cfg, phase_name)
 
         checkpoint, should_advance = train_phase(
             phase_name=phase_name,

@@ -2674,6 +2674,105 @@ At iter 3300, the coach read the human observation about model_3700 (sideways st
 
 **What this means:** The coach now sees directional control as a number. If the policy starts stumbling sideways again, `vel_tracking_error_xy` will spike and the coach can diagnose it autonomously — no human lava-arena session needed. Combined with the human observation injection from v7, the coach now has both quantitative gait quality metrics AND qualitative human feedback channels.
 
+#### The End of Trial 11l (v8 Results): Terrain 4.83 Ceiling
+
+v8 ran 6,700 coach iterations (absolute iterations 4000-10636) over ~6 hours. The AI coach made 67 consultations: 58 no_change, 9 adjust_weights.
+
+**Key v8 interventions:**
+- **Iter 100:** Coach read leftover human feedback from v7, adjusted joint_pos (-0.3→-0.36), base_motion (-2.4→-2.88), boosted base_linear_velocity (6→7)
+- **Iter 1000:** Velocity tracking error spiked to 3.5 — coach boosted both velocity rewards (linear 7→8, angular 6→7)
+- **Iter 1100:** Human plateau alert (terrain stuck at 4.6 for 300+ iters) — coach boosted velocity (8→9), relaxed action_smoothness (-1.2→-1.0)
+- **Iter 2100-2200:** More velocity tracking degradation — velocity rewards climbed to 10.8/8.4
+- **Iter 4600:** Another human feedback ("critical deployment issues despite good metrics") — velocity rewards pushed to 12.96/10.08
+- **Iter 5400:** Coach self-identified velocity tracking degradation — pushed to 14.26/11.09
+- **Iter 6500:** Coach recognized the velocity reward drift pattern and executed a "weight convergence plan" — pulled velocity back (14.26→11.41), boosted gait (8.5→10.2), tightened joint_pos (-0.3→-0.36)
+
+**Final v8 metrics (iter 10636):**
+- Terrain: **4.83** (plateau — stuck for 1000+ iterations)
+- Reward: 640-682 (high, but inflated by overweight velocity rewards)
+- Survival: 90.5%, Flip: 9.0%
+- Value loss: 4.2-5.1 (slightly elevated but stable)
+- Noise: 0.35 (at ceiling)
+
+**Why we stopped:** Terrain 4.83 was the ceiling for our config. Three root causes:
+1. **Network too large:** [1024,512,256] (2.4M params) overfits to easy-terrain survival strategies rather than discovering hard-terrain locomotion
+2. **Too many competing rewards:** 22 reward terms created a reward landscape too complex for the policy to navigate — and too complex for the AI coach to tune without cascading side effects
+3. **Velocity reward drift:** The coach's repeated velocity boosting (5→14.26) was a positive feedback loop — each boost temporarily improved tracking error but distorted the reward balance, requiring more boosts
+
+**The lesson:** More tuning couldn't fix this. The problem was architectural — we needed a simpler foundation. Enter the Mason Hybrid.
+
+---
+
+### Trial MH-1: The Mason Hybrid (IN PROGRESS)
+
+After 11 trials and ~30 sub-iterations of our custom config, we acknowledged that complexity was the enemy. Mason's team had independently reached terrain level ~6 with a simpler setup: 11 reward terms (vs our 22), [512,256,128] network (vs [1024,512,256]), adaptive KL-based LR (vs cosine annealing), and lighter domain randomization. Rather than continue fighting our overengineered reward landscape, we built a hybrid: Mason's proven reward weights and network architecture, our 12-type robust terrain (with friction randomization and boulders), and the AI Coach as a safety net — not the primary driver.
+
+**The hypothesis:** Mason's cleaner reward structure + our harder terrain + AI Coach (deferred activation) = terrain 6-10.
+
+**What's different from Trial 11l:**
+
+| Component | Trial 11l (our config) | MH-1 (Mason Hybrid) |
+|-----------|----------------------|---------------------|
+| Network | [1024, 512, 256] (2.4M params) | [512, 256, 128] (800K params) |
+| Reward terms | 22 (many competing) | 14 (Mason's 11 + 3 surgical additions) |
+| LR schedule | Cosine annealing (3e-5) | Adaptive KL (starts 1e-3, auto-adjusts) |
+| Noise | Fixed bounds (0.3-0.35) | Adaptive (starts 1.0, KL manages) |
+| DR | Heavy (mass ±5, friction 0.15-1.0) | Light (mass ±2.5, friction 0.3-1.0) |
+| Obs corruption | Enabled | Disabled |
+| Gait params | velocity_threshold=0.25 | velocity_threshold=0.5, mode_time=0.3 |
+| joint_pos | -0.3 (too loose) | -0.7 (Mason's — proven) |
+| Episode length | 30s | 20s (Mason's) |
+| Steps/env | 32 | 24 (Mason's) |
+| Mini-batches | 64 | 4 (Mason's) |
+| Coach activation | Immediate | Deferred (silent → passive → active) |
+
+**3-stage coach activation:**
+1. **Silent** (iters 0 to first plateau): Collect metrics only, no API calls. Let Mason's config prove itself.
+2. **Passive** (after plateau detected): API calls begin, but biased toward `no_change`. Coach told to "RESPECT THE BASELINE."
+3. **Active** (after first plateau response): Full intervention capability, but with tighter bounds than Trial 11l (velocity rewards capped at 7.0, not 15.0).
+
+**Our 3 additions to Mason's config:**
+1. `terrain_relative_height` (weight -2.0) — prevents belly-crawl exploit (Bug #27), variance-based height target
+2. `dof_pos_limits` (weight -3.0) — prevents knee locking at URDF joint limits
+3. `clamped_action_smoothness` — Bug #29 safety (Mason uses unbounded `action_smoothness`)
+
+**Coach guardrails for mason_hybrid:**
+- LR changes **disabled** — adaptive KL schedule manages LR, coach can't interfere
+- Noise changes **disabled** — adaptive schedule manages noise
+- Tighter weight bounds — velocity rewards capped at 3.0-7.0 (vs 1.0-15.0 general), joint_pos never looser than -0.3
+- Same max-3-changes-at-a-time rule, same 20% max delta, same frozen weights
+
+**Launch command:**
+```bash
+python /home/t2user/multi_robot_training_new/scripts/rsl_rl/train_ai.py \
+  --task Locomotion-MasonHybrid-Spot-v0 \
+  --headless --no_wandb \
+  --num_envs 4096 --save_interval 100 \
+  --start_phase mason_hybrid --end_phase mason_hybrid \
+  --coach_interval 100 --coach_mode deferred --activation_threshold 300 \
+  --max_noise_std 1.0
+```
+
+**Run dir:** `spot_hybrid_ppo/2026-03-10_18-55-33/`
+**TensorBoard:** `http://172.24.254.24:6006`
+
+**Early metrics (iter 141, ~21 min):**
+- Terrain: 0.02 (normal — learning to stand from scratch)
+- Reward: 40.1 (early phase, climbing)
+- Episode length: 231 steps (Mason's 20s episodes, getting longer = surviving longer)
+- Timeout: 61.5% (more than half survive to timeout — good for iter 141)
+- Flip: 0.0% (excellent)
+- Body contact termination: 38.5% (falling over, but improving)
+- Noise: 0.51 (declining from 1.0 — adaptive schedule working)
+- Value loss: 1.61 (healthy)
+- Throughput: ~11,500 steps/s at 8.5s/iter
+
+**What to watch:**
+- Iter 500-1000: Terrain should start climbing as basic locomotion stabilizes
+- Iter 2000-3000: Should reach terrain 2-3 (where Trial 11l plateaued for weeks)
+- Iter 5000+: If terrain > 5, Mason's config is genuinely better. If plateaued, coach activates.
+- Iter 10000+: Target terrain 6-7. If reached, we've broken through the 4.83 ceiling.
+
 ---
 
 ### Trial 12: Vision60 (PLANNED)

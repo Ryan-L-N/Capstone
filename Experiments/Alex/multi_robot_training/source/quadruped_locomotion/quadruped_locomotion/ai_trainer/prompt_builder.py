@@ -14,10 +14,28 @@ if TYPE_CHECKING:
     from quadruped_locomotion.ai_trainer.metrics import MetricsSnapshot
 
 
-def build_system_prompt(coach_cfg: CoachConfig, phase_cfg: PhaseConfig) -> str:
-    """Build the system prompt for the AI coach."""
+def build_system_prompt(coach_cfg: CoachConfig, phase_cfg: PhaseConfig, passive_mode: bool = False) -> str:
+    """Build the system prompt for the AI coach.
+
+    Args:
+        passive_mode: If True, bias toward no_change (used during deferred activation).
+    """
+
+    passive_preamble = ""
+    if passive_mode:
+        passive_preamble = """
+## PASSIVE MODE — RESPECT THE BASELINE
+This policy is training with a PROVEN baseline configuration (Mason's weights).
+These weights have been validated to produce good terrain climbing performance.
+Only intervene if you see CLEAR evidence of a plateau (300+ iterations without
+terrain advancement) or a regression. Do NOT adjust weights speculatively.
+The baseline weights are the result of careful manual tuning — trust them unless
+the data clearly says otherwise.
+
+"""
 
     return f"""You are an RL training coach for quadruped robot locomotion (Boston Dynamics Spot) in NVIDIA Isaac Lab. You monitor training metrics and decide whether to adjust reward weights, learning rate, or noise bounds to improve training outcomes.
+{passive_preamble}
 
 ## Your Role
 - Analyze training metrics every {coach_cfg.check_interval} iterations
