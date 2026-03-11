@@ -333,7 +333,7 @@ gym.register(
 │           └── prompt_builder.py          # Passive preamble
 ├── scripts/rsl_rl/
 │   └── train_ai.py                        # Entry point
-└── logs/ → ~/IsaacLab/logs/               # Symlink
+└── logs/rsl_rl/spot_hybrid_ppo → ~/logs/rsl_rl/spot_hybrid_ppo  # Symlink (Bug MH-3)
 ```
 
 ### 7.2 Deployment Steps
@@ -378,12 +378,15 @@ Temperature: 48°C (safe range). Throughput: ~11,500 steps/s at 8.5s/iter.
 | World-frame Z height tracking | `body_height_tracking = 0.0` (frozen) | `mason_hybrid_env_cfg.py`, `guardrails.py` |
 | World-frame Z stumble penalty | `stumble = 0.0` (frozen) | `mason_hybrid_env_cfg.py`, `guardrails.py` |
 | Belly-crawl exploit without height penalty | `terrain_relative_height = -2.0` | `mason_hybrid_env_cfg.py` |
+| TensorBoard stuck at iter 96 (Bug MH-1) | TB pointed at `~/IsaacLab/logs/` but training wrote to `~/logs/` (cwd-relative). Fix: `--logdir ~/logs/rsl_rl/spot_hybrid_ppo/` | TensorBoard launch command |
+| Coach 401 auth error, disables after 3 failures (Bug MH-2) | Expired API key in `~/.anthropic_key`. `_consecutive_failures` counter can't reset without restart — must kill and resume from checkpoint | `~/.anthropic_key`, restart required |
+| `FileNotFoundError` on resume — log root mismatch (Bug MH-3) | `get_checkpoint_path()` builds path from cwd. Checkpoints in `~/logs/` but cwd is `~/multi_robot_training_new/`. Fix: `ln -sf ~/logs/rsl_rl/spot_hybrid_ppo ~/multi_robot_training_new/logs/rsl_rl/spot_hybrid_ppo` | Symlink |
 
 ---
 
 ## 9. Decision Log Schema
 
-Location: `~/IsaacLab/logs/rsl_rl/spot_hybrid_ppo/<run_dir>/ai_coach_decisions.jsonl`
+Location: `~/logs/rsl_rl/spot_hybrid_ppo/<run_dir>/ai_coach_decisions.jsonl`
 
 Each line is a JSON object:
 

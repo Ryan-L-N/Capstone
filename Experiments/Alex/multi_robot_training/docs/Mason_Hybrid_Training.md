@@ -189,6 +189,57 @@ python scripts/rsl_rl/train_ai.py \
 
 ---
 
+## Launch Bugs (MH-1 Run History)
+
+Three bugs hit during the first launch sequence. All fixed — documented here so they don't bite again.
+
+### Bug MH-1: TensorBoard Points at Wrong Log Directory
+
+**Symptom:** TensorBoard stuck at iter 96 while training was at iter 350+.
+
+**Root cause:** When launching with `cd /home/t2user/multi_robot_training_new`, RSL-RL writes logs to `~/logs/rsl_rl/spot_hybrid_ppo/` (relative to cwd), not `~/IsaacLab/logs/rsl_rl/spot_hybrid_ppo/` where we pointed TensorBoard. The initial 96 iters came from a brief first launch attempt that *did* use the IsaacLab path.
+
+**Fix:** Point TensorBoard at the actual log directory:
+```bash
+tensorboard --logdir ~/logs/rsl_rl/spot_hybrid_ppo/ --port 6006 --bind_all
+```
+
+**Lesson:** Always check where events files are actually being written (`find ~ -name 'events.out*' -mmin -30`) before assuming the log path.
+
+### Bug MH-2: Invalid API Key — Coach Dies After 3 Failures
+
+**Symptom:** Coach activated at iter 300 but every API call returned `401 authentication_error`. After 3 consecutive failures, the coach disabled itself permanently for the run.
+
+**Root cause:** The `~/.anthropic_key` file on the H100 had an expired API key. The launch script reads it via `export ANTHROPIC_API_KEY=$(cat ~/.anthropic_key)`, so a bad file = a dead coach.
+
+**Fix:** Updated `~/.anthropic_key` with a fresh key. But the failure counter (`_consecutive_failures = 3`) couldn't be reset without restarting — so we had to kill and resume from `model_400.pt`.
+
+**Lesson:** Verify the API key works *before* launching a multi-hour training run:
+```bash
+curl -s https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $(cat ~/.anthropic_key)" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "content-type: application/json" \
+  -d '{"model":"claude-sonnet-4-20250514","max_tokens":10,"messages":[{"role":"user","content":"ping"}]}' \
+  | head -c 100
+```
+
+### Bug MH-3: Resume Can't Find Checkpoint — Log Root Mismatch
+
+**Symptom:** `FileNotFoundError: No such file or directory: '/home/t2user/multi_robot_training_new/logs/rsl_rl/spot_hybrid_ppo'` when resuming with `--load_run`.
+
+**Root cause:** `get_checkpoint_path()` in Isaac Lab constructs the resume path from `log_root_path`, which is based on cwd. Training ran from `~/multi_robot_training_new/`, so it looked for checkpoints in `~/multi_robot_training_new/logs/...`. But the checkpoints were in `~/logs/rsl_rl/spot_hybrid_ppo/` (where the first run wrote them).
+
+**Fix:** Symlink the log directory:
+```bash
+mkdir -p ~/multi_robot_training_new/logs/rsl_rl
+ln -sf ~/logs/rsl_rl/spot_hybrid_ppo ~/multi_robot_training_new/logs/rsl_rl/spot_hybrid_ppo
+```
+
+**Lesson:** RSL-RL's log path is always `{cwd}/logs/rsl_rl/{experiment_name}/`. If you change the working directory between runs, checkpoints won't be found. Symlink or always launch from the same directory.
+
+---
+
 ## Key Files
 
 | File | Purpose |
