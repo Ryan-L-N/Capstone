@@ -176,19 +176,32 @@ def _compute_look_at_quat(eye, target=(0.0, 0.0, 0.0)):
     return tuple(q.tolist())
 
 
-def _capture_frame_png(env) -> bytes | None:
-    """Capture RGB frame from the coach_camera sensor (env 0).
+# Env indices to sample from (picks best non-black, non-resetting frame)
+_SAMPLE_ENV_IDS = [0, 10, 50]
+# Skip envs that reset fewer than this many steps ago (mid-reset = garbage frame)
+_MIN_EPISODE_STEPS = 10
+# Collect frames from this many iterations before each coach check
+_FRAME_WINDOW = 5
 
-    Falls back to env.render() if no camera sensor is available.
-    Returns None if no valid frame can be captured.
+
+def _capture_best_frame(env):
+    """Capture a single RGB frame, sampling the best from multiple envs.
+
+    Picks the brightest non-black frame from _SAMPLE_ENV_IDS, skipping any
+    env that is mid-reset (episode_length < _MIN_EPISODE_STEPS).
+
+    Returns:
+        numpy array (H, W, 3) uint8 or None if no valid frame available.
     """
     try:
-        from io import BytesIO
-
         import numpy as np
-        from PIL import Image
 
         unwrapped = env.unwrapped if hasattr(env, "unwrapped") else env
+
+        # Get episode lengths to skip mid-reset envs
+        ep_lengths = None
+        if hasattr(unwrapped, "episode_length_buf"):
+            ep_lengths = unwrapped.episode_length_buf
 
         # Method 1: Read from dedicated coach_camera sensor (works in headless)
         if hasattr(unwrapped, "scene") and hasattr(unwrapped.scene, "sensors"):
@@ -197,28 +210,70 @@ def _capture_frame_png(env) -> bytes | None:
                 camera = sensors["coach_camera"]
                 rgb = camera.data.output["rgb"]
                 if rgb is not None and rgb.numel() > 0:
-                    frame = rgb[0].cpu().numpy()  # env 0 only
-                    if frame.shape[-1] == 4:  # RGBA -> RGB
-                        frame = frame[..., :3]
-                    if frame.dtype != np.uint8:
-                        frame = np.clip(frame * 255, 0, 255).astype(np.uint8)
-                    if frame.max() > 0:  # not all-black
-                        img = Image.fromarray(frame)
-                        buf = BytesIO()
-                        img.save(buf, format="PNG")
-                        return buf.getvalue()
+                    num_envs = rgb.shape[0]
+                    best_frame = None
+                    best_brightness = -1.0
 
-        # Method 2: Fallback to env.render() (works with display)
+                    for eid in _SAMPLE_ENV_IDS:
+                        if eid >= num_envs:
+                            continue
+                        # Skip mid-reset envs
+                        if ep_lengths is not None and ep_lengths[eid] < _MIN_EPISODE_STEPS:
+                            continue
+
+                        frame = rgb[eid].cpu().numpy()
+                        if frame.shape[-1] == 4:  # RGBA -> RGB
+                            frame = frame[..., :3]
+                        if frame.dtype != np.uint8:
+                            frame = np.clip(frame * 255, 0, 255).astype(np.uint8)
+
+                        brightness = float(frame.mean())
+                        if brightness > best_brightness and brightness > 0:
+                            best_brightness = brightness
+                            best_frame = frame
+
+                    return best_frame
+
+        # Method 2: Fallback to env.render() (single env, works with display)
         frame = unwrapped.render()
         if frame is not None and isinstance(frame, np.ndarray) and frame.max() > 0:
-            img = Image.fromarray(frame)
-            buf = BytesIO()
-            img.save(buf, format="PNG")
-            return buf.getvalue()
+            if frame.dtype != np.uint8:
+                frame = np.clip(frame * 255, 0, 255).astype(np.uint8)
+            return frame
 
         return None
     except Exception as e:
-        print(f"[AI-TRAIN] VLM frame capture failed: {e}", flush=True)
+        print(f"[AI-TRAIN] Frame capture failed: {e}", flush=True)
+        return None
+
+
+def _average_frames_to_png(frame_buffer) -> bytes | None:
+    """Average a list of numpy frames and encode as PNG bytes.
+
+    Args:
+        frame_buffer: list of numpy arrays (H, W, 3) uint8
+
+    Returns:
+        PNG bytes or None if buffer is empty.
+    """
+    if not frame_buffer:
+        return None
+    try:
+        from io import BytesIO
+
+        import numpy as np
+        from PIL import Image
+
+        # Average all frames (float -> uint8)
+        stacked = np.stack(frame_buffer, axis=0).astype(np.float32)
+        averaged = np.mean(stacked, axis=0).astype(np.uint8)
+
+        img = Image.fromarray(averaged)
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception as e:
+        print(f"[AI-TRAIN] Frame averaging failed: {e}", flush=True)
         return None
 
 
@@ -500,6 +555,10 @@ def train_phase(
 
     _initial_weights_logged = [False]
 
+    # VLM frame buffer: collect frames from the last N iters before each coach check
+    # and average them for a more representative visual signal.
+    _frame_buffer = []
+
     # ── Capture RSL-RL internal metrics via log() interception ────────
     # RSL-RL's learn() computes mean_reward, mean_episode_length, losses,
     # and noise_std as local variables, then passes them to self.log(locals()).
@@ -613,6 +672,16 @@ def train_phase(
                 flush=True,
             )
 
+        # -- VLM frame buffering (collect frames approaching coach check) --
+        if args_cli.enable_vision and coach and it > 0 and coach_cfg.check_interval > 0:
+            remainder = it % coach_cfg.check_interval
+            # remainder=0 means this IS the coach iter (handled in _run_coach_check)
+            iters_until_check = (coach_cfg.check_interval - remainder) if remainder else coach_cfg.check_interval
+            if 0 < iters_until_check <= _FRAME_WINDOW:
+                frame = _capture_best_frame(env)
+                if frame is not None:
+                    _frame_buffer.append(frame)
+
         # -- AI Coach check (every N iterations) --
         if coach and it > 0 and it % coach_cfg.check_interval == 0:
             _run_coach_check(it, hours)
@@ -707,10 +776,19 @@ def train_phase(
         recent_history = list(metrics_collector.history)
         recent_decisions = decision_log.get_recent(coach_cfg.decision_history)
 
-        # Capture frame for VLM visual analysis
+        # Capture frame for VLM visual analysis (averaged over recent window)
         frame_png = None
         if args_cli.enable_vision:
-            frame_png = _capture_frame_png(env)
+            # Also capture one more frame right now (in case buffer is sparse)
+            frame = _capture_best_frame(env)
+            if frame is not None:
+                _frame_buffer.append(frame)
+            n_buffered = len(_frame_buffer)
+            frame_png = _average_frames_to_png(_frame_buffer)
+            _frame_buffer.clear()
+            if frame_png:
+                print(f"[AI-COACH] VLM frame: averaged {n_buffered} frames "
+                      f"from envs {_SAMPLE_ENV_IDS}", flush=True)
 
         decision, latency = coach.get_decision(
             snapshot, recent_history, recent_decisions, plateau,
