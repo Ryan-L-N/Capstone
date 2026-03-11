@@ -82,7 +82,7 @@ Mason applies `joint_acc` and `joint_vel` penalties only to hip joints (`_hx` an
 
 | Term | Weight | Function | Why |
 |------|--------|----------|-----|
-| terrain_relative_height | -2.0 | `terrain_relative_height_penalty` | Bug #27: prevents belly-crawl exploit. Variance-based: 0.42m flat, 0.35m rough |
+| terrain_relative_height | -2.0 | `terrain_relative_height_penalty` | Bug #27: prevents belly-crawl exploit. **Fixed 0.37m target** (v2 — was variance-based 0.35-0.42m in v1, but variable target let robot learn to crawl) |
 | dof_pos_limits | -3.0 | `mdp.joint_pos_limits` | Prevents knee locking at URDF mechanical stops |
 | body_height_tracking | **0.0** | (frozen) | Bug #22: world-frame Z meaningless on rough terrain |
 | stumble | **0.0** | (frozen) | Bug #28b: world-frame Z misclassifies on elevated terrain |
@@ -328,9 +328,9 @@ gym.register(
 │       │       └── rsl_rl_mason_hybrid_cfg.py  # PPO config
 │       └── ai_trainer/
 │           ├── config.py                  # mason_hybrid phase + bounds
-│           ├── coach.py                   # Passive mode
-│           ├── guardrails.py              # LR/noise disable, tight bounds
-│           └── prompt_builder.py          # Passive preamble
+│           ├── coach.py                   # Passive mode + VLM multimodal
+│           ├── guardrails.py              # LR/noise disable, tight bounds, terrain-gated penalties
+│           └── prompt_builder.py          # Gait-quality-first + VLM visual analysis
 ├── scripts/rsl_rl/
 │   └── train_ai.py                        # Entry point
 └── logs/rsl_rl/spot_hybrid_ppo → ~/logs/rsl_rl/spot_hybrid_ppo  # Symlink (Bug MH-3)
@@ -374,6 +374,10 @@ Temperature: 48°C (safe range). Throughput: ~11,500 steps/s at 8.5s/iter.
 | Coach interfering with adaptive LR | `lr_change_enabled = False` | `config.py` |
 | Coach interfering with adaptive noise | `noise_change_enabled = False` | `config.py` |
 | Velocity reward drift (11l lesson) | `mason_hybrid_bounds` caps at 7.0 | `config.py` |
+| Coach loosening penalties at low terrain (MH-1) | `penalty_loosen_terrain = 4.0` guardrail | `config.py`, `guardrails.py` |
+| Coach can't see gait quality (MH-1) | VLM mode: `--enable_vision` sends rendered frames | `coach.py`, `train_ai.py` |
+| Variable height target lets robot crawl (MH-1) | Fixed `target_height=0.37`, `terrain_scaled=False` | `mason_hybrid_env_cfg.py` |
+| Coach destroys gait chasing terrain numbers (MH-1) | Gait-quality-first prompt rewrite | `prompt_builder.py` |
 | Unbounded action_smoothness L2 norm | `clamped_action_smoothness_penalty` | `mason_hybrid_env_cfg.py` |
 | World-frame Z height tracking | `body_height_tracking = 0.0` (frozen) | `mason_hybrid_env_cfg.py`, `guardrails.py` |
 | World-frame Z stumble penalty | `stumble = 0.0` (frozen) | `mason_hybrid_env_cfg.py`, `guardrails.py` |

@@ -130,26 +130,45 @@ train_ai.py
 
 ### `ai_trainer/coach.py`
 
-The coach is a thin wrapper around the Anthropic Messages API.
+The coach is a thin wrapper around the Anthropic Messages API with optional VLM (Vision Language Model) support.
 
 ```python
 class Coach:
-    def __init__(self, coach_cfg, phase_cfg, api_key):
+    def __init__(self, coach_cfg, phase_cfg, api_key, vision_enabled=False):
         self.client = anthropic.Anthropic(api_key=api_key)
-        self.system_prompt = build_system_prompt(coach_cfg, phase_cfg)
+        self._vision_enabled = vision_enabled
+        self.system_prompt = build_system_prompt(
+            coach_cfg, phase_cfg, vision_enabled=vision_enabled)
         self._consecutive_failures = 0
         self._max_failures = 3
 
-    def get_decision(self, snapshot, recent_history, recent_decisions, plateau_detected):
+    def get_decision(self, snapshot, recent_history, recent_decisions,
+                     plateau_detected, frame_png=None):
         # Build user message with current metrics
+        # If frame_png provided: multimodal content (image + text)
+        # Else: plain text (backwards compatible)
         # Call Claude API
         # Parse JSON response
         # Return (CoachDecision, latency_ms)
 ```
 
+### VLM Mode (Mason Hybrid v2)
+
+When `--enable_vision` is passed to `train_ai.py`, the coach receives rendered simulation frames alongside metrics. This was added after Trial MH-1 where the coach destroyed gait quality by optimizing for terrain numbers it couldn't visually verify.
+
+**How it works:**
+1. `train_ai.py` creates the env with `render_mode="rgb_array"` (requires `--enable_cameras`)
+2. Before each coach consultation, `env.render()` captures an RGB numpy array
+3. PIL converts the frame to PNG bytes
+4. The coach receives a multimodal message: `[{"type": "image", ...}, {"type": "text", ...}]`
+5. The system prompt includes visual analysis instructions (6-point gait checklist)
+6. The coach's reasoning must include a "Visual assessment:" line
+
+**Visual override rule:** If the image shows poor gait (flopping, bouncing, dragging), the coach must NOT advance terrain or loosen penalties regardless of what the numbers say.
+
 ### Key Design Decisions
 
-**Why Claude Sonnet, not Opus?** Latency. Sonnet responds in 2-4 seconds. At 100-iteration intervals (~15s each), a 3s API call adds ~20% overhead. Opus would be 10-15s, adding ~100% overhead. The decisions aren't complex enough to need Opus — they're pattern matching against a troubleshooting table.
+**Why Claude Sonnet, not Opus?** Latency. Sonnet responds in 2-4 seconds. At 100-iteration intervals (~15s each), a 3s API call adds ~20% overhead. Opus would be 10-15s, adding ~100% overhead. The decisions aren't complex enough to need Opus — they're pattern matching against a troubleshooting table. Sonnet also supports vision (multimodal input).
 
 **Why not function calling / tool_use?** The decision format is simple enough that a strict JSON response works reliably. The coach returns one JSON object with 6 fields. We strip markdown fences if present and `json.loads()` the result. In testing, Claude Sonnet returns valid JSON >99% of the time with this prompt.
 
@@ -195,15 +214,24 @@ For each proposed weight change:
    → Penalties must stay negative.
    → REJECT if violated.
 
-4. Is the new value within absolute bounds?
+4. TERRAIN-GATED PENALTY LOOSENING (v2):
+   → Is this a penalty being loosened (made less negative)?
+   → Is terrain < penalty_loosen_terrain (default 4.0)?
+   → YES: REJECT. Penalties cannot be loosened until robot demonstrates
+     clean gait at terrain >= 4.0. This prevents the coach from
+     repeatedly loosening penalties to boost terrain numbers at the
+     cost of gait quality (the Trial MH-1 failure mode).
+
+5. Is the new value within absolute bounds?
    → Each term has (min, max) bounds in CoachConfig.
+   → Uses tighter mason_hybrid_bounds when in mason_hybrid phase.
    → CLAMP to nearest bound.
 
-5. Is the delta within 20% of current value?
+6. Is the delta within 20% of current value?
    → CLAMP to max 20% change.
    → For weights currently at 0: max absolute delta of 0.5.
 
-6. Are we changing too many weights at once?
+7. Are we changing too many weights at once?
    → Max 3 changes per consultation.
    → Trial 11k changed 6 → 88% flip, terrain 0.12, total collapse.
    → Keep only the first 3.
@@ -416,14 +444,16 @@ def go_no_go(self, phase_cfg):
 
 ### System Prompt Structure
 
-The system prompt is rebuilt whenever the phase changes. It contains:
+The system prompt is rebuilt whenever the phase changes or vision mode changes. It contains:
 
-1. **Role definition** — "You are an RL training coach for quadruped robot locomotion"
-2. **Hard constraints** — Max changes, frozen weights, LR ceiling, sign constraints
-3. **Phase context** — Current terrain, target metrics, go/no-go criteria
-4. **Troubleshooting table** — Symptom/cause/fix from Bug Museum
-5. **Decision format** — Strict JSON schema
-6. **Key principles** — Patience, one problem at a time, small moves, watch the critic
+1. **Core philosophy** — "Gait quality is PRIMARY. Terrain advancement is secondary." (Mason Hybrid v2)
+2. **Visual analysis instructions** (VLM mode only) — 6-point gait checklist, visual override rule
+3. **Hard constraints** — Priority-ordered: gait quality protection > stability > safety
+4. **Terrain-gated penalty loosening** — Penalties locked until terrain >= 4.0
+5. **Phase context** — Current terrain, target metrics, go/no-go criteria
+6. **Troubleshooting table** — Symptom/cause/fix from Bug Museum (includes "flopping gait" and "robot not standing up")
+7. **Decision format** — Strict JSON schema
+8. **Key principles** — Gait quality is king, penalties are friends, velocity ceiling 3.0-7.0
 
 ### User Message Structure
 
@@ -813,7 +843,7 @@ if self.terrain_aware:
 
 2. **Automatic phase transitions.** Instead of stopping on go/no-go failure, let the coach adjust parameters (especially noise ceiling) to help the policy meet advancement criteria.
 
-3. **Multi-modal input.** Feed the coach video captures from the simulation (e.g., every 1000 iterations) so it can visually assess gait quality, not just reward numbers.
+3. ~~**Multi-modal input.**~~ **DONE (Mason Hybrid v2).** The coach now receives rendered simulation frames via `--enable_vision`. Uses Claude Sonnet's multimodal API with base64-encoded PNG frames. The system prompt includes a 6-point visual gait checklist and a "visual override rule" that prevents terrain advancement when gait quality is visually poor.
 
 4. **Ensemble decisions.** Call multiple Claude instances and take the majority vote. Reduces variance of individual LLM responses.
 

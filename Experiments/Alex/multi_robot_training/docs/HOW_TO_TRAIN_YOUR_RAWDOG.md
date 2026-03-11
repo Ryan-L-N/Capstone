@@ -2703,7 +2703,7 @@ v8 ran 6,700 coach iterations (absolute iterations 4000-10636) over ~6 hours. Th
 
 ---
 
-### Trial MH-1: The Mason Hybrid (IN PROGRESS)
+### Trial MH-1: The Mason Hybrid (FAILED — coach destroyed gait)
 
 After 11 trials and ~30 sub-iterations of our custom config, we acknowledged that complexity was the enemy. Mason's team had independently reached terrain level ~6 with a simpler setup: 11 reward terms (vs our 22), [512,256,128] network (vs [1024,512,256]), adaptive KL-based LR (vs cosine annealing), and lighter domain randomization. Rather than continue fighting our overengineered reward landscape, we built a hybrid: Mason's proven reward weights and network architecture, our 12-type robust terrain (with friction randomization and boulders), and the AI Coach as a safety net — not the primary driver.
 
@@ -2767,11 +2767,42 @@ python /home/t2user/multi_robot_training_new/scripts/rsl_rl/train_ai.py \
 - Value loss: 1.61 (healthy)
 - Throughput: ~11,500 steps/s at 8.5s/iter
 
-**What to watch:**
-- Iter 500-1000: Terrain should start climbing as basic locomotion stabilizes
-- Iter 2000-3000: Should reach terrain 2-3 (where Trial 11l plateaued for weeks)
-- Iter 5000+: If terrain > 5, Mason's config is genuinely better. If plateaued, coach activates.
-- Iter 10000+: Target terrain 6-7. If reached, we've broken through the 4.83 ceiling.
+**MH-1 outcome:** The coach repeated the same failure as Trial 11l — it optimized for terrain numbers because it couldn't see the robot. The coach repeatedly loosened penalties and boosted velocity rewards, producing a "flopping fish" robot at terrain 4.83 that couldn't stand up (body height ≈ 0.0m). The root cause was identical: text-only coach has no way to evaluate gait quality.
+
+**The lesson:** Terrain numbers lie. A robot can "advance" terrain by flopping forward — the terrain curriculum promotes based on velocity tracking + survival, not gait quality. Without visual feedback, the coach will always discover this exploit.
+
+---
+
+### Trial MH-2: Mason Hybrid v2 — VLM + Gait Quality First (IN PROGRESS)
+
+Three fixes to prevent MH-1's failure mode:
+
+**1. VLM Visual Feedback (`--enable_vision`)**
+The coach now receives a rendered frame from the simulation at every consultation via Claude Sonnet's multimodal API. The system prompt includes a 6-point visual gait checklist and a "visual override rule": if the image shows poor gait quality, the coach must NOT advance terrain or loosen penalties regardless of what the numbers say.
+
+**2. Fixed 0.37m Height Target**
+Changed `terrain_relative_height` from `terrain_scaled=True` (variable 0.35-0.42m based on terrain roughness) to `terrain_scaled=False, target_height=0.37`. The variable target let the robot learn to crawl on rough terrain because the target dropped. Now the robot MUST maintain 37cm standing height everywhere.
+
+**3. Gait-Quality-First Prompt Rewrite**
+Complete rewrite of the coach's system prompt with new philosophy: "A smooth trot at terrain 4 is BETTER than a bouncy hop at terrain 6." Key additions:
+- **Terrain-gated penalty loosening:** Penalties locked until terrain >= 4.0 (guardrails enforce this)
+- **Velocity ceiling:** `base_linear_velocity` and `base_angular_velocity` must stay in 3.0-7.0
+- **Priority order:** Gait quality > stability > terrain advancement
+- **New troubleshooting:** "Flopping/unstable gait → TIGHTEN penalties, reduce velocity rewards"
+
+**Launch command:**
+```bash
+python scripts/rsl_rl/train_ai.py \
+  --task Locomotion-MasonHybrid-Spot-v0 \
+  --headless --enable_cameras --enable_vision \
+  --no_wandb --save_interval 100 \
+  --num_envs 4096 \
+  --start_phase mason_hybrid --end_phase mason_hybrid \
+  --coach_interval 100 --coach_mode deferred --activation_threshold 300 \
+  --max_noise_std 1.0
+```
+
+**Fresh start** — no resume from MH-1 (the flopping gait is unrecoverable).
 
 ---
 

@@ -423,6 +423,33 @@ A human pulled `model_2900.pt` into the lava arena and observed legs crossing, i
 
 No restart. No config edit. No kill-and-relaunch. The training continued seamlessly with the human's visual insight integrated into the AI's decision-making.
 
+### VLM Visual Feedback (Mason Hybrid v2)
+
+After Trial MH-1 showed that the coach destroyed gait quality by optimizing for terrain numbers it couldn't visually verify, we added VLM (Vision Language Model) support. When `--enable_vision` is passed, the coach receives a rendered simulation frame alongside its metrics at every consultation.
+
+**How to enable:**
+```bash
+python scripts/rsl_rl/train_ai.py \
+  --task Locomotion-MasonHybrid-Spot-v0 \
+  --headless --enable_cameras --enable_vision \
+  --no_wandb --save_interval 100 --num_envs 4096
+```
+
+**What the coach sees:** A PNG frame from the simulation showing the robot's posture and gait. The system prompt includes a 6-point visual checklist:
+1. Are legs moving in a smooth, symmetric trot?
+2. Is the body level and stable?
+3. Are strides smooth and rhythmic?
+4. Is the robot standing at proper height (~0.37m)?
+5. Are any legs dragging, crossing, or flailing?
+6. Does it look like a real dog walking?
+
+**Visual override rule:** If the image shows poor gait quality, the coach must NOT advance terrain or loosen penalties regardless of what the numbers say. This prevents the "flopping fish" failure mode from MH-1.
+
+**Requirements:**
+- `--enable_cameras` must be in AppLauncher args (creates cameras for headless rendering)
+- `Pillow` (PIL) must be installed (`pip install Pillow`)
+- Adds ~1-2s per consultation (frame capture + base64 encoding + larger API payload)
+
 ### Velocity Tracking Metrics (v8 — Automated Gait Quality)
 
 After the iter 2500 intervention, a second human eval (model_3700) revealed the policy was worse — stumbling sideways, no forward control. The coach responded at iter 3300 (rolling back joint_pos, boosting velocity rewards) but couldn't have detected the problem numerically.
@@ -508,6 +535,9 @@ When `--start_phase flat`, the system automatically:
 | `--min_noise_std` | 0.3 | Noise floor |
 | `--load_run` | none | Resume from run directory |
 | `--load_checkpoint` | none | Resume from specific checkpoint |
+| `--enable_vision` | false | VLM mode: render frames for visual gait analysis (requires `--enable_cameras`) |
+| `--coach_mode` | immediate | `immediate` or `deferred` (3-stage activation for mason_hybrid) |
+| `--activation_threshold` | 3000 | Iters before coach activates (deferred mode) |
 | `--no_wandb` | false | Use TensorBoard instead of W&B |
 
 ### File Paths
