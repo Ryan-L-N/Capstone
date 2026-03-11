@@ -393,9 +393,13 @@ def clamped_joint_acceleration_penalty(
 
     Normal range 0-5000. Weight -1e-4 → max contribution -1.0/step.
     Original: spot_mdp.joint_acceleration_penalty (unbounded L2 norm).
+    Respects asset_cfg.joint_ids for joint filtering (e.g., hip-only).
     """
     asset: Articulation = env.scene[asset_cfg.name]
-    result = torch.linalg.norm(asset.data.joint_acc, dim=1)
+    joint_acc = asset.data.joint_acc
+    if asset_cfg.joint_ids is not None:
+        joint_acc = joint_acc[:, asset_cfg.joint_ids]
+    result = torch.linalg.norm(joint_acc, dim=1)
     result = torch.clamp(result, 0.0, 10000.0)
     return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
 
@@ -407,9 +411,13 @@ def clamped_joint_torques_penalty(
 
     Normal range 0-200. Weight -5e-4 → max contribution -0.5/step.
     Original: spot_mdp.joint_torques_penalty (unbounded L2 norm).
+    Respects asset_cfg.joint_ids for joint filtering.
     """
     asset: Articulation = env.scene[asset_cfg.name]
-    result = torch.linalg.norm(asset.data.applied_torque, dim=1)
+    torque = asset.data.applied_torque
+    if asset_cfg.joint_ids is not None:
+        torque = torque[:, asset_cfg.joint_ids]
+    result = torch.linalg.norm(torque, dim=1)
     result = torch.clamp(result, 0.0, 1000.0)
     return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
 
@@ -421,9 +429,13 @@ def clamped_joint_velocity_penalty(
 
     Normal range 0-20. Weight -1e-2 → max contribution -0.5/step.
     Original: spot_mdp.joint_velocity_penalty (unbounded L2 norm).
+    Respects asset_cfg.joint_ids for joint filtering (e.g., hip-only).
     """
     asset: Articulation = env.scene[asset_cfg.name]
-    result = torch.linalg.norm(asset.data.joint_vel, dim=1)
+    joint_vel = asset.data.joint_vel
+    if asset_cfg.joint_ids is not None:
+        joint_vel = joint_vel[:, asset_cfg.joint_ids]
+    result = torch.linalg.norm(joint_vel, dim=1)
     result = torch.clamp(result, 0.0, 50.0)
     return torch.where(torch.isfinite(result), result, torch.zeros_like(result))
 

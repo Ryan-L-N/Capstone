@@ -94,6 +94,7 @@ import gymnasium as gym
 import torch
 from rsl_rl.runners import OnPolicyRunner
 
+import isaaclab.sim as sim_utils
 from isaaclab.utils.io import dump_yaml
 from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
@@ -116,26 +117,106 @@ configure_tf32()
 
 # ── 1b. VLM Frame Capture ─────────────────────────────────────────────
 
-def _capture_frame_png(env) -> bytes | None:
-    """Render the environment and return PNG bytes for VLM analysis.
+def _compute_look_at_quat(eye, target=(0.0, 0.0, 0.0)):
+    """Compute (w, x, y, z) quaternion for a camera looking from eye toward target.
 
-    Returns None if rendering fails (e.g., no cameras configured).
+    Uses OpenGL convention: camera looks along -Z, up is +Y, right is +X.
+    """
+    import numpy as np
+
+    eye = np.array(eye, dtype=np.float64)
+    target = np.array(target, dtype=np.float64)
+    forward = target - eye
+    forward = forward / np.linalg.norm(forward)
+
+    world_up = np.array([0.0, 0.0, 1.0])
+    right = np.cross(forward, world_up)
+    right_norm = np.linalg.norm(right)
+    if right_norm < 1e-6:
+        # forward is parallel to up — use alternative up
+        world_up = np.array([0.0, 1.0, 0.0])
+        right = np.cross(forward, world_up)
+    right = right / np.linalg.norm(right)
+    up = np.cross(right, forward)
+
+    # Rotation matrix: columns = camera axes (right, up, -forward) in world frame
+    R = np.column_stack([right, up, -forward])
+
+    # Matrix to quaternion
+    trace = R.trace()
+    if trace > 0:
+        s = 0.5 / np.sqrt(trace + 1.0)
+        w = 0.25 / s
+        x = (R[2, 1] - R[1, 2]) * s
+        y = (R[0, 2] - R[2, 0]) * s
+        z = (R[1, 0] - R[0, 1]) * s
+    elif R[0, 0] > R[1, 1] and R[0, 0] > R[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2])
+        w = (R[2, 1] - R[1, 2]) / s
+        x = 0.25 * s
+        y = (R[0, 1] + R[1, 0]) / s
+        z = (R[0, 2] + R[2, 0]) / s
+    elif R[1, 1] > R[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2])
+        w = (R[0, 2] - R[2, 0]) / s
+        x = (R[0, 1] + R[1, 0]) / s
+        y = 0.25 * s
+        z = (R[1, 2] + R[2, 1]) / s
+    else:
+        s = 2.0 * np.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1])
+        w = (R[1, 0] - R[0, 1]) / s
+        x = (R[0, 2] + R[2, 0]) / s
+        y = (R[1, 2] + R[2, 1]) / s
+        z = 0.25 * s
+
+    q = np.array([w, x, y, z])
+    q = q / np.linalg.norm(q)
+    if q[0] < 0:
+        q = -q  # normalize to positive w
+    return tuple(q.tolist())
+
+
+def _capture_frame_png(env) -> bytes | None:
+    """Capture RGB frame from the coach_camera sensor (env 0).
+
+    Falls back to env.render() if no camera sensor is available.
+    Returns None if no valid frame can be captured.
     """
     try:
         from io import BytesIO
+
+        import numpy as np
         from PIL import Image
 
-        # Get the unwrapped env for render()
         unwrapped = env.unwrapped if hasattr(env, "unwrapped") else env
-        frame = unwrapped.render()
-        if frame is None:
-            return None
 
-        # Convert numpy array to PNG bytes
-        img = Image.fromarray(frame)
-        buf = BytesIO()
-        img.save(buf, format="PNG")
-        return buf.getvalue()
+        # Method 1: Read from dedicated coach_camera sensor (works in headless)
+        if hasattr(unwrapped, "scene") and hasattr(unwrapped.scene, "sensors"):
+            sensors = unwrapped.scene.sensors
+            if "coach_camera" in sensors:
+                camera = sensors["coach_camera"]
+                rgb = camera.data.output["rgb"]
+                if rgb is not None and rgb.numel() > 0:
+                    frame = rgb[0].cpu().numpy()  # env 0 only
+                    if frame.shape[-1] == 4:  # RGBA -> RGB
+                        frame = frame[..., :3]
+                    if frame.dtype != np.uint8:
+                        frame = np.clip(frame * 255, 0, 255).astype(np.uint8)
+                    if frame.max() > 0:  # not all-black
+                        img = Image.fromarray(frame)
+                        buf = BytesIO()
+                        img.save(buf, format="PNG")
+                        return buf.getvalue()
+
+        # Method 2: Fallback to env.render() (works with display)
+        frame = unwrapped.render()
+        if frame is not None and isinstance(frame, np.ndarray) and frame.max() > 0:
+            img = Image.fromarray(frame)
+            buf = BytesIO()
+            img.save(buf, format="PNG")
+            return buf.getvalue()
+
+        return None
     except Exception as e:
         print(f"[AI-TRAIN] VLM frame capture failed: {e}", flush=True)
         return None
@@ -239,6 +320,31 @@ def train_phase(
     print(f"  Log dir:          {log_dir}", flush=True)
     print(f"{'='*70}\n", flush=True)
 
+    # ── Add coach camera sensor for VLM vision mode ────────────────────
+    if args_cli.enable_vision:
+        from isaaclab.sensors import CameraCfg
+
+        # 3/4 rear view: behind, to the side, above — looking at the robot
+        cam_eye = (-3.0, 2.0, 1.5)
+        cam_target = (0.0, 0.0, 0.3)  # slightly above body center
+        cam_rot = _compute_look_at_quat(cam_eye, cam_target)
+
+        env_cfg.scene.coach_camera = CameraCfg(
+            prim_path="{ENV_REGEX_NS}/Robot/body/coach_cam",
+            offset=CameraCfg.OffsetCfg(pos=cam_eye, rot=cam_rot),
+            width=320,
+            height=240,
+            data_types=["rgb"],
+            spawn=sim_utils.PinholeCameraCfg(
+                focal_length=15.0,
+                focus_distance=5.0,
+                horizontal_aperture=30.0,
+            ),
+            update_period=10.0,  # render infrequently — only need 1 frame per coach check
+        )
+        print(f"[AI-TRAIN] Coach camera added: 320x240 RGB, update every 10s sim-time",
+              flush=True)
+
     # ── Create environment ──────────────────────────────────────────────
     EnvCfgClass = type(env_cfg)
     try:
@@ -269,6 +375,27 @@ def train_phase(
     if resume_run and resume_checkpoint:
         resume_path = get_checkpoint_path(log_root_path, resume_run, resume_checkpoint)
         print(f"[AI-TRAIN] Resuming from {resume_path}", flush=True)
+
+        # Validate checkpoint for NaN/Inf before loading (Bug: corrupted model_14100.pt wasted Trial 11g)
+        print(f"[AI-TRAIN] Validating checkpoint for NaN/Inf...", flush=True)
+        ckpt_data = torch.load(resume_path, weights_only=False, map_location="cpu")
+        state_dict = ckpt_data if isinstance(ckpt_data, dict) else {}
+        if "model_state_dict" in state_dict:
+            state_dict = state_dict["model_state_dict"]
+        nan_keys = []
+        for key, tensor in state_dict.items():
+            if isinstance(tensor, torch.Tensor):
+                if torch.isnan(tensor).any() or torch.isinf(tensor).any():
+                    nan_keys.append(key)
+        if nan_keys:
+            raise RuntimeError(
+                f"CORRUPTED checkpoint! {len(nan_keys)} tensors contain NaN/Inf: "
+                f"{nan_keys[:5]}{'...' if len(nan_keys) > 5 else ''}. "
+                f"Do NOT resume from this checkpoint."
+            )
+        print(f"[AI-TRAIN] Checkpoint validated OK ({len(state_dict)} tensors checked)", flush=True)
+        del ckpt_data, state_dict  # free memory
+
         runner.load(resume_path)
 
     # Register safety clamp

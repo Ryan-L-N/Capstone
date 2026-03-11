@@ -51,6 +51,9 @@ from quadruped_locomotion.tasks.locomotion.mdp.terrains import ROBUST_TERRAINS_C
 from quadruped_locomotion.tasks.locomotion.mdp.rewards import (
     body_height_tracking_penalty,
     clamped_action_smoothness_penalty,
+    clamped_joint_acceleration_penalty,
+    clamped_joint_torques_penalty,
+    clamped_joint_velocity_penalty,
     stumble_penalty,
     terrain_relative_height_penalty,
 )
@@ -294,7 +297,7 @@ class HybridRewardsCfg:
         },
     )
     joint_acc = RewardTermCfg(
-        func=spot_mdp.joint_acceleration_penalty,
+        func=clamped_joint_acceleration_penalty,  # Clamped wrapper (Bug #29 safety)
         weight=-1.0e-4,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*_h[xy]")},  # Mason's: hip only
     )
@@ -308,12 +311,12 @@ class HybridRewardsCfg:
         },
     )
     joint_torques = RewardTermCfg(
-        func=spot_mdp.joint_torques_penalty,
+        func=clamped_joint_torques_penalty,  # Clamped wrapper (Bug #29 safety)
         weight=-5.0e-4,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     joint_vel = RewardTermCfg(
-        func=spot_mdp.joint_velocity_penalty,
+        func=clamped_joint_velocity_penalty,  # Clamped wrapper (Bug #29 safety)
         weight=-1.0e-2,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*_h[xy]")},  # Mason's: hip only
     )

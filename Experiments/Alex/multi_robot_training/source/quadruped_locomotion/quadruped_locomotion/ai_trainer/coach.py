@@ -123,6 +123,7 @@ class Coach:
                 max_tokens=1024,
                 system=self.system_prompt,
                 messages=[{"role": "user", "content": content}],
+                timeout=60.0,  # 60s timeout — prevent training freeze on API hang
             )
             latency_ms = (time.time() - start) * 1000
             self._consecutive_failures = 0
@@ -146,6 +147,16 @@ class Coach:
                 confidence=decision_dict.get("confidence", 0.5),
             )
             return decision, latency_ms
+
+        except anthropic.APITimeoutError as e:
+            latency_ms = (time.time() - start) * 1000
+            self._consecutive_failures += 1
+            print(f"[AI-COACH] API TIMEOUT after 60s ({self._consecutive_failures}/"
+                  f"{self._max_failures}) — training continues with no_change")
+            return CoachDecision(
+                action="no_change",
+                reasoning=f"API timeout: {e}",
+            ), latency_ms
 
         except (anthropic.APIError, json.JSONDecodeError, KeyError,
                 IndexError) as e:
