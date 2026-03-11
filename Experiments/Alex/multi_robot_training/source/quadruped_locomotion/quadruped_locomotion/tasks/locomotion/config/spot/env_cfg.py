@@ -533,10 +533,12 @@ class SpotTeacherObservationsCfg(SpotObservationsCfg):
         """Standard observations + privileged terrain info."""
 
         # Privileged: terrain friction
-        terrain_friction = ObsTerm(
-            func=mdp.body_physics_material,
-            params={"asset_cfg": SceneEntityCfg("robot", body_names="body")},
-        )
+        # NOTE: mdp.body_physics_material not available in current Isaac Lab version.
+        # Uncomment when upgrading to a version that supports it.
+        # terrain_friction = ObsTerm(
+        #     func=mdp.body_physics_material,
+        #     params={"asset_cfg": SceneEntityCfg("robot", body_names="body")},
+        # )
 
         # Privileged: per-foot contact forces (clean, no noise)
         foot_contact_forces = ObsTerm(

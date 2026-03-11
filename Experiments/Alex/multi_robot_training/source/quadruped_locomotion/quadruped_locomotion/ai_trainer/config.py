@@ -139,6 +139,11 @@ class CoachConfig:
     lr_change_enabled: bool = True     # False = coach cannot change LR
     noise_change_enabled: bool = True  # False = coach cannot change noise
 
+    # Terrain-gated penalty loosening — penalties cannot be made less negative
+    # (loosened) until terrain exceeds this level. Forces clean gait learning
+    # under strict constraints before allowing freedom for harder terrain.
+    penalty_loosen_terrain: float = 4.0
+
     # Weight bounds — absolute limits the coach cannot exceed
     # Positive rewards: (min, max), Negative penalties: (max_negative, min_negative)
     weight_bounds: dict = field(default_factory=lambda: {

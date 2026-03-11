@@ -61,6 +61,11 @@ parser.add_argument("--no_coach", action="store_true", default=False,
 parser.add_argument("--anthropic_api_key", type=str, default=None,
                     help="Anthropic API key (or set ANTHROPIC_API_KEY env var)")
 
+# VLM vision args
+parser.add_argument("--enable_vision", action="store_true", default=False,
+                    help="Enable VLM mode: render frames and send to coach for visual gait analysis. "
+                         "Requires --enable_cameras in AppLauncher args.")
+
 # Resume args
 parser.add_argument("--load_run", type=str, default=None)
 parser.add_argument("--load_checkpoint", type=str, default=None)
@@ -107,6 +112,33 @@ from quadruped_locomotion.ai_trainer.actuator import Actuator
 from quadruped_locomotion.ai_trainer.decision_log import DecisionLog
 
 configure_tf32()
+
+
+# ── 1b. VLM Frame Capture ─────────────────────────────────────────────
+
+def _capture_frame_png(env) -> bytes | None:
+    """Render the environment and return PNG bytes for VLM analysis.
+
+    Returns None if rendering fails (e.g., no cameras configured).
+    """
+    try:
+        from io import BytesIO
+        from PIL import Image
+
+        # Get the unwrapped env for render()
+        unwrapped = env.unwrapped if hasattr(env, "unwrapped") else env
+        frame = unwrapped.render()
+        if frame is None:
+            return None
+
+        # Convert numpy array to PNG bytes
+        img = Image.fromarray(frame)
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception as e:
+        print(f"[AI-TRAIN] VLM frame capture failed: {e}", flush=True)
+        return None
 
 
 # ── 2. Config Loading ───────────────────────────────────────────────────
@@ -221,7 +253,11 @@ def train_phase(
     except gym.error.Error:
         pass  # Already registered
 
-    env = gym.make(env_id, cfg=env_cfg)
+    make_kwargs = {"cfg": env_cfg}
+    if args_cli.enable_vision:
+        make_kwargs["render_mode"] = "rgb_array"
+
+    env = gym.make(env_id, **make_kwargs)
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     # ── Create runner ───────────────────────────────────────────────────
@@ -544,8 +580,14 @@ def train_phase(
         recent_history = list(metrics_collector.history)
         recent_decisions = decision_log.get_recent(coach_cfg.decision_history)
 
+        # Capture frame for VLM visual analysis
+        frame_png = None
+        if args_cli.enable_vision:
+            frame_png = _capture_frame_png(env)
+
         decision, latency = coach.get_decision(
-            snapshot, recent_history, recent_decisions, plateau)
+            snapshot, recent_history, recent_decisions, plateau,
+            frame_png=frame_png)
 
         print(f"[AI-COACH] iter={it} action={decision.action} "
               f"confidence={decision.confidence:.2f} "
@@ -559,7 +601,8 @@ def train_phase(
 
         if decision.action == "adjust_weights" and decision.weight_changes:
             validated_weights, msgs = guardrails.validate_weight_changes(
-                decision.weight_changes, snapshot.current_weights)
+                decision.weight_changes, snapshot.current_weights,
+                current_terrain_level=snapshot.mean_terrain_level)
             all_msgs.extend(msgs)
             if validated_weights:
                 applied = actuator.apply_weight_changes(validated_weights)
@@ -660,8 +703,12 @@ def main():
         api_key = args_cli.anthropic_api_key or os.environ.get("ANTHROPIC_API_KEY")
         if api_key:
             start_phase_cfg = PHASE_CONFIGS[args_cli.start_phase]
-            coach = Coach(coach_cfg, start_phase_cfg, api_key=api_key)
+            coach = Coach(coach_cfg, start_phase_cfg, api_key=api_key,
+                          vision_enabled=args_cli.enable_vision)
             print("[AI-TRAIN] AI Coach initialized", flush=True)
+            if args_cli.enable_vision:
+                print("[AI-TRAIN] VLM vision mode ENABLED — coach will receive rendered frames",
+                      flush=True)
             if args_cli.coach_mode == "deferred":
                 print(f"[AI-TRAIN] Coach mode: DEFERRED (silent for {args_cli.activation_threshold} iters)",
                       flush=True)

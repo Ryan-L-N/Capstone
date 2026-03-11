@@ -2,10 +2,13 @@
 
 Calls Claude API with training metrics and returns structured decisions
 about reward weight adjustments, LR changes, noise changes, or phase advances.
+Supports optional VLM mode: when a rendered frame is provided, the coach
+receives a multimodal message (image + text) for visual gait analysis.
 """
 
 from __future__ import annotations
 
+import base64
 import json
 import time
 from dataclasses import dataclass, field
@@ -46,12 +49,14 @@ class Coach:
     """LLM-powered training coach that analyzes metrics and returns decisions."""
 
     def __init__(self, coach_cfg: CoachConfig, phase_cfg: PhaseConfig,
-                 api_key: str | None = None):
+                 api_key: str | None = None, vision_enabled: bool = False):
         self.coach_cfg = coach_cfg
         self.phase_cfg = phase_cfg
         self.client = anthropic.Anthropic(api_key=api_key)
         self._passive_mode = False
-        self.system_prompt = build_system_prompt(coach_cfg, phase_cfg, passive_mode=False)
+        self._vision_enabled = vision_enabled
+        self.system_prompt = build_system_prompt(
+            coach_cfg, phase_cfg, passive_mode=False, vision_enabled=vision_enabled)
         self._consecutive_failures = 0
         self._max_failures = 3
 
@@ -59,13 +64,15 @@ class Coach:
         """Enable/disable passive mode (biased toward no_change)."""
         self._passive_mode = passive
         self.system_prompt = build_system_prompt(
-            self.coach_cfg, self.phase_cfg, passive_mode=passive)
+            self.coach_cfg, self.phase_cfg, passive_mode=passive,
+            vision_enabled=self._vision_enabled)
 
     def update_phase(self, phase_cfg: PhaseConfig):
         """Update the coach's phase config (after phase transition)."""
         self.phase_cfg = phase_cfg
         self.system_prompt = build_system_prompt(
-            self.coach_cfg, phase_cfg, passive_mode=self._passive_mode)
+            self.coach_cfg, phase_cfg, passive_mode=self._passive_mode,
+            vision_enabled=self._vision_enabled)
 
     def get_decision(
         self,
@@ -73,6 +80,7 @@ class Coach:
         recent_history: list[MetricsSnapshot],
         recent_decisions: list[dict],
         plateau_detected: bool = False,
+        frame_png: bytes | None = None,
     ) -> tuple[CoachDecision, float]:
         """Call the AI coach and get a training decision.
 
@@ -81,6 +89,9 @@ class Coach:
             recent_history: Recent MetricsSnapshot objects.
             recent_decisions: Recent decision log entries.
             plateau_detected: Whether terrain level has plateaued.
+            frame_png: Optional PNG image bytes from simulation render.
+                       When provided, the coach receives a multimodal
+                       message with the frame for visual gait analysis.
 
         Returns:
             (CoachDecision, api_latency_ms)
@@ -88,13 +99,30 @@ class Coach:
         user_message = build_user_message(
             snapshot, recent_history, recent_decisions, plateau_detected)
 
+        # Build content: multimodal (image + text) when frame provided,
+        # plain text otherwise
+        if frame_png is not None:
+            content = [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": base64.b64encode(frame_png).decode(),
+                    },
+                },
+                {"type": "text", "text": user_message},
+            ]
+        else:
+            content = user_message
+
         start = time.time()
         try:
             response = self.client.messages.create(
                 model=self.coach_cfg.api_model,
                 max_tokens=1024,
                 system=self.system_prompt,
-                messages=[{"role": "user", "content": user_message}],
+                messages=[{"role": "user", "content": content}],
             )
             latency_ms = (time.time() - start) * 1000
             self._consecutive_failures = 0

@@ -54,8 +54,15 @@ class Guardrails:
         self,
         changes: dict[str, float],
         current_weights: dict[str, float],
+        current_terrain_level: float = 0.0,
     ) -> tuple[dict[str, float], list[str]]:
         """Validate and bound proposed weight changes.
+
+        Args:
+            current_terrain_level: Used for terrain-gated penalty loosening.
+                Penalties cannot be loosened (made less negative) below the
+                penalty_loosen_terrain threshold. The robot must learn clean
+                gait under strict constraints before getting freedom.
 
         Returns:
             (approved_changes, list_of_messages)
@@ -96,6 +103,22 @@ class Guardrails:
                 messages.append(
                     f"REJECTED {name}: penalty cannot be positive")
                 continue
+
+            # Terrain-gated penalty loosening — penalties cannot be made
+            # less negative until terrain exceeds threshold (default 4.0).
+            # The robot must learn clean gait under strict constraints first.
+            loosen_threshold = getattr(
+                self.coach_cfg, "penalty_loosen_terrain", 4.0)
+            if (name in SIGN_NEGATIVE
+                    and current_terrain_level < loosen_threshold):
+                current = current_weights.get(name)
+                if current is not None and new_val > current:
+                    messages.append(
+                        f"REJECTED {name}: cannot loosen penalty "
+                        f"({current:.4f} -> {new_val:.4f}) at terrain "
+                        f"{current_terrain_level:.2f} < {loosen_threshold:.1f}. "
+                        f"Robot must master clean gait first.")
+                    continue
 
             # Absolute bounds — use tighter mason_hybrid bounds if available
             bounds = None

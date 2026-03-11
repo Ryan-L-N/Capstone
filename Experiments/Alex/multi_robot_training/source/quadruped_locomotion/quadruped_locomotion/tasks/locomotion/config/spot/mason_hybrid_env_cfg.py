@@ -326,11 +326,8 @@ class HybridRewardsCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("height_scanner"),
-            "terrain_scaled": True,
-            "height_easy": 0.42,
-            "height_hard": 0.35,
-            "variance_flat": 0.001,
-            "variance_rough": 0.02,
+            "terrain_scaled": False,
+            "target_height": 0.37,  # Fixed standing height — robot MUST stand up
         },
     )
     dof_pos_limits = RewardTermCfg(
