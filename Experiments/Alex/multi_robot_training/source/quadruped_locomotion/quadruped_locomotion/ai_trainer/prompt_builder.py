@@ -49,7 +49,8 @@ This is your most important input — numbers can lie, but the image shows reali
 3. Are strides smooth and rhythmic (not jerky, spastic, or stuttering)?
 4. Is the robot standing at proper height (~0.37m)? Or is it crouching/flopping?
 5. Are any legs dragging, crossing, or flailing?
-6. Does it look like a REAL DOG walking, or a broken machine?
+6. Is the robot belly-crawling, crouching low, or lying flat? (This is the #1 exploit — tighten terrain_relative_height immediately)
+7. Does it look like a REAL DOG walking, or a broken machine?
 
 **Visual override rule:** If the image shows poor gait quality (flopping, bouncing,
 dragging, unstable posture), DO NOT advance terrain or loosen penalties REGARDLESS
@@ -83,6 +84,7 @@ robot that couldn't stand up. DO NOT repeat this mistake.
 ### PRIORITY 1: GAIT QUALITY PROTECTION
 1. TERRAIN-GATED PENALTY LOOSENING: Penalties CANNOT be made less negative (loosened) when terrain < {coach_cfg.penalty_loosen_terrain:.1f}. Penalties are the GUARDRAILS that keep gait clean. Loosening them is like removing safety rails from a highway — the robot will immediately develop bad habits (bouncy hopping, jerky movements, flopping) that are IMPOSSIBLE to fix later. At terrain < {coach_cfg.penalty_loosen_terrain:.1f}, if stuck, boost velocity rewards instead — do NOT reduce penalties.
 2. Even at terrain >= {coach_cfg.penalty_loosen_terrain:.1f}: loosen penalties ONLY if gait quality is confirmed smooth (via visual inspection when available, or via low vel_tracking_error AND stable reward trend).
+3. PROTECTED WEIGHT — terrain_relative_height: This is the ANTI-BELLY-CRAWL penalty. It forces the robot to stand at 0.37m. Without it the robot will discover that lying flat or crawling is the safest survival strategy. NEVER loosen it below -1.5. If the robot is crouching or belly-crawling, TIGHTEN this toward -3.0 or -4.0.
 
 ### PRIORITY 2: STABILITY
 3. Maximum {coach_cfg.max_weight_changes} reward weight changes at a time. Changing 6 at once caused total policy collapse (Trial 11k: 88% flip over, terrain 0.12).
@@ -117,7 +119,8 @@ robot that couldn't stand up. DO NOT repeat this mistake.
 | Stiff-legged gait | joint_pos penalty too high | Lower joint_pos toward -0.5 (NOT below -0.3) |
 | Bouncy/hoppy gait | air_time reward too high, penalties too weak | TIGHTEN action_smoothness and base_motion. Lower air_time. |
 | Legs crossing / unstable | joint_pos too low, action_smoothness too weak | Increase joint_pos (toward -0.7), increase action_smoothness (toward -1.5) |
-| vel_tracking_error_xy > 3.0 | Penalties overpower velocity rewards | Increase velocity rewards (keep under 7.0). Do NOT reduce penalties. |
+| vel_tracking_error_xy > 3.0 | Penalties overpower velocity rewards | Increase velocity rewards (keep under 9.0). Do NOT reduce penalties. |
+| Robot belly-crawling or crouching | terrain_relative_height too weak | TIGHTEN terrain_relative_height toward -3.0 to -4.0. NEVER loosen below -1.5. |
 
 ## Decision Format
 Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
@@ -139,7 +142,7 @@ Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
 
 ## Anti-Stall Rule
 If terrain has been flat for 300+ iterations (plateau alert), "no_change" is the WRONG answer. But the fix must PRESERVE GAIT QUALITY:
-1. Boost velocity rewards (base_linear_velocity, base_angular_velocity) by 10-15% — but NEVER above 7.0
+1. Boost velocity rewards (base_linear_velocity, base_angular_velocity) by 10-15% — this is the safest move. Keep under 9.0.
 2. If terrain >= {coach_cfg.penalty_loosen_terrain:.1f} AND gait is smooth: cautiously reduce the largest penalty by 10%
 3. If flip_rate is high: the policy is dying on harder terrains — reduce base_motion or base_orientation slightly
 
@@ -149,7 +152,7 @@ If terrain has been flat for 300+ iterations (plateau alert), "no_change" is the
 3. SMALL MOVES. A 10-15% weight change is usually enough. The policy amplifies small signals over thousands of iterations.
 4. WATCH THE CRITIC. Value loss is the canary. If it spikes, something is wrong — don't make it worse.
 5. PATIENCE — BUT NOT FOREVER. Wait 200-300 iterations after a change before changing the same weight again.
-6. VELOCITY REWARDS HAVE A CEILING. base_linear_velocity and base_angular_velocity should stay in the 3.0-7.0 range. Values above 7.0 incentivize reckless speed over careful stepping."""
+6. VELOCITY REWARDS ARE YOUR PRIMARY TOOL for encouraging movement. If the robot is stuck, not advancing terrain, or standing still, boosting velocity rewards (base_linear_velocity, base_angular_velocity) is the SAFEST intervention — it rewards forward progress without removing gait constraints. Keep them in the 3.0-9.0 range. Values above 9.0 incentivize reckless speed over careful stepping, but values in 5.0-8.0 are healthy and expected."""
 
 
 def build_user_message(

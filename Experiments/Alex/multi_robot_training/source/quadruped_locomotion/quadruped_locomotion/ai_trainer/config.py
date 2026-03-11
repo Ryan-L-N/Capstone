@@ -176,8 +176,8 @@ class CoachConfig:
     mason_hybrid_bounds: dict = field(default_factory=lambda: {
         # Positive rewards — tight range around Mason's 5.0/10.0
         "air_time":                (2.0, 8.0),
-        "base_angular_velocity":   (3.0, 7.0),
-        "base_linear_velocity":    (3.0, 7.0),
+        "base_angular_velocity":   (3.0, 9.0),
+        "base_linear_velocity":    (3.0, 9.0),
         "foot_clearance":          (0.2, 1.5),
         "gait":                    (5.0, 12.0),
         # Negative penalties — tight range around Mason's values
@@ -191,7 +191,7 @@ class CoachConfig:
         "joint_torques":           (-5e-3, -5e-5),
         "joint_vel":               (-5e-2, -5e-3),
         "dof_pos_limits":          (-5.0, -1.0),
-        "terrain_relative_height": (-4.0, -1.0),
+        "terrain_relative_height": (-4.0, -1.5),  # Anti-belly-crawl — NEVER loosen below -1.5
     })
 
     # Phase-specific LR ceilings — NEVER exceed these

@@ -218,7 +218,44 @@ Complete rewrite of the coach's system prompt:
 - **Velocity ceiling:** `base_linear_velocity` and `base_angular_velocity` must stay in 3.0-7.0
 - **New troubleshooting entries:** "Flopping/unstable gait" and "Robot not standing up"
 
-### MH-2 Launch Command
+### MH-2a: No-Coach Baseline (ACTIVE — March 11, 2026)
+
+After MH-1 and MH-2 VLM attempts, we decided to let Mason's config prove itself without
+any AI coach interference. Pure training: Mason's rewards + our terrain + safety fixes.
+
+**Script:** `scripts/rsl_rl/train_hybrid.py` — dedicated script, no coach code.
+
+**Key differences from `train_ai.py`:**
+- No AI coach, no VLM, no API calls
+- No cosine LR — uses Mason's adaptive KL schedule (RSL-RL built-in)
+- Keeps: value loss watchdog, noise clamping, std safety, checkpoints
+
+**Launch command:**
+```bash
+python scripts/rsl_rl/train_hybrid.py \
+  --headless --no_wandb \
+  --num_envs 4096 --save_interval 100 \
+  --max_noise_std 1.0 --max_iterations 20000
+```
+
+**Running in parallel with Mason's baseline** on the H100 (22.5 GB / 96 GB GPU). Both at ~8.7s/iter.
+When Mason finishes, hybrid speeds up to ~5-6s/iter. ETA: ~48 hours from launch.
+
+**Monitor:**
+```bash
+tail -f ~/mason_hybrid_nocoach_train.log
+grep -E 'terrain_levels|Mean reward|flip_over' ~/mason_hybrid_nocoach_train.log | tail -10
+```
+
+### MH-2b: VLM Coach (BLOCKED — needs Vulkan on H100)
+
+The VLM pipeline works (tested locally) but the H100 has no Vulkan drivers for offscreen
+rendering. `--enable_cameras` fails without `libnvidia-gl-575`. Install requires sudo:
+```bash
+sudo apt-get install -y libnvidia-gl-575 libvulkan1
+```
+
+Once Vulkan is available, launch with:
 ```bash
 python scripts/rsl_rl/train_ai.py \
   --task Locomotion-MasonHybrid-Spot-v0 \
@@ -294,7 +331,8 @@ ln -sf ~/logs/rsl_rl/spot_hybrid_ppo ~/multi_robot_training_new/logs/rsl_rl/spot
 | `pkg/ai_trainer/guardrails.py` | Safety checks (LR/noise disabled, tight weight bounds) |
 | `pkg/ai_trainer/coach.py` | Passive mode support |
 | `pkg/ai_trainer/prompt_builder.py` | Passive mode preamble ("RESPECT THE BASELINE") |
-| `scripts/rsl_rl/train_ai.py` | Training script (adaptive LR detection, deferred activation) |
+| `scripts/rsl_rl/train_ai.py` | AI coach training script (VLM, deferred activation) |
+| `scripts/rsl_rl/train_hybrid.py` | No-coach training script (pure Mason config + our safety) |
 
 ---
 
