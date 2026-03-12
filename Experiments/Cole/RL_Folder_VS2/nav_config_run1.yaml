@@ -155,7 +155,7 @@ curriculum:
 
 # PPO hyperparameters
 ppo:
-  learning_rate: 1.0e-4  # RUN 1: Moderate learning rate for balanced learning
+  learning_rate: 7.5e-5  # RUN 1 RESTART: Sweet spot experiment - halfway between success (5e-5) and failure (1e-4)
   clip_param: 0.2
   value_coef: 0.5
   entropy_coef: 0.01
