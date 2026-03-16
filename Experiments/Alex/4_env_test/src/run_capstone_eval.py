@@ -85,6 +85,8 @@ parser.add_argument("--output_dir", type=str, default="results/",
                     help="Output directory for JSONL and video files")
 parser.add_argument("--seed", type=int, default=42,
                     help="Random seed for reproducibility")
+parser.add_argument("--mason", action="store_true", default=False,
+                    help="Use Mason obs order (height_scan first) + action_scale=0.2")
 
 args = parser.parse_args()
 
@@ -105,7 +107,7 @@ simulation_app = SimulationApp(app_config)
 import numpy as np
 import omni
 from omni.isaac.core import World
-from pxr import UsdGeom, Gf, UsdPhysics
+from pxr import UsdGeom, Gf, UsdPhysics, UsdLux
 
 # Add src/ to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -167,6 +169,23 @@ def main():
     ground.GetDisplayColorAttr().Set([(0.5, 0.5, 0.5)])
     UsdPhysics.CollisionAPI.Apply(ground.GetPrim())
 
+    # ── 4b. Scene lighting ────────────────────────────────────────────
+    light_path = "/World/Lights"
+    UsdGeom.Xform.Define(stage, light_path)
+
+    # Dome light (ambient sky)
+    dome = UsdLux.DomeLight.Define(stage, f"{light_path}/dome")
+    dome.CreateIntensityAttr(500.0)
+    dome.CreateColorAttr(Gf.Vec3f(0.85, 0.90, 1.0))
+
+    # Distant light (sun)
+    sun = UsdLux.DistantLight.Define(stage, f"{light_path}/sun")
+    sun.CreateIntensityAttr(3000.0)
+    sun.CreateAngleAttr(1.0)
+    sun.CreateColorAttr(Gf.Vec3f(1.0, 0.95, 0.85))
+    sun_prim = stage.GetPrimAtPath(f"{light_path}/sun")
+    UsdGeom.Xformable(sun_prim).AddRotateXYZOp().Set(Gf.Vec3d(-45, 30, 0))
+
     # ── 5. Build environment ────────────────────────────────────────────
     print(f"Building {args.env} environment...")
     build_environment(args.env, stage, None)
@@ -174,8 +193,11 @@ def main():
     # ── 6. Load policy and spawn robot ──────────────────────────────────
     print(f"Loading {args.policy} policy for {robot.upper()}...", flush=True)
 
-    # Ground height function for stairs (used by both metrics and height scanner)
-    ground_fn = get_stair_elevation if args.env == "stairs" else None
+    # Ground height function for stairs
+    # - Metrics: uses analytical fn for correct fall detection on elevated terrain
+    # - Height scanner: uses PhysX raycasting for ALL environments (sees real geometry)
+    ground_fn_metrics = get_stair_elevation if args.env == "stairs" else None
+    ground_fn_scanner = None  # PhysX raycasting for all envs
 
     if robot == "spot":
         from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
@@ -196,9 +218,16 @@ def main():
             robot_policy = SpotRoughTerrainPolicy(
                 flat_policy=flat_policy,
                 checkpoint_path=args.checkpoint,
-                ground_height_fn=ground_fn,
+                ground_height_fn=ground_fn_scanner,
+                mason_baseline=args.mason,
             )
             robot_policy.initialize()
+            robot_policy.apply_gains()
+            # The main loop calls forward() once per world.step().
+            # world.step() advances rendering_dt/physics_dt = 10 physics substeps,
+            # so the loop already runs at 50 Hz (control rate).
+            # Decimation must be 1 here (not 10) to avoid 5 Hz policy rate.
+            robot_policy._decimation = 1
         else:
             robot_policy = flat_policy
 
@@ -238,9 +267,11 @@ def main():
             robot_policy = Vision60RoughTerrainPolicy(
                 flat_policy=flat_policy,
                 checkpoint_path=args.checkpoint,
-                ground_height_fn=ground_fn,
+                ground_height_fn=ground_fn_scanner,
             )
             robot_policy.initialize()
+            robot_policy.apply_gains()
+            robot_policy._decimation = 1  # loop is already at 50 Hz
         else:
             print("[ERROR] Vision60 flat policy not available — use --policy rough", flush=True)
             os._exit(1)
@@ -254,7 +285,7 @@ def main():
     waypoint_follower = WaypointFollower()
     metrics_collector = MetricsCollector(
         args.output_dir, args.env, args.policy,
-        ground_height_fn=ground_fn,
+        ground_height_fn=ground_fn_metrics,
     )
     os.makedirs(args.output_dir, exist_ok=True)
 

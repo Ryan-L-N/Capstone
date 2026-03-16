@@ -83,6 +83,7 @@ SCAN_GRID_BODY = np.stack([_gx.ravel(), _gy.ravel()], axis=-1).astype(np.float32
 OBS_DIM       = 48 + SCAN_N    # 235
 ACT_DIM       = 12
 ACTION_SCALE  = 0.3            # Matches training env (action_scale=0.3, Trial 11c+)
+ACTION_SCALE_MASON = 0.2      # Mason baseline uses scale=0.2
 DECIMATION    = 10             # env.yaml → decimation
 
 # Actuator gains from training (env.yaml → actuators → stiffness/damping)
@@ -163,23 +164,31 @@ class SpotRoughTerrainPolicy:
     # ------------------------------------------------------------------
     # Construction
     # ------------------------------------------------------------------
-    def __init__(self, flat_policy, checkpoint_path=None):
+    def __init__(self, flat_policy, checkpoint_path=None, mason_baseline=False):
         """
         Args:
             flat_policy:       Initialised SpotFlatTerrainPolicy whose .robot
                                articulation is shared.
             checkpoint_path:   Path to RSL-RL checkpoint (.pt).
                                Defaults to the 48h 30k-iteration rough model.
+            mason_baseline:    If True, use Mason's architecture [512,256,128],
+                               observation order (height_scan first), and
+                               action_scale=0.2.
         """
+        self._mason_baseline = mason_baseline
+
         # Share the existing robot — no new articulation
         self.robot = flat_policy.robot
 
         # Build actor MLP and load trained weights
         ckpt = checkpoint_path or DEFAULT_CHECKPOINT
-        self._actor = self._build_actor(ckpt)
+        if mason_baseline:
+            self._actor = self._build_actor_mason(ckpt)
+        else:
+            self._actor = self._build_actor(ckpt)
 
         # Internal bookkeeping
-        self._action_scale    = ACTION_SCALE
+        self._action_scale    = ACTION_SCALE_MASON if mason_baseline else ACTION_SCALE
         self._decimation      = DECIMATION
         self._previous_action = np.zeros(ACT_DIM)
         self._policy_counter  = 0
@@ -219,6 +228,32 @@ class SpotRoughTerrainPolicy:
         print(f"[ROUGH] Loaded actor from {checkpoint_path}")
         print(f"[ROUGH]   obs={OBS_DIM}  act={ACT_DIM}  "
               f"scale={ACTION_SCALE}  dec={DECIMATION}")
+        return actor
+
+    @staticmethod
+    def _build_actor_mason(checkpoint_path):
+        """Construct [235->512->256->128->12] ELU MLP for Mason baseline."""
+        actor = nn.Sequential(
+            nn.Linear(OBS_DIM, 512), nn.ELU(),
+            nn.Linear(512, 256),     nn.ELU(),
+            nn.Linear(256, 128),     nn.ELU(),
+            nn.Linear(128, ACT_DIM),
+        )
+
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        state = ckpt["model_state_dict"]
+
+        actor_state = {
+            k.replace("actor.", ""): v
+            for k, v in state.items()
+            if k.startswith("actor.")
+        }
+        actor.load_state_dict(actor_state)
+        actor.eval()
+
+        print(f"[MASON] Loaded actor from {checkpoint_path}")
+        print(f"[MASON]   obs={OBS_DIM}  act={ACT_DIM}  "
+              f"scale={ACTION_SCALE_MASON}  dec={DECIMATION}  arch=[512,256,128]")
         return actor
 
     # ------------------------------------------------------------------
@@ -299,9 +334,9 @@ class SpotRoughTerrainPolicy:
     # Observation
     # ------------------------------------------------------------------
     def _compute_observation(self, command):
-        """235-dim vector: 48 proprioception + 187 height scan.
+        """235-dim vector matching the training observation order.
 
-        Layout matches training env.yaml observation group:
+        Default layout (our training):
             [0:3]     base_lin_vel   (body frame)
             [3:6]     base_ang_vel   (body frame)
             [6:9]     projected_gravity
@@ -310,6 +345,16 @@ class SpotRoughTerrainPolicy:
             [24:36]   joint_vel_rel
             [36:48]   last_action
             [48:235]  height_scan    (187 rays)
+
+        Mason baseline layout (height_scan FIRST):
+            [0:187]   height_scan    (187 rays)
+            [187:190] base_lin_vel
+            [190:193] base_ang_vel
+            [193:196] projected_gravity
+            [196:199] velocity_commands
+            [199:211] joint_pos_rel
+            [211:223] joint_vel_rel
+            [223:235] last_action
         """
         lin_vel_I = self.robot.get_linear_velocity()
         ang_vel_I = self.robot.get_angular_velocity()
@@ -322,36 +367,48 @@ class SpotRoughTerrainPolicy:
         ang_vel_b = R_BI @ ang_vel_I
         gravity_b = R_BI @ np.array([0.0, 0.0, -1.0])
 
-        obs = np.zeros(OBS_DIM, dtype=np.float32)
-
-        # -- 48-dim proprioception (same layout as flat policy) --
-        obs[0:3]   = lin_vel_b
-        obs[3:6]   = ang_vel_b
-        obs[6:9]   = gravity_b
-        obs[9:12]  = command
-
         jp = self.robot.get_joint_positions()
         jv = self.robot.get_joint_velocities()
-        obs[12:24] = jp - self.default_pos
-        obs[24:36] = jv
-        obs[36:48] = self._previous_action
 
         # -- 187-dim height scan --
         self._height_scan = self._cast_height_rays()
-        obs[48:] = self._height_scan
+
+        obs = np.zeros(OBS_DIM, dtype=np.float32)
+
+        if self._mason_baseline:
+            # Mason: height_scan first, then proprioception
+            obs[0:SCAN_N]          = self._height_scan
+            o = SCAN_N  # offset = 187
+            obs[o:o+3]             = lin_vel_b
+            obs[o+3:o+6]          = ang_vel_b
+            obs[o+6:o+9]          = gravity_b
+            obs[o+9:o+12]         = command
+            obs[o+12:o+24]        = jp - self.default_pos
+            obs[o+24:o+36]        = jv
+            obs[o+36:o+48]        = self._previous_action
+        else:
+            # Our training: proprioception first, height_scan last
+            obs[0:3]   = lin_vel_b
+            obs[3:6]   = ang_vel_b
+            obs[6:9]   = gravity_b
+            obs[9:12]  = command
+            obs[12:24] = jp - self.default_pos
+            obs[24:36] = jv
+            obs[36:48] = self._previous_action
+            obs[48:]   = self._height_scan
 
         # Diagnostic: print stats on first few policy steps
         if self._policy_counter < 3 * DECIMATION:
             eval_idx = self._policy_counter // DECIMATION
             if self._policy_counter % DECIMATION == 0:
-                print(f"[ROUGH] OBS DIAG (eval {eval_idx}):")
+                mode = "MASON" if self._mason_baseline else "ROUGH"
+                print(f"[{mode}] OBS DIAG (eval {eval_idx}):")
                 print(f"  lin_vel_b = {lin_vel_b}")
                 print(f"  gravity_b = {gravity_b}")
                 print(f"  body_pos  = ({float(pos[0]):.3f}, {float(pos[1]):.3f}, {float(pos[2]):.3f})")
                 print(f"  joint_pos_rel range = [{(jp - self.default_pos).min():.3f}, {(jp - self.default_pos).max():.3f}]")
                 print(f"  height_scan range = [{self._height_scan.min():.3f}, {self._height_scan.max():.3f}]")
                 print(f"  height_scan mean  = {self._height_scan.mean():.6f}")
-                # Show a few individual ray values for debugging
                 center_idx = SCAN_N // 2
                 print(f"  height_scan[center]={self._height_scan[center_idx]:.4f} "
                       f"[0]={self._height_scan[0]:.4f} "

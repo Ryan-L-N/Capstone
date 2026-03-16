@@ -2,10 +2,11 @@
 
 > **TL;DR:** We took Mason's proven reward weights and smaller neural network, put them on our harder terrain, and added the AI Coach as a safety net. The goal: break through the terrain 4.83 ceiling that our custom config couldn't crack.
 >
-> **Status:** MH-1 FAILED (gait destroyed by coach), MH-2 launching with VLM + gait-quality-first (March 11, 2026)
+> **Status:** Both trainings COMPLETE. Hybrid no-coach: terrain 3.74 (42.6 hrs). AI-coached v8: terrain 4.83 (47 hrs).
 > **Hardware:** NVIDIA H100 NVL 96GB
 > **MH-1 run dir:** `spot_hybrid_ppo/2026-03-10_18-55-33/` (retired)
-> **MH-2:** Fresh start with `--enable_vision` for visual gait feedback
+> **MH-2a no-coach run dir:** `spot_hybrid_ppo/2026-03-11_11-28-30/` — 20,000 iters, model_19999.pt
+> **AI-coached v8 run dir:** `spot_robust_ppo/2026-03-09_12-47-39/` — 10,600 iters, model_10600.pt
 
 ---
 
@@ -218,7 +219,7 @@ Complete rewrite of the coach's system prompt:
 - **Velocity ceiling:** `base_linear_velocity` and `base_angular_velocity` must stay in 3.0-7.0
 - **New troubleshooting entries:** "Flopping/unstable gait" and "Robot not standing up"
 
-### MH-2a: No-Coach Baseline (ACTIVE — March 11, 2026)
+### MH-2a: No-Coach Baseline (COMPLETE — March 13, 2026)
 
 After MH-1 and MH-2 VLM attempts, we decided to let Mason's config prove itself without
 any AI coach interference. Pure training: Mason's rewards + our terrain + safety fixes.
@@ -230,22 +231,73 @@ any AI coach interference. Pure training: Mason's rewards + our terrain + safety
 - No cosine LR — uses Mason's adaptive KL schedule (RSL-RL built-in)
 - Keeps: value loss watchdog, noise clamping, std safety, checkpoints
 
-**Launch command:**
-```bash
-python scripts/rsl_rl/train_hybrid.py \
-  --headless --no_wandb \
-  --num_envs 4096 --save_interval 100 \
-  --max_noise_std 1.0 --max_iterations 20000
-```
+**Final results (20,000 iterations, 42.6 hours, 2.0B steps):**
+- Terrain level: 3.74 (plateaued — did not break through)
+- Survival: 53%
+- Flip rate: 0%
+- Mean reward: ~320
+- Conclusion: Mason's config alone plateaus at terrain ~3.7 on our harder terrain. The AI coach is needed to push further.
 
-**Running in parallel with Mason's baseline** on the H100 (22.5 GB / 96 GB GPU). Both at ~8.7s/iter.
-When Mason finishes, hybrid speeds up to ~5-6s/iter. ETA: ~48 hours from launch.
+**Checkpoint:** `checkpoints/hybrid_nocoach_19999.pt` (6.6 MB)
+**Run dir:** `spot_hybrid_ppo/2026-03-11_11-28-30/`
+
+### AI-Coached v8 (Trial 11l): COMPLETE — March 13, 2026
+
+Our custom [1024,512,256] config with AI coach (Claude Sonnet). Resumed from v7's model_3900.pt with baked reward weights from all prior coach interventions.
+
+**Final results (~10,600 iterations, ~47 hours, ~2.0B steps):**
+- Terrain level: 4.83 (our best ever, but plateaued)
+- Last saved checkpoint: model_10600.pt (training continued ~2 more days but stopped saving)
+- 68 checkpoints saved total
+- Mean reward: 640-682
+
+**Checkpoint:** `checkpoints/ai_coached_v8_10600.pt` (21 MB, [1024,512,256] architecture)
+**Run dir:** `spot_robust_ppo/2026-03-09_12-47-39/`
 
 **Monitor:**
 ```bash
 tail -f ~/mason_hybrid_nocoach_train.log
 grep -E 'terrain_levels|Mean reward|flip_over' ~/mason_hybrid_nocoach_train.log | tail -10
 ```
+
+### 4-Environment Eval Results (2026-03-12 — 2026-03-13)
+
+#### Mason Hybrid No-Coach (model_13000.pt) — Single Episode
+
+| Environment | Status | Progress | Zones | Time | Notes |
+|-------------|--------|----------|-------|------|-------|
+| Friction | COMPLETE | 49.5m | 5/5 | 273.9s | Clean traversal, stable gait (mean_roll=0.044 rad) |
+| Grass | — | — | — | — | Not yet tested |
+| Boulder | FELL | 31.6m | 3/5 | 88.3s | With PhysX raycasting (+11m vs 20.6m without) |
+| Stairs | FELL | 12.7m | 2/5 | 95.2s | PhysX raycasting confirmed seeing stair geometry |
+
+#### AI-Coached v8 (model_10600.pt) — Single Episode
+
+| Environment | Status | Progress | Zones | Time | Notes |
+|-------------|--------|----------|-------|------|-------|
+| Friction | COMPLETE | 49.5m | 5/5 | 50.2s | Much faster than hybrid (more aggressive gait) |
+| Grass | FELL | 41.2m | 5/5 | 121.0s | Reached all zones before falling |
+| Boulder | FELL | 23.0m | 3/5 | 34.8s | Similar zones to hybrid but less progress |
+| Stairs | FELL | 12.7m | 2/5 | 37.1s | Same zones as hybrid |
+
+#### Mason Baseline (model_19999.pt) — 100-Episode Sweep (Partial)
+
+| Environment | Episodes | Mean Progress | Std | Fall Rate | Notes |
+|-------------|----------|---------------|-----|-----------|-------|
+| Friction | 100/100 | 33.5m | ±10.0m | 83% | High variance |
+| Grass | 50/100 | 28.9m | ±6.7m | 22% | Interrupted at 50 |
+| Boulder | 0/100 | — | — | — | CUDA error |
+| Stairs | 0/100 | — | — | — | Not yet run |
+
+**PhysX Raycasting (Bug E-6):** Originally the height scan was all zeros (flat ground assumption) — the policy was blind to terrain geometry. Implemented `omni.physx.get_physx_scene_query_interface()` raycasting: 187 rays, 17×11 grid, self-collision filtering. Boulder improved +11m with raycasting. Stairs confirmed hitting `/World/Staircase/zone_1/step_0,1,2`.
+
+**Deployment notes:** Required several fixes to `4_env_test/src/` for standalone mode:
+- **Decimation = 1** — standalone loop runs at 50 Hz (not 500 Hz), so policy decimation must be 1 (not 10). Without this fix, policy ran at 5 Hz → violent oscillation → immediate fall.
+- **`--mason` flag** — obs order: height_scan(187) first, proprioception(48) last. Action scale 0.2.
+- **Waypoint follower fix** — `is_done` triggered at 39.5m (premature). Changed `>=` to `>`.
+- **Scene lighting** — dome + sun lights added (was pitch black).
+- **PhysX raycasting** — height scan now uses real scene queries instead of zeros. All 4 envs use raycast.
+- See `4_env_test/LESSONS_LEARNED.md` Bugs E-1 through E-6 for full details.
 
 ### MH-2b: VLM Coach (BLOCKED — needs Vulkan on H100)
 

@@ -170,7 +170,7 @@ MUST be declared `nonlocal`. Otherwise Python treats them as local and raises:
 - [ ] Height scan fill: 0.0 (flat ground)
 - [ ] GPU PhysX: `backend="torch"`, `device="cuda:0"`
 - [ ] PD gains: Kp=60, Kd=1.5
-- [ ] Action scale: 0.25
+- [ ] Action scale: 0.2 (all configs use 0.2, NOT 0.25)
 - [ ] Decimation: 10 (50 Hz control, 500 Hz physics)
 - [ ] Solver iterations: 4 position, 0 velocity
 - [ ] Quaternion format: [w, x, y, z] scalar-first
@@ -288,18 +288,191 @@ $env:OMNI_KIT_ACCEPT_EULA="YES"
 
 ---
 
+## Bugs Fixed — Mason Hybrid Eval (2026-03-12)
+
+### Bug E-1: Decimation Mismatch — Policy Running at 5 Hz Instead of 50 Hz
+
+- **Symptom:** Robot spasms violently, action norms escalate (10 → 31) within 10 steps, falls immediately.
+- **Root cause:** The main loop calls `forward()` once per `world.step()`. But `world.step()` advances `rendering_dt / physics_dt = 10` physics substeps. With `DECIMATION=10` in `SpotRoughTerrainPolicy.forward()`, the policy only evaluates every 10th `forward()` call = every 100 physics steps = **5 Hz**. Training ran at 50 Hz.
+- **Why it worked in lava arenas:** The lava arenas use `world.add_physics_callback()` which fires at every physics step (500 Hz). With decimation=10, the policy evaluates at 50 Hz. The 4_env_test uses a simple `for` loop that calls `forward()` once per `world.step()`.
+- **Fix:** Set `robot_policy._decimation = 1` after `initialize()` in `run_capstone_eval.py`. Since the main loop already runs at 50 Hz (control rate), decimation of 1 gives the correct policy frequency.
+- **Impact:** Without fix, robot survives < 1 second. With fix, robot completes full 50m friction course.
+- **Files modified:** `run_capstone_eval.py` (lines 227, 271)
+
+### Bug E-2: Waypoint Follower Premature Termination
+
+- **Symptom:** Episode ends at exactly 39.5m with status "TIMEOUT" (or "COMPLETE" falsely). Robot was still walking fine. Console showed 39.5m but JSONL showed episode_length of only 44.52s.
+- **Root cause:** When robot reaches x=39.5m, it passes waypoint 4's threshold (40.0 - 0.5 = 39.5), which increments `current_wp` to 5. Then `is_done` checks `current_wp >= len(waypoints) - 1` → `5 >= 5 = True`. The episode terminates before the robot reaches waypoint 5 (x=50m).
+- **Fix:** Changed `is_done` from `>=` to `>` (strictly greater than). Changed advance condition from `< len - 1` to `< len` to allow incrementing past the last waypoint only when actually reaching it.
+- **Impact:** Without fix, every run terminates at 39.5m regardless of policy quality. With fix, robot can complete the full 50m course.
+- **Files modified:** `navigation/waypoint_follower.py` (lines 53, 93)
+
+### Bug E-3: Missing Scene Lighting
+
+- **Symptom:** "The lights are off" — dark/black scene in rendered mode.
+- **Root cause:** `run_capstone_eval.py` only created a ground plane and environment objects. No lights were added to the USD stage.
+- **Fix:** Added dome light (ambient sky, intensity=500) and distant light (sun, intensity=3000) after ground plane creation.
+- **Files modified:** `run_capstone_eval.py` (lines 172-187), added `UsdLux` import
+
+### Bug E-4: `apply_gains()` CUDA Tensor Error (Non-Fatal)
+
+- **Symptom:** `TypeError: can't convert cuda:0 device type tensor to numpy` in `apply_gains()`.
+- **Root cause:** `SpotRoughTerrainPolicy.apply_gains()` passes CUDA tensors to `ArticulationView.set_gains()`, but the standalone Isaac Sim API uses numpy backend (not GPU ArticulationView). The function was written for the Isaac Lab GPU pipeline.
+- **Impact:** Non-fatal — the gains were already correct (Kp=60, Kd=1.5) and solver iterations already 4/0, set by the flat policy. The `apply_gains()` call is still useful as a safety check (prints BEFORE values to verify).
+- **Future fix:** Use numpy arrays instead of CUDA tensors in `apply_gains()` for standalone mode.
+
+### Bug E-5: `__pycache__` Stale Bytecode
+
+- **Symptom:** Changed `EPISODE_TIMEOUT` from 600 to 1800 in `eval_cfg.py`, but Python kept using old 600s value. Episode completed in same wall time with same progress.
+- **Root cause:** Python's `.pyc` cache in `configs/__pycache__/` had stale bytecode. On some filesystems (OneDrive sync?), the `.py` modification time didn't properly invalidate the cache.
+- **Fix:** `rm -rf configs/__pycache__/` before re-running.
+- **Prevention:** Always clear `__pycache__` after editing config files if behavior doesn't change.
+
+### Mason Hybrid `--mason` Flag Integration
+
+Added `--mason` CLI flag to `run_capstone_eval.py` that:
+1. Passes `mason_baseline=True` to `SpotRoughTerrainPolicy` constructor
+2. Uses Mason's observation order: height_scan(187) first, then proprioception(48)
+3. Uses `ACTION_SCALE_MASON = 0.2` (vs our 0.25)
+4. Network architecture [512, 256, 128] (matches Mason's training)
+
+### Bug E-6: Height Scan Blind to Terrain (PhysX Raycasting Fix)
+
+- **Symptom:** Robot could not see boulders or stairs — height scan was all 0.0 (flat ground assumption). Boulder progress: 20.6m. Policy had no terrain awareness despite being trained with height scan.
+- **Root cause:** Original `_cast_height_rays()` only supported an analytical `ground_height_fn` (stairs-only) or returned zeros. No raycasting against actual USD geometry.
+- **Fix:** Implemented PhysX scene query raycasting via `omni.physx.get_physx_scene_query_interface()`:
+  - Cast 187 rays downward from `body_z + 20.0m` through a 17×11 grid (1.6m × 1.0m, 0.1m resolution)
+  - Filter self-hits on `/World/Robot/*` by re-casting from `body_z - 0.1`
+  - Formula: `height = body_z - hit_z - 0.5`, clipped to [-1.0, 1.0]
+  - Works for ALL environments (boulders, stairs, friction, grass)
+- **Result:** Boulder improved 20.6m → 31.6m (+11m, +1 zone). Stairs: raycast confirmed hitting `/World/Staircase/zone_1/step_0,1,2` + `/World/GroundPlane`.
+- **Split `ground_fn`:** `ground_fn_metrics` (analytical for stairs fall detection) vs `ground_fn_scanner` (always None → PhysX raycast for height scan).
+- **Files modified:** `spot_rough_terrain_policy.py` (`_cast_height_rays()`), `run_capstone_eval.py` (split ground_fn)
+
+### Bug E-7: `apply_gains()` Silent Failure — CUDA Tensors for Articulation Setters
+
+- **Symptom:** Robot's leg stuck in the floor on stairs. Gains appeared correct in `apply_gains()` BEFORE printout, but the set calls silently failed.
+- **Root cause:** `SpotRoughTerrainPolicy.apply_gains()` used `device=dev` (CUDA) for all tensors passed to `ArticulationView.set_gains()`, `set_solver_position_iteration_counts()`, `set_solver_velocity_iteration_counts()`, and `set_max_depenetration_velocity()`. In standalone Isaac Sim, these setters internally use numpy indexing — CUDA tensors cause `TypeError: can't convert cuda:0 device type tensor to numpy`. The try/except blocks swallowed the errors.
+- **Impact:** PD gains, solver iterations, and depenetration velocity were NOT being set. The robot used whatever defaults the flat policy had left behind.
+- **Fix:** Changed ALL articulation property setters from `device=dev` to `device="cpu"`:
+  ```python
+  kps = torch.full((1, n_dof), TRAINING_STIFFNESS, device="cpu")
+  kds = torch.full((1, n_dof), TRAINING_DAMPING, device="cpu")
+  av.set_gains(kps=kps, kds=kds)
+  ```
+- **Files modified:** `spot_rough_terrain_policy.py` (apply_gains method)
+
+### Bug E-8: ACTION_SCALE Mismatch — 0.25 vs 0.2
+
+- **Symptom:** Robot "folded up" immediately after spawning — legs overdriven, violent collapse. Happened for AI-coached model (non-mason mode).
+- **Root cause:** `spot_rough_terrain_policy.py` used `ACTION_SCALE = 0.25` for non-mason configs, but the actual training config uses `scale=0.2` for ALL policies (confirmed at `env_cfg.py` line 111). The extra 25% action scale caused joint targets beyond safe range.
+- **Fix:** Changed `ACTION_SCALE = 0.2` and `ACTION_SCALE_MASON = 0.2` (both configs use 0.2).
+- **Files modified:** `spot_rough_terrain_policy.py`
+
+### Bug E-9: Actor Architecture Mismatch — Hardcoded [512,256,128]
+
+- **Symptom:** AI-coached v8 model loaded but produced garbage actions. Robot fell over immediately, not even attempting to walk.
+- **Root cause:** `SpotRoughTerrainPolicy` hardcoded the actor network as `[512, 256, 128]` (Mason's architecture). The AI-coached v8 model uses `[1024, 512, 256]` (our config). Loading a 2.4M-param checkpoint into an 800K-param network silently truncated weights.
+- **Fix:** Implemented `_build_actor()` static method that auto-detects hidden layer sizes from checkpoint weight shapes:
+  ```python
+  @staticmethod
+  def _build_actor(checkpoint_path):
+      ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+      state = ckpt["model_state_dict"]
+      actor_state = {k.replace("actor.", ""): v for k, v in state.items() if k.startswith("actor.")}
+      weight_keys = sorted(k for k in actor_state if k.endswith(".weight"))
+      layers = []
+      for wk in weight_keys:
+          out_dim, in_dim = actor_state[wk].shape
+          layers.append(nn.Linear(in_dim, out_dim))
+          if out_dim != ACT_DIM:
+              layers.append(nn.ELU())
+      actor = nn.Sequential(*layers)
+      actor.load_state_dict(actor_state)
+      return actor
+  ```
+- **Impact:** Now supports any checkpoint architecture without code changes. Prints detected sizes: `[ROUGH] Auto-detected architecture: 235 -> [1024, 512, 256] -> 12`
+- **Files modified:** `spot_rough_terrain_policy.py`
+
+### Leg Penetration Through Terrain — Joint Clamping + Depenetration Fix
+
+- **Symptom:** Robot's legs clip through terrain geometry (especially stairs). Legs get "stuck in the floor" and the robot can't recover.
+- **Root cause:** AI-coached model produces larger joint excursions than Mason's conservative network. Combined with Bug E-7 (depenetration velocity not being set), PhysX couldn't resolve the penetration fast enough.
+- **Fix (3 parts):**
+  1. **Joint position clamping to URDF limits** in `forward()`:
+     ```python
+     joint_lower = [-0.785, -0.785, ..., -2.793, -2.793, ...]  # URDF min
+     joint_upper = [ 0.785,  0.785, ..., -0.254, -0.254, ...]  # URDF max
+     target_pos = np.clip(target_pos, joint_lower, joint_upper)
+     ```
+  2. **Depenetration velocity** increased from 1.0 → 10.0 m/s for faster collision resolution
+  3. **CPU tensors** (Bug E-7 fix) — ensures depenetration velocity is actually applied
+- **Note:** Solver iterations 16/4 was attempted but froze the simulation. 4/1 is the working setting.
+- **Files modified:** `spot_rough_terrain_policy.py`
+
+### Deployment Checklist — External Policy in 4_env_test
+
+- [ ] `--mason` flag if using Mason's obs order (height_scan first)
+- [ ] `--checkpoint` path to the correct `.pt` file
+- [ ] `robot_policy._decimation = 1` (loop is already at 50 Hz)
+- [ ] `robot_policy.apply_gains()` called after `initialize()` (verifies settings)
+- [ ] Clear `__pycache__` after config changes
+- [ ] Scene lighting exists (dome + sun)
+- [ ] Waypoint follower `is_done` uses strict `>` (not `>=`)
+- [ ] PhysX raycasting enabled (ground_height_fn=None → real terrain geometry)
+- [ ] ACTION_SCALE = 0.2 (not 0.25 — ALL configs use 0.2)
+- [ ] All articulation setters use `device="cpu"` tensors (not CUDA)
+- [ ] Actor architecture auto-detected from checkpoint (no hardcoded sizes)
+
+---
+
 ## Environment-Specific Issues
 
 ### Friction Environment
-_(To be filled during debug iterations)_
+
+**Mason Hybrid No-Coach (model_13000.pt) — 2026-03-12:**
+- COMPLETE — 49.5m, all 5 zones, 273.9s wall time
+- Mean roll: 0.044 rad (very stable), mean velocity: 0.88 m/s
+- No falls, no issues — clean traversal
+
+**AI-Coached v8 (model_10600.pt) — 2026-03-13:**
+- COMPLETE — 49.5m, all 5 zones, 50.2s wall time
+- Faster than Mason hybrid (50s vs 274s) — more aggressive gait
+
+**100-Episode Mason Baseline Sweep (model_19999.pt) — 2026-03-13:**
+- 100/100 episodes completed (headless)
+- Mean progress: 33.5m ± 10.0m
+- Fall rate: 83% (high variance — some episodes very good, some early falls)
 
 ### Grass / Fluid Resistance Environment
-_(To be filled during debug iterations)_
+
+**Mason Hybrid No-Coach (model_13000.pt) — 2026-03-12:**
+- Results pending (raycasting now enabled)
+
+**AI-Coached v8 (model_10600.pt) — 2026-03-13:**
+- FELL — 41.2m, 5/5 zones reached, 121.0s wall time
+- Made it through all zones but fell near the end
+
+**100-Episode Mason Baseline Sweep (model_19999.pt) — 2026-03-13:**
+- 50/100 episodes completed (interrupted)
+- Mean progress: 28.9m ± 6.7m
+- Fall rate: 22%
 
 ### Boulder Field Environment
-_(To be filled during debug iterations)_
+
+**Mason Hybrid No-Coach (model_13000.pt) — 2026-03-12:**
+- WITHOUT raycasting: 20.6m progress, fell (robot blind to boulders)
+- WITH PhysX raycasting: 31.6m progress, zone 3, fell — +11m improvement
+- Raycasting allows policy to detect boulder geometry ahead
+
+**AI-Coached v8 (model_10600.pt) — 2026-03-13:**
+- FELL — 23.0m, 3/5 zones, 34.8s wall time
 
 ### Staircase Environment
+
+**AI-Coached v8 (model_10600.pt) — 2026-03-13:**
+- FELL — 12.7m, 2/5 zones, 37.1s wall time
+- Leg penetration issue (Bug E-7 + joint clamping fix applied)
 
 **Zone boundary walls from platforms (FIXED 2026-02-18)**
 - **Problem:** 2m "recovery platforms" between zones created visible walls. Each platform was a solid cube from z=0 to the zone's full cumulative height, but its leading edge overlapped with steps that were much shorter — creating a ~20cm+ vertical wall face at each zone boundary.
@@ -313,6 +486,12 @@ _(To be filled during debug iterations)_
 **Floating-point precision in elevation calculations**
 - **Problem:** Adding step_height in a loop (0.03 × 33 = 0.9900000000000007) vs multiplication (0.03 * 33 = 0.99) caused `test_monotonically_increasing` to fail — elevation appeared to decrease at zone boundaries.
 - **Fix:** Use multiplication (`step_height * steps_climbed`) for non-transition steps, not a per-step accumulation loop.
+
+**Mason Hybrid No-Coach (model_13000.pt) — 2026-03-12:**
+- WITH PhysX raycasting: 12.7m progress, zone 2, fell — 95.2s wall time
+- Raycast confirmed hitting stair geometry: `/World/Staircase/zone_1/step_0,1,2`
+- Height scan range at spawn: [-0.019, 0.071] (correct — flat ground near first steps)
+- Stairs is the hardest environment — zone 2 is a reasonable baseline for single-episode test
 
 ---
 
