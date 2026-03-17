@@ -402,4 +402,56 @@ ln -sf ~/logs/rsl_rl/spot_hybrid_ppo ~/multi_robot_training_new/logs/rsl_rl/spot
 
 ---
 
+## MH-2a Evaluation Results: 100-Episode 4-Environment Test
+
+> **Date:** March 16-17, 2026
+> **Checkpoint:** `model_19999.pt` from `spot_hybrid_ppo/2026-03-11_11-28-30/`
+> **Architecture:** [512, 256, 128] (800K params)
+> **Training:** 42.6 hours, 2.0B steps, 20K iterations — terrain 3.74 (plateaued)
+> **Eval harness:** H100 parallel eval, 100 episodes × 4 environments, 49.5m course per env
+> **Results dir:** `4_env_test/results/mason_parallel_2026-03-16_17-37-53/`
+> **Plots:** `plots/` subdirectory (9 figures)
+
+### Summary Table
+
+| Environment | Mean Progress | Zone (avg) | Completion | Fall Rate | Mean Velocity | Stability |
+|-------------|--------------|-----------|-----------|-----------|---------------|-----------|
+| **Friction** | 48.9 ± 5.0m | 5.0 / 5 | **98%** | 2% | 0.934 m/s | 0.312 |
+| **Grass** | 27.2 ± 8.0m | 3.3 / 5 | 0% | 15% | 0.487 m/s | 0.538 |
+| **Boulder** | 20.3 ± 1.7m | 3.0 / 5 | 0% | 3% | 0.350 m/s | 0.590 |
+| **Stairs** | 11.2 ± 2.0m | 2.0 / 5 | 0% | **36%** | 0.227 m/s | 2.389 |
+
+### Zone Distribution
+
+| Environment | Zone 1 | Zone 2 | Zone 3 | Zone 4 | Zone 5 |
+|-------------|--------|--------|--------|--------|--------|
+| Friction | 1 | 0 | 0 | 0 | **99** |
+| Grass | 4 | 15 | 25 | **55** | 1 |
+| Boulder | 4 | 0 | **96** | 0 | 0 |
+| Stairs | 3 | **97** | 0 | 0 | 0 |
+
+### Interpretation
+
+**Friction (98% completion, 0.934 m/s):** Near-perfect. The policy completes the full 49.5m course 98 out of 100 times at ~1 m/s walking speed. The 2 failures were early falls (progress ≈ 0m), not mid-course collapses. Friction zones present no meaningful challenge — the robot adapts its gait naturally to low-friction surfaces. This environment is effectively solved.
+
+**Grass (27.2m avg, zone 3-4):** Moderate performance with high variance. The policy pushes through zones 1-3 reliably but stalls in zones 4-5 where grass density and drag forces increase significantly. Progress ranges from 18m to 40m — the wide distribution (σ=8.0m) suggests the policy's behavior is sensitive to the stochastic grass placement. The 15% fall rate indicates the grass drag occasionally catches a foot mid-swing and destabilizes the robot. No completions, but 55/100 episodes reach zone 4.
+
+**Boulder (20.3m avg, zone 3):** Very consistent but limited. The tight spread (σ=1.7m) shows the policy hits a hard ceiling at ~21m every single time — 96/100 episodes land in zone 3. The robot navigates small boulders well but can't climb over or route around the larger obstacles in zones 4-5. Only 3% fall rate means it's stable but stuck — it doesn't fall, it just stops making forward progress. Velocity drops to 0.35 m/s as it encounters obstacles.
+
+**Stairs (11.2m avg, zone 2, 36% fall rate):** The clear weakness. The policy can climb the gentle zone-1 stairs (3cm risers) but struggles with zone-2 heights (6cm+ risers). The 36% fall rate is the highest across all environments, and the stability score (2.389) is 4-8× worse than other environments. Many episodes show the robot oscillating at the base of zone-2 stairs, attempting to climb but tipping over. The [512, 256, 128] network may lack the capacity to learn stair-climbing gaits — or the training's terrain plateau at 3.74 never exposed the policy to enough stair configurations.
+
+### Key Takeaways
+
+1. **Terrain 3.74 training maps to real-world zones 2-3.** The policy was trained to a plateau of terrain level 3.74 out of 10 curriculum levels. In the eval, it consistently reaches zone 3 on boulder/grass and zone 2 on stairs — roughly consistent with its training ceiling.
+
+2. **Stability ≠ capability.** The policy is remarkably stable on friction (0.312) and boulder (0.590) but can't make progress on harder terrain. It learned to survive without learning to advance — a conservative policy that prioritizes not falling over forward movement.
+
+3. **The [512, 256, 128] network generalizes well within its training range** but hits hard walls at unfamiliar terrain. Boulder progress is essentially deterministic (σ=1.7m) — the policy applies the same strategy every time and gets the same result.
+
+4. **Stairs expose the biggest gap.** 36% fall rate and 2.4 stability score suggest the policy never learned proper foot-placement for elevation changes. This is consistent with the terrain 3.74 ceiling — the training curriculum likely never promoted the policy to stair-heavy terrain levels.
+
+5. **Comparison baseline established.** These results serve as the control for comparing against the AI-coached model (Trial 11l, terrain 4.83, [1024, 512, 256]) and the Mason baseline. The question is whether higher terrain level during training translates to better eval performance, especially on stairs.
+
+---
+
 *"The best code is no code. The best reward is no reward. And the best AI coach is one that mostly says 'no_change.'"*

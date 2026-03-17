@@ -495,10 +495,46 @@ Added `--mason` CLI flag to `run_capstone_eval.py` that:
 
 ---
 
+## Production Eval Results
+
+### Hybrid No-Coach (MH-2a) — 100 Episodes × 4 Environments
+
+> **Date:** March 16-17, 2026
+> **Checkpoint:** `model_19999.pt` (spot_hybrid_ppo/2026-03-11_11-28-30)
+> **Architecture:** [512, 256, 128] — 800K params
+> **Training stats:** 42.6 hours, 2.0B steps, 20K iters, terrain 3.74 plateau
+> **H100 wall-clock:** ~10 hours total (4 envs in parallel)
+> **Results:** `results/mason_parallel_2026-03-16_17-37-53/`
+> **Plots:** `results/mason_parallel_2026-03-16_17-37-53/plots/` (9 figures)
+
+| Environment | Progress (mean±std) | Zone | Completion | Fall Rate | Velocity | Stability |
+|-------------|-------------------|------|-----------|-----------|----------|-----------|
+| Friction | 48.9 ± 5.0m | 5.0 | **98%** | 2% | 0.934 m/s | 0.312 |
+| Grass | 27.2 ± 8.0m | 3.3 | 0% | 15% | 0.487 m/s | 0.538 |
+| Boulder | 20.3 ± 1.7m | 3.0 | 0% | 3% | 0.350 m/s | 0.590 |
+| Stairs | 11.2 ± 2.0m | 2.0 | 0% | **36%** | 0.227 m/s | 2.389 |
+
+**Key findings:**
+- **Friction is solved** — 98% completion, 49.5m nearly every time
+- **Boulder is deterministic** — σ=1.7m, hits zone 3 ceiling every episode, stable but stuck
+- **Grass is the most variable** — σ=8.0m, stochastic vegetation placement causes wide spread
+- **Stairs is the weak point** — 36% fall rate, stability 4-8× worse than other envs, can't climb zone 2
+- **Training terrain 3.74 → eval zone 2-3** — policy performs within its training range, hard walls beyond it
+
+### Eval Harness Bugs Found (2026-03-16)
+
+**TB watcher writes no data:** The `tb_watcher.py` script watches for `*_episodes.jsonl` files, but only the per-50-episode batch save creates them. During the first ~8 hours, no TensorBoard data existed because episodes completed between saves had no JSONL. **Fix:** Wrote `log_to_tb.py` that parses the `.log` files (regex on `COMPLETE|TIMEOUT|FALLEN` lines) and writes TensorBoard events. The JSONL-based watcher is dead code — delete or replace with log parser.
+
+**Baseline Vulkan crash:** After hybrid eval completed, the baseline chain launched into a Vulkan driver error (`VkResult: ERROR_INCOMPATIBLE_DRIVER`). Root cause: a zombie Isaac Sim process (PID 2383958 from headless debugging) was holding 612 MB GPU VRAM with stale Vulkan state. **Fix:** Kill zombie processes before chaining eval runs. Add `pkill -f` cleanup step between runs in chain scripts.
+
+**AI-coached checkpoint missing:** Chain script referenced `spot_robust_ppo/2026-03-09_12-47-39/model_10600.pt` which no longer existed on H100 (training dir cleaned up). Checkpoint only existed locally at `checkpoints/ai_coached_v8_10600.pt`. **Fix:** Always `scp` checkpoints to H100 `4_env_test/checkpoints/` before queueing eval runs. Don't rely on training log directories persisting.
+
+---
+
 ## Performance Notes
 
 _(Record timing data, memory usage, and throughput observations here)_
 
 | Run | Envs | Batch Time | Steps/s | VRAM | Notes |
 |-----|------|-----------|---------|------|-------|
-| | | | | | |
+| Hybrid no-coach 100ep×4env | 4 parallel | ~10 hrs | N/A (eval) | ~16 GB (4×4 GB) | All 4 envs completed 100/100 |

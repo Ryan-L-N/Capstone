@@ -568,4 +568,50 @@ hit = scene_query.raycast_closest(origin, direction, max_distance)
 
 ---
 
+## 11. MH-2a Evaluation Results (100 Episodes × 4 Environments)
+
+> **Date:** March 16-17, 2026
+> **Checkpoint:** `model_19999.pt` (spot_hybrid_ppo/2026-03-11_11-28-30)
+> **Eval results:** `4_env_test/results/mason_parallel_2026-03-16_17-37-53/`
+
+### 11.1 Results Summary
+
+| Environment | Progress (mean±std) | Zone (avg) | Completion | Fall Rate | Velocity (m/s) | Stability |
+|-------------|-------------------|-----------|-----------|-----------|----------------|-----------|
+| Friction | 48.9 ± 5.0m | 5.0 | **98%** | 2% | 0.934 | 0.312 |
+| Grass | 27.2 ± 8.0m | 3.3 | 0% | 15% | 0.487 | 0.538 |
+| Boulder | 20.3 ± 1.7m | 3.0 | 0% | 3% | 0.350 | 0.590 |
+| Stairs | 11.2 ± 2.0m | 2.0 | 0% | **36%** | 0.227 | 2.389 |
+
+### 11.2 Zone Distribution
+
+| Environment | Zone 1 | Zone 2 | Zone 3 | Zone 4 | Zone 5 |
+|-------------|--------|--------|--------|--------|--------|
+| Friction | 1 | 0 | 0 | 0 | **99** |
+| Grass | 4 | 15 | 25 | **55** | 1 |
+| Boulder | 4 | 0 | **96** | 0 | 0 |
+| Stairs | 3 | **97** | 0 | 0 | 0 |
+
+### 11.3 Interpretation
+
+**Friction (solved):** 98% completion at 0.934 m/s. The 2 failures were early falls (progress ≈ 0m), not mid-course. Low-friction surfaces present no challenge — the policy adapts gait naturally.
+
+**Grass (moderate, high variance):** σ=8.0m — widest spread of all envs. Stochastic vegetation placement causes run-to-run variation. 55/100 reach zone 4, but drag forces in zone 4-5 stall forward progress. 15% fall rate from mid-swing foot catches.
+
+**Boulder (consistent ceiling):** σ=1.7m — tightest spread. 96/100 episodes land in zone 3 at ~20.6m. The policy applies the same strategy each time and gets the same result. Extremely stable (3% falls) but can't navigate zone 4+ obstacles.
+
+**Stairs (weak point):** 36% fall rate, stability 2.389 (4-8× worse than other envs). Can climb zone-1 stairs (3cm risers) but tips over on zone-2 (6cm+ risers). The training plateau at terrain 3.74 likely never exposed the policy to stair-dominant levels.
+
+### 11.4 Training-to-Eval Mapping
+
+The policy was trained to terrain level 3.74 / 10 curriculum levels. In eval:
+- Friction = zone 5/5 (trivial terrain, well within training range)
+- Grass = zone 3.3/5 (moderately above training range)
+- Boulder = zone 3.0/5 (at training range boundary)
+- Stairs = zone 2.0/5 (the hardest — beyond training exposure)
+
+This confirms: **training terrain level directly predicts eval performance.** The policy performs within its training range and hits hard walls beyond it. Breaking the terrain 3.74 ceiling during training is the key to improving all eval metrics.
+
+---
+
 *Created for AI2C Tech Capstone — MS for Autonomy, March 2026*
