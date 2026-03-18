@@ -137,8 +137,11 @@ def main():
         policy.load_state_dict(checkpoint['policy_state_dict'])
         trainer.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_iter = checkpoint.get('iteration', 0) + 1
-        env.current_stage = checkpoint.get('stage', args.stage)
-        log(f"Resumed from iteration {start_iter}, stage {env.current_stage}", log_file)
+        checkpoint_stage = checkpoint.get('stage', args.stage)
+        # Use command-line stage if explicitly provided (allows advancing stages)
+        env.current_stage = args.stage
+        log(f"Resumed from iteration {start_iter}", log_file)
+        log(f"Checkpoint was at stage {checkpoint_stage}, advancing to stage {env.current_stage}", log_file)
     else:
         env.current_stage = args.stage
     
@@ -159,11 +162,12 @@ def main():
     best_success_rate = 0.0
     episode_count = 0
     step_count = 0
+    iteration = start_iter - 1  # Initialize in case loop doesn't run
     
     # Reset environment for first episode
     obs = env.reset()
     
-    for iteration in range(start_iter, args.iterations):
+    for iteration in range(start_iter, start_iter + args.iterations):
         iter_start = datetime.now()
         
         log(f"[ITER {iteration + 1}/{args.iterations}] Stage {env.current_stage + 1}/8: {stage_info['name']}", log_file)
@@ -251,25 +255,26 @@ def main():
             log(f"[SUCCESS] STAGE {env.current_stage + 1} COMPLETE!", log_file)
             log(f"Success rate: {success_rate:.1%} (threshold: {env.success_threshold:.1%})", log_file)
             
-            if env.advance_stage():
-                stage_info = config['curriculum']['stages'][env.current_stage]
-                log(f"Advancing to Stage {env.current_stage + 1}: {stage_info['name']}", log_file)
-                log(f"New goal: {stage_info['success_criterion']}", log_file)
+            # Save stage completion checkpoint
+            stage_checkpoint_path = checkpoint_dir / f"stage_{env.current_stage + 1}_complete.pt"
+            torch.save({
+                'iteration': iteration,
+                'policy_state_dict': policy.state_dict(),
+                'optimizer_state_dict': trainer.optimizer.state_dict(),
+                'stage': env.current_stage,
+                'success_rate': success_rate
+            }, stage_checkpoint_path)
+            log(f"  Stage checkpoint saved: {stage_checkpoint_path.name}", log_file)
+            
+            # Auto-advance to next stage if not at final stage
+            if env.current_stage < len(env.curriculum_stages) - 1:
+                env.current_stage += 1
+                log(f"[AUTO-ADVANCING] Moving to Stage {env.current_stage + 1}...", log_file)
                 log("=" * 80, log_file)
-                log("", log_file)
-                
-                # Save stage completion checkpoint
-                stage_checkpoint_path = checkpoint_dir / f"stage_{env.current_stage}_complete.pt"
-                torch.save({
-                    'iteration': iteration,
-                    'policy_state_dict': policy.state_dict(),
-                    'optimizer_state_dict': trainer.optimizer.state_dict(),
-                    'stage': env.current_stage,
-                    'success_rate': success_rate
-                }, stage_checkpoint_path)
-                log(f"  Stage checkpoint saved: {stage_checkpoint_path.name}", log_file)
+                # Reset environment to new stage
+                obs = env.reset(stage_id=env.current_stage)
             else:
-                log("[COMPLETE] ALL STAGES COMPLETE! TRAINING FINISHED!", log_file)
+                log("[COMPLETE] All stages finished! Training complete.", log_file)
                 log("=" * 80, log_file)
                 break
         

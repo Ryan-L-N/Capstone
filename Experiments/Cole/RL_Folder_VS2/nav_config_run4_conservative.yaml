@@ -1,5 +1,6 @@
-# Navigation Policy Training Configuration
-# Hierarchical RL: High-level navigation + low-level SpotFlatTerrainPolicy
+# Navigation Policy Training Configuration - RUN 4 CONSERVATIVE
+# Learning Rate: 5e-5 (Conservative - slow, stable learning)
+# Starting from: run_2/checkpoint_900.pt at Stage 5
 
 # Environment geometry
 arena:
@@ -155,7 +156,7 @@ curriculum:
 
 # PPO hyperparameters
 ppo:
-  learning_rate: 1.0e-4  # REDUCED from 3e-4 for stability (preventing policy collapse)
+  learning_rate: 5.0e-5  # CONSERVATIVE - slow, stable learning
   clip_param: 0.2
   value_coef: 0.5
   entropy_coef: 0.01

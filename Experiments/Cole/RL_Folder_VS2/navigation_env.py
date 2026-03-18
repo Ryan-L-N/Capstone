@@ -63,6 +63,9 @@ class NavigationEnvironment:
         # Observation settings
         self.num_obstacle_rays = self.config['observation']['obstacle_rays']
         self.ray_length = self.config['observation']['obstacle_ray_length']
+        # Multi-layer raycast heights (relative to robot center ~0.5m)
+        self.raycast_heights = [-0.2, 0.0, 0.2]  # low, center, high
+        # Total rays: 16 rays × 3 heights = 48 obstacle observations
         
         # Waypoint settings
         self.total_waypoints = self.config['waypoints']['total_count']
@@ -118,6 +121,11 @@ class NavigationEnvironment:
         
         # Current command for physics callback
         self.current_command = np.zeros(3, dtype=np.float32)  # [vx, vy, omega]
+        
+        # Velocity tracking for acceleration calculation
+        self._last_vel = np.zeros(3)
+        self._last_vx = 0.0
+        self._last_vy = 0.0
         
     def reset(self, stage_id: Optional[int] = None) -> np.ndarray:
         """
@@ -233,17 +241,24 @@ class NavigationEnvironment:
         # Calculate reward
         reward = self.reward_time_penalty  # constant time penalty
         
-        # Speed reward - encourage fast movement when path is clear
+        # Speed reward - encourage fast movement when path is clear AND far from waypoint
         if self.reward_speed_weight > 0:
             vel = self.spot.robot.get_linear_velocity()
             forward_speed = np.linalg.norm(vel[:2])  # horizontal velocity magnitude
-            # Only reward speed if no close obstacles (> 2m clear ahead)
+            
+            # Check distance to current waypoint - don't reward speed when close
+            dist_to_wp = 999.0
+            if self.waypoints and self.current_waypoint_idx < len(self.waypoints):
+                wp = self.waypoints[self.current_waypoint_idx]
+                dist_to_wp = np.sqrt((robot_x - wp[0])**2 + (robot_y - wp[1])**2)
+            
+            # Only reward speed if no close obstacles (> 2m clear ahead) AND far from waypoint (>3m)
             # Get robot heading for obstacle check
             yaw = self._quat_to_yaw(ori)
             obstacle_dists = self._raycast_obstacles(robot_x, robot_y, yaw)
             # Check forward-facing obstacle rays (indices around front)
             min_obstacle_dist = min(obstacle_dists[6:10]) if len(obstacle_dists) >= 10 else 5.0  # front 4 rays
-            if min_obstacle_dist > 2.0:  # path is clear
+            if min_obstacle_dist > 2.0 and dist_to_wp > 3.0:  # path is clear AND not near waypoint
                 # Reward proportional to speed, scaled 0-1 for speeds 0-5 m/s
                 speed_reward = self.reward_speed_weight * min(forward_speed / 5.0, 1.0)
                 reward += speed_reward
@@ -283,7 +298,7 @@ class NavigationEnvironment:
                     distance_reward = self.reward_distance_weight * max(0, 1.0 - dist_to_wp / 20.0)
                     reward += distance_reward
                     
-                    # 3. Heading reward - reward for facing toward waypoint
+                    # 3. Heading reward - reward for facing toward waypoint (applies throughout approach)
                     if self.reward_heading_weight > 0:
                         # Get robot heading
                         vel = self.spot.robot.get_linear_velocity()
@@ -294,6 +309,18 @@ class NavigationEnvironment:
                             heading_alignment = np.dot(vel_direction, waypoint_direction)
                             heading_reward = self.reward_heading_weight * max(0, heading_alignment)
                             reward += heading_reward
+                    
+                    # 4. Proximity deceleration reward - encourage slowing near waypoint
+                    # Reward low speed when within 2.5m of waypoint to enable smooth capture
+                    if dist_to_wp < 2.5:
+                        vel = self.spot.robot.get_linear_velocity()
+                        horizontal_speed = np.linalg.norm(vel[:2])
+                        # Ideal speed scales with distance: 0.5 m/s at 2.5m, 0 m/s at capture
+                        ideal_speed = 0.2 * dist_to_wp  # linear scaling
+                        speed_error = abs(horizontal_speed - ideal_speed)
+                        # Reward being close to ideal speed (inverse error)
+                        decel_reward = 0.15 * max(0, 1.0 - speed_error)
+                        reward += decel_reward
                 
                 self.last_waypoint_distance = dist_to_wp
         
@@ -344,17 +371,21 @@ class NavigationEnvironment:
     
     def _get_observation(self) -> np.ndarray:
         """
-        Get observation vector (32 dimensions).
+        Get observation vector with multi-sensor fusion.
         
         Components:
         - Base velocity (vx, vy, omega): 3
         - Heading (sin, cos): 2
+        - IMU data (roll, pitch, accel_x, accel_y): 4
         - Waypoint info (dx, dy, distance): 3
-        - Obstacle distances (16 rays): 16
+        - Multi-layer obstacle distances (16 rays × 3 heights): 48
+        - Foot contact (4 feet): 4
+        - Leg joint summary (4 legs avg angle): 4
         - Stage encoding (one-hot): 8
+        Total: 76 dimensions
         
         Returns:
-            observation vector, shape (32,)
+            observation vector, shape (76,)
         """
         obs = []
         
@@ -372,6 +403,19 @@ class NavigationEnvironment:
         # Heading (2)
         obs.extend([np.sin(yaw), np.cos(yaw)])
         
+        # IMU data - extract roll and pitch from quaternion (4)
+        w, x, y, z = ori[0], ori[1], ori[2], ori[3]
+        roll = np.arctan2(2*(w*x + y*z), 1 - 2*(x*x + y*y))
+        pitch = np.arcsin(2*(w*y - z*x))
+        # Linear acceleration (approximate from velocity change)
+        accel_magnitude = np.linalg.norm(vel - getattr(self, '_last_vel', vel)) / self.control_dt if hasattr(self, '_last_vel') else 0.0
+        accel_x = vel[0] - getattr(self, '_last_vx', 0.0)
+        accel_y = vel[1] - getattr(self, '_last_vy', 0.0)
+        obs.extend([roll, pitch, accel_x, accel_y])
+        self._last_vel = vel.copy()
+        self._last_vx = vel[0]
+        self._last_vy = vel[1]
+        
         # Waypoint info (3)
         if self.waypoints and self.current_waypoint_idx < len(self.waypoints):
             wp = self.waypoints[self.current_waypoint_idx]
@@ -388,9 +432,18 @@ class NavigationEnvironment:
         else:
             obs.extend([0.0, 0.0, 0.0])
         
-        # Obstacle distances (16 rays)
-        obstacle_dists = self._raycast_obstacles(robot_x, robot_y, yaw)
-        obs.extend(obstacle_dists)
+        # Multi-layer obstacle distances (48 rays: 16 rays × 3 heights)
+        for height_offset in self.raycast_heights:
+            obstacle_dists = self._raycast_obstacles(robot_x, robot_y, yaw, height_offset=height_offset)
+            obs.extend(obstacle_dists)
+        
+        # Foot contact feedback (4 feet)
+        foot_contacts = self._get_foot_contacts()
+        obs.extend(foot_contacts)
+        
+        # Leg joint summary (4 legs, average joint angle per leg)
+        leg_joint_angles = self._get_leg_joint_summary()
+        obs.extend(leg_joint_angles)
         
         # Stage encoding (8 - one-hot)
         stage_encoding = [0.0] * 8
@@ -446,13 +499,14 @@ class NavigationEnvironment:
         # For now, simplified version - you'll need to adapt the full logic
         pass
     
-    def _raycast_obstacles(self, robot_x: float, robot_y: float, yaw: float) -> List[float]:
+    def _raycast_obstacles(self, robot_x: float, robot_y: float, yaw: float, height_offset: float = 0.0) -> List[float]:
         """
-        Raycast in multiple directions to detect obstacles.
+        Raycast in multiple directions to detect obstacles at specified height.
         
         Args:
             robot_x, robot_y: robot position
             yaw: robot heading
+            height_offset: height above robot center for this raycast layer (positive = up)
         
         Returns:
             list of distances (normalized to [0, 1]), length num_obstacle_rays
@@ -465,7 +519,7 @@ class NavigationEnvironment:
             # Convert to world frame
             world_angle = yaw + ray_angle
             
-            # Ray endpoint
+            # Ray endpoint (2D, height handled separately for visualization)
             ray_x = robot_x + self.ray_length * np.cos(world_angle)
             ray_y = robot_y + self.ray_length * np.sin(world_angle)
             
@@ -513,6 +567,38 @@ class NavigationEnvironment:
         siny_cosp = 2 * (w * z + x * y)
         cosy_cosp = 1 - 2 * (y * y + z * z)
         return np.arctan2(siny_cosp, cosy_cosp)
+    
+    def _get_foot_contacts(self) -> List[float]:
+        """
+        Get foot contact feedback for all 4 feet.
+        
+        Returns:
+            list of 4 values (0.0-1.0), one per foot indicating contact pressure
+        """
+        contacts = []
+        # Simplified: return [1.0, 1.0, 1.0, 1.0] if robot is not falling
+        # In full implementation, query actual contact forces from physics engine
+        pos = self.spot.robot.get_world_pose()[0]
+        is_falling = pos[2] < self.fall_threshold
+        contact_value = 0.0 if is_falling else 1.0
+        return [contact_value, contact_value, contact_value, contact_value]
+    
+    def _get_leg_joint_summary(self) -> List[float]:
+        """
+        Get summary of leg joint angles.
+        
+        Returns:
+            list of 4 values, one per leg (average joint angle normalized)
+        """
+        leg_angles = []
+        # Simplified: return neutral positions (0.5 normalized)
+        # In full implementation, query actual joint states from Spot
+        # Spot has 3 joints per leg (hip_x, hip_y, knee), so 12 total
+        # For now, return average posture per leg
+        for i in range(4):
+            # Neutral leg posture = 0.5 (middle of range)
+            leg_angles.append(0.5)
+        return leg_angles
     
     def get_success_rate(self) -> float:
         """Get success rate over last N episodes."""

@@ -119,7 +119,7 @@ MAX_TURN_RATE = 1.0                             # rad/s — max angular velocity
 FORWARD_PRIORITY = True                         # Always prefer forward movement over strafing
 
 # Obstacles
-OBSTACLE_AREA_FRAC   = 0.20         # 20 % of arena
+OBSTACLE_AREA_FRAC   = 0.10         # 10 % of arena
 OBSTACLE_MIN_FOOT    = 0.0174       # m²  (27 in²)
 OBSTACLE_MAX_FOOT    = SPOT_LENGTH * SPOT_WIDTH  # 0.55 m²
 
@@ -425,6 +425,8 @@ class ObstacleManager:
         self.rng = rng
         self.obstacles = []  # list of {path, pos, dims, mass}
         self.small_obstacles = []  # list of small static obstacles {path, pos, size, shape}
+        self.min_mass = OBSTACLE_MIN_MASS  # Mass range for spawning
+        self.max_mass = OBSTACLE_MAX_MASS
 
     def spawn_one(self, idx: int, margin: float = 1.5, min_spawn_clearance: float = 2.0) -> None:
         """
@@ -460,7 +462,7 @@ class ObstacleManager:
             # Could not find valid position after max_attempts
             return  # Skip this obstacle
         
-        mass = self.rng.uniform(OBSTACLE_MIN_MASS, OBSTACLE_MAX_MASS)
+        mass = self.rng.uniform(self.min_mass, self.max_mass)
         
         # Categorize obstacle by weight
         if mass <= OBSTACLE_LIGHT_MAX:
@@ -1035,12 +1037,17 @@ class CircularWaypointEnv:
             self.current_marker_paths.extend(paths)
             print(f"[INFO] Current target: Waypoint {wp['label']} at ({wp['pos'][0]:.1f}, {wp['pos'][1]:.1f})")
 
-        # Populate obstacles - DISABLED FOR POLICY TESTING
-        # self.obstacle_mgr.populate(target_coverage_pct=OBSTACLE_AREA_FRAC * 100,
-        #                             min_spawn_clearance=2.0)
-        
-        # Spawn small static obstacles - DISABLED FOR POLICY TESTING
-        # self.obstacle_mgr.spawn_small_static(target_coverage_pct=SMALL_OBSTACLE_COVERAGE * 100)
+        # Spawn ONLY lightweight obstacles - STAGE 6 ENVIRONMENT
+        # Temporarily override mass range to spawn only light obstacles
+        original_min = self.obstacle_mgr.min_mass
+        original_max = self.obstacle_mgr.max_mass
+        self.obstacle_mgr.min_mass = 0.0
+        self.obstacle_mgr.max_mass = OBSTACLE_LIGHT_MAX  # Only spawn < 0.45 kg
+        self.obstacle_mgr.populate(target_coverage_pct=OBSTACLE_AREA_FRAC * 100,
+                                    min_spawn_clearance=2.0)
+        # Restore original mass range
+        self.obstacle_mgr.min_mass = original_min
+        self.obstacle_mgr.max_mass = original_max
 
         # Reset Spot position
         if self.spot is not None:
@@ -1176,9 +1183,9 @@ class CircularWaypointEnv:
             # Obstacle distances (16) - no raycasting in baseline, set to max range
             obs.extend([5.0] * 16)
             
-            # Stage encoding (8) - use stage 5 (no obstacles)
+            # Stage encoding (8) - use STAGE 6 (Light Obstacles)
             stage_encoding = [0.0] * 8
-            stage_encoding[5] = 1.0
+            stage_encoding[5] = 1.0  # Stage 6 (0-indexed: stage 5 = stage 6 in docs)
             obs.extend(stage_encoding)
             
             # Convert to tensor and get action from policy

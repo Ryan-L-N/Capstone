@@ -1,5 +1,6 @@
-# Navigation Policy Training Configuration
-# Hierarchical RL: High-level navigation + low-level SpotFlatTerrainPolicy
+# Navigation Policy Training Configuration - RUN 5 MODERATE
+# Learning Rate: 1.5e-4 (Moderate - balanced learning)
+# Starting from: run_2/checkpoint_900.pt at Stage 5
 
 # Environment geometry
 arena:
@@ -28,7 +29,7 @@ observation:
 # Waypoint settings
 waypoints:
   total_count: 25
-  capture_radius: 0.5  # meters
+  capture_radius: 1.2  # meters (increased to reduce circling)
   boundary_margin: 2.0  # keep waypoints inside arena by this margin
 
 # Obstacle settings (reuse from Baseline_Environment.py)
@@ -155,7 +156,7 @@ curriculum:
 
 # PPO hyperparameters
 ppo:
-  learning_rate: 1.0e-4  # REDUCED from 3e-4 for stability (preventing policy collapse)
+  learning_rate: 1.5e-4  # MODERATE - balanced learning
   clip_param: 0.2
   value_coef: 0.5
   entropy_coef: 0.01
