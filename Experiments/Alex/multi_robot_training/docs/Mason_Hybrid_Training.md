@@ -2,10 +2,11 @@
 
 > **TL;DR:** We took Mason's proven reward weights and smaller neural network, put them on our harder terrain, and added the AI Coach as a safety net. The goal: break through the terrain 4.83 ceiling that our custom config couldn't crack.
 >
-> **Status:** MH-1 FAILED (gait destroyed by coach), MH-2 launching with VLM + gait-quality-first (March 11, 2026)
+> **Status:** Both trainings COMPLETE. Hybrid no-coach: terrain 3.74 (42.6 hrs). AI-coached v8: terrain 4.83 (47 hrs).
 > **Hardware:** NVIDIA H100 NVL 96GB
 > **MH-1 run dir:** `spot_hybrid_ppo/2026-03-10_18-55-33/` (retired)
-> **MH-2:** Fresh start with `--enable_vision` for visual gait feedback
+> **MH-2a no-coach run dir:** `spot_hybrid_ppo/2026-03-11_11-28-30/` — 20,000 iters, model_19999.pt
+> **AI-coached v8 run dir:** `spot_robust_ppo/2026-03-09_12-47-39/` — 10,600 iters, model_10600.pt
 
 ---
 
@@ -218,7 +219,7 @@ Complete rewrite of the coach's system prompt:
 - **Velocity ceiling:** `base_linear_velocity` and `base_angular_velocity` must stay in 3.0-7.0
 - **New troubleshooting entries:** "Flopping/unstable gait" and "Robot not standing up"
 
-### MH-2a: No-Coach Baseline (ACTIVE — March 11, 2026)
+### MH-2a: No-Coach Baseline (COMPLETE — March 13, 2026)
 
 After MH-1 and MH-2 VLM attempts, we decided to let Mason's config prove itself without
 any AI coach interference. Pure training: Mason's rewards + our terrain + safety fixes.
@@ -230,22 +231,73 @@ any AI coach interference. Pure training: Mason's rewards + our terrain + safety
 - No cosine LR — uses Mason's adaptive KL schedule (RSL-RL built-in)
 - Keeps: value loss watchdog, noise clamping, std safety, checkpoints
 
-**Launch command:**
-```bash
-python scripts/rsl_rl/train_hybrid.py \
-  --headless --no_wandb \
-  --num_envs 4096 --save_interval 100 \
-  --max_noise_std 1.0 --max_iterations 20000
-```
+**Final results (20,000 iterations, 42.6 hours, 2.0B steps):**
+- Terrain level: 3.74 (plateaued — did not break through)
+- Survival: 53%
+- Flip rate: 0%
+- Mean reward: ~320
+- Conclusion: Mason's config alone plateaus at terrain ~3.7 on our harder terrain. The AI coach is needed to push further.
 
-**Running in parallel with Mason's baseline** on the H100 (22.5 GB / 96 GB GPU). Both at ~8.7s/iter.
-When Mason finishes, hybrid speeds up to ~5-6s/iter. ETA: ~48 hours from launch.
+**Checkpoint:** `checkpoints/hybrid_nocoach_19999.pt` (6.6 MB)
+**Run dir:** `spot_hybrid_ppo/2026-03-11_11-28-30/`
+
+### AI-Coached v8 (Trial 11l): COMPLETE — March 13, 2026
+
+Our custom [1024,512,256] config with AI coach (Claude Sonnet). Resumed from v7's model_3900.pt with baked reward weights from all prior coach interventions.
+
+**Final results (~10,600 iterations, ~47 hours, ~2.0B steps):**
+- Terrain level: 4.83 (our best ever, but plateaued)
+- Last saved checkpoint: model_10600.pt (training continued ~2 more days but stopped saving)
+- 68 checkpoints saved total
+- Mean reward: 640-682
+
+**Checkpoint:** `checkpoints/ai_coached_v8_10600.pt` (21 MB, [1024,512,256] architecture)
+**Run dir:** `spot_robust_ppo/2026-03-09_12-47-39/`
 
 **Monitor:**
 ```bash
 tail -f ~/mason_hybrid_nocoach_train.log
 grep -E 'terrain_levels|Mean reward|flip_over' ~/mason_hybrid_nocoach_train.log | tail -10
 ```
+
+### 4-Environment Eval Results (2026-03-12 — 2026-03-13)
+
+#### Mason Hybrid No-Coach (model_13000.pt) — Single Episode
+
+| Environment | Status | Progress | Zones | Time | Notes |
+|-------------|--------|----------|-------|------|-------|
+| Friction | COMPLETE | 49.5m | 5/5 | 273.9s | Clean traversal, stable gait (mean_roll=0.044 rad) |
+| Grass | — | — | — | — | Not yet tested |
+| Boulder | FELL | 31.6m | 3/5 | 88.3s | With PhysX raycasting (+11m vs 20.6m without) |
+| Stairs | FELL | 12.7m | 2/5 | 95.2s | PhysX raycasting confirmed seeing stair geometry |
+
+#### AI-Coached v8 (model_10600.pt) — Single Episode
+
+| Environment | Status | Progress | Zones | Time | Notes |
+|-------------|--------|----------|-------|------|-------|
+| Friction | COMPLETE | 49.5m | 5/5 | 50.2s | Much faster than hybrid (more aggressive gait) |
+| Grass | FELL | 41.2m | 5/5 | 121.0s | Reached all zones before falling |
+| Boulder | FELL | 23.0m | 3/5 | 34.8s | Similar zones to hybrid but less progress |
+| Stairs | FELL | 12.7m | 2/5 | 37.1s | Same zones as hybrid |
+
+#### Mason Baseline (model_19999.pt) — 100-Episode Sweep (Partial)
+
+| Environment | Episodes | Mean Progress | Std | Fall Rate | Notes |
+|-------------|----------|---------------|-----|-----------|-------|
+| Friction | 100/100 | 33.5m | ±10.0m | 83% | High variance |
+| Grass | 50/100 | 28.9m | ±6.7m | 22% | Interrupted at 50 |
+| Boulder | 0/100 | — | — | — | CUDA error |
+| Stairs | 0/100 | — | — | — | Not yet run |
+
+**PhysX Raycasting (Bug E-6):** Originally the height scan was all zeros (flat ground assumption) — the policy was blind to terrain geometry. Implemented `omni.physx.get_physx_scene_query_interface()` raycasting: 187 rays, 17×11 grid, self-collision filtering. Boulder improved +11m with raycasting. Stairs confirmed hitting `/World/Staircase/zone_1/step_0,1,2`.
+
+**Deployment notes:** Required several fixes to `4_env_test/src/` for standalone mode:
+- **Decimation = 1** — standalone loop runs at 50 Hz (not 500 Hz), so policy decimation must be 1 (not 10). Without this fix, policy ran at 5 Hz → violent oscillation → immediate fall.
+- **`--mason` flag** — obs order: height_scan(187) first, proprioception(48) last. Action scale 0.2.
+- **Waypoint follower fix** — `is_done` triggered at 39.5m (premature). Changed `>=` to `>`.
+- **Scene lighting** — dome + sun lights added (was pitch black).
+- **PhysX raycasting** — height scan now uses real scene queries instead of zeros. All 4 envs use raycast.
+- See `4_env_test/LESSONS_LEARNED.md` Bugs E-1 through E-6 for full details.
 
 ### MH-2b: VLM Coach (BLOCKED — needs Vulkan on H100)
 
@@ -347,6 +399,58 @@ ln -sf ~/logs/rsl_rl/spot_hybrid_ppo ~/multi_robot_training_new/logs/rsl_rl/spot
 4. **The AI Coach works, but needs guardrails.** Trial 11l proved the coach can break plateaus (gait 10→8.5 at iter 1200). It also proved unconstrained optimization drifts (velocity 5→14.26). The fix: tighter bounds, deferred activation, and LR/noise locked.
 
 5. **Don't fight proven baselines.** Mason reached terrain ~6 without an AI coach. Our config couldn't break 4.83 with one. The simplest explanation is usually correct — the baseline was better.
+
+---
+
+## MH-2a Evaluation Results: 100-Episode 4-Environment Test
+
+> **Date:** March 16-17, 2026
+> **Checkpoint:** `model_19999.pt` from `spot_hybrid_ppo/2026-03-11_11-28-30/`
+> **Architecture:** [512, 256, 128] (800K params)
+> **Training:** 42.6 hours, 2.0B steps, 20K iterations — terrain 3.74 (plateaued)
+> **Eval harness:** H100 parallel eval, 100 episodes × 4 environments, 49.5m course per env
+> **Results dir:** `4_env_test/results/mason_parallel_2026-03-16_17-37-53/`
+> **Plots:** `plots/` subdirectory (9 figures)
+
+### Summary Table
+
+| Environment | Mean Progress | Zone (avg) | Completion | Fall Rate | Mean Velocity | Stability |
+|-------------|--------------|-----------|-----------|-----------|---------------|-----------|
+| **Friction** | 48.9 ± 5.0m | 5.0 / 5 | **98%** | 2% | 0.934 m/s | 0.312 |
+| **Grass** | 27.2 ± 8.0m | 3.3 / 5 | 0% | 15% | 0.487 m/s | 0.538 |
+| **Boulder** | 20.3 ± 1.7m | 3.0 / 5 | 0% | 3% | 0.350 m/s | 0.590 |
+| **Stairs** | 11.2 ± 2.0m | 2.0 / 5 | 0% | **36%** | 0.227 m/s | 2.389 |
+
+### Zone Distribution
+
+| Environment | Zone 1 | Zone 2 | Zone 3 | Zone 4 | Zone 5 |
+|-------------|--------|--------|--------|--------|--------|
+| Friction | 1 | 0 | 0 | 0 | **99** |
+| Grass | 4 | 15 | 25 | **55** | 1 |
+| Boulder | 4 | 0 | **96** | 0 | 0 |
+| Stairs | 3 | **97** | 0 | 0 | 0 |
+
+### Interpretation
+
+**Friction (98% completion, 0.934 m/s):** Near-perfect. The policy completes the full 49.5m course 98 out of 100 times at ~1 m/s walking speed. The 2 failures were early falls (progress ≈ 0m), not mid-course collapses. Friction zones present no meaningful challenge — the robot adapts its gait naturally to low-friction surfaces. This environment is effectively solved.
+
+**Grass (27.2m avg, zone 3-4):** Moderate performance with high variance. The policy pushes through zones 1-3 reliably but stalls in zones 4-5 where grass density and drag forces increase significantly. Progress ranges from 18m to 40m — the wide distribution (σ=8.0m) suggests the policy's behavior is sensitive to the stochastic grass placement. The 15% fall rate indicates the grass drag occasionally catches a foot mid-swing and destabilizes the robot. No completions, but 55/100 episodes reach zone 4.
+
+**Boulder (20.3m avg, zone 3):** Very consistent but limited. The tight spread (σ=1.7m) shows the policy hits a hard ceiling at ~21m every single time — 96/100 episodes land in zone 3. The robot navigates small boulders well but can't climb over or route around the larger obstacles in zones 4-5. Only 3% fall rate means it's stable but stuck — it doesn't fall, it just stops making forward progress. Velocity drops to 0.35 m/s as it encounters obstacles.
+
+**Stairs (11.2m avg, zone 2, 36% fall rate):** The clear weakness. The policy can climb the gentle zone-1 stairs (3cm risers) but struggles with zone-2 heights (6cm+ risers). The 36% fall rate is the highest across all environments, and the stability score (2.389) is 4-8× worse than other environments. Many episodes show the robot oscillating at the base of zone-2 stairs, attempting to climb but tipping over. The [512, 256, 128] network may lack the capacity to learn stair-climbing gaits — or the training's terrain plateau at 3.74 never exposed the policy to enough stair configurations.
+
+### Key Takeaways
+
+1. **Terrain 3.74 training maps to real-world zones 2-3.** The policy was trained to a plateau of terrain level 3.74 out of 10 curriculum levels. In the eval, it consistently reaches zone 3 on boulder/grass and zone 2 on stairs — roughly consistent with its training ceiling.
+
+2. **Stability ≠ capability.** The policy is remarkably stable on friction (0.312) and boulder (0.590) but can't make progress on harder terrain. It learned to survive without learning to advance — a conservative policy that prioritizes not falling over forward movement.
+
+3. **The [512, 256, 128] network generalizes well within its training range** but hits hard walls at unfamiliar terrain. Boulder progress is essentially deterministic (σ=1.7m) — the policy applies the same strategy every time and gets the same result.
+
+4. **Stairs expose the biggest gap.** 36% fall rate and 2.4 stability score suggest the policy never learned proper foot-placement for elevation changes. This is consistent with the terrain 3.74 ceiling — the training curriculum likely never promoted the policy to stair-heavy terrain levels.
+
+5. **Comparison baseline established.** These results serve as the control for comparing against the AI-coached model (Trial 11l, terrain 4.83, [1024, 512, 256]) and the Mason baseline. The question is whether higher terrain level during training translates to better eval performance, especially on stairs.
 
 ---
 

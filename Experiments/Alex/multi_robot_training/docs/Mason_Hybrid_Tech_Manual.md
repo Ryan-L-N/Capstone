@@ -385,6 +385,10 @@ Temperature: 48°C (safe range). Throughput: ~11,500 steps/s at 8.5s/iter.
 | TensorBoard stuck at iter 96 (Bug MH-1) | TB pointed at `~/IsaacLab/logs/` but training wrote to `~/logs/` (cwd-relative). Fix: `--logdir ~/logs/rsl_rl/spot_hybrid_ppo/` | TensorBoard launch command |
 | Coach 401 auth error, disables after 3 failures (Bug MH-2) | Expired API key in `~/.anthropic_key`. `_consecutive_failures` counter can't reset without restart — must kill and resume from checkpoint | `~/.anthropic_key`, restart required |
 | `FileNotFoundError` on resume — log root mismatch (Bug MH-3) | `get_checkpoint_path()` builds path from cwd. Checkpoints in `~/logs/` but cwd is `~/multi_robot_training_new/`. Fix: `ln -sf ~/logs/rsl_rl/spot_hybrid_ppo ~/multi_robot_training_new/logs/rsl_rl/spot_hybrid_ppo` | Symlink |
+| CUDA tensors in articulation setters (Bug E-7) | All setters use `device="cpu"` — CUDA tensors silently fail | `spot_rough_terrain_policy.py` |
+| ACTION_SCALE 0.25 vs 0.2 mismatch (Bug E-8) | Set `ACTION_SCALE = 0.2` for all configs | `spot_rough_terrain_policy.py` |
+| Hardcoded actor architecture (Bug E-9) | Auto-detect from checkpoint weights via `_build_actor()` | `spot_rough_terrain_policy.py` |
+| Leg penetration through terrain | Joint clamping to URDF limits + depenetration velocity 10.0 | `spot_rough_terrain_policy.py` |
 
 ---
 
@@ -447,19 +451,166 @@ with open('ai_coach_decisions.jsonl') as f:
 
 ---
 
-## 10. Comparison With Trial 11l Final State
+## 10. Final Training Results Comparison
 
-| Metric | Trial 11l v8 (final) | MH-1 (iter 141) | Target |
-|--------|---------------------|------------------|--------|
-| Terrain | 4.83 (ceiling) | 0.02 (learning) | 6.0+ |
-| Reward | 640-682 | 40.1 | N/A (different scale) |
-| Survival | 90.5% | 61.5% (timeout) | >80% |
-| Flip rate | 9.0% | 0.0% | <15% |
-| Value loss | 4.2-5.1 | 1.6 | <15 |
-| Noise | 0.35 (fixed ceiling) | 0.51 (adaptive, dropping) | Auto-managed |
-| Coach decisions | 67 (58 no_change, 9 adjust) | 0 (silent mode) | Minimal |
-| Velocity reward | 11.41 (drifted from 5) | 5.0 (Mason's baseline) | 3.0-7.0 |
-| Network params | 2.4M | 800K | — |
+| Metric | AI-Coached v8 (Trial 11l) | Hybrid No-Coach (MH-2a) | Target |
+|--------|--------------------------|-------------------------|--------|
+| **Terrain** | **4.83** (best ever) | 3.74 (plateaued) | 6.0+ |
+| **Duration** | ~47 hours | 42.6 hours | — |
+| **Total steps** | ~2.0B | 2.0B | — |
+| **Iterations** | 10,600 (last saved) | 20,000 | — |
+| **Reward** | 640-682 | ~320 | — |
+| **Survival** | 90.5% | 53% | >80% |
+| **Flip rate** | 9.0% | 0% | <15% |
+| **Network** | [1024,512,256] — 2.4M | [512,256,128] — 800K | — |
+| **Coach** | Claude Sonnet, 67 decisions | None | — |
+| **Checkpoint** | `ai_coached_v8_10600.pt` | `hybrid_nocoach_19999.pt` | — |
+
+### 4-Environment Eval Comparison (Single Episode)
+
+| Environment | AI-Coached v8 | Hybrid No-Coach (13K) | Mason Baseline (100-ep mean) |
+|-------------|--------------|----------------------|------------------------------|
+| Friction | **49.5m** COMPLETE (50s) | **49.5m** COMPLETE (274s) | 33.5m ± 10.0 (83% fall) |
+| Grass | **41.2m** 5/5 zones (121s) | — | 28.9m ± 6.7 (22% fall) |
+| Boulder | 23.0m 3/5 zones (35s) | **31.6m** 3/5 zones (88s) | — |
+| Stairs | 12.7m 2/5 zones (37s) | 12.7m 2/5 zones (95s) | — |
+
+---
+
+## 11. Standalone Deployment (4-Environment Eval)
+
+### 11.1 Overview
+
+The trained Mason Hybrid checkpoint can be evaluated in the 4-environment standalone system (`4_env_test/`), which uses Isaac Sim's World API (not Isaac Lab's ManagerBasedRLEnv). This requires special handling because the standalone loop runs at a different rate than the physics callback approach used in lava arenas.
+
+### 11.2 Key Differences From Isaac Lab
+
+| Setting | Isaac Lab (training) | Lava Arenas | 4_env_test (standalone) |
+|---------|---------------------|-------------|------------------------|
+| Loop type | `env.step()` (internal decimation) | `physics_callback` (500 Hz) | `for` loop + `world.step()` |
+| Physics per loop iter | DECIMATION (10) | 1 | `rendering_dt / physics_dt` = 10 |
+| forward() calls/iter | N/A (env handles it) | 1 per physics step | 1 per world.step() |
+| Policy rate | 50 Hz | 50 Hz (dec=10) | **5 Hz if dec=10!** Must set dec=1 |
+| Gains source | Actuator model | `apply_gains()` | Already correct from flat policy |
+
+### 11.3 Required Fixes for Standalone Mode
+
+1. **`_decimation = 1`** — The main loop already runs at 50 Hz (control rate). With `world.step()` advancing 10 physics substeps per call, decimation must be 1 to avoid running the policy at 5 Hz (Bug E-1).
+
+2. **`--mason` flag** — Activates Mason's observation order (height_scan first) and action_scale=0.2.
+
+3. **`apply_gains()` with CPU tensors** — Call after `initialize()`. All tensors passed to ArticulationView setters MUST be on `device="cpu"` — CUDA tensors cause silent failures (Bug E-7). Sets Kp=60, Kd=1.5, solver iterations 4/1, depenetration velocity 10.0.
+
+4. **Clear `__pycache__`** after config changes — Python's bytecode cache on OneDrive-synced filesystems may not invalidate properly (Bug E-5).
+
+5. **ACTION_SCALE = 0.2** for ALL configs — both mason and standard. Previously was 0.25 for standard, which caused robot to fold up (Bug E-8).
+
+6. **Auto-detect actor architecture** — `_build_actor()` reads weight shapes from checkpoint instead of hardcoding [512,256,128]. Supports any architecture without code changes (Bug E-9).
+
+7. **Joint position clamping** — AI-coached models produce larger excursions. `forward()` now clamps joint targets to URDF limits before applying, preventing leg penetration through terrain geometry.
+
+### 11.4 Usage
+
+```bash
+# Activate conda env
+source /c/miniconda3/etc/profile.d/conda.sh && conda activate isaaclab311
+
+# Run friction eval (1 episode, rendered)
+python src/run_capstone_eval.py \
+  --robot spot --policy rough --env friction --mason \
+  --num_episodes 1 \
+  --checkpoint path/to/mason_hybrid_nocoach_13000.pt
+
+# Run all 4 environments (headless, 100 episodes each)
+for env in friction grass boulder stairs; do
+  python src/run_capstone_eval.py \
+    --robot spot --policy rough --env $env --mason --headless \
+    --num_episodes 100 \
+    --checkpoint path/to/mason_hybrid_nocoach_13000.pt \
+    --output_dir results/mason_hybrid/
+done
+```
+
+### 11.5 PhysX Raycasting for Height Scan
+
+The trained policy uses a 187-dim height scan (17×11 grid, 1.6m × 1.0m, 0.1m resolution). In Isaac Lab training, this is provided by a `RayCaster` sensor. In standalone mode, we replicate it using PhysX scene queries:
+
+```python
+from omni.physx import get_physx_scene_query_interface
+scene_query = get_physx_scene_query_interface()
+hit = scene_query.raycast_closest(origin, direction, max_distance)
+# Returns: {"hit": bool, "position": (x,y,z), "rigidBody": "/World/..."}
+```
+
+**Implementation details:**
+- Rays cast from `body_z + 20.0m` downward (avoids terrain occlusion from above)
+- Self-collision filtering: if ray hits `/World/Robot/*`, re-cast from `body_z - 0.1` to find terrain below
+- Height formula: `body_z - hit_z - 0.5` (matches Isaac Lab `SCAN_OFFSET`)
+- Clipped to [-1.0, 1.0]
+- Fill value: 0.0 for missed rays (flat ground assumption)
+
+**Verified against real geometry:**
+- Boulders: raycasting enabled +11m improvement (20.6m → 31.6m)
+- Stairs: confirmed hitting `/World/Staircase/zone_1/step_0,1,2` + `/World/GroundPlane`
+
+**Two ground_fn variables in run_capstone_eval.py:**
+- `ground_fn_metrics` — analytical (stairs `get_stair_elevation()`) for MetricsCollector fall detection
+- `ground_fn_scanner` — always `None` → forces PhysX raycasting for all environments
+
+### 11.6 Files Modified for Mason Support
+
+| File | Changes |
+|------|---------|
+| `4_env_test/src/run_capstone_eval.py` | `--mason` flag, `apply_gains()`, `_decimation=1`, scene lighting, split ground_fn |
+| `4_env_test/src/spot_rough_terrain_policy.py` | `mason_baseline` param, scan-first obs order, `ACTION_SCALE=0.2`, PhysX raycasting, auto-detect architecture (Bug E-9), CPU tensors (Bug E-7), joint clamping, depenetration velocity 10.0 |
+| `4_env_test/src/navigation/waypoint_follower.py` | Fixed premature `is_done` (Bug E-2) |
+| `4_env_test/src/configs/eval_cfg.py` | `EPISODE_TIMEOUT=600` (10 min) |
+
+---
+
+## 11. MH-2a Evaluation Results (100 Episodes × 4 Environments)
+
+> **Date:** March 16-17, 2026
+> **Checkpoint:** `model_19999.pt` (spot_hybrid_ppo/2026-03-11_11-28-30)
+> **Eval results:** `4_env_test/results/mason_parallel_2026-03-16_17-37-53/`
+
+### 11.1 Results Summary
+
+| Environment | Progress (mean±std) | Zone (avg) | Completion | Fall Rate | Velocity (m/s) | Stability |
+|-------------|-------------------|-----------|-----------|-----------|----------------|-----------|
+| Friction | 48.9 ± 5.0m | 5.0 | **98%** | 2% | 0.934 | 0.312 |
+| Grass | 27.2 ± 8.0m | 3.3 | 0% | 15% | 0.487 | 0.538 |
+| Boulder | 20.3 ± 1.7m | 3.0 | 0% | 3% | 0.350 | 0.590 |
+| Stairs | 11.2 ± 2.0m | 2.0 | 0% | **36%** | 0.227 | 2.389 |
+
+### 11.2 Zone Distribution
+
+| Environment | Zone 1 | Zone 2 | Zone 3 | Zone 4 | Zone 5 |
+|-------------|--------|--------|--------|--------|--------|
+| Friction | 1 | 0 | 0 | 0 | **99** |
+| Grass | 4 | 15 | 25 | **55** | 1 |
+| Boulder | 4 | 0 | **96** | 0 | 0 |
+| Stairs | 3 | **97** | 0 | 0 | 0 |
+
+### 11.3 Interpretation
+
+**Friction (solved):** 98% completion at 0.934 m/s. The 2 failures were early falls (progress ≈ 0m), not mid-course. Low-friction surfaces present no challenge — the policy adapts gait naturally.
+
+**Grass (moderate, high variance):** σ=8.0m — widest spread of all envs. Stochastic vegetation placement causes run-to-run variation. 55/100 reach zone 4, but drag forces in zone 4-5 stall forward progress. 15% fall rate from mid-swing foot catches.
+
+**Boulder (consistent ceiling):** σ=1.7m — tightest spread. 96/100 episodes land in zone 3 at ~20.6m. The policy applies the same strategy each time and gets the same result. Extremely stable (3% falls) but can't navigate zone 4+ obstacles.
+
+**Stairs (weak point):** 36% fall rate, stability 2.389 (4-8× worse than other envs). Can climb zone-1 stairs (3cm risers) but tips over on zone-2 (6cm+ risers). The training plateau at terrain 3.74 likely never exposed the policy to stair-dominant levels.
+
+### 11.4 Training-to-Eval Mapping
+
+The policy was trained to terrain level 3.74 / 10 curriculum levels. In eval:
+- Friction = zone 5/5 (trivial terrain, well within training range)
+- Grass = zone 3.3/5 (moderately above training range)
+- Boulder = zone 3.0/5 (at training range boundary)
+- Stairs = zone 2.0/5 (the hardest — beyond training exposure)
+
+This confirms: **training terrain level directly predicts eval performance.** The policy performs within its training range and hits hard walls beyond it. Breaking the terrain 3.74 ceiling during training is the key to improving all eval metrics.
 
 ---
 

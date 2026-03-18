@@ -1461,9 +1461,20 @@ print(f"[GAIT] Flat terrain policy loaded")
 spot_rough = None
 spot_parkour = None
 if HAS_ROUGH_POLICY:
+    # Mason hybrid no-coach checkpoint (scan-first obs, [512,256,128] network)
+    mason_ckpt = os.path.join(
+        os.path.dirname(__file__), "..", "..", "checkpoints", "mason_hybrid_nocoach_13000.pt"
+    )
+    mason_ckpt = os.path.abspath(mason_ckpt)
+
     try:
-        spot_rough = SpotRoughTerrainPolicy(flat_policy=spot_flat)
-        print(f"[GAIT] Rough terrain policy loaded")
+        if os.path.exists(mason_ckpt):
+            spot_rough = SpotRoughTerrainPolicy(
+                flat_policy=spot_flat, checkpoint_path=mason_ckpt, mason_baseline=True)
+            print(f"[GAIT] Mason baseline policy loaded from {mason_ckpt}")
+        else:
+            spot_rough = SpotRoughTerrainPolicy(flat_policy=spot_flat)
+            print(f"[GAIT] Rough terrain policy loaded (default)")
     except Exception as e:
         print(f"[GAIT] Failed to load rough policy: {e}")
         spot_rough = None

@@ -1,0 +1,1934 @@
+[3gH    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H   [INFO] Using python from: /home/t2user/miniconda3/envs/env_isaaclab/bin/python
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: /home/t2user/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/t2user/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/t2user/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260317_080547.log
+2026-03-17T12:05:47Z [174ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-03-17T12:05:47Z [648ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-03-17T12:05:48Z [908ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-03-17T12:05:48Z [923ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-03-17T12:05:52Z [5,020ms] [Error] [carb.graphics-vulkan.plugin] VkResult: ERROR_INCOMPATIBLE_DRIVER
+2026-03-17T12:05:52Z [5,020ms] [Error] [carb.graphics-vulkan.plugin] vkCreateInstance failed. Vulkan 1.1 is not supported, or your driver requires an update.
+2026-03-17T12:05:52Z [5,020ms] [Error] [gpu.foundation.plugin] carb::graphics::createInstance failed.
+2026-03-17T12:05:52Z [5,149ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.
+2026-03-17T12:05:52Z [5,150ms] [Warning] [omni.physx.foundation.plugin] PhysXFoundation: Couldn't get driver version, failed to getDeviceInfo
+2026-03-17T12:05:52Z [5,150ms] [Warning] [omni.physx.foundation.plugin] PhysXFoundation: Unable to get IGpuFoundation, GpuDevices or Graphics!
+2026-03-17T12:05:52Z [5,192ms] [Warning] [omni.kvdb.plugin] Disabling key-value database because another kit process is locking it
+2026-03-17T12:05:53Z [6,304ms] [Error] [omni.ext.plugin] Failed to resolve extension dependencies. Failure hints:
+	Can't find extension with name: isaacsim.core
+ Available versions:
+	 (none found)
+ Synced registries:
+	 - kit/default         : found 1664 packages 
+	 - kit/sdk             : found 472 packages 
+	 - kit/community       : found 527 packages 
+
+2026-03-17T12:05:53Z [6,478ms] [Error] [omni.ext.plugin] Failed to resolve extension dependencies. Failure hints:
+	Can't find extension with name: isaacsim.robot.quadruped
+ Available versions:
+	 (none found)
+ Synced registries:
+	 - kit/default         : found 1664 packages 
+	 - kit/sdk             : found 472 packages 
+	 - kit/community       : found 527 packages 
+
+2026-03-17T12:05:53Z [6,522ms] [Warning] [omni.isaac.core.physics_context.physics_context] omni.isaac.core.physics_context.physics_context has been deprecated in favor of isaacsim.core.api.physics_context.physics_context. Please update your code accordingly.
+2026-03-17T12:05:53Z [6,523ms] [Warning] [omni.isaac.core.simulation_context.simulation_context] omni.isaac.core.simulation_context.simulation_context has been deprecated in favor of isaacsim.core.api.simulation_context.simulation_context. Please update your code accordingly.
+2026-03-17T12:05:53Z [6,523ms] [Warning] [omni.isaac.core.world.world] omni.isaac.core.world.world has been deprecated in favor of isaacsim.core.api.world.world. Please update your code accordingly.
+2026-03-17T12:05:53Z [6,523ms] [Warning] [omni.isaac.core] omni.isaac.core has been deprecated in favor of isaacsim.core.api. Please update your code accordingly.
+2026-03-17T12:05:53Z [6,573ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:05:53Z [6,573ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:05:53Z [6,625ms] [Error] [carb.graphics-vulkan.plugin] VkResult: ERROR_INCOMPATIBLE_DRIVER
+2026-03-17T12:05:53Z [6,625ms] [Error] [carb.graphics-vulkan.plugin] vkCreateInstance failed. Vulkan 1.1 is not supported, or your driver requires an update.
+2026-03-17T12:05:53Z [6,625ms] [Error] [gpu.foundation.plugin] carb::graphics::createInstance failed.
+2026-03-17T12:05:54Z [6,851ms] [Error] [carb.graphics-vulkan.plugin] VkResult: ERROR_INCOMPATIBLE_DRIVER
+2026-03-17T12:05:54Z [6,851ms] [Error] [carb.graphics-vulkan.plugin] vkCreateInstance failed. Vulkan 1.1 is not supported, or your driver requires an update.
+2026-03-17T12:05:54Z [6,851ms] [Error] [gpu.foundation.plugin] carb::graphics::createInstance failed.
+2026-03-17T12:05:54Z [7,022ms] [Error] [omni.gpu_foundation_factory.plugin] Failed to create any GPU devices, including an attempt with compatibility mode.
+sh: 1: zenity: not found
+2026-03-17T12:05:54Z [7,400ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:05:54Z [7,400ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:05:54Z [7,406ms] [Error] [omni.kit.renderer.plugin] GPU Foundation is not initialized!
+2026-03-17T12:05:54Z [7,412ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:05:54Z [7,412ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:05:54Z [7,427ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:05:54Z [7,427ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:05:54Z [7,429ms] [Error] [omni.kit.imgui_renderer.plugin] _prepareDefaultWindow: invalid device attached to the default window!
+2026-03-17T12:05:55Z [7,919ms] [Warning] [omni.log] Source: omni.hydra was already registered.
+2026-03-17T12:05:55Z [8,010ms] [Warning] [omni.usd] UsdManager::createHydraEngineWithDefaultConfigImpl - no valid foundation interface found
+2026-03-17T12:05:55Z [8,307ms] [Warning] [pxr.Semantics] pxr.Semantics is deprecated - please use Semantics instead
+2026-03-17T12:05:55Z [8,534ms] [Warning] [omni.graph.core.plugin] Found duplicate of category 'Replicator' - was 'Annotators', adding 'Fabric Reader'
+2026-03-17T12:05:55Z [8,534ms] [Warning] [omni.graph.core.plugin] Category 'Replicator' not accepted on node type 'omni.replicator.core.FabricReader' in extension 'omni.replicator.core'
+2026-03-17T12:05:55Z [8,535ms] [Warning] [omni.replicator.core.scripts.extension] No material configuration file, adding configuration to material settings directly.
+2026-03-17T12:05:55Z [8,592ms] [Warning] [omni.isaac.quadruped] omni.isaac.quadruped has been deprecated in favor of isaacsim.robot.policy.examples. Please update your code accordingly.
+
+============================================================
+  Capstone Evaluation
+  Robot:       SPOT
+  Environment: boulder
+  Policy:      rough
+  Episodes:    100
+  Headless:    True
+  Output:      /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44
+============================================================
+
+2026-03-17T12:05:55Z [8,696ms] [Warning] [omni.graph.core.plugin] OmniGraphSettings::getCudaDeviceOrdinal: unable to get a valid CUDA device id from the renderer. Defaulting to GPU0.
+Building boulder environment...
+Warp DeprecationWarning: The `warp.sim` module is deprecated and will be removed in v1.10. Please transition to using the forthcoming Newton library instead.
+  Boulder environment: 5 zones, 9000 boulders
+    Zone 1: edge=(0.03, 0.05), count=4500 — Gravel
+    Zone 2: edge=(0.1, 0.15), count=2400 — River rocks
+    Zone 3: edge=(0.25, 0.35), count=1200 — Large rocks
+    Zone 4: edge=(0.5, 0.7), count=600 — Small boulders
+    Zone 5: edge=(0.8, 1.2), count=300 — Large boulders
+Loading rough policy for SPOT...
+[ROUGH] Auto-detected architecture: 235 -> [512, 256, 128] -> 12
+[ROUGH] Loaded actor from /home/t2user/4_env_test/checkpoints/mason_baseline_final_19999.pt
+[ROUGH]   obs=235  act=12  scale=0.2  dec=10
+[ROUGH] Default pos mapped by name (12/12 joints)
+[ROUGH] DOF order: ['fl_hx', 'fr_hx', 'hl_hx', 'hr_hx', 'fl_hy', 'fr_hy', 'hl_hy', 'hr_hy', 'fl_kn', 'fr_kn', 'hl_kn', 'hr_kn']
+[ROUGH] default_pos: [ 0.1 -0.1  0.1 -0.1  0.9  0.9  1.1  1.1 -1.5 -1.5 -1.5 -1.5]
+[ROUGH] Hip DOFs: [0, 1, 2, 3, 4, 5, 6, 7]  Knee DOFs: [8, 9, 10, 11]
+[ROUGH] Height scan: PHYSX RAYCAST (187 dims, real terrain geometry via scene queries)
+[ROUGH] Solver iters BEFORE: pos=[4], vel=[0]
+[ROUGH] Solver iters AFTER:  pos=[4], vel=[1]
+[ROUGH] Gains BEFORE: Kp=[[60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60.]], Kd=[[1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5]]
+[ROUGH] Gains AFTER:  Kp=[[60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60.]], Kd=[[1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5]]
+2026-03-17T12:06:20Z [33,746ms] [Warning] [omni.physx.tensors.plugin] DEPRECATED: Please use getDofFrictionProperties instead.
+2026-03-17T12:06:20Z [33,746ms] [Warning] [omni.physx.tensors.plugin] DEPRECATED: Please use setDofFrictionProperties instead.
+[ROUGH] PhysX PD: Kp=60.0, Kd=1.5, solver=4/0
+[ROUGH] Effort limits: hips=45.0 N·m, knees=110 N·m
+SPOT loaded and initialized.
+Stabilizing robot...
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.12106723 -0.01221985 -0.46234166]
+  gravity_b = [ 3.40771492e-04 -4.56916081e-03 -9.99989503e-01]
+  joint_pos_rel range = [-0.003, 0.001]
+  height_scan range = [0.080, 0.110]
+  height_scan mean  = 0.110
+  body_z = 0.610
+  [ROUGH act] eval=0 norm=4.405 range=[-1.567, 1.604] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.151 range=[-1.781, 3.018] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.596 range=[-2.125, 3.125] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.626 range=[-2.467, 2.737] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.452 range=[-2.539, 2.932] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.318 range=[-2.273, 2.772] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.691 range=[-2.282, 3.496] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.054 range=[-2.525, 3.548] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.193 range=[-2.485, 3.711] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.254 range=[-2.327, 3.827] cmd=[0.00,0.00,0.00]
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.3957417  -0.11266255 -0.01622167]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.421, 0.607]
+  height_scan range = [0.000, 0.100]
+  height_scan mean  = 0.086
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.861 range=[-2.019, 1.825] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.635 range=[-2.879, 2.840] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.744 range=[-3.220, 3.533] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.993 range=[-3.304, 3.677] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.964 range=[-3.237, 3.620] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.917 range=[-3.138, 3.564] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.942 range=[-3.066, 3.557] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.004 range=[-3.022, 3.587] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.082 range=[-2.983, 3.650] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.173 range=[-2.959, 3.716] cmd=[0.00,0.00,0.00]
+  [   1/100] boulder_rough_ep0000  TIMEOUT   progress= 20.7m  zone=3  time=583.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02195383  0.02123251  0.08062481]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.833, 0.973]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.414 range=[-2.208, 3.941] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.716 range=[-2.550, 4.199] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.069 range=[-2.559, 4.163] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.332 range=[-2.296, 4.051] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.530 range=[-2.027, 3.546] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.843 range=[-1.937, 2.898] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.470 range=[-2.096, 2.326] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.388 range=[-2.233, 2.060] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.274 range=[-2.205, 1.883] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.066 range=[-2.105, 1.674] cmd=[0.00,0.00,0.00]
+  [   2/100] boulder_rough_ep0001  TIMEOUT   progress= 21.2m  zone=3  time=527.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01509632 -0.02788279 -0.03122252]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.236, 1.188]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.351 range=[-2.676, 4.306] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.919 range=[-3.023, 4.956] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.421 range=[-3.079, 4.955] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.104 range=[-3.248, 4.738] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.890 range=[-3.256, 4.453] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.669 range=[-3.193, 4.208] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.494 range=[-3.147, 4.020] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.417 range=[-3.158, 3.900] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.369 range=[-3.172, 3.759] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.336 range=[-3.187, 3.605] cmd=[0.00,0.00,0.00]
+  [   3/100] boulder_rough_ep0002  FELL      progress= 11.0m  zone=2  time=143.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.10157487  0.01416445 -0.15842307]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.933, 0.999]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.604 range=[-1.567, 2.174] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.039 range=[-2.123, 2.141] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.062 range=[-2.354, 2.643] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.110 range=[-2.148, 3.077] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.362 range=[-1.954, 3.229] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.583 range=[-2.039, 3.038] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.796 range=[-2.302, 3.095] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.048 range=[-2.441, 3.495] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.184 range=[-2.510, 3.771] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.274 range=[-2.538, 3.983] cmd=[0.00,0.00,0.00]
+  [   4/100] boulder_rough_ep0003  TIMEOUT   progress= 10.8m  zone=2  time=518.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00160477 -0.05131176  0.01743387]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.055, 1.160]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.625 range=[-2.284, 4.146] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.348 range=[-2.892, 4.772] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.423 range=[-3.411, 4.826] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.561 range=[-3.530, 4.732] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.504 range=[-3.467, 4.525] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.391 range=[-3.364, 4.352] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.287 range=[-3.268, 4.213] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.220 range=[-3.197, 4.087] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.165 range=[-3.145, 3.963] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.107 range=[-3.080, 3.822] cmd=[0.00,0.00,0.00]
+  [   5/100] boulder_rough_ep0004  TIMEOUT   progress= 20.7m  zone=3  time=518.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.02181388 -0.00471083 -0.06553394]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.920, 0.958]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.996 range=[-1.736, 2.448] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.573 range=[-2.023, 2.993] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.513 range=[-2.042, 3.055] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.175 range=[-1.869, 2.601] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.755 range=[-1.657, 2.929] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.376 range=[-1.568, 2.787] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.177 range=[-1.453, 2.467] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.210 range=[-1.439, 2.186] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.449 range=[-1.769, 2.541] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.791 range=[-2.080, 3.006] cmd=[0.00,0.00,0.00]
+  [   6/100] boulder_rough_ep0005  TIMEOUT   progress= 21.2m  zone=3  time=515.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.0092512  -0.01095182  0.02855611]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.292, 1.015]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.799 range=[-2.372, 3.954] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.417 range=[-2.796, 4.700] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.173 range=[-3.043, 4.804] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.162 range=[-3.306, 4.709] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.086 range=[-3.472, 4.503] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.912 range=[-3.453, 4.327] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.761 range=[-3.424, 4.187] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.651 range=[-3.417, 4.051] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.563 range=[-3.408, 3.913] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.482 range=[-3.384, 3.772] cmd=[0.00,0.00,0.00]
+  [   7/100] boulder_rough_ep0006  FELL      progress= 20.6m  zone=3  time=244.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.07988033  0.69118488 -0.36317196]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.990, 1.090]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.506 range=[-3.150, 2.632] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.534 range=[-2.992, 2.927] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.017 range=[-2.890, 2.820] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.370 range=[-2.495, 2.576] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.664 range=[-2.207, 2.209] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.205 range=[-2.114, 1.922] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.848 range=[-1.998, 1.816] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.630 range=[-1.962, 1.928] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.443 range=[-1.919, 2.087] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.203 range=[-1.947, 2.105] cmd=[0.00,0.00,0.00]
+  [   8/100] boulder_rough_ep0007  TIMEOUT   progress=  0.7m  zone=1  time=510.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02271879 -0.00754263  0.05119776]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.267, 1.173]
+  height_scan range = [0.000, 0.100]
+  height_scan mean  = 0.084
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.925 range=[-1.914, 3.505] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.614 range=[-3.161, 4.081] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.859 range=[-3.542, 4.038] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.921 range=[-3.551, 3.943] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.951 range=[-3.507, 3.901] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.001 range=[-3.486, 3.854] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.078 range=[-3.479, 3.813] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.187 range=[-3.488, 3.797] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.246 range=[-3.469, 3.750] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.286 range=[-3.434, 3.686] cmd=[0.00,0.00,0.00]
+  [   9/100] boulder_rough_ep0008  TIMEOUT   progress= 11.2m  zone=2  time=509.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02643131 -0.03220428  0.08781319]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.843, 1.395]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.554 range=[-3.033, 3.527] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.498 range=[-4.426, 4.597] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.532 range=[-4.508, 4.259] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.555 range=[-4.361, 4.203] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.590 range=[-4.215, 4.256] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.582 range=[-4.083, 4.282] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.526 range=[-3.968, 4.235] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.422 range=[-3.954, 4.109] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.280 range=[-3.959, 3.914] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.091 range=[-3.953, 3.653] cmd=[0.00,0.00,0.00]
+  [  10/100] boulder_rough_ep0009  TIMEOUT   progress= 18.0m  zone=2  time=525.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.06457023 -0.05013053  0.04524006]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.156, 1.372]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.479 range=[-2.436, 4.384] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.681 range=[-2.843, 4.629] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.708 range=[-2.875, 4.564] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.649 range=[-2.728, 4.459] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.561 range=[-2.578, 4.394] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.531 range=[-2.482, 4.409] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.511 range=[-2.417, 4.406] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.482 range=[-2.360, 4.371] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.437 range=[-2.334, 4.307] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.375 range=[-2.320, 4.223] cmd=[0.00,0.00,0.00]
+  [  11/100] boulder_rough_ep0010  TIMEOUT   progress= 12.6m  zone=2  time=533.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.03359038 0.01346597 0.08398873]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.001, 1.276]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.093 range=[-2.029, 4.338] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.726 range=[-2.615, 4.827] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.676 range=[-2.774, 4.758] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.637 range=[-2.736, 4.731] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.648 range=[-2.652, 4.733] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.673 range=[-2.563, 4.716] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.638 range=[-2.490, 4.632] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.571 range=[-2.494, 4.512] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.470 range=[-2.471, 4.359] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.344 range=[-2.432, 4.178] cmd=[0.00,0.00,0.00]
+  [  12/100] boulder_rough_ep0011  TIMEOUT   progress= 13.9m  zone=2  time=516.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01742886 -0.03506168  0.0579369 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.903, 1.390]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.969 range=[-2.575, 4.655] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.682 range=[-3.379, 5.190] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.662 range=[-3.573, 5.133] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.572 range=[-3.516, 5.081] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.471 range=[-3.425, 5.053] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.381 range=[-3.345, 5.014] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.298 range=[-3.267, 4.950] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.212 range=[-3.185, 4.857] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.115 range=[-3.094, 4.736] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.000 range=[-2.990, 4.583] cmd=[0.00,0.00,0.00]
+  [  13/100] boulder_rough_ep0012  TIMEOUT   progress= 20.6m  zone=3  time=525.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.03855157 0.06769069 0.06463597]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.275, 0.765]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.954 range=[-1.793, 3.389] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.289 range=[-2.579, 3.872] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.028 range=[-2.790, 3.746] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.628 range=[-2.671, 3.445] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.261 range=[-2.469, 3.159] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.129 range=[-2.415, 3.029] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.090 range=[-2.448, 2.888] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.124 range=[-2.523, 2.739] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.160 range=[-2.579, 2.609] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.201 range=[-2.600, 2.814] cmd=[0.00,0.00,0.00]
+  [  14/100] boulder_rough_ep0013  TIMEOUT   progress= 20.6m  zone=3  time=514.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03548434  0.01453163  0.00836375]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.231, 0.887]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.375 range=[-1.565, 2.835] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.282 range=[-1.804, 3.025] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.793 range=[-1.857, 2.557] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.398 range=[-1.728, 2.199] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.054 range=[-1.541, 2.451] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.108 range=[-1.369, 2.855] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.543 range=[-1.441, 3.145] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.983 range=[-1.839, 3.280] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.200 range=[-2.080, 3.292] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.382 range=[-2.191, 3.306] cmd=[0.00,0.00,0.00]
+  [  15/100] boulder_rough_ep0014  TIMEOUT   progress= 14.7m  zone=2  time=515.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.02609215 0.00396214 0.09452596]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.923, 1.360]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.234 range=[-2.118, 4.420] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.960 range=[-2.833, 4.902] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.040 range=[-3.012, 4.911] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.043 range=[-2.984, 4.918] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.033 range=[-2.917, 4.914] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.016 range=[-2.840, 4.888] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.961 range=[-2.759, 4.817] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.866 range=[-2.688, 4.695] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.756 range=[-2.616, 4.548] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.631 range=[-2.550, 4.381] cmd=[0.00,0.00,0.00]
+  [  16/100] boulder_rough_ep0015  TIMEOUT   progress= 12.9m  zone=2  time=508.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.03657134 -0.09348332  0.02866781]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.923, 1.390]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.643 range=[-1.902, 3.253] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.984 range=[-2.171, 3.624] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.953 range=[-2.187, 3.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.880 range=[-2.087, 3.056] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.661 range=[-2.090, 2.616] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.354 range=[-2.055, 2.194] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.136 range=[-2.019, 2.263] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.080 range=[-2.067, 2.440] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.097 range=[-2.166, 2.664] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.130 range=[-2.260, 2.902] cmd=[0.00,0.00,0.00]
+  [  17/100] boulder_rough_ep0016  TIMEOUT   progress= 11.3m  zone=2  time=520.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.06277623 -0.02124672 -0.00842831]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.853, 1.373]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.479 range=[-1.669, 3.619] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.032 range=[-2.435, 3.959] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.055 range=[-2.703, 3.668] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.031 range=[-2.780, 3.351] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.003 range=[-2.809, 3.038] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.949 range=[-2.796, 2.846] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.862 range=[-2.760, 3.139] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.753 range=[-2.717, 3.396] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.611 range=[-2.644, 3.589] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.522 range=[-2.553, 3.714] cmd=[0.00,0.00,0.00]
+  [  18/100] boulder_rough_ep0017  TIMEOUT   progress= 13.2m  zone=2  time=526.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00029586 -0.00079423 -0.00121064]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.292, 1.313]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.521 range=[-2.517, 5.086] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.812 range=[-3.025, 5.443] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.420 range=[-3.040, 5.110] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.280 range=[-2.891, 4.961] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.219 range=[-2.809, 4.902] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.136 range=[-2.800, 4.851] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.072 range=[-2.795, 4.821] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.029 range=[-2.804, 4.789] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.972 range=[-2.805, 4.728] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.894 range=[-2.797, 4.639] cmd=[0.00,0.00,0.00]
+  [  19/100] boulder_rough_ep0018  FELL      progress= 20.9m  zone=3  time=326.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.15436698  0.00969822 -0.39878803]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.951, 0.988]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.928 range=[-2.369, 2.802] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.127 range=[-2.695, 2.887] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.138 range=[-2.991, 2.659] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.112 range=[-3.271, 2.415] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.062 range=[-3.469, 2.400] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.989 range=[-3.557, 2.320] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.959 range=[-3.620, 2.183] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.004 range=[-3.622, 2.088] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.131 range=[-3.534, 2.807] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.394 range=[-3.360, 3.714] cmd=[0.00,0.00,0.00]
+  [  20/100] boulder_rough_ep0019  TIMEOUT   progress= 12.9m  zone=2  time=507.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.09040827 -0.07031729 -0.04399455]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.049, 1.351]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.234 range=[-2.756, 5.630] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.372 range=[-3.361, 6.452] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.808 range=[-3.469, 6.184] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.311 range=[-3.437, 5.876] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.017 range=[-3.301, 5.651] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.722 range=[-3.142, 5.420] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.426 range=[-2.986, 5.204] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.180 range=[-2.847, 5.043] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.007 range=[-2.748, 4.919] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.884 range=[-2.683, 4.825] cmd=[0.00,0.00,0.00]
+  [  21/100] boulder_rough_ep0020  FELL      progress= 11.9m  zone=2  time=197.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.04302206  0.33643264 -0.13160653]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.912, 0.896]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.889 range=[-2.055, 2.950] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.166 range=[-2.099, 3.504] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.552 range=[-1.943, 3.323] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.730 range=[-1.779, 2.906] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.032 range=[-1.855, 2.491] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.575 range=[-1.912, 2.169] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.320 range=[-1.917, 1.921] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.313 range=[-1.861, 1.761] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.568 range=[-1.743, 1.709] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.068 range=[-1.796, 2.270] cmd=[0.00,0.00,0.00]
+  [  22/100] boulder_rough_ep0021  TIMEOUT   progress= 10.6m  zone=2  time=518.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.04406641 -0.09341917  0.04765836]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.974, 1.375]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.135 range=[-1.876, 3.852] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.598 range=[-2.101, 4.351] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.364 range=[-2.607, 4.104] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.197 range=[-2.734, 3.737] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.034 range=[-2.769, 3.385] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.837 range=[-2.780, 2.979] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.597 range=[-2.767, 2.507] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.491 range=[-2.786, 2.606] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.413 range=[-2.818, 2.765] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.320 range=[-2.824, 2.934] cmd=[0.00,0.00,0.00]
+  [  23/100] boulder_rough_ep0022  TIMEOUT   progress= 20.6m  zone=3  time=519.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.04281143 -0.01390291  0.11762546]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.278, 0.878]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.964 range=[-1.790, 3.511] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.088 range=[-2.309, 3.920] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.775 range=[-2.625, 3.751] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.377 range=[-2.598, 3.341] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.063 range=[-2.474, 3.034] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.842 range=[-2.374, 2.819] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.754 range=[-2.347, 2.659] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.741 range=[-2.367, 2.499] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.740 range=[-2.379, 2.454] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.753 range=[-2.364, 2.642] cmd=[0.00,0.00,0.00]
+  [  24/100] boulder_rough_ep0023  TIMEOUT   progress= 11.2m  zone=2  time=523.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00990031  0.0377031  -0.01275021]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.913, 1.314]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.956 range=[-2.198, 3.681] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.566 range=[-2.539, 4.204] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.900 range=[-2.445, 4.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.009 range=[-2.180, 3.727] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.119 range=[-1.938, 3.125] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.333 range=[-1.801, 2.373] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.733 range=[-1.748, 1.628] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.352 range=[-1.744, 1.105] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.188 range=[-1.805, 1.030] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.145 range=[-1.804, 1.085] cmd=[0.00,0.00,0.00]
+  [  25/100] boulder_rough_ep0024  TIMEOUT   progress= 11.1m  zone=2  time=509.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03695404 -0.01727166 -0.00762548]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.941, 1.312]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.926 range=[-2.178, 3.727] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.366 range=[-2.465, 4.178] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.715 range=[-2.341, 4.050] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.948 range=[-2.093, 3.651] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.295 range=[-2.020, 3.093] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.799 range=[-1.983, 2.410] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.427 range=[-1.796, 1.943] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.046 range=[-1.718, 2.033] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.754 range=[-1.748, 1.963] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.629 range=[-1.771, 1.916] cmd=[0.00,0.00,0.00]
+  [  26/100] boulder_rough_ep0025  FELL      progress= 16.1m  zone=2  time=144.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.225472   -0.44567001 -0.66822988]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.912, 0.943]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.075 range=[-2.027, 4.722] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.136 range=[-4.059, 5.667] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=11.470 range=[-5.027, 7.107] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=12.258 range=[-5.479, 8.092] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=12.830 range=[-5.736, 8.809] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=13.273 range=[-5.874, 9.401] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=13.601 range=[-5.944, 9.889] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=13.837 range=[-5.974, 10.284] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=14.092 range=[-6.019, 10.639] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=14.343 range=[-6.056, 11.002] cmd=[0.00,0.00,0.00]
+  [  27/100] boulder_rough_ep0026  FELL      progress=  0.1m  zone=1  time=5.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.19498818 -0.74303478 -0.63956708]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.863, 0.959]
+  height_scan range = [0.000, 0.100]
+  height_scan mean  = 0.085
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.351 range=[-3.865, 4.701] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.806 range=[-5.376, 5.071] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=10.952 range=[-5.557, 6.157] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=11.029 range=[-5.451, 6.643] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=10.675 range=[-5.163, 6.748] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=10.318 range=[-4.841, 6.791] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=10.109 range=[-4.578, 6.902] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=10.098 range=[-4.391, 7.141] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=10.271 range=[-4.303, 7.491] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=10.663 range=[-4.363, 7.939] cmd=[0.00,0.00,0.00]
+  [  28/100] boulder_rough_ep0027  FELL      progress=  1.4m  zone=1  time=27.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.89175016 -0.96110976 -0.76189828]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.900, 0.935]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.107 range=[-3.217, 3.647] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.142 range=[-3.442, 6.445] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=12.570 range=[-3.911, 8.546] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=14.483 range=[-4.915, 10.574] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=15.679 range=[-5.768, 11.873] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=16.327 range=[-6.259, 12.588] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=16.630 range=[-6.555, 12.926] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=16.710 range=[-6.731, 13.007] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=16.655 range=[-6.797, 12.949] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=16.591 range=[-6.812, 12.907] cmd=[0.00,0.00,0.00]
+  [  29/100] boulder_rough_ep0028  FELL      progress=  0.7m  zone=1  time=4.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 1.06630015 -0.51827013 -1.69472849]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.995, 0.626]
+  height_scan range = [0.000, 0.100]
+  height_scan mean  = 0.090
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.470 range=[-2.599, 2.847] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.063 range=[-2.885, 3.941] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.640 range=[-3.687, 5.440] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=10.339 range=[-3.462, 7.123] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=11.236 range=[-4.044, 8.035] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=11.550 range=[-4.445, 8.262] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=11.664 range=[-4.521, 8.367] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=11.729 range=[-4.485, 8.477] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=11.772 range=[-4.416, 8.581] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=11.802 range=[-4.340, 8.682] cmd=[0.00,0.00,0.00]
+  [  30/100] boulder_rough_ep0029  TIMEOUT   progress= 11.3m  zone=2  time=505.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02490015 -0.05707472  0.03601866]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.883, 1.347]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.252 range=[-3.516, 3.627] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.091 range=[-4.797, 4.795] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=9.117 range=[-4.786, 4.691] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=9.246 range=[-4.625, 4.857] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=9.376 range=[-4.508, 5.041] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.474 range=[-4.445, 5.140] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=9.497 range=[-4.402, 5.112] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.463 range=[-4.407, 4.974] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.407 range=[-4.429, 4.774] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.350 range=[-4.442, 4.530] cmd=[0.00,0.00,0.00]
+  [  31/100] boulder_rough_ep0030  TIMEOUT   progress= 16.8m  zone=2  time=509.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01740956  0.09041632  0.04065605]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.825, 1.370]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.143 range=[-2.164, 3.705] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.774 range=[-2.304, 4.800] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.571 range=[-2.612, 4.913] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.488 range=[-2.671, 4.761] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.319 range=[-3.591, 4.755] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.793 range=[-4.218, 4.465] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.914 range=[-4.382, 4.171] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.036 range=[-4.402, 4.191] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.131 range=[-4.393, 4.247] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.203 range=[-4.439, 4.264] cmd=[0.00,0.00,0.00]
+  [  32/100] boulder_rough_ep0031  TIMEOUT   progress= 14.1m  zone=2  time=513.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03667295 -0.01072842 -0.01861644]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 1.043]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.083 range=[-2.774, 3.996] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.066 range=[-3.250, 4.736] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.975 range=[-3.810, 4.762] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.676 range=[-3.930, 4.571] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.442 range=[-3.842, 4.406] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.234 range=[-3.692, 4.217] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.109 range=[-3.587, 4.085] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.035 range=[-3.516, 3.956] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.010 range=[-3.472, 3.848] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.936 range=[-3.414, 3.699] cmd=[0.00,0.00,0.00]
+  [  33/100] boulder_rough_ep0032  TIMEOUT   progress= 15.1m  zone=2  time=505.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00949757 -0.06340794 -0.05397386]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.004, 1.338]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.888 range=[-2.506, 5.606] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.549 range=[-3.033, 6.120] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.999 range=[-3.203, 5.765] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.712 range=[-3.174, 5.418] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.599 range=[-3.047, 5.229] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.465 range=[-2.903, 5.104] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.338 range=[-2.776, 4.995] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.237 range=[-2.712, 4.887] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.169 range=[-2.702, 4.786] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.130 range=[-2.686, 4.707] cmd=[0.00,0.00,0.00]
+  [  34/100] boulder_rough_ep0033  TIMEOUT   progress= 11.3m  zone=2  time=507.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.03621326  0.02582315 -0.01315657]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.876, 1.330]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.028 range=[-2.102, 3.707] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.443 range=[-2.169, 4.078] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.092 range=[-2.237, 3.712] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.670 range=[-2.226, 3.209] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.182 range=[-2.043, 2.610] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.609 range=[-1.716, 1.959] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.077 range=[-1.681, 1.915] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.832 range=[-1.817, 1.900] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.730 range=[-1.868, 1.892] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.728 range=[-1.828, 1.972] cmd=[0.00,0.00,0.00]
+  [  35/100] boulder_rough_ep0034  TIMEOUT   progress= 11.1m  zone=2  time=514.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05840829  0.0714966   0.04717397]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.799, 1.064]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.898 range=[-2.085, 4.105] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.348 range=[-2.511, 4.954] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.806 range=[-2.691, 4.874] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.013 range=[-2.555, 4.328] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.246 range=[-2.342, 3.761] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.212 range=[-2.313, 3.329] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.180 range=[-3.460, 3.021] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.196 range=[-4.219, 3.622] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.726 range=[-4.565, 4.110] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.943 range=[-4.656, 4.356] cmd=[0.00,0.00,0.00]
+  [  36/100] boulder_rough_ep0035  TIMEOUT   progress= 10.8m  zone=2  time=518.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03238593 -0.04986097 -0.00830094]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.072, 1.395]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.357 range=[-3.034, 5.687] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.411 range=[-3.627, 6.547] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.888 range=[-3.728, 6.356] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.423 range=[-3.580, 6.060] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.138 range=[-3.402, 5.791] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.852 range=[-3.223, 5.551] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.592 range=[-3.061, 5.377] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.382 range=[-2.933, 5.225] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.228 range=[-2.847, 5.097] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.101 range=[-2.784, 4.982] cmd=[0.00,0.00,0.00]
+  [  37/100] boulder_rough_ep0036  TIMEOUT   progress= 20.6m  zone=3  time=504.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01883869  0.06618102 -0.02792987]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.075, 0.720]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.854 range=[-1.771, 3.448] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.439 range=[-2.124, 3.761] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.205 range=[-2.428, 3.740] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.122 range=[-2.544, 3.785] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.150 range=[-2.733, 3.746] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.146 range=[-2.678, 3.630] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.030 range=[-2.561, 3.506] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.902 range=[-2.433, 3.394] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.818 range=[-2.348, 3.300] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.741 range=[-2.259, 3.168] cmd=[0.00,0.00,0.00]
+  [  38/100] boulder_rough_ep0037  FELL      progress= 11.8m  zone=2  time=120.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.09750502  0.22374158 -0.11191313]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.899, 0.961]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.528 range=[-2.102, 3.103] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.215 range=[-3.268, 3.888] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.987 range=[-4.128, 3.651] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.058 range=[-4.050, 4.123] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.638 range=[-3.498, 4.334] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.969 range=[-2.773, 4.318] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.091 range=[-2.187, 4.112] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.004 range=[-1.560, 3.147] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.654 range=[-1.843, 2.873] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.839 range=[-1.569, 3.022] cmd=[0.00,0.00,0.00]
+  [  39/100] boulder_rough_ep0038  TIMEOUT   progress= 13.0m  zone=2  time=511.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.02277266 0.04065431 0.06784641]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.960, 1.322]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.107 range=[-1.982, 4.282] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.823 range=[-2.691, 4.757] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.913 range=[-2.797, 4.830] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.906 range=[-2.748, 4.865] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.864 range=[-2.766, 4.845] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.802 range=[-2.762, 4.792] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.726 range=[-2.737, 4.703] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.574 range=[-2.690, 4.543] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.369 range=[-2.622, 4.338] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.155 range=[-2.541, 4.126] cmd=[0.00,0.00,0.00]
+  [  40/100] boulder_rough_ep0039  TIMEOUT   progress= 13.0m  zone=2  time=511.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06377867 -0.02834947 -0.05721794]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.028, 1.353]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.215 range=[-2.925, 5.716] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.041 range=[-3.502, 6.326] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.500 range=[-3.604, 6.004] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.174 range=[-3.504, 5.709] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.971 range=[-3.350, 5.506] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.709 range=[-3.181, 5.309] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.452 range=[-3.019, 5.145] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.233 range=[-2.879, 4.989] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.058 range=[-2.760, 4.846] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.938 range=[-2.672, 4.731] cmd=[0.00,0.00,0.00]
+  [  41/100] boulder_rough_ep0040  FELL      progress= 10.1m  zone=2  time=97.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.02528916  0.02442216 -0.03762257]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.854, 0.841]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.075 range=[-2.043, 3.379] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.490 range=[-2.330, 3.755] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.269 range=[-2.673, 3.702] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.112 range=[-2.803, 3.591] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.065 range=[-2.872, 3.515] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.080 range=[-2.942, 3.401] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.131 range=[-3.010, 3.261] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.224 range=[-3.078, 3.129] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.360 range=[-3.170, 3.412] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.507 range=[-3.262, 3.680] cmd=[0.00,0.00,0.00]
+  [  42/100] boulder_rough_ep0041  TIMEOUT   progress= 13.2m  zone=2  time=511.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.09516042 -0.0167228   0.0737122 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.906, 1.387]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.141 range=[-3.462, 3.557] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.073 range=[-4.726, 4.777] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=9.168 range=[-5.126, 4.532] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=9.311 range=[-5.066, 4.542] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=9.542 range=[-4.966, 4.727] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.792 range=[-4.902, 4.893] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=10.004 range=[-4.900, 4.961] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=10.138 range=[-4.939, 4.909] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=10.170 range=[-4.994, 4.756] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=10.135 range=[-5.024, 4.541] cmd=[0.00,0.00,0.00]
+  [  43/100] boulder_rough_ep0042  TIMEOUT   progress= 11.2m  zone=2  time=513.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.0366283   0.00522976 -0.01431661]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.940, 1.311]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.885 range=[-2.132, 4.153] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.534 range=[-2.671, 5.205] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.149 range=[-2.891, 5.177] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.533 range=[-2.867, 4.638] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.347 range=[-2.722, 4.286] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.470 range=[-3.957, 4.338] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=9.198 range=[-4.608, 4.120] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.394 range=[-4.786, 3.986] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.512 range=[-4.869, 3.957] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.577 range=[-4.873, 3.968] cmd=[0.00,0.00,0.00]
+  [  44/100] boulder_rough_ep0043  TIMEOUT   progress= 20.9m  zone=3  time=511.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.03949867 0.04484923 0.13840853]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.225, 0.788]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.217 range=[-1.572, 3.072] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.050 range=[-1.719, 3.236] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.630 range=[-1.543, 3.128] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.549 range=[-1.527, 3.104] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.504 range=[-1.488, 3.042] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.407 range=[-1.409, 2.884] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.298 range=[-1.440, 2.679] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.210 range=[-1.419, 2.474] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.178 range=[-1.401, 2.299] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.200 range=[-1.392, 2.176] cmd=[0.00,0.00,0.00]
+  [  45/100] boulder_rough_ep0044  TIMEOUT   progress= 12.6m  zone=2  time=509.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02873645  0.00951535 -0.00121835]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.881, 1.262]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.041 range=[-2.442, 4.567] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.802 range=[-3.097, 5.286] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.557 range=[-3.336, 5.116] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.364 range=[-3.307, 4.959] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.203 range=[-3.188, 4.872] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.097 range=[-3.081, 4.840] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.020 range=[-2.990, 4.800] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.955 range=[-2.901, 4.734] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.869 range=[-2.800, 4.624] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.756 range=[-2.748, 4.467] cmd=[0.00,0.00,0.00]
+  [  46/100] boulder_rough_ep0045  TIMEOUT   progress= 13.1m  zone=2  time=515.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.04001756 -0.05113967 -0.01653466]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.228, 1.095]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.844 range=[-2.371, 4.214] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.671 range=[-3.262, 4.894] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.649 range=[-3.655, 4.929] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.666 range=[-3.688, 4.857] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.558 range=[-3.581, 4.676] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.406 range=[-3.455, 4.499] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.270 range=[-3.343, 4.348] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.161 range=[-3.258, 4.214] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.079 range=[-3.200, 4.091] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.013 range=[-3.157, 3.950] cmd=[0.00,0.00,0.00]
+  [  47/100] boulder_rough_ep0046  TIMEOUT   progress= 14.5m  zone=2  time=499.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.07177239 -0.05956072 -0.03188691]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.820, 1.347]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.718 range=[-2.081, 3.303] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.038 range=[-2.360, 3.677] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.822 range=[-2.291, 3.378] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.499 range=[-2.053, 2.874] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.071 range=[-1.881, 2.332] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.551 range=[-1.710, 1.823] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.033 range=[-1.682, 1.896] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.726 range=[-1.681, 1.863] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.564 range=[-1.696, 1.803] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.487 range=[-1.712, 1.750] cmd=[0.00,0.00,0.00]
+  [  48/100] boulder_rough_ep0047  TIMEOUT   progress= 10.1m  zone=2  time=512.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.0074726  -0.06041879  0.01754213]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.075, 1.373]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.102 range=[-2.726, 5.590] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.900 range=[-3.301, 6.207] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.397 range=[-3.498, 5.929] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.013 range=[-3.465, 5.639] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.775 range=[-3.331, 5.430] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.568 range=[-3.196, 5.299] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.401 range=[-3.086, 5.194] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.278 range=[-3.003, 5.098] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.193 range=[-2.942, 5.013] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.132 range=[-2.892, 4.935] cmd=[0.00,0.00,0.00]
+  [  49/100] boulder_rough_ep0048  TIMEOUT   progress= 15.1m  zone=2  time=502.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.04378736 -0.003019   -0.05535731]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.964, 1.217]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.011 range=[-2.283, 4.445] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.690 range=[-2.722, 5.206] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.354 range=[-3.000, 5.028] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.980 range=[-3.008, 4.711] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.772 range=[-2.864, 4.502] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.685 range=[-2.740, 4.389] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.624 range=[-2.699, 4.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.546 range=[-2.717, 4.141] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.410 range=[-2.713, 3.908] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.242 range=[-2.699, 3.626] cmd=[0.00,0.00,0.00]
+  [  50/100] boulder_rough_ep0049  TIMEOUT   progress= 20.6m  zone=3  time=503.3s
+Saved 50 episodes to /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44/boulder_rough_episodes.jsonl
+  >> Saved checkpoint at episode 50
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.0791743  -0.05699651 -0.04882151]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.244, 0.981]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.830 range=[-1.678, 3.112] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.887 range=[-1.936, 3.157] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.308 range=[-1.815, 2.977] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.050 range=[-1.654, 3.132] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.284 range=[-2.157, 3.385] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.758 range=[-2.623, 3.575] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.020 range=[-2.849, 3.617] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.110 range=[-2.905, 3.569] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.174 range=[-2.903, 3.508] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.242 range=[-2.888, 3.425] cmd=[0.00,0.00,0.00]
+  [  51/100] boulder_rough_ep0050  TIMEOUT   progress= 21.2m  zone=3  time=505.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02745546  0.01772441 -0.02812826]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.192, 1.179]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.133 range=[-2.321, 3.554] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.644 range=[-2.552, 4.203] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.679 range=[-2.704, 4.449] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.705 range=[-2.942, 4.389] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.653 range=[-3.001, 4.234] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.551 range=[-2.971, 4.109] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.470 range=[-2.949, 4.009] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.409 range=[-2.934, 3.907] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.376 range=[-2.935, 3.810] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.364 range=[-2.945, 3.689] cmd=[0.00,0.00,0.00]
+  [  52/100] boulder_rough_ep0051  FELL      progress= 10.7m  zone=2  time=99.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.1517325   0.46833035 -0.32295957]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.951, 1.001]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.077 range=[-2.868, 4.232] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.752 range=[-3.784, 5.534] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=9.477 range=[-3.919, 6.317] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=9.322 range=[-3.628, 6.910] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.644 range=[-2.925, 6.957] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.583 range=[-2.330, 5.813] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.470 range=[-2.439, 4.336] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.446 range=[-1.962, 3.371] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.751 range=[-1.740, 2.817] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.259 range=[-1.654, 2.310] cmd=[0.00,0.00,0.00]
+  [  53/100] boulder_rough_ep0052  TIMEOUT   progress=  1.2m  zone=1  time=487.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01219197 -0.02218122  0.02149992]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.287, 1.105]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.613 range=[-1.858, 3.272] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.400 range=[-2.676, 3.838] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.667 range=[-3.175, 3.802] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.651 range=[-3.232, 3.698] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.611 range=[-3.177, 3.640] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.607 range=[-3.125, 3.606] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.648 range=[-3.103, 3.586] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.741 range=[-3.099, 3.598] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.854 range=[-3.098, 3.610] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.944 range=[-3.083, 3.594] cmd=[0.00,0.00,0.00]
+  [  54/100] boulder_rough_ep0053  TIMEOUT   progress= 11.3m  zone=2  time=509.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.08488064 -0.02727371  0.00536278]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.894, 1.354]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.868 range=[-2.112, 3.395] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.147 range=[-2.360, 3.734] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.804 range=[-2.266, 3.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.317 range=[-1.996, 2.936] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.739 range=[-1.907, 2.365] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.161 range=[-1.963, 1.743] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.655 range=[-2.021, 1.381] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.539 range=[-2.157, 1.344] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.635 range=[-2.247, 1.306] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.726 range=[-2.255, 1.474] cmd=[0.00,0.00,0.00]
+  [  55/100] boulder_rough_ep0054  TIMEOUT   progress= 14.0m  zone=2  time=500.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.1114458  -0.0201941  -0.03495442]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.014, 1.381]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.039 range=[-2.864, 5.558] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=9.144 range=[-3.529, 6.355] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.676 range=[-3.649, 6.114] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.368 range=[-3.570, 5.882] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.150 range=[-3.411, 5.705] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.879 range=[-3.250, 5.532] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.585 range=[-3.091, 5.357] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.318 range=[-2.950, 5.180] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.102 range=[-2.821, 5.019] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.935 range=[-2.751, 4.879] cmd=[0.00,0.00,0.00]
+  [  56/100] boulder_rough_ep0055  TIMEOUT   progress= 21.1m  zone=3  time=515.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.12394626 0.2228303  0.002056  ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.995, 1.008]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.227 range=[-2.293, 3.842] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.075 range=[-3.254, 4.421] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.207 range=[-3.405, 4.429] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.205 range=[-3.382, 4.346] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.161 range=[-3.340, 4.247] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.147 range=[-3.314, 4.176] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.151 range=[-3.287, 4.127] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.155 range=[-3.250, 4.086] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.127 range=[-3.191, 4.031] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.053 range=[-3.131, 3.908] cmd=[0.00,0.00,0.00]
+  [  57/100] boulder_rough_ep0056  TIMEOUT   progress= 13.3m  zone=2  time=505.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00907143 -0.02429467  0.01680414]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.769, 1.044]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.306 range=[-2.257, 3.736] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.588 range=[-2.651, 4.147] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.863 range=[-2.714, 3.697] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.010 range=[-2.550, 3.493] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.215 range=[-2.277, 3.089] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.668 range=[-2.108, 2.480] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.529 range=[-2.317, 2.076] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.503 range=[-2.519, 1.778] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.385 range=[-2.540, 1.795] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.205 range=[-2.500, 1.625] cmd=[0.00,0.00,0.00]
+  [  58/100] boulder_rough_ep0057  TIMEOUT   progress= 17.9m  zone=2  time=512.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.09946822 -0.06677748 -0.01377995]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.930, 1.384]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.769 range=[-1.840, 3.662] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.117 range=[-2.033, 4.004] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.838 range=[-2.037, 3.635] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.423 range=[-2.023, 3.071] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.890 range=[-1.818, 2.434] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.262 range=[-1.578, 1.721] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.811 range=[-1.623, 1.565] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.541 range=[-1.684, 1.501] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.375 range=[-1.713, 1.465] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.276 range=[-1.684, 1.478] cmd=[0.00,0.00,0.00]
+  [  59/100] boulder_rough_ep0058  TIMEOUT   progress= 15.7m  zone=2  time=504.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.02156512 -0.03210605 -0.02019128]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.230, 0.935]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.547 range=[-1.635, 2.939] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.325 range=[-1.773, 2.847] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.549 range=[-1.631, 2.529] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.190 range=[-1.508, 2.500] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.177 range=[-1.426, 2.604] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.341 range=[-1.370, 2.699] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.533 range=[-1.556, 2.721] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.744 range=[-1.745, 2.737] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.982 range=[-1.880, 2.756] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.276 range=[-2.024, 2.786] cmd=[0.00,0.00,0.00]
+  [  60/100] boulder_rough_ep0059  TIMEOUT   progress= 20.6m  zone=3  time=510.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02817342 -0.0153768  -0.09236654]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.218, 0.604]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.451 range=[-1.685, 2.986] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.138 range=[-1.671, 2.735] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.517 range=[-1.756, 2.118] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.414 range=[-1.709, 1.988] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.292 range=[-1.583, 1.983] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.102 range=[-1.402, 2.166] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.283 range=[-1.313, 2.764] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.978 range=[-1.645, 3.298] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.696 range=[-2.144, 3.532] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.102 range=[-2.380, 3.509] cmd=[0.00,0.00,0.00]
+  [  61/100] boulder_rough_ep0060  TIMEOUT   progress= 21.0m  zone=3  time=494.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06763045  0.00824767  0.00648537]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.277, 0.640]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.172 range=[-1.920, 3.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.171 range=[-1.836, 3.398] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.619 range=[-1.822, 3.224] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.358 range=[-1.958, 3.236] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.307 range=[-2.168, 3.359] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.556 range=[-2.488, 3.556] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.882 range=[-2.813, 3.730] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.073 range=[-3.009, 3.775] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.178 range=[-3.112, 3.746] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.287 range=[-3.179, 3.720] cmd=[0.00,0.00,0.00]
+  [  62/100] boulder_rough_ep0061  TIMEOUT   progress= 11.3m  zone=2  time=505.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.03449914 0.02944175 0.0477351 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.818, 0.732]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.939 range=[-2.123, 3.923] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.544 range=[-2.429, 4.535] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.179 range=[-3.138, 4.486] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.766 range=[-3.280, 4.229] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.409 range=[-3.167, 3.925] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.080 range=[-3.023, 3.620] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.813 range=[-2.911, 3.319] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.646 range=[-2.863, 3.029] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.461 range=[-2.811, 2.664] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.292 range=[-2.752, 2.912] cmd=[0.00,0.00,0.00]
+  [  63/100] boulder_rough_ep0062  TIMEOUT   progress= 13.3m  zone=2  time=500.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05631782 -0.06688023 -0.00562273]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.831, 1.070]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.316 range=[-2.418, 3.300] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.871 range=[-3.467, 4.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.654 range=[-4.579, 4.146] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.965 range=[-4.849, 4.009] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=9.227 range=[-4.986, 4.334] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.395 range=[-5.073, 4.532] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=9.468 range=[-5.095, 4.665] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.427 range=[-5.027, 4.742] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.337 range=[-4.936, 4.795] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.234 range=[-4.840, 4.870] cmd=[0.00,0.00,0.00]
+  [  64/100] boulder_rough_ep0063  TIMEOUT   progress= 15.2m  zone=2  time=505.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.04603255 -0.00339595  0.05803971]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.854, 0.980]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.217 range=[-2.432, 3.710] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.306 range=[-2.719, 4.094] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.472 range=[-2.457, 3.988] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.622 range=[-2.171, 3.531] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.917 range=[-2.043, 2.974] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.410 range=[-2.046, 2.341] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.323 range=[-2.144, 1.936] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.279 range=[-2.174, 1.762] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.064 range=[-2.102, 1.811] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.799 range=[-1.983, 1.717] cmd=[0.00,0.00,0.00]
+  [  65/100] boulder_rough_ep0064  TIMEOUT   progress= 10.7m  zone=2  time=503.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.04939342 0.00921366 0.02488916]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.038, 1.391]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.515 range=[-2.990, 4.968] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.396 range=[-3.438, 5.882] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.088 range=[-3.442, 5.916] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.691 range=[-3.270, 5.611] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.422 range=[-3.032, 5.298] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.256 range=[-2.866, 5.161] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.136 range=[-2.755, 5.083] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.032 range=[-2.669, 5.008] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.943 range=[-2.593, 4.927] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.854 range=[-2.547, 4.842] cmd=[0.00,0.00,0.00]
+  [  66/100] boulder_rough_ep0065  TIMEOUT   progress= 21.0m  zone=3  time=504.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00660037  0.01176425  0.10522266]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.217, 1.086]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.129 range=[-2.473, 4.199] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.591 range=[-3.292, 4.728] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.539 range=[-3.689, 4.653] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.389 range=[-3.708, 4.517] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.197 range=[-3.604, 4.354] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.061 range=[-3.534, 4.176] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.957 range=[-3.495, 3.986] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.891 range=[-3.470, 3.808] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.852 range=[-3.444, 3.649] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.799 range=[-3.405, 3.509] cmd=[0.00,0.00,0.00]
+  [  67/100] boulder_rough_ep0066  FELL      progress= 11.3m  zone=2  time=134.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.04710411 -0.27536452 -0.31085277]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.945, 0.823]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.985 range=[-1.543, 2.487] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.389 range=[-1.788, 2.561] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.015 range=[-1.675, 2.447] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.618 range=[-2.080, 2.246] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.882 range=[-2.260, 2.672] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.281 range=[-1.805, 2.803] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.512 range=[-2.097, 2.653] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.655 range=[-2.132, 3.039] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.822 range=[-2.177, 3.315] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.037 range=[-2.239, 3.605] cmd=[0.00,0.00,0.00]
+  [  68/100] boulder_rough_ep0067  TIMEOUT   progress= 15.3m  zone=2  time=512.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00926797 -0.02044179 -0.02500048]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.073, 1.395]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.048 range=[-3.113, 5.674] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.815 range=[-3.566, 6.301] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.257 range=[-3.608, 5.993] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.894 range=[-3.451, 5.692] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.674 range=[-3.233, 5.466] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.439 range=[-3.036, 5.297] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.229 range=[-2.879, 5.147] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.053 range=[-2.753, 5.015] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.926 range=[-2.666, 4.914] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.841 range=[-2.587, 4.832] cmd=[0.00,0.00,0.00]
+  [  69/100] boulder_rough_ep0068  TIMEOUT   progress= 10.1m  zone=2  time=509.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.03939133 0.03454832 0.04320442]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.025, 1.373]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.501 range=[-2.941, 5.018] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.195 range=[-3.280, 5.750] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.804 range=[-3.217, 5.713] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.506 range=[-3.032, 5.453] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.383 range=[-2.864, 5.298] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.281 range=[-2.733, 5.255] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.191 range=[-2.630, 5.234] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.098 range=[-2.560, 5.177] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.013 range=[-2.574, 5.101] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.920 range=[-2.572, 5.008] cmd=[0.00,0.00,0.00]
+  [  70/100] boulder_rough_ep0069  TIMEOUT   progress= 21.1m  zone=3  time=501.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06929041  0.06477739  0.04909361]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.245, 0.634]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.605 range=[-1.939, 3.540] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.490 range=[-1.972, 3.522] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.661 range=[-1.868, 3.218] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.124 range=[-1.804, 3.078] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.814 range=[-1.704, 3.104] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.982 range=[-1.962, 3.306] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.410 range=[-2.397, 3.556] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.714 range=[-2.717, 3.623] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.872 range=[-2.891, 3.551] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.002 range=[-2.997, 3.446] cmd=[0.00,0.00,0.00]
+  [  71/100] boulder_rough_ep0070  TIMEOUT   progress= 11.3m  zone=2  time=506.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00354701  0.07385328 -0.02340055]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.008, 1.368]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.483 range=[-2.701, 4.065] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.791 range=[-3.061, 4.478] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.758 range=[-3.009, 4.490] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.855 range=[-2.865, 4.560] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.863 range=[-2.685, 4.641] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.857 range=[-2.553, 4.751] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.875 range=[-2.607, 4.821] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.891 range=[-2.667, 4.823] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.884 range=[-2.707, 4.768] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.849 range=[-2.714, 4.673] cmd=[0.00,0.00,0.00]
+  [  72/100] boulder_rough_ep0071  TIMEOUT   progress= 10.1m  zone=2  time=500.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.00771343 0.05058209 0.01526292]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.032, 1.368]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.677 range=[-2.035, 4.651] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.200 range=[-2.696, 5.014] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.264 range=[-2.874, 5.062] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.184 range=[-2.816, 5.005] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.065 range=[-2.696, 4.941] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.961 range=[-2.663, 4.920] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.891 range=[-2.662, 4.886] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.826 range=[-2.657, 4.830] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.718 range=[-2.639, 4.725] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.555 range=[-2.603, 4.564] cmd=[0.00,0.00,0.00]
+  [  73/100] boulder_rough_ep0072  TIMEOUT   progress= 19.4m  zone=2  time=506.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00342013 -0.00892634 -0.00309011]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.070, 1.383]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.745 range=[-3.242, 5.420] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.514 range=[-3.533, 6.122] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.084 range=[-3.469, 5.973] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.751 range=[-3.269, 5.656] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.596 range=[-3.068, 5.429] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.462 range=[-2.916, 5.322] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.346 range=[-2.814, 5.240] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.243 range=[-2.725, 5.158] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.147 range=[-2.635, 5.064] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.051 range=[-2.601, 4.959] cmd=[0.00,0.00,0.00]
+  [  74/100] boulder_rough_ep0073  TIMEOUT   progress= 11.2m  zone=2  time=517.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.04347277 -0.06243682 -0.00751038]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.942, 1.309]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.808 range=[-2.150, 4.109] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.494 range=[-2.730, 5.073] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.065 range=[-2.881, 5.046] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.534 range=[-2.803, 4.698] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.155 range=[-3.430, 4.700] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.182 range=[-4.441, 4.571] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=9.437 range=[-4.749, 4.355] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.576 range=[-4.804, 4.382] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.704 range=[-4.872, 4.421] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.779 range=[-4.886, 4.438] cmd=[0.00,0.00,0.00]
+  [  75/100] boulder_rough_ep0074  TIMEOUT   progress= 11.6m  zone=2  time=511.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01585795  0.06597456  0.01582613]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.248, 1.044]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.737 range=[-2.677, 4.116] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.395 range=[-2.997, 4.667] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.272 range=[-3.135, 4.692] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.110 range=[-3.311, 4.585] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.065 range=[-3.347, 4.429] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.959 range=[-3.284, 4.214] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.857 range=[-3.192, 4.071] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.803 range=[-3.118, 3.986] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.780 range=[-3.058, 3.924] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.765 range=[-3.000, 3.846] cmd=[0.00,0.00,0.00]
+  [  76/100] boulder_rough_ep0075  TIMEOUT   progress= 11.3m  zone=2  time=507.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01753379  0.01409952  0.09106513]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.972, 1.370]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.180 range=[-2.188, 4.404] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.936 range=[-2.906, 4.918] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.012 range=[-3.045, 4.923] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.025 range=[-2.983, 4.932] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.032 range=[-2.897, 4.927] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.023 range=[-2.808, 4.890] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.981 range=[-2.764, 4.801] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.869 range=[-2.712, 4.635] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.714 range=[-2.652, 4.418] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.541 range=[-2.599, 4.166] cmd=[0.00,0.00,0.00]
+  [  77/100] boulder_rough_ep0076  TIMEOUT   progress= 21.2m  zone=3  time=517.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.00284703 0.02377754 0.07382633]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.288, 1.010]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.820 range=[-2.714, 4.298] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.257 range=[-3.496, 4.672] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.931 range=[-3.537, 4.399] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.558 range=[-3.431, 4.045] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.235 range=[-3.344, 3.711] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.055 range=[-3.299, 3.509] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.901 range=[-3.255, 3.308] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.812 range=[-3.234, 3.110] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.797 range=[-3.242, 2.926] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.821 range=[-3.256, 2.902] cmd=[0.00,0.00,0.00]
+  [  78/100] boulder_rough_ep0077  TIMEOUT   progress= 20.7m  zone=3  time=499.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05375608  0.08190277 -0.12911367]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.278, 0.850]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.429 range=[-1.406, 2.848] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.196 range=[-1.742, 2.978] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.074 range=[-1.801, 2.877] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.867 range=[-1.749, 2.442] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.478 range=[-1.691, 1.813] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.956 range=[-1.588, 2.130] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.738 range=[-1.402, 2.522] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.959 range=[-1.233, 2.756] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.270 range=[-1.508, 2.758] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.380 range=[-1.663, 2.626] cmd=[0.00,0.00,0.00]
+  [  79/100] boulder_rough_ep0078  TIMEOUT   progress= 15.2m  zone=2  time=506.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00236143 -0.06221919 -0.02580802]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.870, 0.973]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.564 range=[-2.029, 3.142] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.297 range=[-3.342, 3.942] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.146 range=[-4.347, 3.680] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.470 range=[-4.549, 3.988] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.506 range=[-4.451, 4.243] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.421 range=[-4.303, 4.349] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.084 range=[-3.963, 4.343] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.543 range=[-3.570, 4.262] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.853 range=[-3.233, 4.124] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.933 range=[-2.682, 3.864] cmd=[0.00,0.00,0.00]
+  [  80/100] boulder_rough_ep0079  TIMEOUT   progress= 11.3m  zone=2  time=518.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06814982  0.00441542 -0.00440793]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.996, 1.316]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.529 range=[-2.123, 4.059] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.066 range=[-2.584, 5.352] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=9.188 range=[-3.706, 6.061] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=9.305 range=[-4.239, 5.541] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=9.355 range=[-4.390, 5.129] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.502 range=[-4.446, 4.963] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=9.631 range=[-4.492, 4.861] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.726 range=[-4.568, 4.754] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.784 range=[-4.636, 4.626] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.782 range=[-4.672, 4.469] cmd=[0.00,0.00,0.00]
+  [  81/100] boulder_rough_ep0080  TIMEOUT   progress= 10.3m  zone=2  time=507.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.03277032 -0.0217246   0.07320369]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.104, 1.353]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.390 range=[-2.267, 4.495] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.028 range=[-2.957, 4.943] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.002 range=[-3.110, 4.905] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.915 range=[-3.022, 4.891] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.831 range=[-2.908, 4.851] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.758 range=[-2.794, 4.786] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.711 range=[-2.714, 4.709] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.666 range=[-2.641, 4.620] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.593 range=[-2.566, 4.498] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.467 range=[-2.489, 4.315] cmd=[0.00,0.00,0.00]
+  [  82/100] boulder_rough_ep0081  TIMEOUT   progress= 11.3m  zone=2  time=507.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.02051976  0.0564013  -0.00060719]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.096, 1.373]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.245 range=[-2.560, 4.068] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.888 range=[-3.045, 4.376] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.181 range=[-2.981, 4.598] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.240 range=[-2.804, 4.759] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.248 range=[-2.719, 4.924] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.225 range=[-2.756, 4.988] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.148 range=[-2.774, 4.932] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.039 range=[-2.759, 4.813] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.897 range=[-2.710, 4.646] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.688 range=[-2.615, 4.421] cmd=[0.00,0.00,0.00]
+  [  83/100] boulder_rough_ep0082  TIMEOUT   progress= 11.2m  zone=2  time=507.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00472296 -0.01100203  0.02270652]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.938, 1.357]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.463 range=[-2.768, 2.491] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.920 range=[-4.547, 4.130] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=9.475 range=[-5.227, 4.396] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=9.557 range=[-5.108, 4.381] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=9.672 range=[-4.969, 4.272] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.749 range=[-4.888, 4.334] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=9.796 range=[-4.885, 4.340] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.837 range=[-4.907, 4.256] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.860 range=[-4.933, 4.360] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.826 range=[-4.922, 4.484] cmd=[0.00,0.00,0.00]
+  [  84/100] boulder_rough_ep0083  FELL      progress= 11.7m  zone=2  time=124.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.1033531  -0.04667516  0.00139625]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.840, 1.006]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.081 range=[-2.111, 3.567] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.585 range=[-2.619, 4.157] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.465 range=[-3.121, 3.990] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.309 range=[-3.101, 3.730] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.128 range=[-2.981, 3.480] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.003 range=[-2.898, 3.243] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.926 range=[-2.841, 2.998] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.921 range=[-2.817, 3.032] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.999 range=[-2.837, 3.349] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.143 range=[-2.911, 3.633] cmd=[0.00,0.00,0.00]
+  [  85/100] boulder_rough_ep0084  TIMEOUT   progress= 11.8m  zone=2  time=490.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00012166  0.01062595 -0.06407737]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.904, 1.290]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.028 range=[-2.980, 5.247] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.748 range=[-3.367, 5.880] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.176 range=[-3.299, 5.706] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.775 range=[-3.180, 5.462] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.659 range=[-3.044, 5.323] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.574 range=[-2.914, 5.243] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.476 range=[-2.803, 5.171] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.379 range=[-2.700, 5.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.295 range=[-2.610, 5.084] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.217 range=[-2.600, 5.033] cmd=[0.00,0.00,0.00]
+  [  86/100] boulder_rough_ep0085  TIMEOUT   progress= 20.6m  zone=3  time=200.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03533222 -0.01842339 -0.0587021 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.282, 1.141]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.496 range=[-1.665, 2.819] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.819 range=[-1.926, 3.108] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.974 range=[-3.383, 3.290] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.247 range=[-4.584, 3.044] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.919 range=[-5.029, 3.641] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=9.220 range=[-5.139, 3.990] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=9.374 range=[-5.164, 4.146] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=9.452 range=[-5.161, 4.209] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=9.465 range=[-5.114, 4.246] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=9.447 range=[-5.048, 4.278] cmd=[0.00,0.00,0.00]
+  [  87/100] boulder_rough_ep0086  TIMEOUT   progress= 20.6m  zone=3  time=154.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03160774 -0.02617767  0.04770712]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.274, 0.638]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.881 range=[-2.322, 3.914] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.436 range=[-2.778, 4.341] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.149 range=[-3.019, 4.346] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.003 range=[-3.321, 4.373] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.888 range=[-3.378, 4.340] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.770 range=[-3.326, 4.249] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.697 range=[-3.293, 4.179] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.652 range=[-3.279, 4.096] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.628 range=[-3.260, 3.987] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.611 range=[-3.228, 3.876] cmd=[0.00,0.00,0.00]
+  [  88/100] boulder_rough_ep0087  TIMEOUT   progress= 21.1m  zone=3  time=155.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00019615 -0.00387984  0.04610037]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.212, 1.128]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.517 range=[-2.604, 4.452] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.998 range=[-3.490, 5.080] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.872 range=[-3.910, 5.010] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.630 range=[-3.849, 4.759] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.380 range=[-3.716, 4.533] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.187 range=[-3.617, 4.324] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.049 range=[-3.562, 4.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.937 range=[-3.532, 3.923] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.839 range=[-3.511, 3.713] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.725 range=[-3.491, 3.492] cmd=[0.00,0.00,0.00]
+  [  89/100] boulder_rough_ep0088  TIMEOUT   progress= 12.6m  zone=2  time=153.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01135267  0.06510109  0.00871491]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.857, 0.956]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.617 range=[-2.371, 3.608] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.775 range=[-2.470, 4.075] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.073 range=[-2.158, 3.848] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.366 range=[-1.946, 3.417] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.710 range=[-1.825, 2.962] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.132 range=[-1.797, 2.462] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.781 range=[-1.823, 2.056] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.670 range=[-1.825, 1.909] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.695 range=[-1.763, 1.873] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.848 range=[-1.651, 1.894] cmd=[0.00,0.00,0.00]
+  [  90/100] boulder_rough_ep0089  TIMEOUT   progress= 12.2m  zone=2  time=151.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00189142 -0.0504983   0.01558633]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.831, 1.025]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.878 range=[-2.382, 4.196] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.766 range=[-3.002, 4.922] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.630 range=[-3.448, 4.983] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.603 range=[-3.618, 4.901] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.486 range=[-3.576, 4.666] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.276 range=[-3.456, 4.412] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.066 range=[-3.334, 4.172] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.885 range=[-3.252, 3.937] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.734 range=[-3.202, 3.701] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.590 range=[-3.170, 3.439] cmd=[0.00,0.00,0.00]
+  [  91/100] boulder_rough_ep0090  TIMEOUT   progress= 12.7m  zone=2  time=158.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01540384 -0.00327418 -0.00522449]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.087, 1.378]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.007 range=[-3.423, 5.399] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.932 range=[-3.743, 6.261] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.452 range=[-3.638, 6.101] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.952 range=[-3.430, 5.735] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.594 range=[-3.174, 5.377] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.346 range=[-2.976, 5.198] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.178 range=[-2.855, 5.101] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.043 range=[-2.764, 5.016] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.927 range=[-2.685, 4.929] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.823 range=[-2.604, 4.841] cmd=[0.00,0.00,0.00]
+  [  92/100] boulder_rough_ep0091  TIMEOUT   progress= 11.8m  zone=2  time=156.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.10678041 -0.0208745   0.04147983]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.187, 1.137]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.664 range=[-1.821, 3.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.379 range=[-2.636, 4.029] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.540 range=[-3.170, 4.014] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.641 range=[-3.246, 3.835] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.685 range=[-3.213, 3.717] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.748 range=[-3.200, 3.633] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.844 range=[-3.208, 3.571] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.955 range=[-3.220, 3.521] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.056 range=[-3.218, 3.478] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.117 range=[-3.205, 3.591] cmd=[0.00,0.00,0.00]
+  [  93/100] boulder_rough_ep0092  TIMEOUT   progress= 13.5m  zone=2  time=154.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00277221  0.02935064  0.07416166]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.960, 1.364]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.432 range=[-2.118, 4.613] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.119 range=[-2.832, 5.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.073 range=[-3.027, 5.017] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.019 range=[-2.994, 4.974] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.997 range=[-2.916, 4.961] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.983 range=[-2.826, 4.937] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.945 range=[-2.731, 4.876] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.843 range=[-2.643, 4.750] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.713 range=[-2.564, 4.587] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.563 range=[-2.516, 4.397] cmd=[0.00,0.00,0.00]
+  [  94/100] boulder_rough_ep0093  TIMEOUT   progress= 20.9m  zone=3  time=150.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00710253  0.00549182  0.04815327]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.287, 0.969]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.623 range=[-2.755, 3.941] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.162 range=[-3.552, 4.333] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.996 range=[-3.622, 4.209] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.649 range=[-3.451, 3.967] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.375 range=[-3.318, 3.793] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.228 range=[-3.283, 3.701] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.114 range=[-3.276, 3.586] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.999 range=[-3.256, 3.451] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.866 range=[-3.201, 3.293] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.736 range=[-3.132, 3.108] cmd=[0.00,0.00,0.00]
+  [  95/100] boulder_rough_ep0094  TIMEOUT   progress= 21.2m  zone=3  time=160.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.00900254 -0.01731913  0.06666342]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.290, 0.990]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.630 range=[-2.825, 4.564] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.362 range=[-3.924, 5.199] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.043 range=[-4.092, 5.052] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.585 range=[-3.967, 4.690] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.208 range=[-3.846, 4.346] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.889 range=[-3.786, 4.003] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.647 range=[-3.764, 3.696] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.474 range=[-3.738, 3.429] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.382 range=[-3.722, 3.213] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.346 range=[-3.712, 3.030] cmd=[0.00,0.00,0.00]
+  [  96/100] boulder_rough_ep0095  TIMEOUT   progress= 21.1m  zone=3  time=145.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.03879686  0.03060933 -0.00079942]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.180, 1.175]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.214 range=[-2.596, 4.289] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.780 range=[-3.411, 4.953] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.745 range=[-3.777, 4.922] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.561 range=[-3.697, 4.721] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.305 range=[-3.541, 4.494] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.089 range=[-3.425, 4.266] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.915 range=[-3.358, 4.023] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.790 range=[-3.345, 3.797] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.703 range=[-3.334, 3.593] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.596 range=[-3.326, 3.393] cmd=[0.00,0.00,0.00]
+  [  97/100] boulder_rough_ep0096  TIMEOUT   progress= 16.9m  zone=2  time=146.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01863923 -0.01026976  0.02190267]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.024, 1.306]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.717 range=[-3.303, 5.044] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.652 range=[-3.625, 5.971] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.224 range=[-3.500, 5.915] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.721 range=[-3.302, 5.591] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.336 range=[-3.024, 5.215] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.116 range=[-2.830, 5.033] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.973 range=[-2.706, 4.950] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.871 range=[-2.616, 4.879] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.772 range=[-2.529, 4.799] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.689 range=[-2.441, 4.717] cmd=[0.00,0.00,0.00]
+  [  98/100] boulder_rough_ep0097  TIMEOUT   progress= 20.6m  zone=3  time=147.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.02729011 -0.06525709  0.08062036]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.289, 0.831]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.839 range=[-1.805, 3.203] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.947 range=[-1.898, 3.678] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.202 range=[-2.057, 3.929] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.916 range=[-2.971, 3.981] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.763 range=[-3.806, 3.862] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.361 range=[-4.282, 3.715] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.661 range=[-4.473, 3.586] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.769 range=[-4.505, 3.493] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.810 range=[-4.488, 3.461] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.821 range=[-4.453, 3.459] cmd=[0.00,0.00,0.00]
+  [  99/100] boulder_rough_ep0098  TIMEOUT   progress= 20.9m  zone=3  time=137.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03039044 -0.03744841 -0.02471056]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.250, 1.126]
+  height_scan range = [0.070, 0.100]
+  height_scan mean  = 0.100
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.316 range=[-2.788, 4.405] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.927 range=[-3.222, 5.049] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.668 range=[-3.352, 5.092] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.576 range=[-3.549, 4.915] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.498 range=[-3.540, 4.628] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.321 range=[-3.450, 4.326] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.154 range=[-3.370, 4.063] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.998 range=[-3.310, 3.827] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.895 range=[-3.271, 3.661] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.804 range=[-3.224, 3.506] cmd=[0.00,0.00,0.00]
+  [ 100/100] boulder_rough_ep0099  TIMEOUT   progress= 11.3m  zone=2  time=124.1s
+Saved 50 episodes to /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44/boulder_rough_episodes.jsonl
+  >> Saved checkpoint at episode 100
+Saved 0 episodes to /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44/boulder_rough_episodes.jsonl
+
+============================================================
+  Evaluation complete!
+  Total episodes: 100
+  Total time:     40782.8s (679.7min)
+  Avg per episode: 407.8s
+  Results saved to: /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44
+============================================================
+
+Exiting (skipping SimulationApp.close to avoid GPU hang).

@@ -54,6 +54,8 @@ parser.add_argument("--seed", type=int, default=42,
                     help="Random seed for arena generation")
 parser.add_argument("--rock-count", type=int, default=200,
                     help="Number of loose rubble rocks (default: 200, max ~700 on H100)")
+parser.add_argument("--mason", action="store_true", default=False,
+                    help="Use Mason baseline architecture [512,256,128]")
 AppLauncher.add_app_launcher_args(parser)
 args_cli, _ = parser.parse_known_args()
 sys.argv = [sys.argv[0]]
@@ -89,6 +91,8 @@ import isaaclab_tasks  # noqa: F401
 import quadruped_locomotion  # noqa: F401  — registers gym envs
 from quadruped_locomotion.tasks.locomotion.config.spot.env_cfg import SpotLocomotionEnvCfg
 from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_ppo_cfg import SpotPPORunnerCfg
+from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
+from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import SpotMasonHybridPPORunnerCfg
 
 # ── 3. Optional pygame for Xbox controller ──────────────────────────────
 HAS_PYGAME = False
@@ -1053,6 +1057,45 @@ class SpotLavaArenaEnvCfg(SpotLocomotionEnvCfg):
         self.curriculum = None
 
 
+class SpotMasonLavaArenaEnvCfg(SpotMasonHybridEnvCfg):
+    """Mason's env config adapted for lava arena (obs order: height_scan first)."""
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.scene.num_envs = 1
+        self.scene.env_spacing = 2.5
+        self.episode_length_s = 3600.0
+
+        # Flat terrain — lava arena is built as USD prims on top
+        self.scene.terrain = TerrainImporterCfg(
+            prim_path="/World/ground",
+            terrain_type="plane",
+            collision_group=-1,
+            physics_material=sim_utils.RigidBodyMaterialCfg(
+                friction_combine_mode="multiply",
+                restitution_combine_mode="multiply",
+                static_friction=1.0,
+                dynamic_friction=1.0,
+            ),
+            debug_vis=False,
+        )
+
+        self.sim.physx.gpu_collision_stack_size = 2**25
+        self.sim.physx.gpu_max_rigid_contact_count = 2**21
+        self.sim.physx.gpu_max_rigid_patch_count = 2**21
+
+        self.scene.contact_forces = None
+        self.rewards = None
+        self.observations.policy.enable_corruption = False
+        self.events.push_robot = None
+        self.events.base_external_force_torque = None
+        # Disable terminations that reference contact_forces sensor
+        self.terminations.body_contact = None
+        self.terminations.terrain_out_of_bounds = None
+        self.curriculum = None
+
+
 # ═════════════════════════════════════════════════════════════════════════
 # MODULE-LEVEL MUTABLE STATE
 # ═════════════════════════════════════════════════════════════════════════
@@ -1362,7 +1405,10 @@ def run_teleop(env, policy, policy_nn, obs, stage, joystick_ref, steam_xforms):
             # ── Override velocity command in obs before policy ───
             cmd_t = torch.tensor([[command[0], command[1], command[2]]],
                                  dtype=torch.float32, device=device)
-            obs[:, 9:12] = cmd_t
+            # Mason obs: [scan(187)|lin(3)|ang(3)|grav(3)|cmd(3)|...]  → cmd at 196:199
+            # Our obs:   [lin(3)|ang(3)|grav(3)|cmd(3)|...]            → cmd at 9:12
+            cmd_idx = 196 if args_cli.mason else 9
+            obs[:, cmd_idx:cmd_idx+3] = cmd_t
 
             # ── Run policy ──────────────────────────────────────
             with torch.inference_mode():
@@ -1374,7 +1420,7 @@ def run_teleop(env, policy, policy_nn, obs, stage, joystick_ref, steam_xforms):
             # ── Override velocity command AFTER step ─────────────
             vel_term = env.unwrapped.command_manager.get_term("base_velocity")
             vel_term.vel_command_b[:] = cmd_t
-            obs[:, 9:12] = cmd_t
+            obs[:, cmd_idx:cmd_idx+3] = cmd_t
 
             # ── Handle episode resets ───────────────────────────
             if dones.any():
@@ -1503,13 +1549,17 @@ def main():
     print("    ESC       Exit")
     print()
 
-    # ── Environment config ──────────────────────────────────────────
-    env_cfg = SpotLavaArenaEnvCfg()
+    # ── Environment + Agent config ───────────────────────────────────
+    if args_cli.mason:
+        # Use Mason's env config (obs order: height_scan first) + smaller network
+        env_cfg = SpotMasonLavaArenaEnvCfg()
+        agent_cfg = SpotMasonHybridPPORunnerCfg()
+        print("[INFO] Mason mode: HybridObservationsCfg (scan-first) + [512,256,128] network")
+    else:
+        env_cfg = SpotLavaArenaEnvCfg()
+        agent_cfg = SpotPPORunnerCfg()
     env_cfg.scene.num_envs = args_cli.num_envs or 1
     env_cfg.seed = args_cli.seed
-
-    # ── Agent config ────────────────────────────────────────────────
-    agent_cfg = SpotPPORunnerCfg()
 
     # ── Checkpoint ──────────────────────────────────────────────────
     ckpt = args_cli.checkpoint or DEFAULT_CKPT
