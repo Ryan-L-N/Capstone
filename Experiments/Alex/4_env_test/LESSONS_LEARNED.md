@@ -538,3 +538,100 @@ _(Record timing data, memory usage, and throughput observations here)_
 | Run | Envs | Batch Time | Steps/s | VRAM | Notes |
 |-----|------|-----------|---------|------|-------|
 | Hybrid no-coach 100ep×4env | 4 parallel | ~10 hrs | N/A (eval) | ~16 GB (4×4 GB) | All 4 envs completed 100/100 |
+| Mason baseline 100ep×4env | 4 parallel | ~14 hrs | N/A (eval) | ~16 GB (4×4 GB) | All 4 envs completed 100/100 |
+| AI-coached v2 100ep×4env | 1 sequential | ~7 hrs est | ~9.5× RT | ~4 GB | Analytical height + joint reset fix |
+
+---
+
+## Bugs Fixed — AI-Coached v8 Eval (2026-03-17)
+
+### Bug E-10: Joint Positions Not Reset Between Episodes
+
+- **Symptom:** AI-coached model gets 20.4m on stairs episode 0, then **0.0m on all subsequent episodes**. Robot stands completely still for 600 sim seconds. Friction/grass/boulder still work but with degraded performance.
+- **Root cause:** `post_reset()` only reset internal policy state (action buffers, counter, height scan). It did NOT reset the robot's **joint positions or velocities**. After each episode, the joints carried over from the previous episode's final state.
+  - Episode 0: `joint_pos_rel range = [-0.003, 0.001]` (fresh start)
+  - Episode 1: `joint_pos_rel range = [-0.505, 0.446]` (stale from ep0)
+  - Episode 2: `joint_pos_rel range = [-1.718, 1.395]` (joints at limits!)
+- **Why stairs was worst:** Stairs starts at x=0 (zone 1 = 3cm steps). After climbing stairs, joints are in extreme climbing angles. When teleported back to spawn, legs clip through flat ground. On friction (flat), the policy could recover from stale joints; on stairs, it could not.
+- **Why Mason baseline was unaffected:** Mason's smaller network [512,256,128] produces more conservative actions that stay near default joint positions, so stale joints were closer to default.
+- **Fix:** Added joint reset to `post_reset()` in `spot_rough_terrain_policy.py`:
+  ```python
+  def post_reset(self):
+      if self.default_pos is not None:
+          self.robot.set_joint_positions(self.default_pos)
+          self.robot.set_joint_velocities(np.zeros(ACT_DIM))
+      self._previous_action[:] = 0.0
+      self.action[:] = 0.0
+      self._policy_counter = 0
+      self._height_scan[:] = SCAN_FILL_VAL
+  ```
+- **Verification:** After fix, `joint_pos_rel = [0.000, 0.000]` on all episodes. All episodes show consistent progress.
+- **Files modified:** `spot_rough_terrain_policy.py` (post_reset method)
+
+### Performance Fix: Analytical Height Scan for Non-Boulder Environments
+
+- **Symptom:** AI-coached model runs at 0.36× real-time (1666s wall-clock for 600s sim). 4 parallel Isaac Sim instances saturate CPU at load 191.
+- **Root cause:** `_cast_height_rays()` performs 187 sequential `PhysX.raycast_closest()` calls per step — CPU-bound serial loops. With 4 parallel processes × 187 rays × 50 Hz = 37,400 ray queries/second on CPU.
+- **Key insight:** 3 of 4 environments don't need raycasting:
+  - **Friction:** Flat ground → `lambda x: 0.0`
+  - **Grass:** Flat ground with visual-only stalks → `lambda x: 0.0`
+  - **Stairs:** Known analytical geometry → `get_stair_elevation()` (already existed)
+  - **Boulder:** Random physical objects → PhysX raycasting (still needed)
+- **Fix:** Pass analytical `ground_height_fn` to scanner for friction/grass/stairs. Only boulders use PhysX raycasting. Added fast-path for flat ground that skips the 187-iteration loop entirely.
+- **Combined with sequential execution** (1 env at a time): **~65s per episode (9.5× real-time)**, down from 1666s (0.36× real-time). **25× speedup**.
+- **Files modified:** `run_capstone_eval.py` (ground_fn_scanner logic), `spot_rough_terrain_policy.py` (flat ground fast-path in `_cast_height_rays()`)
+
+### Updated Deployment Checklist
+
+- [ ] `post_reset()` resets joint positions AND velocities (Bug E-10)
+- [ ] Analytical height for friction/grass/stairs, PhysX only for boulders
+- [ ] Run envs sequentially to avoid CPU saturation (load 191 → 60)
+- [ ] Clear `__pycache__` after config changes
+
+---
+
+## Head-to-Head: Hybrid No-Coach vs Mason Baseline (100 Episodes × 4 Environments)
+
+> **Date:** March 16-17, 2026
+> **Both run on H100 in headless mode, 100 episodes per environment**
+
+### Mason Baseline (mason_baseline_final_19999.pt)
+
+> **Architecture:** [512, 256, 128] — 800K params
+> **Training:** Mason's hybrid state-teacher/RL pipeline
+> **Eval flags:** `--mason` (height_scan-first obs order, action_scale=0.2)
+> **Results:** `results/Mason_baseline/`
+
+| Environment | Progress (mean) | Zone | Completion | Fall Rate | Velocity | Stability |
+|-------------|----------------|------|-----------|-----------|----------|-----------|
+| Friction | 36.9m | 4.3 | 36% | **37%** | 0.807 m/s | 1.244 |
+| Grass | 29.6m | 3.5 | 0% | 23% | 0.555 m/s | 0.925 |
+| Boulder | 14.4m | 2.4 | 0% | 13% | 0.295 m/s | 1.170 |
+| Stairs | 10.9m | 2.0 | 0% | 20% | 0.083 m/s | 0.994 |
+
+### Comparison Summary
+
+| Metric | Hybrid No-Coach | Mason Baseline | Winner |
+|--------|----------------|---------------|--------|
+| **Friction progress** | 48.9m | 36.9m | **Hybrid (+32%)** |
+| **Friction completion** | 98% | 36% | **Hybrid (2.7×)** |
+| **Friction fall rate** | 2% | 37% | **Hybrid (18× fewer)** |
+| **Grass progress** | 27.2m | 29.6m | Mason (+9%) |
+| **Grass fall rate** | 15% | 23% | **Hybrid (1.5× fewer)** |
+| **Boulder progress** | 20.3m | 14.4m | **Hybrid (+41%)** |
+| **Boulder fall rate** | 3% | 13% | **Hybrid (4× fewer)** |
+| **Stairs progress** | 11.2m | 10.9m | ~Tie |
+| **Stairs fall rate** | 36% | 20% | Mason (1.8× fewer) |
+| **Overall stability** | 0.957 avg | 1.083 avg | **Hybrid (12% better)** |
+
+### Key Takeaways
+
+1. **Hybrid dominates friction** — 98% course completion vs 36%. Nearly every run reaches the finish line even on oil-on-steel (zone 5). Mason falls 37% of the time; hybrid almost never falls (2%).
+
+2. **Hybrid is much more robust on boulders** — only 3 falls in 100 episodes vs 13 for Mason, and gets 41% farther (20.3m vs 14.4m). The hybrid clearly handles uneven terrain better.
+
+3. **Grass is a wash** — Mason edges ahead on distance (29.6 vs 27.2m) but falls more (23% vs 15%). Neither completes the course. Dense brush (zone 5) stops both policies.
+
+4. **Stairs is the weak point for both** — neither gets past zone 2 on average (~11m). Hybrid walks 3× faster (0.23 vs 0.08 m/s) but falls more (36% vs 20%). Stability score for hybrid on stairs (2.389) is the worst of any condition — the robot is struggling with the climbing dynamics.
+
+5. **Overall verdict: Hybrid is the better policy.** It's faster, more stable, and dramatically better on the two most differentiating environments (friction + boulders). The Mason baseline's only advantage is slightly fewer falls on stairs, but at the cost of 3× slower walking speed.
