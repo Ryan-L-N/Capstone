@@ -88,20 +88,44 @@ parser.add_argument("--seed", type=int, default=42,
 parser.add_argument("--mason", action="store_true", default=False,
                     help="Use Mason obs order (height_scan first) + action_scale=0.2")
 
-args = parser.parse_args()
+args, remaining = parser.parse_known_args()
 
 # Determine headless mode
 headless = args.headless and not args.rendered
 
-# ── 1. Create SimulationApp BEFORE any omni imports ─────────────────────
-from isaacsim import SimulationApp
+# ── 1. Create Isaac Sim via AppLauncher ──────────────────────────────────
+# AppLauncher uses isaaclab.python.headless.kit which skips Vulkan entirely.
+# This allows PhysX GPU to work on servers with compute-only NVIDIA drivers
+# (e.g. nvidia-headless-575) where Vulkan is not available.
+#
+# Note: We then manually enable isaacsim.core extensions so that
+# omni.isaac.core.World and omni.isaac.quadruped are available.
+from isaaclab.app import AppLauncher
 
-app_config = {
-    "headless": headless,
-    "width": 1920,
-    "height": 1080,
-}
-simulation_app = SimulationApp(app_config)
+# AppLauncher reads sys.argv, so inject --headless if needed
+_orig_argv = sys.argv[:]
+sys.argv = [sys.argv[0]] + (["--headless"] if headless else [])
+app_launcher = AppLauncher(headless=headless)
+simulation_app = app_launcher.app
+sys.argv = _orig_argv  # restore for any downstream arg parsing
+
+# ── 1b. Enable required Isaac Sim extensions ────────────────────────────
+# The headless kit doesn't load isaacsim.core.* by default.
+# We need World, SpotFlatTerrainPolicy, etc.
+import omni.kit.app
+_ext_mgr = omni.kit.app.get_app().get_extension_manager()
+_required_exts = [
+    "isaacsim.core",
+    "isaacsim.core.prims",
+    "isaacsim.robot.quadruped",
+    "omni.isaac.core",
+    "omni.isaac.quadruped",
+]
+for ext in _required_exts:
+    try:
+        _ext_mgr.set_extension_enabled_immediate(ext, True)
+    except Exception:
+        pass  # Some may not exist or have different names in this version
 
 # ── 2. Now safe to import Isaac and project modules ─────────────────────
 import numpy as np

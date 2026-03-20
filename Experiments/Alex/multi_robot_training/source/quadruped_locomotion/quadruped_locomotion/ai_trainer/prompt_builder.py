@@ -86,19 +86,25 @@ robot that couldn't stand up. DO NOT repeat this mistake.
 2. Even at terrain >= {coach_cfg.penalty_loosen_terrain:.1f}: loosen penalties ONLY if gait quality is confirmed smooth (via visual inspection when available, or via low vel_tracking_error AND stable reward trend).
 3. PROTECTED WEIGHT — terrain_relative_height: This is the ANTI-BELLY-CRAWL penalty. It forces the robot to stand at 0.37m. Without it the robot will discover that lying flat or crawling is the safest survival strategy. NEVER loosen it below -1.5. If the robot is crouching or belly-crawling, TIGHTEN this toward -3.0 or -4.0.
 
+### PRIORITY 1.5: ACTION SMOOTHNESS PROTECTION
+4. action_smoothness FLOOR: NEVER loosen action_smoothness above -0.7 (less negative than -0.7). Smooth actions are critical for real-world deployment — jerky movements destroy servo hardware and produce unstable gaits. If action_smoothness is already at -0.7 or above, it is OFF LIMITS. The typical healthy range is -1.0 to -1.5.
+
 ### PRIORITY 2: STABILITY
-3. Maximum {coach_cfg.max_weight_changes} reward weight changes at a time. Changing 6 at once caused total policy collapse (Trial 11k: 88% flip over, terrain 0.12).
-4. Each weight change must be <{coach_cfg.max_weight_delta_pct:.0%} of current value.
-5. REWARD LANDSCAPE STABILITY. The actor needs a recognizable reward landscape. Dramatic shifts cause collapse.
+5. Maximum {coach_cfg.max_weight_changes} reward weight changes at a time. Changing 6 at once caused total policy collapse (Trial 11k: 88% flip over, terrain 0.12).
+6. Each weight change must be <{coach_cfg.max_weight_delta_pct:.0%} of current value.
+7. REWARD LANDSCAPE STABILITY. The actor needs a recognizable reward landscape. Dramatic shifts cause collapse.
+
+### PRIORITY 2.5: COOLDOWN RULE
+8. MANDATORY COOLDOWN: After ANY weight change, you MUST wait at least 300 iterations before making another change. The policy needs time to adapt to new reward signals. Making changes every 100 iterations causes oscillation and prevents learning. If your last change was <300 iters ago, respond with "no_change" and explain you are waiting for the policy to adapt. This is NOT the same as being stuck — this is letting the training work.
 
 ### PRIORITY 3: SAFETY
-6. NEVER modify these frozen weights:
+9. NEVER modify these frozen weights:
    - stumble = 0.0 (Bug #28b: uses world-frame Z, misclassifies all foot contacts on elevated terrain)
    - body_height_tracking = 0.0 (Bug #22: world-frame Z meaningless on rough terrain)
-7. Learning rate ceiling for phase "{phase_cfg.name}": {coach_cfg.phase_lr_limits.get(phase_cfg.name, 3e-5):.1e}
-8. max_noise_std ceiling: {phase_cfg.max_noise_std}
-9. Positive rewards must stay positive. Penalties must stay negative.
-10. ALL penalty terms use clamped wrappers (Bug #29). Do not suggest unclamping.
+10. Learning rate ceiling for phase "{phase_cfg.name}": {coach_cfg.phase_lr_limits.get(phase_cfg.name, 3e-5):.1e}
+11. max_noise_std ceiling: {phase_cfg.max_noise_std}
+12. Positive rewards must stay positive. Penalties must stay negative.
+13. ALL penalty terms use clamped wrappers (Bug #29). Do not suggest unclamping.
 
 ## Current Phase: {phase_cfg.name}
 - Terrain: {phase_cfg.terrain}
