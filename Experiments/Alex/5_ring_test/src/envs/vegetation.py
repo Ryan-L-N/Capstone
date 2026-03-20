@@ -1,7 +1,7 @@
-"""Vegetation stalk creation and drag logic for ring 3.
+"""Vegetation stalk creation and drag logic for the grass quadrant.
 
 Extracted from 4_env_test/src/envs/grass_env.py — stalk creation and
-velocity drag scaling.
+velocity drag scaling. Updated to support sector angle filtering.
 """
 
 import numpy as np
@@ -14,7 +14,7 @@ def get_velocity_scale(drag_coeff):
     Used to scale the vx command before sending to the policy.
 
     Args:
-        drag_coeff: Drag coefficient (e.g., 5.0 for ring 3)
+        drag_coeff: Drag coefficient (e.g., 5.0)
 
     Returns:
         float: Velocity scale factor
@@ -24,8 +24,9 @@ def get_velocity_scale(drag_coeff):
 
 def create_stalks_polar(stage, parent_path, r_inner, r_outer, density,
                         height_range, rng, corridor_angle=0.0,
-                        corridor_half_width=1.5, max_stalks=2000):
-    """Scatter kinematic cylinder stalks in an annular region (polar coords).
+                        corridor_half_width=1.5, max_stalks=2000,
+                        sector_angle_start=0.0, sector_angle_end=2*np.pi):
+    """Scatter kinematic cylinder stalks in an annular sector (polar coords).
 
     Args:
         stage: USD stage
@@ -38,13 +39,17 @@ def create_stalks_polar(stage, parent_path, r_inner, r_outer, density,
         corridor_angle: Angle (radians) of clear transition corridor
         corridor_half_width: Half-width of corridor in meters
         max_stalks: Performance cap on stalk count
+        sector_angle_start: Start angle of sector in radians
+        sector_angle_end: End angle of sector in radians
 
     Returns:
         int: Number of stalks created
     """
     from pxr import UsdGeom, UsdPhysics, Gf
 
-    area = np.pi * (r_outer**2 - r_inner**2)
+    # Area of the sector (fraction of full annulus)
+    angle_frac = (sector_angle_end - sector_angle_start) / (2 * np.pi)
+    area = angle_frac * np.pi * (r_outer**2 - r_inner**2)
     num_stalks = min(int(density * area), max_stalks)
 
     if num_stalks == 0:
@@ -54,9 +59,9 @@ def create_stalks_polar(stage, parent_path, r_inner, r_outer, density,
 
     created = 0
     for s in range(num_stalks):
-        # Uniform random in annular region
+        # Uniform random in annular sector
         r = np.sqrt(rng.uniform(r_inner**2, r_outer**2))
-        theta = rng.uniform(0, 2 * np.pi)
+        theta = rng.uniform(sector_angle_start, sector_angle_end)
         x = r * np.cos(theta)
         y = r * np.sin(theta)
 

@@ -1,86 +1,63 @@
-# 5-Ring Navigation Gauntlet
+# 4-Quadrant Navigation Gauntlet
 
-Concentric ring evaluation course for quadruped locomotion policies. A 50m-radius circular arena with 5 rings of increasing difficulty — tests both locomotion robustness and navigation in a single progressive run.
+Circular evaluation arena with 4 terrain quadrants of increasing difficulty. Tests locomotion robustness across friction, vegetation, boulders, and stairs in a single progressive run.
 
 ## Arena Layout
 
 ```
-         _______________________________________________
-        /   Ring 5 (40-50m) — Extreme Mixed (ice+boulders) \
-       /    Ring 4 (30-40m) — Boulder Field                 \
-      /     Ring 3 (20-30m) — Vegetation + Drag              \
-     /      Ring 2 (10-20m) — Low Friction                    \
-    |       Ring 1 (0-10m)  — Flat (navigation warmup)         |
-    |            [SPAWN at center (0, 0)]                       |
-     \                                                        /
-       \____________________________________________________/
-
-10 waypoints per ring (36° spacing), visited clockwise
-50 ring waypoints + 4 transition waypoints = 54 total
+              Grass (90-180°)
+            stalks + drag
+                  |
+                  |
+  Boulders ------[SPAWN]------- Friction
+  (180-270°)      |              (0-90°)
+  D8-D20 rocks    |            decreasing mu
+                  |
+             Stairs (270-360°)
+            pyramid waypoints
 ```
 
-## Ring Specifications
+**50m radius, 4 quadrants, 5 difficulty levels per quadrant (0-10m to 40-50m)**
 
-| Ring | Radius | Terrain | Friction | Obstacles | Weight |
-|------|--------|---------|----------|-----------|--------|
-| 1 | 0-10m | Flat | μ=0.80 | None | 10 |
-| 2 | 10-20m | Low Friction | μ_s=0.35, μ_d=0.25 | None | 20 |
-| 3 | 20-30m | Vegetation | μ=0.70 | Grass stalks 5/m² | 30 |
-| 4 | 30-40m | Boulder Field | μ=0.75 | Boulders 15-50cm | 40 |
-| 5 | 40-50m | Extreme Mixed | μ_s=0.25, μ_d=0.15 | Boulders 40-80cm | 50 |
+## Quadrant Specifications
 
-**Composite score:** max 150 points
+| Quadrant | Lvl 1 (0-10m) | Lvl 3 (20-30m) | Lvl 5 (40-50m) |
+|----------|--------------|----------------|----------------|
+| **Friction** | mu=0.90 | mu=0.35 | mu=0.05 |
+| **Grass** | 2/m², drag=2 | 10/m², drag=10 | 20/m², drag=20 |
+| **Boulders** | 3-5cm gravel | 25-35cm rocks | 80-120cm boulders |
+| **Stairs** | 3cm×5 steps | 13cm×7 steps | 23cm×10 steps |
+
+## Scoring
+
+- 2 waypoints per level, 10 per quadrant, 40 total + 3 transitions = **43 waypoints**
+- Level weights: [10, 20, 30, 40, 50] per quadrant
+- Max per quadrant: 150, **max total: 600**
 
 ## Usage
 
 ```bash
+# Rendered (local)
+python src/run_ring_eval.py --rendered --policy rough \
+    --checkpoint checkpoints/model.pt --num_episodes 1
+
 # Headless (H100)
 python src/run_ring_eval.py --headless --policy rough \
     --checkpoint checkpoints/model.pt --num_episodes 100
-
-# Rendered (local)
-python src/run_ring_eval.py --rendered --policy rough \
-    --checkpoint checkpoints/model.pt --num_episodes 5
-
-# Shell launcher
-./scripts/run_eval.sh --num_episodes 100
 ```
 
 ## Output
 
-JSONL files in `results/` with per-ring scoring:
+JSONL with per-quadrant + per-level scoring:
 ```json
 {
-  "episode_id": "ring_rough_ep0001",
-  "total_waypoints_reached": 37,
-  "rings_completed": 3,
-  "composite_score": 74.0,
-  "max_score": 150,
-  "ring_scores": {"ring_1": {...}, "ring_2": {...}, ...}
+  "total_waypoints_reached": 28,
+  "composite_score": 320.0,
+  "max_score": 600,
+  "quadrant_scores": {
+    "friction": {"waypoints": 10, "score": 150.0, "levels": {...}},
+    "grass": {"waypoints": 8, "score": 110.0, "levels": {...}},
+    ...
+  }
 }
-```
-
-## Project Structure
-
-```
-5_ring_test/
-├── src/
-│   ├── configs/
-│   │   ├── eval_cfg.py        # Physics constants
-│   │   └── ring_params.py     # Ring specs, waypoints, scoring
-│   ├── envs/
-│   │   ├── base_arena.py      # quat_to_yaw, disable_ground
-│   │   ├── ring_arena.py      # Circular ring ground + obstacles
-│   │   ├── boulder_meshes.py  # Polyhedron mesh generators
-│   │   └── vegetation.py      # Stalk creation + drag logic
-│   ├── navigation/
-│   │   └── ring_follower.py   # Circular waypoint follower
-│   ├── metrics/
-│   │   └── ring_collector.py  # Per-ring scoring + JSONL
-│   ├── spot_rough_terrain_policy.py  # Policy wrapper
-│   └── run_ring_eval.py       # Main entry point
-├── checkpoints/               # Policy .pt files
-├── results/                   # JSONL output
-└── scripts/
-    └── run_eval.sh            # Shell launcher
 ```

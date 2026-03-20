@@ -34,10 +34,10 @@ parser = argparse.ArgumentParser(description="AI-guided PPO training for Spot")
 parser.add_argument("--robot", type=str, default="spot",
                     choices=["spot", "vision60"])
 parser.add_argument("--start_phase", type=str, default="flat",
-                    choices=["flat", "transition", "robust_easy", "robust", "mason_hybrid"],
+                    choices=["flat", "transition", "robust_easy", "robust", "mason_hybrid", "mason_hybrid_obstacle"],
                     help="Which phase to start from")
 parser.add_argument("--end_phase", type=str, default="robust",
-                    choices=["flat", "transition", "robust_easy", "robust", "mason_hybrid"],
+                    choices=["flat", "transition", "robust_easy", "robust", "mason_hybrid", "mason_hybrid_obstacle"],
                     help="Which phase to end at")
 parser.add_argument("--num_envs", type=int, default=5000)
 parser.add_argument("--seed", type=int, default=42)
