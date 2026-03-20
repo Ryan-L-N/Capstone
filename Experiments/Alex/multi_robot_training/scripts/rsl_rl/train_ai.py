@@ -281,7 +281,18 @@ def _average_frames_to_png(frame_buffer) -> bytes | None:
 
 def load_robot_configs(robot: str, phase: str = "robust"):
     """Load env and PPO configs for the specified robot and phase."""
-    if robot == "spot" and phase == "mason_hybrid":
+    if robot == "spot" and phase == "mason_hybrid_obstacle":
+        from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
+        from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import SpotMasonHybridPPORunnerCfg
+        from quadruped_locomotion.tasks.locomotion.mdp.terrains import OBSTACLE_FOCUS_TERRAINS_CFG
+        env_cfg = SpotMasonHybridEnvCfg()
+        # Swap terrain to obstacle-heavy config
+        env_cfg.scene.terrain.terrain_generator = OBSTACLE_FOCUS_TERRAINS_CFG
+        # Boost foot_clearance and loosen joint_pos for obstacle traversal
+        env_cfg.rewards.foot_clearance.weight = 1.5   # up from 0.5
+        env_cfg.rewards.joint_pos.weight = -0.4        # loosened from -0.7
+        return env_cfg, SpotMasonHybridPPORunnerCfg(), "Locomotion-MasonHybrid-Spot-v0"
+    elif robot == "spot" and phase == "mason_hybrid":
         from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
         from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import SpotMasonHybridPPORunnerCfg
         return SpotMasonHybridEnvCfg(), SpotMasonHybridPPORunnerCfg(), "Locomotion-MasonHybrid-Spot-v0"
@@ -896,11 +907,14 @@ def main():
         api_model=args_cli.coach_model,
     )
 
-    # Mason hybrid mode — use tighter bounds, disable LR/noise changes
-    if args_cli.start_phase == "mason_hybrid":
+    # Mason hybrid modes — use tighter bounds, disable LR/noise changes
+    if args_cli.start_phase in ("mason_hybrid", "mason_hybrid_obstacle"):
         coach_cfg.activation_threshold = args_cli.activation_threshold
         coach_cfg.lr_change_enabled = False   # Adaptive KL schedule manages LR
         coach_cfg.noise_change_enabled = False # Adaptive schedule manages noise
+        # Use phase-specific bounds
+        if args_cli.start_phase == "mason_hybrid_obstacle":
+            coach_cfg.weight_bounds = coach_cfg.mason_hybrid_obstacle_bounds
 
     # Initialize AI coach
     coach = None
@@ -921,9 +935,9 @@ def main():
             print("[AI-TRAIN] WARNING: No API key, running without AI coach",
                   flush=True)
 
-    # Determine phase range — mason_hybrid is a single-phase run
-    if args_cli.start_phase == "mason_hybrid":
-        phases = ["mason_hybrid"]
+    # Determine phase range — mason_hybrid variants are single-phase runs
+    if args_cli.start_phase in ("mason_hybrid", "mason_hybrid_obstacle"):
+        phases = [args_cli.start_phase]
     else:
         start_idx = PHASE_ORDER.index(args_cli.start_phase)
         end_idx = PHASE_ORDER.index(args_cli.end_phase)

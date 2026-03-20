@@ -116,63 +116,84 @@ class Coach:
         else:
             content = user_message
 
+        max_retries = 3
+        last_error = None
         start = time.time()
-        try:
-            response = self.client.messages.create(
-                model=self.coach_cfg.api_model,
-                max_tokens=1024,
-                system=self.system_prompt,
-                messages=[{"role": "user", "content": content}],
-                timeout=60.0,  # 60s timeout — prevent training freeze on API hang
-            )
-            latency_ms = (time.time() - start) * 1000
-            self._consecutive_failures = 0
 
-            # Parse response
-            text = response.content[0].text.strip()
-            # Strip markdown code fences if present
-            if text.startswith("```"):
-                text = text.split("\n", 1)[1]
-                if text.endswith("```"):
-                    text = text[:-3]
-                text = text.strip()
+        for attempt in range(max_retries):
+            try:
+                response = self.client.messages.create(
+                    model=self.coach_cfg.api_model,
+                    max_tokens=1024,
+                    system=self.system_prompt,
+                    messages=[{"role": "user", "content": content}],
+                    timeout=60.0,
+                )
+                latency_ms = (time.time() - start) * 1000
+                self._consecutive_failures = 0
 
-            decision_dict = json.loads(text)
-            decision = CoachDecision(
-                action=decision_dict.get("action", "no_change"),
-                reasoning=decision_dict.get("reasoning", ""),
-                weight_changes=decision_dict.get("weight_changes", {}),
-                lr_change=decision_dict.get("lr_change"),
-                noise_change=decision_dict.get("noise_change"),
-                confidence=decision_dict.get("confidence", 0.5),
-            )
-            return decision, latency_ms
+                # Parse response
+                text = response.content[0].text.strip()
+                if not text:
+                    if attempt < max_retries - 1:
+                        print(f"[AI-COACH] Empty response, retry {attempt + 2}/{max_retries}...")
+                        time.sleep(2)
+                        continue
+                    raise ValueError("Empty response from API after all retries")
 
-        except anthropic.APITimeoutError as e:
-            latency_ms = (time.time() - start) * 1000
-            self._consecutive_failures += 1
-            print(f"[AI-COACH] API TIMEOUT after 60s ({self._consecutive_failures}/"
-                  f"{self._max_failures}) — training continues with no_change")
-            return CoachDecision(
-                action="no_change",
-                reasoning=f"API timeout: {e}",
-            ), latency_ms
+                # Strip markdown code fences if present
+                if text.startswith("```"):
+                    text = text.split("\n", 1)[1]
+                    if text.endswith("```"):
+                        text = text[:-3]
+                    text = text.strip()
 
-        except (anthropic.APIError, json.JSONDecodeError, KeyError,
-                IndexError) as e:
-            latency_ms = (time.time() - start) * 1000
-            self._consecutive_failures += 1
-            print(f"[AI-COACH] API error ({self._consecutive_failures}/"
-                  f"{self._max_failures}): {e}")
+                decision_dict = json.loads(text)
+                decision = CoachDecision(
+                    action=decision_dict.get("action", "no_change"),
+                    reasoning=decision_dict.get("reasoning", ""),
+                    weight_changes=decision_dict.get("weight_changes", {}),
+                    lr_change=decision_dict.get("lr_change"),
+                    noise_change=decision_dict.get("noise_change"),
+                    confidence=decision_dict.get("confidence", 0.5),
+                )
+                return decision, latency_ms
 
-            if self._consecutive_failures >= self._max_failures:
-                print("[AI-COACH] Too many failures, falling back to "
-                      "no_change for this session")
+            except anthropic.APITimeoutError as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    print(f"[AI-COACH] Timeout, retry {attempt + 2}/{max_retries}...")
+                    time.sleep(2)
+                    continue
+                latency_ms = (time.time() - start) * 1000
+                self._consecutive_failures += 1
+                print(f"[AI-COACH] API TIMEOUT after {max_retries} attempts "
+                      f"({self._consecutive_failures}/{self._max_failures})")
+                return CoachDecision(
+                    action="no_change",
+                    reasoning=f"API timeout: {e}",
+                ), latency_ms
 
-            return CoachDecision(
-                action="no_change",
-                reasoning=f"API error: {e}",
-            ), latency_ms
+            except (anthropic.APIError, json.JSONDecodeError, KeyError,
+                    IndexError, ValueError) as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    print(f"[AI-COACH] {type(e).__name__}, retry {attempt + 2}/{max_retries}...")
+                    time.sleep(2)
+                    continue
+                latency_ms = (time.time() - start) * 1000
+                self._consecutive_failures += 1
+                print(f"[AI-COACH] API error after {max_retries} attempts "
+                      f"({self._consecutive_failures}/{self._max_failures}): {e}")
+
+                if self._consecutive_failures >= self._max_failures:
+                    print("[AI-COACH] Too many failures, falling back to "
+                          "no_change for this session")
+
+                return CoachDecision(
+                    action="no_change",
+                    reasoning=f"API error: {e}",
+                ), latency_ms
 
     @property
     def is_available(self) -> bool:

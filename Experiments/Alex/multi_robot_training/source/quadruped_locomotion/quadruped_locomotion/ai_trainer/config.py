@@ -112,6 +112,27 @@ PHASE_CONFIGS = {
             "body_height_tracking", # Bug #22
         },
     ),
+    "mason_hybrid_obstacle": PhaseConfig(
+        name="mason_hybrid_obstacle",
+        terrain="obstacle_focus",     # Uses OBSTACLE_FOCUS_TERRAINS_CFG
+        num_envs=4096,
+        max_iterations=10000,
+        lr_max=1e-3,          # Mason's adaptive KL schedule
+        lr_min=1e-5,
+        warmup_iters=0,
+        max_noise_std=1.0,
+        min_noise_std=0.2,
+        save_interval=100,
+        num_learning_epochs=5,
+        min_terrain_level=5.0,
+        min_survival_rate=0.70,   # Lower — harder terrain mix
+        max_flip_rate=0.20,
+        max_value_loss=15.0,
+        frozen_weights={
+            "stumble",              # Bug #28b
+            "body_height_tracking", # Bug #22
+        },
+    ),
 }
 
 # Ordered phase progression
@@ -172,26 +193,53 @@ class CoachConfig:
         "vegetation_drag":         (-1.0, -0.001),
     })
 
-    # Tighter bounds for mason_hybrid — centered on Mason's proven values
+    # Tight ±20% bounds around Mason's PROVEN baseline values.
+    # The coach fine-tunes within this band — experimenting back and forth
+    # to find marginal gains. These are NOT wide ranges to drift through.
+    # Mason baseline → (baseline - 20%, baseline + 20%)
     mason_hybrid_bounds: dict = field(default_factory=lambda: {
-        # Positive rewards — tight range around Mason's 5.0/10.0
-        "air_time":                (2.0, 8.0),
-        "base_angular_velocity":   (3.0, 9.0),
-        "base_linear_velocity":    (3.0, 9.0),
-        "foot_clearance":          (0.2, 1.5),
-        "gait":                    (5.0, 12.0),
-        # Negative penalties — tight range around Mason's values
-        "action_smoothness":       (-3.0, -0.3),
-        "air_time_variance":       (-3.0, -0.3),
-        "base_motion":             (-4.0, -1.0),
-        "base_orientation":        (-5.0, -1.5),
-        "foot_slip":               (-2.0, -0.2),
-        "joint_acc":               (-5e-3, -5e-5),
-        "joint_pos":               (-1.0, -0.3),  # NEVER loosen below -0.3
-        "joint_torques":           (-5e-3, -5e-5),
-        "joint_vel":               (-5e-2, -5e-3),
-        "dof_pos_limits":          (-5.0, -1.0),
-        "terrain_relative_height": (-4.0, -1.5),  # Anti-belly-crawl — NEVER loosen below -1.5
+        # Positive rewards — ±20% of Mason's values
+        "air_time":                (4.0, 6.0),      # baseline 5.0
+        "base_angular_velocity":   (4.0, 6.0),      # baseline 5.0
+        "base_linear_velocity":    (4.0, 6.0),      # baseline 5.0
+        "foot_clearance":          (0.3, 0.7),       # baseline 0.5
+        "gait":                    (8.0, 12.0),      # baseline 10.0
+        # Negative penalties — ±20% of Mason's values
+        "action_smoothness":       (-1.2, -0.8),     # baseline -1.0
+        "air_time_variance":       (-1.2, -0.8),     # baseline -1.0
+        "base_motion":             (-2.4, -1.6),     # baseline -2.0
+        "base_orientation":        (-3.6, -2.4),     # baseline -3.0
+        "foot_slip":               (-0.6, -0.4),     # baseline -0.5
+        "joint_acc":               (-1.2e-4, -0.8e-4),  # baseline -1.0e-4
+        "joint_pos":               (-0.84, -0.56),   # baseline -0.7
+        "joint_torques":           (-6e-4, -4e-4),   # baseline -5.0e-4
+        "joint_vel":               (-1.2e-2, -0.8e-2),  # baseline -1.0e-2
+        "dof_pos_limits":          (-3.6, -2.4),     # baseline -3.0
+        "terrain_relative_height": (-2.4, -1.6),     # baseline -2.0 (anti-belly-crawl)
+    })
+
+    # Phase B+ obstacle focus: wider bounds on obstacle-critical weights
+    # foot_clearance and joint_pos get more room, velocity/gait start from
+    # Trial 12 final values (already boosted by coach).
+    mason_hybrid_obstacle_bounds: dict = field(default_factory=lambda: {
+        # Positive rewards — wider on obstacle-critical weights
+        "air_time":                (4.0, 7.0),      # baseline 5.0, Trial 12 ended at 6.0
+        "base_angular_velocity":   (4.0, 7.0),      # baseline 5.0, Trial 12 ended at 6.0
+        "base_linear_velocity":    (4.0, 7.0),      # baseline 5.0, Trial 12 ended at 6.0
+        "foot_clearance":          (0.5, 2.0),       # baseline 0.5 — KEY LEVER for obstacles
+        "gait":                    (8.0, 12.0),      # baseline 10.0, Trial 12 ended at 12.0
+        # Negative penalties — wider on joint_pos and base_orientation
+        "action_smoothness":       (-1.3, -0.7),     # baseline -1.0
+        "air_time_variance":       (-1.2, -0.8),     # baseline -1.0
+        "base_motion":             (-2.4, -1.4),     # baseline -2.0
+        "base_orientation":        (-3.6, -2.0),     # baseline -3.0, wider to allow leaning
+        "foot_slip":               (-0.6, -0.3),     # baseline -0.5
+        "joint_acc":               (-1.5e-4, -0.5e-4),  # baseline -1.0e-4
+        "joint_pos":               (-0.84, -0.3),    # baseline -0.7 — KEY LEVER for knee bends
+        "joint_torques":           (-7e-4, -3e-4),   # baseline -5.0e-4
+        "joint_vel":               (-1.5e-2, -0.5e-2),  # baseline -1.0e-2
+        "dof_pos_limits":          (-3.6, -2.0),     # baseline -3.0
+        "terrain_relative_height": (-2.5, -1.5),     # baseline -2.0
     })
 
     # Phase-specific LR ceilings — NEVER exceed these
@@ -201,4 +249,5 @@ class CoachConfig:
         "robust_easy": 5e-5,
         "robust": 3e-5,
         "mason_hybrid": 1e-3,  # Managed by adaptive KL schedule
+        "mason_hybrid_obstacle": 1e-3,
     })
