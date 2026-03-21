@@ -288,9 +288,10 @@ def load_robot_configs(robot: str, phase: str = "robust"):
         env_cfg = SpotMasonHybridEnvCfg()
         # Swap terrain to obstacle-heavy config
         env_cfg.scene.terrain.terrain_generator = OBSTACLE_FOCUS_TERRAINS_CFG
-        # Boost foot_clearance and loosen joint_pos for obstacle traversal
-        env_cfg.rewards.foot_clearance.weight = 1.5   # up from 0.5
-        env_cfg.rewards.joint_pos.weight = -0.4        # loosened from -0.7
+        # Obstacle traversal weights: high clearance, dynamic movement, flexible joints
+        env_cfg.rewards.foot_clearance.weight = 2.0   # up from 0.5 — incentivize high stepping
+        env_cfg.rewards.joint_pos.weight = -0.3        # loosened from -0.7 — allow extreme knee bends
+        env_cfg.rewards.action_smoothness.weight = -1.0  # loosened from -1.3 — allow explosive step-ups
         return env_cfg, SpotMasonHybridPPORunnerCfg(), "Locomotion-MasonHybrid-Spot-v0"
     elif robot == "spot" and phase == "mason_hybrid":
         from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
@@ -915,6 +916,7 @@ def main():
         # Use phase-specific bounds
         if args_cli.start_phase == "mason_hybrid_obstacle":
             coach_cfg.weight_bounds = coach_cfg.mason_hybrid_obstacle_bounds
+            coach_cfg.penalty_loosen_terrain = 3.5  # lower gate for 60% obstacle terrain
 
     # Initialize AI coach
     coach = None

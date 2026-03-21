@@ -226,16 +226,16 @@ class CoachConfig:
         "air_time":                (4.0, 7.0),      # baseline 5.0, Trial 12 ended at 6.0
         "base_angular_velocity":   (4.0, 7.0),      # baseline 5.0, Trial 12 ended at 6.0
         "base_linear_velocity":    (4.0, 7.0),      # baseline 5.0, Trial 12 ended at 6.0
-        "foot_clearance":          (0.5, 2.0),       # baseline 0.5 — KEY LEVER for obstacles
+        "foot_clearance":          (1.5, 3.0),       # starting at 2.0 — KEY LEVER for obstacles
         "gait":                    (8.0, 12.0),      # baseline 10.0, Trial 12 ended at 12.0
         # Negative penalties — wider on joint_pos and base_orientation
-        "action_smoothness":       (-1.3, -0.7),     # baseline -1.0
+        "action_smoothness":       (-1.2, -0.7),     # baseline -1.0, starting at -1.0
         "air_time_variance":       (-1.2, -0.8),     # baseline -1.0
         "base_motion":             (-2.4, -1.4),     # baseline -2.0
         "base_orientation":        (-3.6, -2.0),     # baseline -3.0, wider to allow leaning
         "foot_slip":               (-0.6, -0.3),     # baseline -0.5
         "joint_acc":               (-1.5e-4, -0.5e-4),  # baseline -1.0e-4
-        "joint_pos":               (-0.84, -0.3),    # baseline -0.7 — KEY LEVER for knee bends
+        "joint_pos":               (-0.5, -0.2),     # starting at -0.3 — KEY LEVER for knee bends
         "joint_torques":           (-7e-4, -3e-4),   # baseline -5.0e-4
         "joint_vel":               (-1.5e-2, -0.5e-2),  # baseline -1.0e-2
         "dof_pos_limits":          (-3.6, -2.0),     # baseline -3.0

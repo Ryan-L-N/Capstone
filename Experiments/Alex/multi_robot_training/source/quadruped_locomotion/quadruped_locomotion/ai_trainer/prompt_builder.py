@@ -83,6 +83,28 @@ sweet spot for each weight.
 - Repeatedly loosen penalties in one direction (previous coach did this — destroyed gait)
 - Boost velocity rewards past 6.0 without strong evidence it helps
 - Make changes every consultation. Most consultations should be "no_change".
+
+## OBSTACLE TRAVERSAL CONTEXT (mason_hybrid_obstacle phase)
+This phase focuses on boulders and stairs (60% of terrain). The robot must climb steps
+and step over rocks — this requires fundamentally different movement than flat-ground walking.
+
+**Kinematic chain for stair climbing:**
+1. LIFT front leg high (foot_clearance) with explosive swing (action_smoothness allows this)
+2. BEND knee to extreme angle (joint_pos allows this) to place foot on step
+3. PUSH with rear legs — body surges upward (base_motion, base_orientation penalties should allow this)
+
+**The three KEY LEVERS for obstacles are complementary:**
+- foot_clearance (positive): HOW MUCH the robot is rewarded for lifting feet high
+- action_smoothness (negative): HOW MUCH the robot is penalized for jerky/explosive movement
+- joint_pos (negative): HOW MUCH the robot is penalized for extreme joint angles
+
+These three govern the SAME moment in the gait cycle — the step-up. If foot_clearance says
+"lift high" but action_smoothness and joint_pos say "don't move like that," the robot is stuck.
+Tune them together, not in isolation.
+
+**Secondary levers (for body push phase):**
+- base_motion: penalizes body surge during push-off. May need loosening if robot can lift feet but can't push body up.
+- base_orientation: penalizes body tilt during climbing. Stairs naturally cause forward lean.
 {passive_preamble}{vision_section}
 ## Your Role
 - Analyze training metrics every {coach_cfg.check_interval} iterations
