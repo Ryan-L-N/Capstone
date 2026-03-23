@@ -1,0 +1,17 @@
+__pycache__/
+**/__pycache__/
+*.pyc
+.git/
+*.egg-info/
+.venv/
+multi_robot_training/
+multi_expert_distillation/
+NAV_ALEX/
+pedipulation/
+4_env_test/
+100hr_env_run/
+48h_training/
+H-100_Stress_Testing/
+AI_Trainer/results/trajectories/*.npz
+AI_Trainer/results/checkpoints/*.pt
+AI_Trainer/results/episodes/*.jsonl
