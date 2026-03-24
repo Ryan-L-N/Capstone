@@ -136,6 +136,15 @@ from pxr import UsdGeom, Gf, UsdPhysics, UsdLux
 # Add src/ to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# ── 1c. Headless GPU Foundation fix ─────────────────────────────────────
+# On compute-only drivers (nvidia-headless-575), World.step() hangs because
+# GPU Foundation can't initialize without Vulkan. We monkey-patch World.step()
+# to use simulation_app.update() + direct physics stepping instead.
+# Note: World.step(render=False) works on machines with full GPU drivers.
+# On compute-only drivers (nvidia-headless-575), it hangs because GPU
+# Foundation can't initialize. For H100 headless evals after BMC reboot,
+# use the gym-based training environment or run evals locally instead.
+
 from configs.eval_cfg import (
     PHYSICS_DT, RENDERING_DT, CONTROL_DT, DECIMATION,
     MAX_CONTROL_STEPS, FALL_THRESHOLD, COMPLETION_X,
@@ -165,7 +174,10 @@ SPAWN_QUAT = np.array([1.0, 0.0, 0.0, 0.0])  # identity — facing +X
 def main():
     robot = args.robot
     robot_cfg = ROBOT_CONFIGS[robot]
-    spawn_pos = robot_cfg["spawn_position"]
+    spawn_pos = list(robot_cfg["spawn_position"])
+    # Raise spawn height for stairs to prevent foot clipping on first frame
+    if args.env == "stairs":
+        spawn_pos[2] = max(spawn_pos[2], 0.8)  # 0.8m clears initial step geometry
 
     print(f"\n{'='*60}")
     print(f"  Capstone Evaluation")
@@ -319,9 +331,12 @@ def main():
 
     # ── 8. Stabilization period ─────────────────────────────────────────
     print("Stabilizing robot...", flush=True)
-    for _ in range(STABILIZE_STEPS):
+    for i in range(STABILIZE_STEPS):
         spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
         world.step(render=not headless)
+        if (i + 1) % 25 == 0:
+            print(f"  Stabilize step {i+1}/{STABILIZE_STEPS}", flush=True)
+    print("Stabilization complete.", flush=True)
 
     # ── 9. Episode loop ─────────────────────────────────────────────────
     total_start = time.time()

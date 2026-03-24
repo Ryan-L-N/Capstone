@@ -494,9 +494,9 @@ class SpotRoughTerrainPolicy:
                       f"vel={old_vel_iters}")
 
                 av.set_solver_position_iteration_counts(
-                    torch.tensor([4], dtype=torch.int32, device="cpu"))
+                    torch.tensor([8], dtype=torch.int32, device="cpu"))
                 av.set_solver_velocity_iteration_counts(
-                    torch.tensor([1], dtype=torch.int32, device="cpu"))
+                    torch.tensor([2], dtype=torch.int32, device="cpu"))
 
                 new_pos_iters = av.get_solver_position_iteration_counts()
                 new_vel_iters = av.get_solver_velocity_iteration_counts()

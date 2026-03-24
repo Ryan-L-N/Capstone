@@ -100,6 +100,11 @@ def create_stair_zone(stage, zone_path, step_height, step_depth, num_steps,
 
         prim = cube.GetPrim()
         UsdPhysics.CollisionAPI.Apply(prim)
+        # Contact offset prevents foot penetration into step geometry
+        from pxr import PhysxSchema
+        collision_api = PhysxSchema.PhysxCollisionAPI.Apply(prim)
+        collision_api.CreateContactOffsetAttr().Set(0.02)  # 2cm buffer
+        collision_api.CreateRestOffsetAttr().Set(0.01)     # 1cm rest
         binding = UsdShade.MaterialBindingAPI.Apply(prim)
         binding.Bind(UsdShade.Material.Get(stage, mat_path))
 
