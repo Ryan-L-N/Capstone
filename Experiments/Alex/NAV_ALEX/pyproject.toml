@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "nav_locomotion"
+version = "0.1.0"
+description = "Phase C: Visual terrain navigation with depth camera for Spot quadruped"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "numpy",
+    "anthropic",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "tensorboard"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.isort]
+profile = "black"
+
+[tool.pyright]
+pythonVersion = "3.10"

@@ -1,0 +1,6 @@
+[tool.isort]
+profile = "black"
+known_third_party = ["isaaclab", "isaaclab_tasks", "isaaclab_rl", "isaaclab_assets", "rsl_rl", "torch"]
+
+[tool.pyright]
+include = ["source", "scripts"]

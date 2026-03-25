@@ -47,6 +47,9 @@ import torch.nn as nn
 from isaacsim.core.utils.rotations import quat_to_rot_matrix
 from isaacsim.core.utils.types import ArticulationAction
 
+# PhysX scene query for raycasting (used when no analytical ground_height_fn)
+from omni.physx import get_physx_scene_query_interface
+
 
 # =============================================================================
 # CONFIGURATION  (matches training env.yaml / agent.yaml)
@@ -63,12 +66,16 @@ SCAN_RES       = 0.1                        # metres per cell
 SCAN_NX        = int(SCAN_SIZE_X / SCAN_RES) + 1   # 17
 SCAN_NY        = int(SCAN_SIZE_Y / SCAN_RES) + 1   # 11
 SCAN_N         = SCAN_NX * SCAN_NY                  # 187
-SCAN_FILL_VAL  =  0.0            # flat-ground height scan ≈ 0.0
+SCAN_FILL_VAL  =  0.0            # fallback if raycast misses
+SCAN_OFFSET    =  0.5            # Isaac Lab default height offset
+SCAN_RAY_HEIGHT = 20.0           # ray origin height above body (matches training)
+SCAN_MAX_DIST  = 100.0           # max raycast distance
 
 # Policy -----------------------------------------------------------------------
 OBS_DIM       = 48 + SCAN_N    # 235
 ACT_DIM       = 12
-ACTION_SCALE  = 0.25           # Matches training env.yaml (action_scale=0.25)
+ACTION_SCALE  = 0.2            # Both standard and Mason configs use scale=0.2
+ACTION_SCALE_MASON = 0.2      # Mason baseline/hybrid uses scale=0.2
 DECIMATION    = 10             # env.yaml → decimation
 
 # Actuator gains from training (env.yaml → actuators → stiffness/damping)
@@ -149,7 +156,8 @@ class SpotRoughTerrainPolicy:
     # ------------------------------------------------------------------
     # Construction
     # ------------------------------------------------------------------
-    def __init__(self, flat_policy, checkpoint_path=None, ground_height_fn=None):
+    def __init__(self, flat_policy, checkpoint_path=None, ground_height_fn=None,
+                 mason_baseline=False):
         """
         Args:
             flat_policy:       Initialised SpotFlatTerrainPolicy whose .robot
@@ -160,7 +168,11 @@ class SpotRoughTerrainPolicy:
                                When provided, enables analytical height scanning
                                so the policy can "see" terrain (e.g. stairs).
                                When None, height scan is filled with 0.0 (flat).
+            mason_baseline:    If True, use Mason's obs order (height_scan first)
+                               and action_scale=0.2.
         """
+        self._mason_baseline = mason_baseline
+
         # Share the existing robot — no new articulation
         self.robot = flat_policy.robot
 
@@ -169,7 +181,7 @@ class SpotRoughTerrainPolicy:
         self._actor = self._build_actor(ckpt)
 
         # Internal bookkeeping
-        self._action_scale    = ACTION_SCALE
+        self._action_scale    = ACTION_SCALE_MASON if mason_baseline else ACTION_SCALE
         self._decimation      = DECIMATION
         self._previous_action = np.zeros(ACT_DIM)
         self._policy_counter  = 0
@@ -198,14 +210,7 @@ class SpotRoughTerrainPolicy:
     # ------------------------------------------------------------------
     @staticmethod
     def _build_actor(checkpoint_path):
-        """Construct [235->512->256->128->12] ELU MLP, load trained weights."""
-        actor = nn.Sequential(
-            nn.Linear(OBS_DIM, 512), nn.ELU(),
-            nn.Linear(512, 256),     nn.ELU(),
-            nn.Linear(256, 128),     nn.ELU(),
-            nn.Linear(128, ACT_DIM),
-        )
-
+        """Auto-detect hidden sizes from checkpoint and build actor MLP."""
         ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
         state = ckpt["model_state_dict"]
 
@@ -215,6 +220,21 @@ class SpotRoughTerrainPolicy:
             for k, v in state.items()
             if k.startswith("actor.")
         }
+
+        # Auto-detect architecture from weight shapes
+        # Keys are like 0.weight, 2.weight, 4.weight, 6.weight
+        weight_keys = sorted(k for k in actor_state if k.endswith(".weight"))
+        layers = []
+        for wk in weight_keys:
+            out_dim, in_dim = actor_state[wk].shape
+            layers.append(nn.Linear(in_dim, out_dim))
+            if out_dim != ACT_DIM:  # don't add activation after final layer
+                layers.append(nn.ELU())
+        actor = nn.Sequential(*layers)
+
+        hidden_sizes = [actor_state[wk].shape[0] for wk in weight_keys[:-1]]
+        print(f"[ROUGH] Auto-detected architecture: {OBS_DIM} -> {hidden_sizes} -> {ACT_DIM}")
+
         actor.load_state_dict(actor_state)
         actor.eval()
 
@@ -227,29 +247,22 @@ class SpotRoughTerrainPolicy:
     # Height scanner
     # ------------------------------------------------------------------
     def _cast_height_rays(self):
-        """Compute 187-dim height scan matching Isaac Lab's RayCaster.
+        """Cast 187 rays downward in a 17x11 grid, matching Isaac Lab training.
 
-        Training config (rough_env_cfg.py:412-420):
-            RayCasterCfg(
-                prim_path="{ENV_REGEX_NS}/Robot/body",
-                offset=OffsetCfg(pos=(0.0, 0.0, 20.0)),
-                ray_alignment="yaw",
-                pattern_cfg=GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-            )
+        Pipeline (matches Isaac Lab's RayCaster + height_scan observation):
+        1. Grid offsets in body frame: 1.6m x 1.0m, 0.1m resolution
+        2. Rotate grid by body YAW only (pitch/roll ignored, matching training)
+        3. Cast rays using PhysX scene queries OR analytical ground_height_fn
+        4. Compute: height = body_z - hit_z - 0.5
+        5. Clip to [-1.0, 1.0]
 
-        Formula: height_scan = base_z - ground_z_at_ray_point - 0.5
-        Clipped to [-1.0, 1.0].
-
-        When ground_height_fn is provided (e.g. stairs), computes analytical
-        height scan by querying terrain elevation at each grid point.
-        When None, returns 0.0 (flat ground assumption).
+        When ground_height_fn is provided (e.g. stairs), uses analytical queries.
+        When None, uses PhysX raycasting to detect actual terrain geometry
+        (boulders, obstacles, etc.).
 
         Returns:
             np.ndarray (187,): height scan values, clipped to [-1, 1].
         """
-        if self._ground_height_fn is None:
-            return np.full(SCAN_N, SCAN_FILL_VAL, dtype=np.float32)
-
         # Get robot world pose
         pos, quat = self.robot.get_world_pose()
         base_x = float(pos[0])
@@ -266,17 +279,48 @@ class SpotRoughTerrainPolicy:
 
         # Rotate scan grid offsets by yaw and add robot position
         world_x = base_x + cos_yaw * self._scan_offsets_x - sin_yaw * self._scan_offsets_y
-        # world_y not needed — stairs only vary along X axis
+        world_y = base_y + sin_yaw * self._scan_offsets_x + cos_yaw * self._scan_offsets_y
 
-        # Query ground elevation at each ray point
-        scan = np.empty(SCAN_N, dtype=np.float32)
+        # --- Analytical mode (stairs — fast, exact) ---
+        if self._ground_height_fn is not None:
+            scan = np.empty(SCAN_N, dtype=np.float32)
+            for i in range(SCAN_N):
+                ground_z = self._ground_height_fn(float(world_x[i]))
+                scan[i] = base_z - ground_z - SCAN_OFFSET
+            np.clip(scan, -1.0, 1.0, out=scan)
+            return scan
+
+        # --- PhysX raycast mode (boulders, any terrain) ---
+        scene_query = get_physx_scene_query_interface()
+        heights = np.full(SCAN_N, SCAN_FILL_VAL, dtype=np.float32)
+        ray_origin_z = base_z + SCAN_RAY_HEIGHT
+
         for i in range(SCAN_N):
-            ground_z = self._ground_height_fn(float(world_x[i]))
-            scan[i] = base_z - ground_z - 0.5
+            origin = (float(world_x[i]), float(world_y[i]), float(ray_origin_z))
+            direction = (0.0, 0.0, -1.0)
 
-        # Clip to training range [-1.0, 1.0]
-        np.clip(scan, -1.0, 1.0, out=scan)
-        return scan
+            hit = scene_query.raycast_closest(origin, direction, SCAN_MAX_DIST)
+
+            if hit["hit"]:
+                # Skip hits on the robot's own body
+                hit_path = hit.get("rigidBody", "")
+                if "/World/Robot" in hit_path:
+                    # Re-cast from just below the robot body to avoid self-hit
+                    lower_origin = (float(world_x[i]),
+                                    float(world_y[i]),
+                                    base_z - 0.1)
+                    hit2 = scene_query.raycast_closest(
+                        lower_origin, direction, SCAN_MAX_DIST)
+                    if hit2["hit"]:
+                        hit2_path = hit2.get("rigidBody", "")
+                        if "/World/Robot" not in hit2_path:
+                            heights[i] = base_z - hit2["position"][2] - SCAN_OFFSET
+                else:
+                    heights[i] = base_z - hit["position"][2] - SCAN_OFFSET
+
+        np.clip(heights, -1.0, 1.0, out=heights)
+
+        return heights
 
     # ------------------------------------------------------------------
     # Observation
@@ -305,23 +349,35 @@ class SpotRoughTerrainPolicy:
         ang_vel_b = R_BI @ ang_vel_I
         gravity_b = R_BI @ np.array([0.0, 0.0, -1.0])
 
-        obs = np.zeros(OBS_DIM, dtype=np.float32)
-
-        # -- 48-dim proprioception (same layout as flat policy) --
-        obs[0:3]   = lin_vel_b
-        obs[3:6]   = ang_vel_b
-        obs[6:9]   = gravity_b
-        obs[9:12]  = command
-
         jp = self.robot.get_joint_positions()
         jv = self.robot.get_joint_velocities()
-        obs[12:24] = jp - self.default_pos
-        obs[24:36] = jv
-        obs[36:48] = self._previous_action
 
         # -- 187-dim height scan --
         self._height_scan = self._cast_height_rays()
-        obs[48:] = self._height_scan
+
+        obs = np.zeros(OBS_DIM, dtype=np.float32)
+
+        if self._mason_baseline:
+            # Mason: height_scan(187) first, then proprioception(48)
+            obs[0:SCAN_N]          = self._height_scan
+            o = SCAN_N  # 187
+            obs[o:o+3]            = lin_vel_b
+            obs[o+3:o+6]         = ang_vel_b
+            obs[o+6:o+9]         = gravity_b
+            obs[o+9:o+12]        = command
+            obs[o+12:o+24]       = jp - self.default_pos
+            obs[o+24:o+36]       = jv
+            obs[o+36:o+48]       = self._previous_action
+        else:
+            # Our training: proprioception(48) first, height_scan(187) last
+            obs[0:3]   = lin_vel_b
+            obs[3:6]   = ang_vel_b
+            obs[6:9]   = gravity_b
+            obs[9:12]  = command
+            obs[12:24] = jp - self.default_pos
+            obs[24:36] = jv
+            obs[36:48] = self._previous_action
+            obs[48:]   = self._height_scan
 
         # Diagnostic: print stats on first policy step
         if self._policy_counter == 0:
@@ -389,8 +445,8 @@ class SpotRoughTerrainPolicy:
             print(f"[ROUGH] Height scan: ANALYTICAL ({SCAN_N} dims, "
                   f"terrain-aware via ground_height_fn)")
         else:
-            print(f"[ROUGH] Height scan: fill={SCAN_FILL_VAL} "
-                  f"({SCAN_N} dims, flat ground default)")
+            print(f"[ROUGH] Height scan: PHYSX RAYCAST ({SCAN_N} dims, "
+                  f"real terrain geometry via scene queries)")
 
         # Store training actuator gains for switching
         self._training_stiffness = TRAINING_STIFFNESS
@@ -438,9 +494,9 @@ class SpotRoughTerrainPolicy:
                       f"vel={old_vel_iters}")
 
                 av.set_solver_position_iteration_counts(
-                    torch.tensor([4], dtype=torch.int32, device=dev))
+                    torch.tensor([8], dtype=torch.int32, device="cpu"))
                 av.set_solver_velocity_iteration_counts(
-                    torch.tensor([0], dtype=torch.int32, device=dev))
+                    torch.tensor([2], dtype=torch.int32, device="cpu"))
 
                 new_pos_iters = av.get_solver_position_iteration_counts()
                 new_vel_iters = av.get_solver_velocity_iteration_counts()
@@ -455,8 +511,8 @@ class SpotRoughTerrainPolicy:
             old_kps, old_kds = av.get_gains()
             print(f"[ROUGH] Gains BEFORE: Kp={old_kps}, Kd={old_kds}")
 
-            kps = torch.full((1, n_dof), TRAINING_STIFFNESS, device=dev)
-            kds = torch.full((1, n_dof), TRAINING_DAMPING, device=dev)
+            kps = torch.full((1, n_dof), TRAINING_STIFFNESS, device="cpu")
+            kds = torch.full((1, n_dof), TRAINING_DAMPING, device="cpu")
             av.set_gains(kps=kps, kds=kds)
 
             new_kps, new_kds = av.get_gains()
@@ -467,20 +523,20 @@ class SpotRoughTerrainPolicy:
             # ============================================================
 
             # Per-joint effort limits
-            max_efforts = torch.full((1, n_dof), HIP_EFFORT_LIMIT, device=dev)
+            max_efforts = torch.full((1, n_dof), HIP_EFFORT_LIMIT, device="cpu")
             for i in self._knee_indices:
                 max_efforts[0, i] = 110.0
             av.set_max_efforts(max_efforts)
 
             # Zero joint friction and armature (training sets both to 0)
             try:
-                av.set_friction_coefficients(torch.zeros((1, n_dof), device=dev))
-                av.set_armatures(torch.zeros((1, n_dof), device=dev))
+                av.set_friction_coefficients(torch.zeros((1, n_dof), device="cpu"))
+                av.set_armatures(torch.zeros((1, n_dof), device="cpu"))
             except Exception:
                 pass
 
             # Velocity limits (training: 12.0 rad/s)
-            max_vels = torch.full((1, n_dof), 12.0, device=dev)
+            max_vels = torch.full((1, n_dof), 12.0, device="cpu")
             av.set_max_joint_velocities(max_vels)
 
             # ============================================================
@@ -488,9 +544,9 @@ class SpotRoughTerrainPolicy:
             # ============================================================
             try:
                 av.set_enabled_self_collisions(
-                    torch.tensor([True], dtype=torch.bool, device=dev))
+                    torch.tensor([True], dtype=torch.bool, device="cpu"))
                 av.set_max_depenetration_velocity(
-                    torch.tensor([1.0], device=dev))
+                    torch.tensor([10.0], device="cpu"))
             except Exception:
                 pass
 
@@ -547,6 +603,17 @@ class SpotRoughTerrainPolicy:
 
         # Position targets (PhysX PD drive handles torque computation)
         target_pos = self.default_pos + self.action * self._action_scale
+
+        # Clamp to physical joint limits to prevent leg penetration
+        # Spot joint limits (from URDF): hx [-0.785, 0.785], hy [-0.898, 2.295], kn [-2.793, -0.254]
+        joint_lower = np.array([-0.785, -0.785, -0.785, -0.785,
+                                -0.898, -0.898, -0.898, -0.898,
+                                -2.793, -2.793, -2.793, -2.793])
+        joint_upper = np.array([ 0.785,  0.785,  0.785,  0.785,
+                                 2.295,  2.295,  2.295,  2.295,
+                                -0.254, -0.254, -0.254, -0.254])
+        target_pos = np.clip(target_pos, joint_lower, joint_upper)
+
         action = ArticulationAction(joint_positions=target_pos)
         self.robot.apply_action(action)
         self._policy_counter += 1

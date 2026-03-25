@@ -50,7 +50,7 @@ class WaypointFollower:
     @property
     def is_done(self):
         """True if robot has reached or passed the final waypoint."""
-        return self._current_wp >= len(self._waypoints) - 1
+        return self._current_wp > len(self._waypoints) - 1
 
     @property
     def current_waypoint_index(self):
@@ -89,7 +89,7 @@ class WaypointFollower:
 
         # Advance waypoint when robot passes waypoint x-position
         if root_pos[0] >= target[0] - WAYPOINT_THRESHOLD:
-            if self._current_wp < len(self._waypoints) - 1:
+            if self._current_wp < len(self._waypoints):
                 self._current_wp += 1
 
         return np.array([vx, vy, omega_z])

@@ -1,0 +1,184 @@
+# Navigation Policy Training Configuration
+# Hierarchical RL: High-level navigation + low-level SpotFlatTerrainPolicy
+
+# Environment geometry
+arena:
+  radius: 25.0  # meters (50m diameter)
+  center: [0.0, 0.0]
+  obstacle_buffer: 2.0  # no obstacles within 2m of start
+
+# Robot initial state
+robot:
+  start_position: [0.0, 0.0, 0.7]
+  start_orientation: [1.0, 0.0, 0.0, 0.0]  # quaternion [w,x,y,z]
+  fall_threshold: 0.25  # z-height below which robot has fallen
+
+# Action space (velocity commands to SpotFlatTerrainPolicy)
+action:
+  vx_range: [-0.5, 5.0]  # forward/back velocity (m/s)
+  vy_range: [-0.5, 0.5]  # left/right strafe (m/s)
+  omega_range: [-1.5, 1.5]  # turning rate (rad/s)
+
+# Observation space
+observation:
+  obstacle_rays: 16  # raycasts around robot
+  obstacle_ray_length: 5.0  # meters
+  use_stage_encoding: true  # one-hot stage encoding
+
+# Waypoint settings
+waypoints:
+  total_count: 25
+  capture_radius: 0.5  # meters
+  boundary_margin: 2.0  # keep waypoints inside arena by this margin
+
+# Obstacle settings (reuse from Baseline_Environment.py)
+obstacles:
+  light_max_mass: 0.45  # kg (pushable)
+  medium_max_mass: 32.7  # kg (Spot's mass, pushable with effort)
+  heavy_min_mass: 65.4  # kg (immovable, static)
+  small_static_size: [0.043, 0.102]  # meters [min, max]
+  clearance_waypoint: 5.0  # meters
+  clearance_boundary: 3.0  # meters
+
+# Scoring system (internal game logic)
+scoring:
+  initial_points: 300.0
+  time_decay_per_sec: 1.0
+  waypoint_bonus: 15.0
+
+# RL Reward weights
+reward:
+  time_penalty: 0.0  # REMOVED - time decay in score is sufficient
+  waypoint_capture: 10.0  # Reward for capturing each waypoint (score gets +15, reward gets +10)
+  timeout_penalty: -50.0  # Penalty if robot runs out of score points (reaches 0)
+  progress_shaping: 10.0  # alpha for distance-based shaping (Stages 2-5 only) - INCREASED for faster learning
+  distance_reward: 0.5  # reward for being close to waypoint (continuous shaping)
+  heading_reward: 0.2  # reward for facing toward waypoint
+  speed_reward: 0.3  # reward for moving fast when path is clear
+  wrong_direction_penalty: 2.0  # extra penalty multiplier when moving away from waypoint
+  fall_penalty: -50.0
+  boundary_penalty: -50.0  # if leaving arena (same as fall/timeout to prevent suicide strategy)
+
+# Curriculum stages
+curriculum:
+  success_window: 100  # episodes
+  success_threshold: 0.80  # 80% success rate to advance
+
+  stages:
+    - id: 1
+      name: "Random Walking"
+      max_time: 60.0  # seconds
+      waypoint_distance_first: null  # no waypoints
+      waypoint_distance_subsequent: null
+      obstacles_light_coverage: 0.0
+      obstacles_heavy_coverage: 0.0
+      obstacles_small_coverage: 0.0
+      use_progress_shaping: false
+      success_criterion: "No falls for 60s"
+      
+    - id: 2
+      name: "Waypoints 5m"
+      max_time: null  # NO TIME LIMIT - episode ends only when all waypoints captured or fall
+      waypoint_distance_first: 5.0
+      waypoint_distance_subsequent: 5.0
+      obstacles_light_coverage: 0.0
+      obstacles_heavy_coverage: 0.0
+      obstacles_small_coverage: 0.0
+      use_progress_shaping: true
+      success_criterion: "Capture all 25 waypoints"
+      
+    - id: 3
+      name: "Waypoints 10m"
+      max_time: null  # NO TIME LIMIT
+      waypoint_distance_first: 10.0
+      waypoint_distance_subsequent: 10.0
+      obstacles_light_coverage: 0.0
+      obstacles_heavy_coverage: 0.0
+      obstacles_small_coverage: 0.0
+      use_progress_shaping: true
+      success_criterion: "Capture all 25 waypoints"
+      
+    - id: 4
+      name: "Waypoints 20m"
+      max_time: null  # NO TIME LIMIT
+      waypoint_distance_first: 20.0
+      waypoint_distance_subsequent: 20.0
+      obstacles_light_coverage: 0.0
+      obstacles_heavy_coverage: 0.0
+      obstacles_small_coverage: 0.0
+      use_progress_shaping: true
+      success_criterion: "Capture all 25 waypoints"
+      
+    - id: 5
+      name: "Waypoints 20m then 40m"
+      max_time: null  # NO TIME LIMIT
+      waypoint_distance_first: 20.0
+      waypoint_distance_subsequent: 40.0
+      obstacles_light_coverage: 0.0
+      obstacles_heavy_coverage: 0.0
+      obstacles_small_coverage: 0.0
+      use_progress_shaping: true
+      success_criterion: "Capture all 25 waypoints"
+      
+    - id: 6
+      name: "Add Light Obstacles"
+      max_time: null  # NO TIME LIMIT
+      waypoint_distance_first: 20.0
+      waypoint_distance_subsequent: 40.0
+      obstacles_light_coverage: 0.10  # 10% of arena
+      obstacles_heavy_coverage: 0.0
+      obstacles_small_coverage: 0.0
+      use_progress_shaping: false  # remove shaping with obstacles
+      success_criterion: "Capture all 25 waypoints"
+      
+    - id: 7
+      name: "Add Heavy Obstacles"
+      max_time: null  # NO TIME LIMIT
+      waypoint_distance_first: 20.0
+      waypoint_distance_subsequent: 40.0
+      obstacles_light_coverage: 0.05  # reduce light to make room
+      obstacles_heavy_coverage: 0.05  # add heavy
+      obstacles_small_coverage: 0.0
+      use_progress_shaping: false
+      success_criterion: "Capture all 25 waypoints"
+      
+    - id: 8
+      name: "Add Small Static Obstacles"
+      max_time: null  # NO TIME LIMIT
+      waypoint_distance_first: 20.0
+      waypoint_distance_subsequent: 40.0
+      obstacles_light_coverage: 0.05
+      obstacles_heavy_coverage: 0.05
+      obstacles_small_coverage: 0.10  # 10% small static
+      use_progress_shaping: false
+      success_criterion: "Capture all 25 waypoints - TRAINING COMPLETE"
+
+# PPO hyperparameters
+ppo:
+  learning_rate: 5.0e-5  # RUN 2: Conservative learning rate for maximum stability
+  clip_param: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.01
+  gamma: 0.99
+  gae_lambda: 0.95
+  max_grad_norm: 0.5
+  target_kl: 0.015  # Early stopping if KL divergence exceeds this (prevents catastrophic updates)
+  ppo_epochs: 10  # Number of epochs to train on each batch (full batch per epoch)
+  
+# Network architecture
+network:
+  hidden_dims: [256, 256, 128]  # MLP layers
+  activation: "relu"
+  action_std: 0.3  # fixed std for Gaussian policy
+
+# Training settings
+training:
+  steps_per_iteration: 6000  # steps to collect before PPO update (6000/20Hz = 300s, matches score timeout)
+  checkpoint_frequency: 50  # save every N iterations
+  log_frequency: 1  # log every iteration
+  
+# Physics/rendering
+physics:
+  dt: 0.002  # 500 Hz (1/500)
+  rendering_dt: 0.02  # 50 Hz (1/50)
+  control_hz: 20  # high-level policy runs at 20 Hz

@@ -1,0 +1,214 @@
+TRAINING TRACKING - QUICK REFERENCE
+===================================
+
+4 WAYS TO TRACK YOUR RL TRAINING
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. TENSORBOARD (Real-Time Live Dashboard)                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ✓ When:    During training                                              │
+│ ✓ How:     Terminal 1: Run training                                     │
+│            Terminal 2: tensorboard --logdir ./runs/spot_rl --port 6006   │
+│            Browser:  http://localhost:6006                              │
+│ ✓ Best for: Watching training curves in real-time                       │
+│ ✓ Metrics:  Reward, Loss, Entropy, Success Rate, Episode Length         │
+│                                                                          │
+│ COMMAND:                                                                 │
+│   tensorboard --logdir ./runs/spot_rl --port 6006                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. CSV LOGS (Tabular Data Export)                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ✓ When:    After training completes                                     │
+│ ✓ Where:   ./runs/spot_rl/training_metrics.csv                          │
+│ ✓ Best for: Analysis in Excel, Python, analysis tools                   │
+│ ✓ Contains: Episode, Reward, Loss, Entropy, Success Rate, Timestamp     │
+│                                                                          │
+│ OPEN IN EXCEL:                                                           │
+│   File → Open → training_metrics.csv → Create charts                    │
+│                                                                          │
+│ PYTHON ANALYSIS:                                                         │
+│   import pandas as pd                                                    │
+│   df = pd.read_csv('./runs/spot_rl/training_metrics.csv')              │
+│   df.plot(x='episode', y='avg_reward')                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. ANALYSIS TOOL (Automated Reports & Plots)                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ✓ When:    After training                                               │
+│ ✓ How:     python analyze_training.py --log-dir ./runs/spot_rl --full   │
+│ ✓ Outputs: 6-panel plot + detailed statistics report                    │
+│ ✓ Creates: training_curves.png, analysis_report.txt                     │
+│                                                                          │
+│ QUICK SUMMARY:                                                           │
+│   python analyze_training.py --log-dir ./runs/spot_rl                   │
+│                                                                          │
+│ FULL ANALYSIS (plot + report):                                          │
+│   python analyze_training.py --log-dir ./runs/spot_rl --full            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 4. CHECKPOINTS (Model Snapshots)                                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ✓ Where:   ./checkpoints/spot_rl/spot_rl_ep{N}.pt                       │
+│ ✓ Saved:   Every 50 episodes + final model                              │
+│ ✓ Contains: Network weights, optimizer state, training metrics           │
+│ ✓ Use for:  Resume training, pick best model, evaluate at different     │
+│             stages of training                                          │
+│                                                                          │
+│ LOAD BEST CHECKPOINT:                                                    │
+│   checkpoint = torch.load('./checkpoints/spot_rl/spot_rl_final.pt')     │
+│   network.load_state_dict(checkpoint['policy_state_dict'])              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 5. CONSOLE OUTPUT (Terminal Feedback)                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ✓ When:    During training (printed every 10 episodes)                  │
+│ ✓ Where:   Terminal window running training                             │
+│ ✓ Shows:   Reward, Loss, Success Rate, Episode Length                   │
+│ ✓ Best for: Quick visual feedback while training                        │
+│                                                                          │
+│ EXAMPLE:                                                                 │
+│   ════════════════════════════════════════════════════════════           │
+│   [Episode 100/1000] Training Progress                                   │
+│   ════════════════════════════════════════════════════════════           │
+│     Reward:         145.2342 (max:   195.6, min:    98.3)               │
+│     Episode Length:     542.1 steps                                      │
+│     Success Rate:        40.0%                                           │
+│     Policy Loss:      0.234562                                           │
+│     Value Loss:       0.045123                                           │
+│     Total Loss:       0.128345                                           │
+│     Total Steps:          5420                                           │
+│   ════════════════════════════════════════════════════════════           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+RECOMMENDED WORKFLOW
+====================
+
+STEP 1: Start Training (Terminal 1)
+  cd c:\Users\user\Desktop\Capstone_vs_1.2\Immersive-Modeling-and-Simulation-for-Autonomy\Experiments\Cole
+  C:\isaac-sim\python.bat SpotRL_Training.py --episodes 1000
+
+  Wait for this output:
+  ╔════════════════════════════════════════════════════════════════════════╗
+  ║ TRAINING TRACKING SETUP                                                ║
+  ║ TensorBoard logs:  ./runs/spot_rl                                      ║
+  ║ CSV logs:          ./runs/spot_rl/training_metrics.csv                 ║
+  ║ Checkpoints:       ./checkpoints/spot_rl                               ║
+  ║                                                                        ║
+  ║ To monitor training in real-time, run:                                 ║
+  ║   tensorboard --logdir ./runs/spot_rl --port 6006                      ║
+  ║ Then open http://localhost:6006 in your browser                        ║
+  ╚════════════════════════════════════════════════════════════════════════╝
+
+STEP 2: Monitor in Real-Time (Terminal 2)
+  cd c:\Users\user\Desktop\Capstone_vs_1.2\Immersive-Modeling-and-Simulation-for-Autonomy\Experiments\Cole
+  tensorboard --logdir ./runs/spot_rl --port 6006
+  
+  Open browser: http://localhost:6006
+  
+  Watch live:
+   • Reward increasing? Good learning!
+   • Loss decreasing? Policy converging!
+   • Success rate rising? Robot learning to reach goal!
+
+STEP 3: Analyze After Training
+  python analyze_training.py --log-dir ./runs/spot_rl --full
+  
+  Creates:
+   • training_curves.png - 6-panel visualization
+   • analysis_report.txt - Detailed statistics
+   
+  View the PNG to see:
+   ✓ Reward trajectory
+   ✓ Success rate progression
+   ✓ Loss convergence
+   ✓ Episode lengths
+   ✓ Entropy (exploration)
+   ✓ Reward distribution by phase
+
+
+METRIC INTERPRETATION GUIDE
+============================
+
+GOOD SIGNS (Learning is working):
+  ✓ Reward increases over time
+  ✓ Success rate rises toward 80%+
+  ✓ Policy Loss decreases smoothly
+  ✓ Value Loss approaches zero
+  ✓ Entropy gradually decreases
+  → KEEP TRAINING
+
+BAD SIGNS (Something's wrong):
+  ✗ Reward plateaus or oscillates wildly
+  ✗ Success rate stays below 20%
+  ✗ Losses diverge (suddenly increase)
+  ✗ Training gets slower over time
+  → STOP AND CHECK: learning rate, reward function, motor control
+
+
+QUICK COMMANDS
+==============
+
+Start Training:
+  C:\isaac-sim\python.bat SpotRL_Training.py --episodes 1000
+
+Monitor with TensorBoard:
+  tensorboard --logdir ./runs/spot_rl --port 6006
+
+Analyze Results:
+  python analyze_training.py --log-dir ./runs/spot_rl --full
+
+Print Summary Only:
+  python analyze_training.py --log-dir ./runs/spot_rl
+
+Generate Plot Only:
+  python analyze_training.py --log-dir ./runs/spot_rl --plot ./plot.png
+
+Generate Report Only:
+  python analyze_training.py --log-dir ./runs/spot_rl --report ./report.txt
+
+
+FILES CREATED DURING TRAINING
+==============================
+
+runs/spot_rl/
+  ├─ events.out.tfevents.X...  (TensorBoard data)
+  ├─ training_metrics.csv      (CSV logs - MAIN FILE)
+  ├─ training_curves.png       (Plot - optional)
+  └─ analysis_report.txt       (Report - optional)
+
+checkpoints/spot_rl/
+  ├─ spot_rl_ep50.pt
+  ├─ spot_rl_ep50.json
+  ├─ spot_rl_ep100.pt
+  ├─ spot_rl_ep100.json
+  ├─ ...
+  ├─ spot_rl_final.pt          (BEST MODEL)
+  └─ spot_rl_final.json
+
+
+TROUBLESHOOTING
+===============
+
+Problem: TensorBoard shows no data
+Solution: Check ./runs/spot_rl/ exists and has event files
+          Verify correct --logdir path
+
+Problem: Can't connect to http://localhost:6006
+Solution: Port 6006 in use - try: tensorboard --port 6007
+          Or: taskkill /IM tensorflow.exe /F
+
+Problem: CSV file empty
+Solution: Training hasn't created entries yet (wait)
+          Or training crashed (check error)
+
+Problem: analyze_training.py ImportError
+Solution: pip install pandas matplotlib numpy
+
+
+For detailed guide, see: TRAINING_TRACKING_GUIDE.md
