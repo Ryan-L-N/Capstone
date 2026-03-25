@@ -62,25 +62,22 @@ def _create_friction_material(stage, name, mu_static, mu_dynamic):
     return mat_path
 
 
-def create_friction_environment(stage, cfg=None):
-    """Build the friction surface environment.
-
-    Creates 5 ground segments with decreasing friction coefficients.
-    Disables the default ground plane and replaces it with zone-specific segments.
+def _build_friction_zones(stage, env_key, arena_root):
+    """Shared builder used by both friction variants.
 
     Args:
-        stage: USD stage
-        cfg: Optional config (unused, params come from zone_params)
+        stage:      USD stage
+        env_key:    ZONE_PARAMS key ("friction" or "friction_v2")
+        arena_root: USD prim path for the arena root xform
     """
     from pxr import UsdGeom, UsdPhysics, UsdShade, Gf
 
     from envs.base_arena import disable_default_ground
     disable_default_ground(stage)
 
-    root = "/World/FrictionArena"
-    UsdGeom.Xform.Define(stage, root)
+    UsdGeom.Xform.Define(stage, arena_root)
 
-    zones = ZONE_PARAMS["friction"]
+    zones = ZONE_PARAMS[env_key]
 
     for i, zone in enumerate(zones):
         zone_idx = zone["zone"]
@@ -89,17 +86,15 @@ def create_friction_environment(stage, cfg=None):
         mu_s = zone["mu_static"]
         mu_d = zone["mu_dynamic"]
 
-        # Create physics material for this zone
         mat_path = _create_friction_material(
-            stage, f"FrictionZone{zone_idx}", mu_s, mu_d
+            stage, f"{arena_root.split('/')[-1]}Zone{zone_idx}", mu_s, mu_d
         )
 
-        # Create ground segment as a thin cube
         zone_width = x_end - x_start
         center_x = (x_start + x_end) / 2.0
         center_y = ARENA_WIDTH / 2.0
 
-        seg_path = f"{root}/zone_{zone_idx}"
+        seg_path = f"{arena_root}/zone_{zone_idx}"
         cube = UsdGeom.Cube.Define(stage, seg_path)
         cube.GetSizeAttr().Set(1.0)
 
@@ -109,12 +104,29 @@ def create_friction_environment(stage, cfg=None):
 
         cube.GetDisplayColorAttr().Set([Gf.Vec3f(*ZONE_COLORS[i])])
 
-        # Apply collision and material
         prim = cube.GetPrim()
         UsdPhysics.CollisionAPI.Apply(prim)
         binding = UsdShade.MaterialBindingAPI.Apply(prim)
         binding.Bind(UsdShade.Material.Get(stage, mat_path))
 
-    print(f"  Friction environment: {len(zones)} zones created")
+    print(f"  Friction environment ({env_key}): {len(zones)} zones created")
     for z in zones:
         print(f"    Zone {z['zone']}: mu_s={z['mu_static']}, mu_d={z['mu_dynamic']} — {z['label']}")
+
+
+def create_friction_environment(stage, cfg=None):
+    """Build the original friction surface environment (v1)."""
+    _build_friction_zones(stage, "friction", "/World/FrictionArena")
+
+
+def create_friction_v2_environment(stage, cfg=None):
+    """Build the v2 friction environment — tighter low-friction range.
+
+    Zone layout (all zones slip-range, no high-traction anchor):
+      Zone 1 (0-10m):  mu_s=0.38, mu_d=0.30  — Wet asphalt
+      Zone 2 (10-20m): mu_s=0.25, mu_d=0.18  — Wet grass
+      Zone 3 (20-30m): mu_s=0.15, mu_d=0.10  — Packed snow
+      Zone 4 (30-40m): mu_s=0.11, mu_d=0.07  — Loose/fresh snow
+      Zone 5 (40-50m): mu_s=0.08, mu_d=0.05  — Glaze ice
+    """
+    _build_friction_zones(stage, "friction_v2", "/World/FrictionArena")

@@ -7,13 +7,14 @@ Usage:
     env = build_environment("friction", stage, cfg)
 """
 
-from .friction_env import create_friction_environment
+from .friction_env import create_friction_environment, create_friction_v2_environment
 from .grass_env import create_grass_environment
 from .boulder_env import create_boulder_environment
 from .stairs_env import create_stairs_environment
 
 ENVIRONMENT_BUILDERS = {
     "friction": create_friction_environment,
+    "friction_v2": create_friction_v2_environment,
     "grass": create_grass_environment,
     "boulder": create_boulder_environment,
     "stairs": create_stairs_environment,

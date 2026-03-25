@@ -61,7 +61,7 @@ signal.signal(signal.SIGTERM, _graceful_shutdown)
 
 parser = argparse.ArgumentParser(description="Capstone 4-environment evaluation")
 parser.add_argument("--env", type=str, required=True,
-                    choices=["friction", "grass", "boulder", "stairs"],
+                    choices=["friction", "friction_v2", "grass", "boulder", "stairs"],
                     help="Environment to evaluate")
 parser.add_argument("--policy", type=str, required=True,
                     choices=["flat", "rough"],
@@ -259,11 +259,35 @@ def main():
             sim_time = step * CONTROL_DT
 
             # Record metrics
+            joint_pos_np = np.array(spot.robot.get_joint_positions(),
+                                    dtype=np.float64)
+            joint_vel_np = np.array(spot.robot.get_joint_velocities(),
+                                    dtype=np.float64)
+
+            # Estimate PD torques: τ = Kp*(target - pos) - Kd*vel
+            # Both flat and rough policies use position drives with the same gains.
+            try:
+                raw_targets = spot.robot._articulation_view \
+                    .get_joint_position_targets()
+                # Handle CUDA tensors or numpy arrays
+                if hasattr(raw_targets, 'cpu'):
+                    targets_np = raw_targets.cpu().numpy().flatten() \
+                        .astype(np.float64)
+                else:
+                    targets_np = np.array(raw_targets,
+                                          dtype=np.float64).flatten()
+                joint_torques_np = (STIFFNESS * (targets_np - joint_pos_np)
+                                    - DAMPING * joint_vel_np)
+            except Exception:
+                joint_torques_np = None
+
             metrics_collector.step(
                 root_pos=pos_np,
                 root_quat=quat_np,
                 root_lin_vel=lin_vel_np,
                 root_ang_vel=ang_vel_np,
+                joint_torques=joint_torques_np,
+                joint_vel=joint_vel_np,
                 sim_time=sim_time,
             )
 
