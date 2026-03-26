@@ -88,6 +88,8 @@ class NavigationEnvironment:
         self.reward_wrong_direction_penalty = self.config['reward'].get('wrong_direction_penalty', 0.0)
         self.reward_fall = self.config['reward']['fall_penalty']
         self.reward_boundary = self.config['reward']['boundary_penalty']
+        self.reward_stillness = self.config['reward'].get('stillness_penalty', 0.0)  # NEW: penalty for not moving
+        self.reward_stillness = self.config['reward'].get('stillness_penalty', 0.0)  # NEW: penalty for not moving
         
         # Physics
         self.control_dt = 1.0 / self.config['physics']['control_hz']
@@ -108,17 +110,34 @@ class NavigationEnvironment:
         self.last_waypoint_distance = None
         self.episode_active = False
         
+        # Force-based inference for obstacle classification
+        self.recent_contact_force = 0.0  # Rolling average of contact force magnitude
+        self.recent_joint_effort = 0.0   # Estimated joint torque/effort
+        self.push_detected = False       # Whether robot is currently pushing
+        self.push_efficiency = 0.0       # Movement gained per unit effort
+        self.contact_force_history = []  # Last N contact forces for trending
+        self.max_contact_history = 10    # Window size for force history
+        self._last_speed = 0.0           # Previous speed for acceleration calculation
+        
         # Curriculum tracking
         self.episode_history = []  # Last N episodes for success calculation
         self.total_episodes = 0
         
-        # Stage 7 obstacle intelligence reset
-        self.bump_count_per_episode = 0
-        self.repeated_bump_positions = {}
-        
         # Obstacle manager - simplified for now
         # TODO: Integrate full ObstacleManager from Baseline_Environment
         self.obstacle_mgr = None
+        
+        # Stage 3: Object Pushing Training tracking
+        self.objects_pushed = {}  # Dict: object_id -> total_distance_pushed
+        self.lightweight_objects_found = 0  # Count of unique light objects pushed >= 1m
+        self.stage_3_push_threshold = 1.0  # meters - minimum push distance to count success
+        self.current_object_id = 0  # Unique ID for current object being pushed
+        self.last_contact_time = 0.0  # Timestamp of last contact with obstacle
+        self.contact_loss_threshold = 0.5  # seconds - treat as new object if contact lost this long
+        self.push_exploration_weight = 0.5  # Reward for initial contact with pushable objects
+        self.push_sustained_weight = 0.8  # Reward for sustained pushing momentum
+        self.push_success_weight = 15.0  # Bonus for each successful 1m+ push
+        self.push_wasted_effort_weight = -0.3  # Penalty for high effort without progress
         
         # Control timing
         self.last_control_time = 0.0
@@ -130,19 +149,6 @@ class NavigationEnvironment:
         self._last_vel = np.zeros(3)
         self._last_vx = 0.0
         self._last_vy = 0.0
-        
-        # Stage 7+ obstacle intelligence (contact force feedback & repeated bump detection)
-        self.recent_contact_force = 0.0  # Normalized contact force magnitude [0, 1]
-        self.contact_force_history = []  # Last N contact forces for trending
-        self.max_contact_history = 10    # Window size for force history
-        self.last_contact_time = 0.0     # Timestamp of last contact with obstacle
-        self.contact_loss_threshold = 0.5  # seconds - treat as new object if contact lost this long
-        self.bump_count_per_episode = 0  # Number of distinct bumps in current episode
-        self.repeated_bump_positions = {}  # {world_position_key: bump_count} for tracking repeated bumps
-        self.bump_position_threshold = 0.5  # meters - grouping distance for same obstacle
-        self.max_bumps_before_penalty = 3  # Allow testing, penalize after N bumps
-        self.repeated_bump_penalty = -0.2  # Penalty for bumping same obstacle multiple times
-        self.test_bonus = 0.1  # Bonus for first contact with obstacle
         
     def reset(self, stage_id: Optional[int] = None) -> np.ndarray:
         """
@@ -164,11 +170,6 @@ class NavigationEnvironment:
         self.spot.robot.set_linear_velocity(np.zeros(3))
         self.spot.robot.set_angular_velocity(np.zeros(3))
         self.spot.robot.set_joints_default_state(self.spot.default_pos)
-        
-        # Reset contact force tracking
-        self.recent_contact_force = 0.0
-        self.contact_force_history = []
-        self.last_contact_time = 0.0
         
         # Reset episode state
         self.score = self.initial_points
@@ -198,6 +199,13 @@ class NavigationEnvironment:
                              stage['obstacles_small_coverage'])
             if total_coverage > 0:
                 self._spawn_obstacles(stage)
+        
+        # Reset Stage 3 (Object Pushing) tracking
+        if self.current_stage == 2:  # Stage 3 is index 2 (0-indexed)
+            self.objects_pushed = {}
+            self.lightweight_objects_found = 0
+            self.current_object_id = 0  # Start with first object
+            self.last_contact_time = self.world.current_time
         
         # Get initial observation
         obs = self._get_observation()
@@ -248,6 +256,10 @@ class NavigationEnvironment:
         pos, ori = self.spot.robot.get_world_pose()
         robot_x, robot_y, robot_z = pos[0], pos[1], pos[2]
         
+        # Track movement for stagnation penalty (Stages 1-2)
+        if not hasattr(self, '_last_robot_pos'):
+            self._last_robot_pos = pos.copy()
+        
         # Check termination conditions
         done = False
         fall = robot_z < self.fall_threshold
@@ -262,6 +274,15 @@ class NavigationEnvironment:
         
         # Calculate reward
         reward = self.reward_time_penalty  # constant time penalty
+        
+        # Stagnation penalty for Stages 1-3 (stability + pushing training)
+        if self.current_stage < 3:  # Stages 1, 2, 3 (0-indexed: 0, 1, 2)
+            dist_moved = np.linalg.norm(pos[:2] - self._last_robot_pos[:2])
+            min_movement_threshold = 0.05  # meters per timestep
+            if dist_moved < min_movement_threshold and self.reward_stillness < 0:
+                stagnation_penalty = self.reward_stillness * (self.control_dt / 0.05)  # scale to standard timestep
+                reward += stagnation_penalty
+            self._last_robot_pos = pos.copy()
         
         # Speed reward - encourage fast movement when path is clear AND far from waypoint
         if self.reward_speed_weight > 0:
@@ -306,21 +327,14 @@ class NavigationEnvironment:
             else:
                 # Enhanced reward shaping (Stages 2-5 only)
                 if stage['use_progress_shaping']:
-                    # 1. Progress shaping - reward for getting closer, PENALTY for moving away
+                    # 1. Progress shaping - reward for getting closer to waypoint
                     if self.last_waypoint_distance is not None:
                         progress = self.last_waypoint_distance - dist_to_wp
                         progress_reward = self.reward_progress_alpha * progress
-                        # Apply extra penalty if moving in wrong direction
-                        if progress < 0 and self.reward_wrong_direction_penalty > 0:
-                            progress_reward *= self.reward_wrong_direction_penalty
+                        # Simple reward: positive for progress, zero or small negative for moving away
                         reward += progress_reward
                     
-                    # 2. Distance-based reward - continuous guidance (inverse distance)
-                    # Reward decreases with distance, max at 1m, zero at 20m
-                    distance_reward = self.reward_distance_weight * max(0, 1.0 - dist_to_wp / 20.0)
-                    reward += distance_reward
-                    
-                    # 3. Heading reward - reward for facing toward waypoint (applies throughout approach)
+                    # 2. Heading reward - reward for facing toward waypoint (applies throughout approach)
                     if self.reward_heading_weight > 0:
                         # Get robot heading
                         vel = self.spot.robot.get_linear_velocity()
@@ -332,7 +346,7 @@ class NavigationEnvironment:
                             heading_reward = self.reward_heading_weight * max(0, heading_alignment)
                             reward += heading_reward
                     
-                    # 4. Proximity deceleration reward - encourage slowing near waypoint
+                    # 3. Proximity deceleration reward - encourage slowing near waypoint
                     # Reward low speed when within 2.5m of waypoint to enable smooth capture
                     if dist_to_wp < 2.5:
                         vel = self.spot.robot.get_linear_velocity()
@@ -346,28 +360,81 @@ class NavigationEnvironment:
                 
                 self.last_waypoint_distance = dist_to_wp
         
+        # Force-based pushing rewards and penalties (all stages, but scaled by stage priority)
+        # Scales: Stages 1-2 get 0.2x, Stage 3 gets 1.0x, Stages 4-7 get 0.4x
+        if self.current_stage < 2:
+            push_scale = 0.2  # Stages 1-2: low priority (focus on stability)
+        elif self.current_stage == 2:
+            push_scale = 1.0  # Stage 3: full rewards (dedicated pushing training)
+        else:
+            push_scale = 0.4  # Stages 4-7: reduced (focus on navigation)
+        
+        contact_force = self._calculate_contact_force()
+        joint_effort = self._calculate_joint_effort()
+        vel = self.spot.robot.get_linear_velocity()
+        speed = np.linalg.norm(vel[:2])
+        
+        # Reward contact with light objects (high contact force + low joint effort)
+        if contact_force > 0.4 and joint_effort < 0.7:
+            # Light contact detected - reward exploration and pushing
+            push_exploration_reward = push_scale * self.push_exploration_weight * contact_force * (1.0 - joint_effort)
+            reward += push_exploration_reward
+            
+            # Bonus reward for sustained pushing (moving while in contact)
+            if speed > 0.2:
+                sustained_push_reward = push_scale * self.push_sustained_weight * contact_force
+                reward += sustained_push_reward
+            else:
+                # Penalty for high contact without moving (stuck pushing attempt)
+                stuck_penalty = push_scale * self.push_wasted_effort_weight * contact_force
+                reward += stuck_penalty
+        elif contact_force > 0.3 and joint_effort > 0.8:
+            # High effort with moderate contact but likely not pushing effectively
+            wasted_push_effort = push_scale * self.push_wasted_effort_weight * joint_effort
+            reward += wasted_push_effort
+        
+        # Track cumulative distance traveled while pushing (Stage 3 unique objects)
+        if self.current_stage == 2:  # Stage 3 only
+            # Detect contact loss - if no contact for loss threshold, next contact = new object
+            if contact_force < 0.2:
+                time_since_contact = self.world.current_time - self.last_contact_time
+                if time_since_contact > self.contact_loss_threshold and self.lightweight_objects_found < 5:
+                    # Transition to next object on next contact
+                    pass  # Will increment when contact resumes
+            elif contact_force > 0.3 and speed > 0.1:
+                # In active contact and moving: accumulate distance
+                current_obj_str = str(self.current_object_id)
+                if current_obj_str not in self.objects_pushed:
+                    self.objects_pushed[current_obj_str] = 0.0
+                
+                dist_traveled = speed * self.control_dt
+                self.objects_pushed[current_obj_str] += dist_traveled
+                self.last_contact_time = self.world.current_time
+                
+                # Check if this object has reached the 1m threshold
+                if self.objects_pushed[current_obj_str] >= self.stage_3_push_threshold:
+                    if self.lightweight_objects_found < 5:
+                        # Reward each successful unique push
+                        push_success_reward = self.push_success_weight
+                        reward += push_success_reward
+                        self.lightweight_objects_found += 1
+                        # Move to next object ID
+                        self.current_object_id += 1
+                        self.objects_pushed[current_obj_str] = 0.0  # Reset this object
+            elif contact_force > 0.2:
+                # Light contact but not moving - just update timestamp
+                self.last_contact_time = self.world.current_time
+        
         # Fall penalty
         if fall:
             reward += self.reward_fall
-        
-        # Boundary penalty
-        if out_of_bounds:
-            reward += self.reward_boundary
-        
-        # Stage 7+ Obstacle Intelligence Rewards & Penalties (detect push resistance, not immediate termination)
-        if self.current_stage >= 6:  # Stage 7 is index 6 (0-indexed)
-            # Detect if robot is pushing into heavy (immovable) obstacles
-            high_resistance = self._detect_push_resistance()
-            if high_resistance:
-                # High effort + high contact + low progress = can't push this obstacle
-                # Reward for learning that this obstacle is immovable
-                reward += 0.1  # Small reward for detecting immovable obstacle
-                # (robot should learn to navigate around on next attempt)
-        
-        # Boundary penalty
-        if out_of_bounds:
-            reward += self.reward_boundary
             done = True
+            self.score = 0
+        
+        # Boundary penalty (soft penalty - episode continues to allow learning)
+        if out_of_bounds:
+            reward += self.reward_boundary
+            # Do NOT terminate episode - let agent learn to avoid boundaries through penalty
         
         # Timeout penalty (ran out of score points)
         if timeout and self.score <= 0:
@@ -390,8 +457,16 @@ class NavigationEnvironment:
             'boundary': out_of_bounds,
             'timeout': timeout,
             'waypoint_captured_this_step': waypoint_captured,
-            'success': (self.waypoints_captured >= len(self.waypoints)) if self.waypoints else (self.episode_time >= stage['max_time'] and not fall)
+            'objects_pushed_count': self.lightweight_objects_found if self.current_stage == 2 else 0,
         }
+        
+        # Determine success based on stage
+        if self.current_stage == 2:  # Stage 3: Object Pushing
+            info['success'] = self.lightweight_objects_found >= 5
+            if info['success']:
+                done = True
+        else:  # Stages 1-2 and 4-7: by waypoint capture or time limit
+            info['success'] = (self.waypoints_captured >= len(self.waypoints)) if self.waypoints else (self.episode_time >= stage['max_time'] and not fall)
         
         # Track episode completion
         if done:
@@ -415,11 +490,11 @@ class NavigationEnvironment:
         - Multi-layer obstacle distances (16 rays × 3 heights): 48
         - Foot contact (4 feet): 4
         - Leg joint summary (4 legs avg angle): 4
-        - Stage encoding (one-hot): 8
-        Total: 76 dimensions
+        - Stage encoding (one-hot): 7
+        Total: 75 dimensions
         
         Returns:
-            observation vector, shape (76,)
+            observation vector, shape (75,)
         """
         obs = []
         
@@ -475,78 +550,12 @@ class NavigationEnvironment:
         foot_contacts = self._get_foot_contacts()
         obs.extend(foot_contacts)
         
-        # Contact force feedback for Stage 7 obstacle intelligence (1 value)
-        contact_force = self._calculate_contact_force()
-        obs.append(contact_force)
-        
-        # Joint effort feedback for detecting push resistance (1 value)
-        joint_effort = self._calculate_joint_effort()
-        obs.append(joint_effort)
-        
         # Leg joint summary (4 legs, average joint angle per leg)
         leg_joint_angles = self._get_leg_joint_summary()
         obs.extend(leg_joint_angles)
         
-        # Stage encoding (8 - one-hot)
-        stage_encoding = [0.0] * 8
-        stage_encoding[self.current_stage] = 1.0
-        obs.extend(stage_encoding)
-        
-        return np.array(obs, dtype=np.float32)
-    
-    def get_network_observation(self) -> np.ndarray:
-        """
-        Extract network-compatible observation (32 dimensions).
-        
-        This is the simplified observation used by NavigationPolicy (32-dim):
-        - Base velocity: [vx, vy, omega] (3)
-        - Heading: [sin(yaw), cos(yaw)] (2)
-        - Waypoint info: [dx, dy, distance] (3)
-        - Obstacle distances: 16 raycasts (single layer) (16)
-        - Stage encoding: one-hot (8)
-        Total: 32 dimensions
-        
-        Returns:
-            observation vector, shape (32,)
-        """
-        obs = []
-        
-        # Get robot state
-        pos, ori = self.spot.robot.get_world_pose()
-        vel = self.spot.robot.get_linear_velocity()
-        angvel = self.spot.robot.get_angular_velocity()
-        
-        robot_x, robot_y = pos[0], pos[1]
-        yaw = self._quat_to_yaw(ori)
-        
-        # Base velocity (3)
-        obs.extend([vel[0], vel[1], angvel[2]])
-        
-        # Heading (2)
-        obs.extend([np.sin(yaw), np.cos(yaw)])
-        
-        # Waypoint info (3)
-        if self.waypoints and self.current_waypoint_idx < len(self.waypoints):
-            wp = self.waypoints[self.current_waypoint_idx]
-            # World frame
-            dx_world = wp[0] - robot_x
-            dy_world = wp[1] - robot_y
-            # Rotate to robot frame
-            cos_yaw = np.cos(yaw)
-            sin_yaw = np.sin(yaw)
-            dx_robot = dx_world * cos_yaw + dy_world * sin_yaw
-            dy_robot = -dx_world * sin_yaw + dy_world * cos_yaw
-            distance = np.sqrt(dx_world**2 + dy_world**2)
-            obs.extend([dx_robot, dy_robot, distance])
-        else:
-            obs.extend([0.0, 0.0, 0.0])
-        
-        # Obstacle distances - single layer only (16 rays)
-        obstacle_dists = self._raycast_obstacles(robot_x, robot_y, yaw, height_offset=self.raycast_heights[0])
-        obs.extend(obstacle_dists)
-        
-        # Stage encoding (8 - one-hot)
-        stage_encoding = [0.0] * 8
+        # Stage encoding (7 - one-hot for current curriculum)
+        stage_encoding = [0.0] * 7
         stage_encoding[self.current_stage] = 1.0
         obs.extend(stage_encoding)
         
@@ -595,9 +604,142 @@ class NavigationEnvironment:
     
     def _spawn_obstacles(self, stage: Dict):
         """Spawn obstacles based on stage configuration."""
-        # This would integrate with ObstacleManager from Baseline_Environment.py
-        # For now, simplified version - you'll need to adapt the full logic
-        pass
+        if not hasattr(self, 'rng'):
+            self.rng = np.random.default_rng(seed=42)
+        
+        # Draw arena boundary (circular boundary)
+        self._draw_arena_boundary()
+        
+        # Calculate number of obstacles to spawn
+        light_coverage = stage['obstacles_light_coverage']
+        heavy_coverage = stage['obstacles_heavy_coverage']
+        small_coverage = stage['obstacles_small_coverage']
+        
+        # Estimate arena area and spawn counts
+        arena_area = np.pi * (self.arena_radius ** 2)
+        
+        # Spawn light obstacles
+        num_light = max(1, int(arena_area * light_coverage / 0.1))
+        for i in range(num_light):
+            self._spawn_random_obstacle(i, mass_range=(0.1, 0.45))
+        
+        # Spawn heavy obstacles
+        num_heavy = max(1, int(arena_area * heavy_coverage / 0.1))
+        for i in range(num_heavy + num_light, num_heavy + num_light + num_heavy):
+            self._spawn_random_obstacle(i, mass_range=(65.4, 100.0))
+        
+        # Spawn small static obstacles
+        num_small = max(1, int(arena_area * small_coverage / 0.1))
+        for i in range(num_heavy + num_light + num_heavy, num_heavy + num_light + num_heavy + num_small):
+            self._spawn_small_obstacle(i)
+    
+    def _draw_arena_boundary(self):
+        """Draw the arena boundary as a visual ring."""
+        from omni.isaac.core.prims import GeometryPrim
+        import omni.kit.commands as commands
+        
+        # Create a torus to represent the arena boundary
+        boundary_path = "/World/ArenaRim"
+        major_radius = self.arena_radius
+        minor_radius = 0.2  # 20cm thickness for visibility
+        
+        try:
+            commands.execute('CreatePrimWithDefaultXformFromStore',
+                prim_type="Torus",
+                prim_path=boundary_path)
+            
+            torus = self.stage.GetPrimAtPath(boundary_path)
+            if torus:
+                # Set appearance
+                torus_geom = torus.GetChild("Torus")
+                if torus_geom:
+                    material_path = "/World/Looks/BoundaryMaterial"
+                    commands.execute('CreateMaterial',
+                        material_path=material_path,
+                        material_name="BoundaryMaterial")
+        except:
+            pass  # Fallback - arena still exists even if boundary visual fails
+    
+    def _spawn_random_obstacle(self, idx: int, mass_range=(0.1, 0.45)):
+        """Spawn a random obstacle inside the arena."""
+        from pxr import UsdGeom, Gf
+        
+        max_attempts = 20
+        for _ in range(max_attempts):
+            # Random position inside arena
+            angle = self.rng.uniform(0, 2 * np.pi)
+            r = self.rng.uniform(2.0, self.arena_radius - 2.0)  # Keep 2m from boundary
+            x = self.arena_center[0] + r * np.cos(angle)
+            y = self.arena_center[1] + r * np.sin(angle)
+            
+            # Check distance from start position
+            if np.sqrt((x - 0)**2 + (y - 0)**2) < 3.0:  # 3m buffer from start
+                continue
+            
+            break
+        else:
+            return  # Could not find position
+        
+        mass = self.rng.uniform(mass_range[0], mass_range[1])
+        size = self.rng.uniform(0.2, 0.5)
+        
+        # Choose color based on mass
+        if mass < 0.5:
+            color = Gf.Vec3f(0.2, 0.8, 0.2)  # Green for light
+        else:
+            color = Gf.Vec3f(0.8, 0.2, 0.2)  # Red for heavy
+        
+        prim_path = f"/World/Obstacles/Obst_{idx:03d}"
+        
+        # Create a simple cube obstacle
+        cube = UsdGeom.Cube.Define(self.stage, prim_path)
+        cube.GetSizeAttr().Set(size)
+        cube.AddTranslateOp().Set((x, y, size/2))
+        
+        # Add physics
+        try:
+            from pxr import UsdPhysics, PhysxSchema
+            
+            rigid_body = UsdPhysics.RigidBodyAPI.Apply(self.stage.GetPrimAtPath(prim_path))
+            mass_api = UsdPhysics.MassAPI.Apply(self.stage.GetPrimAtPath(prim_path))
+            mass_api.GetMassAttr().Set(mass)
+            
+            collider = UsdPhysics.CollisionAPI.Apply(self.stage.GetPrimAtPath(prim_path))
+        except:
+            pass
+    
+    def _spawn_small_obstacle(self, idx: int):
+        """Spawn a small static obstacle."""
+        from pxr import UsdGeom, Gf
+        
+        max_attempts = 20
+        for _ in range(max_attempts):
+            # Random position inside arena
+            angle = self.rng.uniform(0, 2 * np.pi)
+            r = self.rng.uniform(2.0, self.arena_radius - 2.0)
+            x = self.arena_center[0] + r * np.cos(angle)
+            y = self.arena_center[1] + r * np.sin(angle)
+            
+            if np.sqrt((x - 0)**2 + (y - 0)**2) < 3.0:
+                continue
+            
+            break
+        else:
+            return
+        
+        size = self.rng.uniform(0.04, 0.15)
+        prim_path = f"/World/SmallObstacles/Small_{idx:03d}"
+        
+        # Create a small sphere
+        sphere = UsdGeom.Sphere.Define(self.stage, prim_path)
+        sphere.GetRadiusAttr().Set(size/2)
+        sphere.AddTranslateOp().Set((x, y, size/2))
+        
+        try:
+            from pxr import UsdPhysics
+            collider = UsdPhysics.CollisionAPI.Apply(self.stage.GetPrimAtPath(prim_path))
+        except:
+            pass
     
     def _raycast_obstacles(self, robot_x: float, robot_y: float, yaw: float, height_offset: float = 0.0) -> List[float]:
         """
@@ -675,48 +817,13 @@ class NavigationEnvironment:
         Returns:
             list of 4 values (0.0-1.0), one per foot indicating contact pressure
         """
+        contacts = []
+        # Simplified: return [1.0, 1.0, 1.0, 1.0] if robot is not falling
+        # In full implementation, query actual contact forces from physics engine
         pos = self.spot.robot.get_world_pose()[0]
         is_falling = pos[2] < self.fall_threshold
         contact_value = 0.0 if is_falling else 1.0
-        
-        # Update contact force tracking
-        self._update_contact_force(contact_value)
-        
         return [contact_value, contact_value, contact_value, contact_value]
-    
-    def _calculate_contact_force(self) -> float:
-        """
-        Calculate total contact force magnitude from foot contacts.
-        
-        Returns:
-            normalized contact force in [0, 1]
-        """
-        # Average of recent contact forces
-        if len(self.contact_force_history) == 0:
-            return 0.0
-        return np.mean(self.contact_force_history)
-    
-    def _update_contact_force(self, contact_value: float) -> None:
-        """Track contact force history for trending."""
-        self.contact_force_history.append(contact_value)
-        if len(self.contact_force_history) > self.max_contact_history:
-            self.contact_force_history.pop(0)
-        self.recent_contact_force = np.mean(self.contact_force_history)
-    
-    def _get_position_key(self, pos: np.ndarray) -> tuple:
-        """
-        Convert continuous world position to discrete position bucket.
-        Used for grouping nearby bumps as the same obstacle.
-        
-        Args:
-            pos: [x, y] position in world frame
-        
-        Returns:
-            tuple key for position bucket based on bump_position_threshold
-        """
-        bucket_x = int(np.round(pos[0] / self.bump_position_threshold))
-        bucket_y = int(np.round(pos[1] / self.bump_position_threshold))
-        return (bucket_x, bucket_y)
     
     def _get_leg_joint_summary(self) -> List[float]:
         """
@@ -734,6 +841,99 @@ class NavigationEnvironment:
             # Neutral leg posture = 0.5 (middle of range)
             leg_angles.append(0.5)
         return leg_angles
+    
+    def _calculate_contact_force(self) -> float:
+        """
+        Estimate contact force magnitude from foot contacts.
+        
+        Returns:
+            contact_force: normalized contact force (0.0 to 1.0)
+        """
+        # Get foot contact feedback
+        foot_contacts = self._get_foot_contacts()
+        
+        # Average contact across all feet (0.0-1.0 per foot)
+        avg_contact = np.mean(foot_contacts) if foot_contacts else 0.0
+        
+        # Store in history for trending
+        self.contact_force_history.append(avg_contact)
+        if len(self.contact_force_history) > self.max_contact_history:
+            self.contact_force_history.pop(0)
+        
+        # Update rolling average
+        self.recent_contact_force = np.mean(self.contact_force_history) if self.contact_force_history else 0.0
+        
+        return self.recent_contact_force
+    
+    def _calculate_joint_effort(self) -> float:
+        """
+        Estimate joint effort from velocity and acceleration changes.
+        
+        Returns:
+            joint_effort: normalized effort level (0.0 to 1.0)
+        """
+        # Get current velocity
+        vel = self.spot.robot.get_linear_velocity()
+        current_speed = np.linalg.norm(vel[:2])
+        
+        # Estimate effort from acceleration (velocity change per timestep)
+        accel = abs(current_speed - getattr(self, '_last_speed', current_speed)) / (self.control_dt + 1e-6)
+        self._last_speed = current_speed
+        
+        # High acceleration/deceleration indicates high joint effort
+        # Normalize to 0-1 range (assuming max effort produces ~5 m/s^2)
+        joint_effort = min(1.0, accel / 5.0)
+        self.recent_joint_effort = joint_effort
+        
+        return joint_effort
+    
+    def _calculate_push_efficiency(self, robot_vel: np.ndarray, waypoint_dir: np.ndarray) -> float:
+        """
+        Calculate push efficiency: how effectively is effort translating to waypoint progress?
+        
+        Args:
+            robot_vel: current robot velocity [vx, vy]
+            waypoint_dir: normalized direction to waypoint
+        
+        Returns:
+            push_efficiency: 0.0 (wasted effort) to 1.0 (perfect alignment)
+        """
+        if np.linalg.norm(robot_vel[:2]) < 0.05:
+            return 0.0  # Not moving
+        
+        vel_direction = robot_vel[:2] / (np.linalg.norm(robot_vel[:2]) + 1e-6)
+        
+        # Dot product: how aligned is velocity with waypoint direction?
+        # Positive = moving toward waypoint (efficient)
+        # Negative = moving away (inefficient)
+        alignment = np.dot(vel_direction, waypoint_dir)
+        
+        # Convert from [-1, 1] to [0, 1]
+        efficiency = max(0.0, alignment)
+        self.push_efficiency = efficiency
+        
+        return efficiency
+    
+    def _detect_push_resistance(self) -> bool:
+        """
+        Detect if robot is encountering high resistance (heavy obstacle).
+        
+        Returns:
+            high_resistance: True if pushing into obstacle, False otherwise
+        """
+        # High resistance indicated by:
+        # 1. High joint effort AND
+        # 2. Low velocity (not making progress despite effort)
+        effort = self.recent_joint_effort
+        contact = self.recent_contact_force
+        vel = self.spot.robot.get_linear_velocity()
+        speed = np.linalg.norm(vel[:2])
+        
+        # Detection: high effort + high contact + low speed = obstacle resistance
+        high_resistance = effort > 0.6 and contact > 0.7 and speed < 0.5
+        self.push_detected = high_resistance
+        
+        return high_resistance
     
     def get_success_rate(self) -> float:
         """Get success rate over last N episodes."""
@@ -759,45 +959,3 @@ class NavigationEnvironment:
             self.episode_history.clear()  # Reset history for new stage
             return True
         return False
-    def _detect_push_resistance(self) -> bool:
-        """
-        Detect if robot is encountering high resistance (heavy obstacle).
-        
-        Returns:
-            high_resistance: True if pushing into obstacle, False otherwise
-        """
-        # High resistance indicated by:
-        # 1. High joint effort AND
-        # 2. High contact force AND
-        # 3. Low velocity (not making progress despite effort)
-        effort = self.recent_joint_effort
-        contact = self.recent_contact_force
-        vel = self.spot.robot.get_linear_velocity()
-        speed = np.linalg.norm(vel[:2])
-        
-        # Detection: high effort + high contact + low speed = obstacle resistance
-        high_resistance = effort > 0.6 and contact > 0.7 and speed < 0.5
-        
-        return high_resistance
-
-    def _calculate_joint_effort(self) -> float:
-        """
-        Estimate joint effort from velocity and acceleration changes.
-        
-        Returns:
-            joint_effort: normalized effort level (0.0 to 1.0)
-        """
-        # Get current velocity
-        vel = self.spot.robot.get_linear_velocity()
-        current_speed = np.linalg.norm(vel[:2])
-        
-        # Estimate effort from acceleration (velocity change per timestep)
-        accel = abs(current_speed - getattr(self, '_last_speed', current_speed)) / (self.control_dt + 1e-6)
-        self._last_speed = current_speed
-        
-        # High acceleration/deceleration indicates high joint effort
-        # Normalize to 0-1 range (assuming max effort produces ~5 m/s^2)
-        joint_effort = min(1.0, accel / 5.0)
-        self.recent_joint_effort = joint_effort
-        
-        return joint_effort

@@ -2,6 +2,7 @@
 Navigation Policy Training
 ==========================
 Main training script for hierarchical RL navigation policy.
+RL_FOLDER_VS3: 5-stage curriculum with obstacles at every level.
 
 Usage:
     python train_navigation.py --headless --iterations 10000
@@ -26,8 +27,12 @@ parser.add_argument("--iterations", type=int, default=10000, help="Training iter
 parser.add_argument("--config", type=str, default="nav_config.yaml", help="Config file")
 parser.add_argument("--checkpoint", type=str, default=None, help="Resume from checkpoint")
 parser.add_argument("--checkpoint-dir", type=str, default="checkpoints/navigation_policy", help="Directory for checkpoints")
-parser.add_argument("--stage", type=int, default=1, help="Starting curriculum stage (0-7, default=1 for Stage 2)")
+parser.add_argument("--stage", type=int, default=1, help="Starting curriculum stage (1-7, default=1)")
+parser.add_argument("--stop-at-stage-complete", action="store_true", help="Stop training when stage reaches 80% success (allows testing before advancing)")
 args = parser.parse_args()
+
+# Convert user-facing 1-indexed stage to 0-indexed for internal use
+args.stage = args.stage - 1
 
 # Initialize Isaac Sim
 from isaacsim import SimulationApp
@@ -66,7 +71,7 @@ def main():
     log_file = open(checkpoint_dir / "training_log.txt", "w", encoding="utf-8")
     
     log("=" * 80, log_file)
-    log("NAVIGATION POLICY TRAINING - HIERARCHICAL RL", log_file)
+    log("NAVIGATION POLICY TRAINING - HIERARCHICAL RL (VS3 - 5 STAGE)", log_file)
     log("=" * 80, log_file)
     log(f"Config: {args.config}", log_file)
     log(f"Iterations: {args.iterations}", log_file)
@@ -112,9 +117,9 @@ def main():
     world.add_physics_callback("spot_navigation_control", on_physics_step)
     log("Physics callback registered", log_file)
     
-    # Create policy
+    # Create policy - UPDATED FOR 75-DIMENSIONAL OBSERVATION SPACE (7 stages)
     log("Creating navigation policy...", log_file)
-    obs_dim = 32
+    obs_dim = 75  # Multi-sensor fusion: 3 + 2 + 4 + 3 + 48 + 4 + 4 + 7 = 75
     action_dim = 3
     policy = NavigationPolicy(
         obs_dim=obs_dim,
@@ -123,6 +128,8 @@ def main():
         activation=config['network']['activation']
     )
     log(f"Policy created with {sum(p.numel() for p in policy.parameters())} parameters", log_file)
+    log(f"  Observation dimension: {obs_dim}", log_file)
+    log(f"  Action dimension: {action_dim}", log_file)
     
     # Create PPO trainer
     log("Creating PPO trainer...", log_file)
@@ -137,19 +144,17 @@ def main():
         policy.load_state_dict(checkpoint['policy_state_dict'])
         trainer.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_iter = checkpoint.get('iteration', 0) + 1
-        checkpoint_stage = checkpoint.get('stage', args.stage - 1)
+        checkpoint_stage = checkpoint.get('stage', args.stage)
         # Use command-line stage if explicitly provided (allows advancing stages)
-        # Convert from 1-indexed (stages 1-8) to 0-indexed (index 0-7)
-        env.current_stage = args.stage - 1
+        env.current_stage = args.stage
         log(f"Resumed from iteration {start_iter}", log_file)
         log(f"Checkpoint was at stage {checkpoint_stage + 1}, advancing to stage {env.current_stage + 1}", log_file)
     else:
-        # Convert from 1-indexed (stages 1-8) to 0-indexed (index 0-7)
-        env.current_stage = args.stage - 1
+        env.current_stage = args.stage
     
     log("", log_file)
     log("=" * 80, log_file)
-    log(f"STARTING TRAINING FROM STAGE {env.current_stage + 1}", log_file)
+    log(f"STARTING TRAINING FROM STAGE {env.current_stage + 1}/7", log_file)
     stage_info = config['curriculum']['stages'][env.current_stage]
     log(f"Stage: {stage_info['name']}", log_file)
     log(f"Goal: {stage_info['success_criterion']}", log_file)
@@ -166,20 +171,24 @@ def main():
     step_count = 0
     iteration = start_iter - 1  # Initialize in case loop doesn't run
     
+    # Stage advancement tracking
+    stage_iterations = 0  # Iterations completed at current stage
+    min_iterations_per_stage = 125  # Minimum iterations before stage advancement allowed
+    
     # Reset environment for first episode
     obs = env.reset()
-    obs = env.get_network_observation()  # Extract 32-dim network observation
     
     for iteration in range(start_iter, start_iter + args.iterations):
         iter_start = datetime.now()
         
-        log(f"[ITER {iteration + 1}/{args.iterations}] Stage {env.current_stage + 1}/8: {stage_info['name']}", log_file)
+        log(f"[ITER {iteration + 1}/{args.iterations}] Stage {env.current_stage + 1}/7: {stage_info['name']}", log_file)
         
         # Collect rollout
         episode_rewards = []
         episode_lengths = []
         episode_successes = []
         episode_waypoints = []
+        episode_details = []  # Track detailed per-episode info
         
         while len(rollout_buffer) < steps_per_iteration:
             # Get action from policy
@@ -191,7 +200,6 @@ def main():
             
             # Environment step
             next_obs, reward, done, info = env.step(action)
-            next_obs = env.get_network_observation()  # Extract 32-dim network observation
             
             # Store transition
             rollout_buffer.add(obs, action, reward, value, log_prob, done)
@@ -205,11 +213,36 @@ def main():
                 episode_lengths.append(info['episode_time'])
                 episode_successes.append(info['success'])
                 episode_waypoints.append(info['waypoints_captured'])
+                
+                # Capture detailed episode information
+                if info['success']:
+                    failure_reason = "SUCCESS"
+                else:
+                    # Determine specific failure reason from environment flags
+                    # Note: OUT_OF_BOUNDS is a soft penalty (doesn't terminate), so it's not a failure reason
+                    if info.get('fall', False):
+                        failure_reason = "FALL"
+                    elif info.get('timeout', False):
+                        failure_reason = "TIMEOUT"
+                    else:
+                        # Fallback if no specific reason detected
+                        failure_reason = "UNKNOWN"
+                
+                episode_detail = {
+                    'episode_num': episode_count + 1,
+                    'score': info['score'],
+                    'time': info['episode_time'],
+                    'success': info['success'],
+                    'failure': failure_reason,
+                    'waypoints': info.get('waypoints_captured', 0),
+                    'push_reward': info.get('push_reward', 0),
+                    'objects_pushed': info.get('objects_pushed', 0)
+                }
+                episode_details.append(episode_detail)
                 episode_count += 1
                 
                 # Reset for next episode
                 obs = env.reset()
-                obs = env.get_network_observation()  # Extract 32-dim network observation
         
         # Compute next value for GAE
         obs_tensor = torch.FloatTensor(obs).unsqueeze(0)
@@ -253,12 +286,30 @@ def main():
         if train_stats['early_stopped']:
             log(f"  [EARLY STOP] KL divergence exceeded target ({config['ppo']['target_kl']:.4f})", log_file)
         
-        # Check curriculum advancement
-        if env.should_advance_curriculum():
+        # Log detailed episode information
+        log("", log_file)
+        log(f"  Episode Details (this iteration):", log_file)
+        for ep in episode_details:
+            push_info = f", push_reward: {ep['push_reward']:.1f}, objects: {ep['objects_pushed']}" if ep['push_reward'] != 0 else ""
+            if ep['success']:
+                log(f"    Ep {ep['episode_num']:3d}: PASS | Score: {ep['score']:6.1f} | Time: {ep['time']:6.1f}s | Waypts: {ep['waypoints']}/25{push_info}", log_file)
+            else:
+                log(f"    Ep {ep['episode_num']:3d}: FAIL | Score: {ep['score']:6.1f} | Reason: {ep['failure']:12s} | Time: {ep['time']:6.1f}s | Waypts: {ep['waypoints']}/25{push_info}", log_file)
+        
+        # Increment stage iteration counter
+        stage_iterations += 1
+        log(f"  Iterations at Stage {env.current_stage + 1}: {stage_iterations}/{min_iterations_per_stage}", log_file)
+        
+        # Check curriculum advancement (requires BOTH conditions)
+        success_threshold_met = env.should_advance_curriculum()
+        iterations_threshold_met = stage_iterations >= min_iterations_per_stage
+        
+        if success_threshold_met and iterations_threshold_met:
             log("", log_file)
             log("=" * 80, log_file)
-            log(f"[MILESTONE] STAGE {env.current_stage + 1} REACHED TARGET SUCCESS!", log_file)
+            log(f"[SUCCESS] STAGE {env.current_stage + 1} COMPLETE!", log_file)
             log(f"Success rate: {success_rate:.1%} (threshold: {env.success_threshold:.1%})", log_file)
+            log(f"Iterations completed: {stage_iterations} (minimum: {min_iterations_per_stage})", log_file)
             
             # Save stage completion checkpoint
             stage_checkpoint_path = checkpoint_dir / f"stage_{env.current_stage + 1}_complete.pt"
@@ -270,8 +321,36 @@ def main():
                 'success_rate': success_rate
             }, stage_checkpoint_path)
             log(f"  Stage checkpoint saved: {stage_checkpoint_path.name}", log_file)
-            log(f"  [NO AUTO-ADVANCE] Continuing training on current stage", log_file)
-            log("=" * 80, log_file)
+            
+            # Handle stage advancement
+            if args.stop_at_stage_complete:
+                # Stop training to allow testing
+                log("", log_file)
+                log("[STOP] Training stopped at stage completion for testing.", log_file)
+                log(f"To continue to Stage {env.current_stage + 2}, run:", log_file)
+                log(f"  python train_navigation.py --headless --iterations {args.iterations} \\", log_file)
+                log(f"    --checkpoint {stage_checkpoint_path.name} --stage {env.current_stage + 2}", log_file)
+                break
+            elif env.current_stage < len(env.curriculum_stages) - 1:
+                # Auto-advance to next stage
+                env.advance_stage()  # This clears episode_history for fresh start
+                stage_iterations = 0  # Reset iteration counter for new stage
+                log(f"[AUTO-ADVANCING] Moving to Stage {env.current_stage + 1}...", log_file)
+                log("=" * 80, log_file)
+                # Reset environment to new stage
+                obs = env.reset(stage_id=env.current_stage)
+                # Update stage_info for logging
+                stage_info = config['curriculum']['stages'][env.current_stage]
+            else:
+                log("[COMPLETE] All stages finished! Training complete.", log_file)
+                log("=" * 80, log_file)
+                break
+        elif success_threshold_met:
+            log("", log_file)
+            log(f"[INFO] Success threshold met (80%), but need {min_iterations_per_stage - stage_iterations} more iterations", log_file)
+        elif iterations_threshold_met:
+            log("", log_file)
+            log(f"[INFO] Iteration threshold met ({min_iterations_per_stage}), but need {(env.success_threshold - success_rate)*100:.1f}% more success", log_file)
         
         # Save checkpoint periodically
         if (iteration + 1) % checkpoint_freq == 0:
@@ -313,7 +392,7 @@ def main():
     log("TRAINING COMPLETE", log_file)
     log(f"Total iterations: {iteration + 1}", log_file)
     log(f"Total episodes: {episode_count}", log_file)
-    log(f"Final stage: {env.current_stage + 1}/8", log_file)
+    log(f"Final stage: {env.current_stage + 1}/7", log_file)
     log(f"Best success rate: {best_success_rate:.1%}", log_file)
     log(f"Final model saved: {final_path}", log_file)
     log("=" * 80, log_file)

@@ -1,6 +1,7 @@
-# Navigation Policy Training Configuration - RUN 6 AGGRESSIVE
-# Learning Rate: 5e-4 (Aggressive - fast learning)
-# Starting from: run_2/checkpoint_900.pt at Stage 5
+# Navigation Policy Training Configuration - STAGE 7 AGGRESSIVE
+# Learning Rate: 2e-4 (Aggressive - fast learning)
+# Starting from: run_6_aggressive/final_model.pt (100% Stage 6 success)
+# Focus: Heavy obstacle avoidance learning through contact testing
 
 # Environment geometry
 arena:
@@ -60,7 +61,7 @@ reward:
   fall_penalty: -100.0
   boundary_penalty: -5.0  # if leaving arena
 
-# Curriculum stages
+# Curriculum stages - STARTING AT STAGE 7
 curriculum:
   success_window: 100  # episodes
   success_threshold: 0.80  # 80% success rate to advance
@@ -136,9 +137,9 @@ curriculum:
       name: "Add Heavy Obstacles"
       max_time: null  # NO TIME LIMIT
       waypoint_distance_first: 20.0  # 20m to first waypoint
-      waypoint_distance_subsequent: 25.0  # 25m between subsequent waypoints
+      waypoint_distance_subsequent: 40.0  # 40m between subsequent waypoints
       obstacles_light_coverage: 0.10  # 10% lightweight (pushable)
-      obstacles_heavy_coverage: 0.10  # 10% heavy (immovable)
+      obstacles_heavy_coverage: 0.10  # 10% heavy (immovable) - reduced to allow contact learning
       obstacles_small_coverage: 0.0
       use_progress_shaping: false
       success_criterion: "Capture all 25 waypoints"
@@ -147,7 +148,7 @@ curriculum:
       name: "Add Small Static Obstacles"
       max_time: null  # NO TIME LIMIT
       waypoint_distance_first: 20.0
-      waypoint_distance_subsequent: 25.0
+      waypoint_distance_subsequent: 40.0
       obstacles_light_coverage: 0.10
       obstacles_heavy_coverage: 0.10
       obstacles_small_coverage: 0.10  # 10% small static
@@ -156,7 +157,7 @@ curriculum:
 
 # PPO hyperparameters
 ppo:
-  learning_rate: 5.0e-4  # AGGRESSIVE - fast learning
+  learning_rate: 2.0e-4  # AGGRESSIVE - fast learning
   clip_param: 0.2
   value_coef: 0.5
   entropy_coef: 0.01
