@@ -28,7 +28,7 @@ from pathlib import Path
 # Config
 # ---------------------------------------------------------------------------
 
-DEFAULT_LOGDIR = Path(__file__).resolve().parents[3] / "Alex" / "NAV_ALEX" / "logs"
+DEFAULT_LOGDIR = Path(__file__).resolve().parent / "logs"
 REFRESH_SECONDS = 30
 
 # Metrics to display and their "good direction" (1 = higher is better, -1 = lower is better)
@@ -152,7 +152,7 @@ def status_marker(tag: str, value: float | None) -> str:
 # Display
 # ---------------------------------------------------------------------------
 
-def print_dashboard(scalars: dict, event_file: str, iteration: int):
+def print_dashboard(scalars: dict, event_file: str):
     """Print the full dashboard table."""
     os.system("cls" if os.name == "nt" else "clear")
 
@@ -248,8 +248,8 @@ def main():
 
         try:
             scalars = load_scalars(event_file)
-            print_dashboard(scalars, event_file, iteration)
-        except Exception as e:
+            print_dashboard(scalars, event_file)
+        except (OSError, ValueError, RuntimeError) as e:
             print(f"[{time.strftime('%H:%M:%S')}] Read error: {e} — retrying...")
 
         time.sleep(args.interval)

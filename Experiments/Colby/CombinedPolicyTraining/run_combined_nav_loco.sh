@@ -35,23 +35,24 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 NAV_ALEX_DIR="$REPO_ROOT/Experiments/Alex/NAV_ALEX"
 LOCO_CHECKPOINT="$REPO_ROOT/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt"
+TRAIN_SCRIPT="$SCRIPT_DIR/train_combined.py"
 
 echo "=== Combined Nav + Loco Training ==="
-echo "Nav policy source : $NAV_ALEX_DIR"
+echo "Train script      : $TRAIN_SCRIPT"
 echo "Loco checkpoint   : $LOCO_CHECKPOINT"
+echo "Checkpoint output : $SCRIPT_DIR/logs/"
 echo ""
 
 # ---------------------------------------------------------------------------
 # Validate that the loco checkpoint exists
 # ---------------------------------------------------------------------------
 if [ ! -f "$LOCO_CHECKPOINT" ]; then
-    echo "ERROR: Loco checkpoint not found at:"
-    echo "  $LOCO_CHECKPOINT"
+    echo "ERROR: Loco checkpoint not found. Run install_prerequisites.sh first."
     exit 1
 fi
 
 # ---------------------------------------------------------------------------
-# Install Alex's NAV_ALEX package (idempotent - safe to re-run)
+# Install Alex's NAV_ALEX package (idempotent — no files modified in his dir)
 # ---------------------------------------------------------------------------
 echo "Installing nav_locomotion package (pip install -e)..."
 pip install -e "$NAV_ALEX_DIR/source/nav_locomotion/" --quiet
@@ -67,10 +68,8 @@ if [ "$MODE" = "--local" ]; then
     echo "Mode: LOCAL smoke test (16 envs, 100 iterations, no coach)"
     echo "Use --h100 for a full production run."
     echo ""
-    cd "$NAV_ALEX_DIR"
-    python scripts/rsl_rl/train_nav.py \
+    python "$TRAIN_SCRIPT" \
         --headless \
-        --no_wandb \
         --no_coach \
         --loco_checkpoint "$LOCO_CHECKPOINT" \
         --num_envs 16 \
@@ -84,10 +83,8 @@ elif [ "$MODE" = "--h100" ]; then
     eval "$(/home/t2user/miniconda3/bin/conda shell.bash hook)"
     conda activate env_isaaclab
 
-    cd "$NAV_ALEX_DIR"
-    python scripts/rsl_rl/train_nav.py \
+    python "$TRAIN_SCRIPT" \
         --headless \
-        --no_wandb \
         --loco_checkpoint "$LOCO_CHECKPOINT" \
         --num_envs 2048 \
         --max_iterations 30000 \

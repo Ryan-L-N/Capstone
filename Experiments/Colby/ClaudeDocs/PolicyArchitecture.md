@@ -85,34 +85,75 @@ Cole's waypoint curriculum structure could be valuable for future task-layer tra
 
 ## How to Run the Combined System
 
-Script: `Experiments/Colby/run_combined_nav_loco.sh`
+All scripts live in `Experiments/Colby/CombinedPolicyTraining/`. No teammate files are modified.
 
-This script installs Alex's package and launches his unmodified `train_nav.py` with Ryan's checkpoint as the loco layer. No teammate files are modified.
-
+### Step 0 — Virtual Environment (required)
+All packages install into the Isaac Sim venv. The install script will refuse to run without one active.
 ```bash
-# Local smoke test (16 envs, 100 iterations)
-bash Experiments/Colby/run_combined_nav_loco.sh --local
-
-# H100 full run (2048 envs, 30000 iterations, with AI coach)
-bash Experiments/Colby/run_combined_nav_loco.sh --h100
+# Activate your venv first
+source <path/to/isaacSim_env>/Scripts/activate   # Windows / Git Bash
+source <path/to/isaacSim_env>/bin/activate        # Linux / Mac
 ```
 
-### What the script does
+### Step 1 — One-time install
+```bash
+bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --local   # local
+bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100    # H100
+```
+
+Installs into the active venv only:
+- `nav_locomotion` (Alex's package, editable install — his files unchanged)
+- `anthropic` (AI coach)
+- `tensorboard` (metrics)
+- `gymnasium` (RL env interface)
+- `rsl-rl` (PPO runner)
+
+### Step 2 — Train
+```bash
+# Local smoke test (16 envs, 100 iterations)
+bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local
+
+# H100 full run (2048 envs, 30000 iterations, with AI coach)
+bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --h100
+```
+
+### What the training script does
 1. Resolves paths relative to repo root
 2. Validates Ryan's loco checkpoint exists
-3. `pip install -e Experiments/Alex/NAV_ALEX/source/nav_locomotion/`
-4. Runs `train_nav.py --loco_checkpoint <ryan_checkpoint> ...`
+3. `pip install -e Experiments/Alex/NAV_ALEX/source/nav_locomotion/` (idempotent)
+4. Launches `train_combined.py` — Colby's own script, saves all output to `CombinedPolicyTraining/logs/`
 
-### H100 prerequisites
-- `conda activate env_isaaclab` (handled by script)
-- `pip install anthropic` if using AI coach
-- Ryan's checkpoint is already in the repo — no file copy needed
+### Checkpoint output (Colby's folder only)
+```
+Experiments/Colby/CombinedPolicyTraining/logs/spot_nav_explore_ppo/<timestamp>/
+  ├── model_100.pt
+  ├── model_200.pt
+  └── model_final.pt
+```
+
+### Monitor training
+```bash
+# Terminal dashboard
+python Experiments/Colby/CombinedPolicyTraining/watch_training.py
+
+# Browser (H100)
+http://172.24.254.24:6006
+
+# Browser (local)
+tensorboard --logdir Experiments/Colby/CombinedPolicyTraining/logs/
+```
 
 ---
 
-## Open Questions / Next Steps
+## Status & Next Steps
 
-- [ ] Run local smoke test to verify the package installs and training starts
-- [ ] Confirm Isaac Lab is installed in the local `isaacSim_env` (needed for Alex's extension)
-- [ ] Decide whether to train with or without the AI coach (`--no_coach` flag)
-- [ ] Once nav policy is trained, consider whether to add Cole's waypoint curriculum on top
+**Done:**
+- Combined training pipeline built (`train_combined.py`) — imports Alex's modules as a library, zero teammate files touched
+- Install script handles all dependencies including Isaac Lab auto-install attempt
+- All checkpoints and logs save to `Experiments/Colby/CombinedPolicyTraining/logs/` only
+- H100 path (`env_isaaclab`) is self-sufficient — ready to run
+
+**Remaining:**
+- [ ] Run `install_prerequisites.sh --h100` on the H100 to confirm all imports pass
+- [ ] Start NAV-001 training run — use `--no_coach` for the first smoke test iteration, then enable for full 30K run
+- [ ] Fill in RUN-004 card in `Results.md` as training progresses

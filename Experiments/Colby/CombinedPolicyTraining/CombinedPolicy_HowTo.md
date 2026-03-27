@@ -4,20 +4,58 @@
 
 ---
 
+## Prerequisites — Read Before Running Anything
+
+### Note: Isaac Lab
+
+As of March 2026, `isaacSim_env` has Isaac Sim 5.1.0 and PyTorch but not Isaac Lab.
+**`install_prerequisites.sh` will attempt to install it automatically** from the NVIDIA pip index.
+If that fails (network/version issue), it prints the manual install command and continues setting up everything else.
+
+The H100 `env_isaaclab` conda environment already has Isaac Lab — the H100 path is fully self-sufficient.
+
+---
+
+### Virtual Environment
+
+**All packages must be installed inside your Isaac Sim virtual environment.**
+The install script enforces this — it will refuse to run if no venv is active.
+
+```bash
+# Activate your venv first (if not already active)
+source C:/Users/Colby/Documents/AI2C/Class/Capstone/Capstone/isaacSim_env/Scripts/activate  # Windows/Git Bash
+
+# Then run the one-time setup
+bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --local   # local
+bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100    # H100
+```
+
+The install script sets up (all inside the venv):
+- `nav_locomotion` — Alex's nav package (editable install, no files modified in his dir)
+- `anthropic` — Claude API for the AI coach
+- `tensorboard` — training metrics viewer
+- `gymnasium` — RL environment interface used by `train_combined.py`
+- `rsl-rl` — PPO runner used by `train_combined.py`
+
+Currently missing from the venv (handled by install script above):
+`rsl-rl`, `gymnasium`, `anthropic`, `tensorboard`
+
+---
+
 ## How to Run
 
 ```bash
 # Local smoke test (16 envs, 100 iterations — just to verify it starts)
-bash Experiments/Colby/run_combined_nav_loco.sh --local
+bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local
 
 # Full training run on H100
-bash Experiments/Colby/run_combined_nav_loco.sh --h100
+bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --h100
 ```
 
 The script automatically:
-1. Installs Alex's nav package (`pip install -e`)
+1. Installs Alex's nav package (`pip install -e`) — no files in his directory are modified
 2. Validates Ryan's loco checkpoint exists
-3. Launches training — no teammate files are touched
+3. Launches `train_combined.py` — all output stays in `Experiments/Colby/CombinedPolicyTraining/`
 
 ---
 
@@ -50,8 +88,11 @@ While training runs, open TensorBoard in a browser:
 # On H100
 http://172.24.254.24:6006
 
-# Locally (run this in a separate terminal)
-tensorboard --logdir Experiments/Alex/NAV_ALEX/logs/
+# Locally (run this in a separate terminal, inside your venv)
+tensorboard --logdir Experiments/Colby/CombinedPolicyTraining/logs/
+
+# Or use the live terminal dashboard (no browser needed)
+python Experiments/Colby/CombinedPolicyTraining/watch_training.py
 ```
 This gives you live reward curves, terrain level, survival rate, and AI Coach decisions all in one place.
 
@@ -88,31 +129,37 @@ If after 500 iterations `forward_distance` is still below 2m and `survival_rate`
 ## 3. How Do I Create My Own Checkpoints?
 
 ### Automatic checkpoints (already built in)
-RSL-RL saves checkpoints automatically to:
+`train_combined.py` saves checkpoints to **Colby's folder only**:
 ```
-Experiments/Alex/NAV_ALEX/logs/spot_nav_explore_ppo/<timestamp>/
+Experiments/Colby/CombinedPolicyTraining/logs/spot_nav_explore_ppo/<timestamp>/
   ├── model_100.pt       ← every 100 iterations (--save_interval)
   ├── model_200.pt
   ├── model_500.pt
   └── model_final.pt     ← always saved when training ends or is interrupted
 ```
+No teammate directories are written to.
 
 Change how often they save with `--save_interval`:
 ```bash
-# Save every 50 iterations instead of 100
-python scripts/rsl_rl/train_nav.py --save_interval 50 --loco_checkpoint ...
+# Edit run_combined_nav_loco.sh and add --save_interval 50 to the python call,
+# or invoke train_combined.py directly:
+python Experiments/Colby/CombinedPolicyTraining/train_combined.py \
+    --save_interval 50 \
+    --loco_checkpoint Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt \
+    --headless --no_coach --num_envs 16 --max_iterations 100
 ```
 
 ### Manual checkpoint (save right now mid-run)
 `Ctrl+C` during training — the script catches the interrupt and saves `model_final.pt` before exiting. Safe to use.
 
 ### Resuming from a checkpoint
+Pass `--resume` directly to `train_combined.py` (or add it to the python call in `run_combined_nav_loco.sh`):
 ```bash
-bash Experiments/Colby/run_combined_nav_loco.sh --local \
-  # Add this flag to train_nav.py invocation inside the script:
-  --resume Experiments/Alex/NAV_ALEX/logs/spot_nav_explore_ppo/<timestamp>/model_500.pt
+python Experiments/Colby/CombinedPolicyTraining/train_combined.py \
+    --loco_checkpoint Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt \
+    --resume Experiments/Colby/CombinedPolicyTraining/logs/spot_nav_explore_ppo/<timestamp>/model_500.pt \
+    --headless --num_envs 2048 --max_iterations 30000
 ```
-Or edit `run_combined_nav_loco.sh` and add `--resume <path>` to the python command.
 
 ### Checkpoint file format
 Each `.pt` file contains just the nav policy weights:
@@ -153,7 +200,7 @@ We combined two separately trained AI policies into a single control system. Thi
 
 **Input:** 64×64 depth image (sees up to 30m ahead) + body velocity/orientation.
 **Output:** Velocity command [forward speed, strafe, turn rate] → sent to Brain 1.
-**Checkpoint:** Being trained now — saves every 100 iterations.
+**Checkpoint:** Being trained now — saves every 100 iterations to `Experiments/Colby/CombinedPolicyTraining/logs/`.
 
 ---
 
@@ -195,9 +242,9 @@ The key design choice: the locomotion policy is **frozen** while training the na
 
 | Component | Status | Key number |
 |---|---|---|
-| Locomotion policy | ✅ Trained | 33,200 iterations, terrain level 6 capable |
-| Navigation policy | 🔄 Training now | 0 → 30,000 iterations planned |
-| Combined system | ✅ Integrated | Running on H100 |
+| Locomotion policy | Trained | 33,200 iterations, terrain level 6 capable |
+| Navigation policy | Training now | 0 → 30,000 iterations planned |
+| Combined system | Integrated | Ready to run on H100 |
 | Evaluation | Pending nav training | Target: 20m+ forward distance per episode |
 
 ---
