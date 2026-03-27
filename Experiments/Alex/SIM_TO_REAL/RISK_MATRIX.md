@@ -10,16 +10,16 @@ risk, its severity, and the specific mitigation built into the SIM_TO_REAL pipel
 
 | ID | Risk | Severity | Likelihood | Impact | Mitigation | Status |
 |----|------|----------|------------|--------|------------|--------|
-| R1 | **No actuator latency simulation** — Policy trained with 0 ms delay; real Spot has 40-60 ms | CRITICAL | High | Policy oscillation, gait instability on hardware | `ActionDelayWrapper` (2 steps = 40 ms) + `ObservationDelayWrapper` (1 step = 20 ms) active in ALL expert training | MITIGATED |
+| R1 | **No actuator latency simulation** — Policy trained with 0 ms delay; real Spot has 40-60 ms | CRITICAL | High | Policy oscillation, gait instability on hardware | `ProgressiveS2RWrapper` ramps delay from 0→40 ms as terrain curriculum advances (0% at row 0-2, 100% at row 6+) | MITIGATED |
 | R2 | **No real-robot SDK integration** — No Boston Dynamics Spot SDK wrapper exists | CRITICAL | Certain | Cannot deploy without it | `deploy/spot_sdk_wrapper.py` — observation builder + action executor + 20 Hz control loop | MITIGATED |
 | R3 | **Control frequency mismatch** — Trained at 50 Hz, Spot SDK runs at ~20 Hz | HIGH | High | Over-responsive policy, potential resonance | Distilled student trains at 20 Hz (decimation = 25); experts train at 50 Hz for learning efficiency | MITIGATED |
 | R4 | **No temporal modeling (MLP only)** — No LSTM/GRU, policy can't do online system ID | HIGH | Medium | Can't adapt to mass/friction shifts on real robot | Accepted — MLP chosen for deployment simplicity (<10 ms inference). Mitigated by aggressive domain randomization (mass ±5 kg, friction 0.15-1.3) | ACCEPTED |
 | R5 | **Height scan is idealized raycasting** — Real LiDAR/depth has noise, occlusions, dropouts | HIGH | High | Terrain perception failure on real sensors | Observation noise increased (±0.2 m Gaussian), `SensorNoiseWrapper` adds 5 % ray dropout + OU-process IMU drift | MITIGATED |
 | R6 | **No motor torque limits during training** — Only enforced in eval wrappers | MEDIUM | Medium | Policy commands unachievable torques | `torque_limit_penalty` (hip 45 Nm, knee 100 Nm) + increased `joint_torques` weight (-1e-3) in ALL expert training | MITIGATED |
 | R7 | **No energy/power reward** — No penalty for motor power consumption | MEDIUM | Medium | Wasteful gaits that drain battery fast | `motor_power_penalty` (weight -0.005) = `sum(|torque * vel|)` in ALL expert training | MITIGATED |
-| R8 | **External push forces disabled** — `force_range=(0.0, 0.0)` in Mason baseline | MEDIUM | Medium | Reduced disturbance rejection on real terrain | External forces ±3.0 N, mass DR ±5.0 kg, friction 0.15-1.3, pushes every 7-12 s in ALL expert training | MITIGATED |
+| R8 | **External push forces disabled** — `force_range=(0.0, 0.0)` in Mason baseline | MEDIUM | Medium | Reduced disturbance rejection on real terrain | Physics DR stays at Mason's safe values (wider DR caused 100% falls). Disturbance robustness comes from progressive sensor corruption + terrain curriculum | PARTIAL |
 | R9 | **Observation normalization OFF** — Raw 235-dim obs, no standardization | LOW | Low | Gradient imbalance (mitigated by ELU + careful tuning) | Accepted — Mason baseline trains stably without normalization; ELU handles scale variation | ACCEPTED |
-| R10 | **No sensor dropout simulation** — Never sees NaN/missing height scan data | MEDIUM | Medium | Policy brittle to real sensor failures | `SensorNoiseWrapper` randomly zeros 5 % of 187 height scan rays each step | MITIGATED |
+| R10 | **No sensor dropout simulation** — Never sees NaN/missing height scan data | MEDIUM | Medium | Policy brittle to real sensor failures | `ProgressiveS2RWrapper` ramps dropout from 0→5% as terrain advances | MITIGATED |
 
 ---
 
@@ -36,13 +36,14 @@ executing it (network communication + servo loop). This causes:
 - Inability to maintain balance during dynamic maneuvers
 
 **Our mitigation:**
-- `wrappers/action_delay.py`: GPU ring buffer that holds actions for 2 control
-  steps before applying them. At 50 Hz this is 40 ms — matching real Spot latency.
-- `wrappers/observation_delay.py`: Returns observations from 1 step ago (20 ms),
-  simulating IMU/encoder communication delay.
-- Both wrappers active from training step 0 in ALL 6 expert trainings.
-- During distillation at 20 Hz, delay is maintained (2 steps = 100 ms at 20 Hz, reduced
-  to 1 step = 50 ms to stay within real-world bounds).
+- `wrappers/progressive_s2r.py`: Unified wrapper that ramps delay from 0→40 ms
+  as the terrain curriculum advances. At terrain row 0-2 (easy), delay is 0 ms.
+  By row 6+ (hard), full 40 ms delay is active. This prevents standing-still
+  collapse that occurred when full delay was applied from step 0.
+- Early experiments with static 40 ms delay from step 0 caused policy collapse —
+  the robot learned to stand still rather than walk with delayed controls.
+- Progressive approach lets the robot learn terrain mastery first (clean signals),
+  then adapt to latency as curriculum difficulty increases.
 
 **Validation:** Run `eval_student.py` with and without delay wrappers; performance
 should degrade <20 % with wrappers active.
@@ -121,10 +122,10 @@ no sensor-specific artifacts. Real depth cameras/LiDAR have:
 - Occlusion from robot body and legs
 
 **Our mitigation:**
-- Observation noise increased from Mason's ±0.1 to ±0.2 m on height scan
-- `SensorNoiseWrapper` adds:
-  - 5 % ray dropout (randomly zeros individual rays each step)
-  - Ornstein-Uhlenbeck drift on IMU channels (correlated temporal noise)
+- Observation noise at Mason's ±0.1 m (wider noise caused falls — see Bug S2R-8)
+- `ProgressiveS2RWrapper` adds (scaling with terrain level):
+  - 0 → 5 % ray dropout as terrain advances
+  - 0 → 0.002 Ornstein-Uhlenbeck drift on IMU channels
 - `enable_corruption = True` (Mason had False)
 - `deploy/height_scan_builder.py` handles real sensor → grid conversion with
   0.0 fill for missing data (matching training convention)

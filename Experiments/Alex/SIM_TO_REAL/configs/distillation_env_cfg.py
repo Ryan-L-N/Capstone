@@ -31,3 +31,14 @@ class SpotS2RDistillEnvCfg(SpotS2RBaseEnvCfg):
         # Moderate reward adjustments for generalist student
         self.rewards.action_smoothness.weight = -1.5  # Between base (-1.0) and energy (-2.0)
         self.rewards.motor_power.weight = -0.005      # Same as base
+
+        # Stronger standing + controllability (per Pras feedback + teleop testing 2026-03-25)
+        # Robot must hold default pose firmly when zero velocity commanded
+        self.rewards.joint_pos.params["stand_still_scale"] = 10.0
+
+        # More standing practice — 20% of envs get zero velocity (was 10%)
+        self.commands.base_velocity.rel_standing_envs = 0.2
+
+        # Faster command resampling — policy must react to velocity changes quickly
+        # 3-7s instead of 10s fixed, so it learns to track changing commands
+        self.commands.base_velocity.resampling_time_range = (3.0, 7.0)
