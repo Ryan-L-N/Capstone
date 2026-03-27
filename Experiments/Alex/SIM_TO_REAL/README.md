@@ -1,184 +1,145 @@
-# SIM_TO_REAL: 6-Terrain-Expert Distillation Pipeline
+# SIM_TO_REAL: 3-Master Expert Distillation Pipeline
 
-Train 6 terrain-specialist Spot policies from scratch, each dominating one terrain
-type with full sim-to-real hardening, then distill into a single deployment-ready
-generalist that crushes all 4 eval environments.
+Train 3 terrain-master Spot policies from proven checkpoints, each dominating
+its terrain family with full sim-to-real hardening, then distill into a single
+deployment-ready generalist that crushes all 4 eval environments.
 
 **Target:** 49.5 m (5/5 zones) on Friction, Grass, Boulder, AND Stairs.
 
----
+## Evolution: 6 Experts to 3 Masters
 
-## Architecture
+The original plan called for 6 from-scratch terrain specialists. In practice,
+we discovered that **fine-tuning proven checkpoints with focused reward tuning
+outperforms training from scratch**. Three masters -- each covering a terrain
+family -- provide better coverage with less training time:
 
-```
-                         ┌─────────────────────────────────┐
-                         │     6 TERRAIN EXPERTS            │
-                         │  (trained from scratch, 50 Hz)   │
-                         │                                  │
-                         │  [1] Friction    [4] Boulders    │
-                         │  [2] Stairs Up   [5] Slopes      │
-                         │  [3] Stairs Down [6] Mixed Rough  │
-                         └────────────┬────────────────────┘
-                                      │
-                                      ▼
-                         ┌─────────────────────────────────┐
-                         │   LEARNED ATTENTION ROUTER       │
-                         │   235 → 64 → 6 (softmax)        │
-                         │   Routes obs to best expert      │
-                         └────────────┬────────────────────┘
-                                      │
-                                      ▼
-                         ┌─────────────────────────────────┐
-                         │   DISTILLED STUDENT POLICY       │
-                         │   [512, 256, 128] MLP            │
-                         │   Trained at 20 Hz               │
-                         │   All S2R wrappers active         │
-                         └────────────┬────────────────────┘
-                                      │
-                                      ▼
-                         ┌─────────────────────────────────┐
-                         │   REAL SPOT DEPLOYMENT            │
-                         │   spot_sdk_wrapper.py             │
-                         │   safety_layer.py                 │
-                         │   20 Hz control loop              │
-                         └─────────────────────────────────┘
-```
+| Old (6 experts) | New (3 masters) | Why |
+|-----------------|-----------------|-----|
+| Friction, Slopes, Mixed Rough | **Flat Master** | Friction + grass are both flat-terrain stability problems. Grass drag is velocity scaling in eval, not physics force -- stability IS the grass solution. |
+| Stairs Up, Stairs Down | **Stair Master** | Up and down share the same step-over kinematics. One expert handles both. |
+| Boulders | **Boulder Master** | Boulders require unique high-clearance + slip-resistant gait distinct from stairs. |
 
 ---
 
-## Quick Start
+## The 3 Masters
 
-### 1. Train all 6 experts on H100
+### Master 1: Flat Master (Friction + Grass)
+- **Starting checkpoint:** distilled_6899.pt (100% friction completion, 28.2m grass)
+- **Terrain:** 45% flat + 25% random rough + 15% wave + 15% gentle slopes
+- **Philosophy:** Stability above all. Smoothest, most efficient gait possible.
+- **Key rewards:** gait 15.0, action_smoothness -1.5, foot_slip -3.0, base_motion -3.0
+- **Standing:** stand_still_scale 30.0, 30% standing envs
+- **Training:** 2048 envs, 5000 iters, actor_only_resume + staged warmup
 
-```bash
-cd ~/SIM_TO_REAL
-screen -S s2r_train
-bash scripts/train_all_experts.sh
-```
+### Master 2: Stair Master (Stairs Up + Down)
+- **Starting checkpoint:** model_6300.pt (obstacle parkour, terrain 5.79)
+- **Terrain:** 90% stairs (45% up + 45% down) + 10% flat
+- **Philosophy:** Controlled knee-bend stepping, straight-ahead traversal.
+- **Key rewards:** gait 12.5, foot_clearance 4.5, base_roll -5.0, base_orientation -1.0
+- **Standing:** stand_still_scale 20.0, 25% standing envs
+- **Training:** 4096 envs, 5000 iters, actor_only_resume + staged warmup
 
-Or train one expert at a time:
-
-```bash
-python scripts/train_expert.py \
-    --expert_type stairs_up \
-    --headless --no_wandb \
-    --num_envs 4096 \
-    --max_iterations 10000 \
-    --save_interval 100 \
-    --max_noise_std 0.5
-```
-
-### 2. Evaluate experts
-
-```bash
-python scripts/eval_expert.py \
-    --expert_type stairs_up \
-    --checkpoint checkpoints/expert_stairs_up/best.pt \
-    --headless --num_episodes 10
-```
-
-### 3. Run distillation
-
-```bash
-python scripts/train_distill_s2r.py \
-    --expert_friction checkpoints/expert_friction/best.pt \
-    --expert_stairs_up checkpoints/expert_stairs_up/best.pt \
-    --expert_stairs_down checkpoints/expert_stairs_down/best.pt \
-    --expert_boulders checkpoints/expert_boulders/best.pt \
-    --expert_slopes checkpoints/expert_slopes/best.pt \
-    --expert_mixed_rough checkpoints/expert_mixed_rough/best.pt \
-    --headless --no_wandb \
-    --num_envs 4096 \
-    --max_iterations 8000
-```
-
-### 4. Evaluate distilled student
-
-```bash
-python scripts/eval_student.py \
-    --checkpoint checkpoints/student/best.pt \
-    --headless --num_episodes 100
-```
-
-### 5. Export for deployment
-
-```bash
-python deploy/export_onnx.py --checkpoint checkpoints/student/best.pt
-```
+### Master 3: Boulder Master (Obstacle Fields)
+- **Starting checkpoint:** model_1400.pt (boulder expert, terrain 5.39, 22.6m eval)
+- **Terrain:** 85% boulders (curriculum matching 4_env_test zones) + 15% flat
+- **Philosophy:** High foot clearance, slip resistance on irregular polyhedra.
+- **Key rewards:** foot_clearance 7.0, foot_slip -1.5, undesired_contacts -3.5
+- **Standing:** stand_still_scale 20.0, 25% standing envs
+- **Training:** 4096 envs, 5000 iters, actor_only_resume + staged warmup
 
 ---
 
-## The 6 Experts
+## Parallel Training (2026-03-26)
 
-| # | Expert | Terrain Split | Reward Overrides | Goal |
-|---|--------|--------------|-----------------|------|
-| 1 | Friction | 80% friction plane (mu 0.05-1.5) + 20% flat | foot_slip -1.5 | 5/5 friction zones |
-| 2 | Stairs Up | 40% pyramid_stairs_up + 40% hf_stairs_up + 20% flat | foot_clearance 2.0, orientation -2.0, joint_pos -0.3 | 5/5 stairs ascending |
-| 3 | Stairs Down | 80% pyramid_stairs_down + 20% flat | foot_clearance 2.0, orientation -2.0, joint_pos -0.3 | 5/5 stairs descending |
-| 4 | Boulders | 40% boxes + 40% discrete_obstacles + 20% flat | foot_clearance 2.5, orientation -2.0, joint_pos -0.3 | 5/5 boulder zones |
-| 5 | Slopes | 35% slope_up + 35% slope_down + 10% wave + 20% flat | foot_slip -1.5, orientation -2.5 | All slopes 0-30 deg |
-| 6 | Mixed Rough | 40% random_rough + 40% stepping_stones + 20% flat | foot_clearance 1.5, gait 12.0, joint_pos -0.5 | Precise foot placement |
+All 3 masters train simultaneously on the H100:
 
-All experts share:
-- **Network:** [512, 256, 128] MLP with ELU (Mason baseline)
-- **PPO:** Adaptive KL, 5 epochs, 4 mini-batches, init_noise_std=1.0
-- **S2R hardening:** Action delay 40 ms, obs delay 20 ms, sensor noise + 5% dropout,
-  torque limits, motor power penalty, push forces, wider DR
+| Master | Screen | VRAM | TensorBoard | Dashboard |
+|--------|--------|------|-------------|-----------|
+| Stair Master | s2r_parkour | ~16 GB | :6007 | :6008 |
+| Boulder Master | s2r_boulder | ~16 GB | :6009 | :6010 |
+| Flat Master | s2r_flat | ~8 GB | :6011 | :6012 |
+| **Total** | | **~40 GB / 96 GB** | | |
+
+### Staged Actor Warmup (all masters)
+- Phase 1 (iter 0-300): All actor frozen, fresh critic calibrates
+- Phase 2 (iter 300-500): Last actor layer unfreezes (128 to 12)
+- Phase 3 (iter 500-700): Middle layer unfreezes (256 to 128)
+- Phase 4 (iter 700+): Full unfreeze (all layers fine-tuning)
 
 ---
 
 ## Sim-to-Real Hardening
 
-Every expert trains with these mitigations from step 0:
+Every master trains with these mitigations from step 0:
 
 | Feature | Value | Risk Addressed |
 |---------|-------|---------------|
-| Action delay | 40 ms (2 steps @ 50 Hz) | R1: Actuator latency |
-| Observation delay | 20 ms (1 step @ 50 Hz) | R1: Sensor latency |
-| Height scan dropout | 5% rays zeroed | R10: Sensor dropout |
-| IMU drift | Ornstein-Uhlenbeck process | R5: Correlated noise |
-| Observation noise | ±0.2 m height, ±0.2 m/s vel | R5: Idealized sensors |
-| Motor power penalty | -0.005 weight | R7: Energy efficiency |
-| Torque limit penalty | -0.3 weight (hip 45 Nm, knee 100 Nm) | R6: Motor limits |
-| External pushes | ±3.0 N every 7-12 s | R8: Disturbances |
-| Mass randomization | ±5.0 kg | R8: Mass variation |
-| Friction randomization | 0.15-1.3 static | R8: Surface variation |
-
-See `RISK_MATRIX.md` for full 10-risk analysis.
+| Action delay | 40 ms (2 steps at 50 Hz) | Actuator latency |
+| Observation delay | 20 ms (1 step at 50 Hz) | Sensor latency |
+| Height scan dropout | 5% rays zeroed | Sensor dropout |
+| IMU drift | Ornstein-Uhlenbeck process | Correlated noise |
+| Observation noise | Per-channel Gaussian | Idealized sensors |
+| Motor power penalty | -0.0005 weight | Energy efficiency |
+| Torque limit penalty | -0.225 weight | Motor limits |
+| External pushes | 3 N every 7-12 s | Disturbances |
+| Mass randomization | 5 kg | Mass variation |
+| Friction randomization | 0.3-1.0 static, 0.3-0.8 dynamic | Surface variation |
 
 ---
 
-## Distillation
+## Reward Tuning by Master
 
-The distilled student combines all 6 experts via learned attention routing:
+### Flat Master -- The Stability Stack
+Strictest penalties of any expert. On ice, jerky = slip = fall.
+- gait: 15.0 (perfect trot rhythm is survival)
+- action_smoothness: -1.5 (smoothest of any expert)
+- foot_slip: -3.0 (6x base -- every slip = death)
+- base_roll: -5.0 (MAX -- lateral tilt = unrecoverable)
+- base_pitch: -2.0 (strict -- nothing to climb)
+- base_motion: -3.0 (no bobbing, no swaying)
+- air_time_variance: -3.0 (symmetric gait timing)
+- stand_still_scale: 30.0 (strongest standing stability)
 
-- **Router:** Small MLP (235 → 64 → 6 softmax) learns which expert to trust per observation
-- **Loss:** `alpha * (MSE + 0.1 * KL)` on router-blended expert actions + PPO reward
-- **Alpha annealing:** 0.8 → 0.2 over 8000 iters (expert-heavy → PPO-heavy)
-- **Control rate:** 20 Hz (decimation = 25) — matches real Spot SDK
-- **Terrain:** Balanced all-terrain mix (11 types, equal proportion)
+### Stair Master -- Controlled Climbing
+Moderate penalties, strong gait + orientation enforcement.
+- gait: 12.5 (strong trot maintenance)
+- foot_clearance: 4.5 (step over 3-25cm stair risers)
+- base_roll: -5.0 (prevent diagonal walking)
+- base_orientation: -1.0 (anti-angle enforcement)
+- base_motion: -2.0 (prevent lateral drift)
+- stand_still_scale: 20.0 (zero-cmd stability)
+
+### Boulder Master -- High Clearance + Slip Resistance
+Most permissive body orientation, highest clearance and contact penalties.
+- foot_clearance: 7.0 (clear 25-35cm rocks)
+- foot_slip: -1.5 (low-friction boulder surfaces)
+- undesired_contacts: -3.5 (body hitting rocks = bad)
+- action_smoothness: -0.8 (smooth prevents slip on irregular surface)
+- base_roll: -5.0 (lateral tipover is #1 failure)
+- stand_still_scale: 20.0 (zero-cmd stability)
 
 ---
 
-## Deployment
+## 4-Environment Eval Results
 
-```
-deploy/
-├── spot_sdk_wrapper.py      # Policy I/O ↔ Spot SDK bridge (20 Hz)
-├── safety_layer.py          # E-stop, torque/orientation/velocity watchdogs
-├── height_scan_builder.py   # Depth camera → 187-dim elevation grid
-├── calibration.py           # Joint zero, PD gains, friction, latency
-├── telemetry.py             # JSONL logging + UDP stream to laptop
-├── export_onnx.py           # PyTorch → ONNX conversion
-└── DEPLOYMENT_CHECKLIST.md  # 5-stage testing protocol
-```
+### Pre-Master Training (best checkpoints)
+| Env | Best Policy | Progress | Zone |
+|-----|-------------|----------|------|
+| Friction | distilled_6899 | 49.0m (100/100) | 5/5 |
+| Grass | distilled_6899 | 28.2m | 3/5 |
+| Boulder | obstacle_44400 | 30.4m | 4/5 |
+| Stairs | parkour_v3_5200 | 27.6m | 3/5 |
 
-**5-Stage Testing Protocol:**
-1. Tethered flat ground (lab) — standing, walking, turning
-2. Tethered rough ground (lab) — foam mats, wood boards, plastic sheet
-3. Untethered flat ground (outdoor) — 5 min continuous run
-4. Untethered rough terrain (outdoor) — grass, gravel, curbs
-5. Full course (matching 4-env eval) — physical friction/grass/boulder/stairs
+---
+
+## Distillation (Next Phase)
+
+After all 3 masters converge:
+1. Evaluate each master on all 4 environments
+2. Select best checkpoint per master
+3. Distill 3 masters + distilled_6899 base into final student
+4. Train at 20 Hz with balanced all-terrain curriculum
+5. Evaluate on 4-env gauntlet + 5-ring composite
 
 ---
 
@@ -186,50 +147,30 @@ deploy/
 
 ```
 SIM_TO_REAL/
-├── README.md                    # This file
-├── PLAN.md                      # Detailed implementation plan
-├── RISK_MATRIX.md               # 10-risk sim-to-real analysis
-├── configs/                     # Environment configurations
-├── wrappers/                    # S2R wrappers (delay, noise)
-├── rewards/                     # New reward terms (power, torque)
-├── distillation/                # 6-expert router + loss
-├── scripts/                     # Training and eval scripts
-├── deploy/                      # Real hardware deployment
-├── checkpoints/                 # Trained models
-└── logs/                        # TensorBoard logs
+  README.md                        This file
+  PLAN.md                          Implementation plan
+  RISK_MATRIX.md                   10-risk sim-to-real analysis
+  configs/
+    base_s2r_env_cfg.py            Base environment (all S2R hardening)
+    terrain_cfgs.py                All terrain configurations
+    expert_flat_master_cfg.py      Flat Master config
+    expert_obstacle_parkour_cfg.py Stair Master config
+    expert_boulder_master_cfg.py   Boulder Master config
+  control_panel/
+    dashboard.py                   Web dashboard (per-expert named)
+    cli.py                         Command-line weight control
+    hot_reload.py                  YAML-based live parameter updates
+    guardrails.py                  Safety bounds for weight changes
+  wrappers/                        S2R wrappers (delay, noise, dropout)
+  scripts/
+    train_expert.py                Unified training (all expert types)
+  deploy/
+    DEPLOYMENT_CHECKLIST.md        5-stage testing protocol
+  checkpoints/                     Base checkpoints for fine-tuning
+  logs/                            TensorBoard + training logs
 ```
 
 ---
 
-## Training Rules
-
-All scripts enforce these rules (learned from 35 bugs across 12+ trials):
-
-- `--max_noise_std 0.5` always explicit (Bug #28d: defaults to 1.0)
-- Cosine LR annealing: 1e-3 → 1e-5 with 50-iter warmup
-- `--save_interval 100` (100 iters ~ 65M steps between saves)
-- NaN sanitizer on every forward pass (Bug #24: `clamp_()` doesn't fix NaN)
-- All penalty rewards clamped to bounded ranges (Bug #29)
-- Value loss watchdog: halves LR when value_loss > 100 (Bug #25)
-- `os._exit(0)` at end (CUDA deadlock prevention)
-- `--headless` on H100, `--no_wandb` on H100
-
----
-
-## Success Criteria
-
-| Metric | Target | Current Best |
-|--------|--------|-------------|
-| Friction | 49.5 m (5/5) | 49.5 m (5/5) |
-| Grass | 49.5 m (5/5) | 49.5 m (5/5) |
-| Boulder | **49.5 m (5/5)** | 30.4 m (4/5) |
-| Stairs | **49.5 m (5/5)** | 15.7 m (2/5) |
-| Composite gauntlet | **600/600** | ~200/600 |
-| Flip rate | 0% | 0% |
-| Torque compliance | 95% within limits | Not measured |
-| 20 Hz stability | All terrains | Not tested |
-
----
-
-*AI2C Tech Capstone — MS for Autonomy, March 2026*
-*Created for sim-to-real transfer of RL quadruped locomotion policies*
+*AI2C Tech Capstone -- MS for Autonomy, March 2026*
+*3-Master Expert Distillation for sim-to-real quadruped locomotion*

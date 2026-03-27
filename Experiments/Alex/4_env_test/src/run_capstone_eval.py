@@ -85,6 +85,8 @@ parser.add_argument("--output_dir", type=str, default="results/",
                     help="Output directory for JSONL and video files")
 parser.add_argument("--seed", type=int, default=42,
                     help="Random seed for reproducibility")
+parser.add_argument("--max_episode_time", type=float, default=0,
+                    help="Max seconds per episode (0 = no limit)")
 parser.add_argument("--mason", action="store_true", default=False,
                     help="Use Mason obs order (height_scan first) + action_scale=0.2")
 
@@ -412,8 +414,10 @@ def main():
                 sim_time=sim_time,
             )
 
-            # Check termination (fall)
+            # Check termination (fall or time limit)
             if metrics_collector.episode_done():
+                break
+            if args.max_episode_time > 0 and (time.time() - ep_start) > args.max_episode_time:
                 break
 
             # Compute navigation commands
@@ -437,7 +441,7 @@ def main():
         ep_time = time.time() - ep_start
 
         # Progress log
-        status = "COMPLETE" if result.get("completion") else "FELL" if result.get("fall_detected") else "TIMEOUT"
+        status = "COMPLETE" if result.get("completion") else "FLIP" if result.get("flip_detected") else "FELL" if result.get("fall_detected") else "TIMEOUT"
         progress = result.get("progress", 0)
         zone = result.get("zone_reached", 0)
         print(f"  [{ep_idx+1:4d}/{args.num_episodes}] {ep_id}  "

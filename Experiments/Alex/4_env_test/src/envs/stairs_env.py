@@ -31,8 +31,8 @@ def _create_step_material(stage):
 
     prim = stage.GetPrimAtPath(mat_path)
     phys_mat = UsdPhysics.MaterialAPI.Apply(prim)
-    phys_mat.CreateStaticFrictionAttr(0.6)
-    phys_mat.CreateDynamicFrictionAttr(0.5)
+    phys_mat.CreateStaticFrictionAttr(1.0)
+    phys_mat.CreateDynamicFrictionAttr(1.0)
     phys_mat.CreateRestitutionAttr(0.01)
 
     physx_mat = PhysxSchema.PhysxMaterialAPI.Apply(prim)

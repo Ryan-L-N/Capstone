@@ -23,6 +23,7 @@ from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import RewardTermCfg, SceneEntityCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.utils import configclass
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 
@@ -30,13 +31,19 @@ import isaaclab_tasks.manager_based.locomotion.velocity.config.spot.mdp as spot_
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 
 # Import the base Mason hybrid config
-# Add the multi_robot_training source to path for imports
-_MRT_ROOT = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), "..", "..", "multi_robot_training",
-    "source", "quadruped_locomotion",
-))
-if _MRT_ROOT not in sys.path:
-    sys.path.insert(0, _MRT_ROOT)
+# quadruped_locomotion is pip-installed on the H100; on local machines
+# we add the source directory to sys.path as a fallback.
+_MRT_CANDIDATES = [
+    os.path.join(os.path.dirname(__file__), "..", "..", "multi_robot_training",
+                 "source", "quadruped_locomotion"),
+    os.path.join(os.path.dirname(__file__), "..", "..", "multi_robot_training",
+                 "multi_robot_training", "source", "quadruped_locomotion"),
+    os.path.expanduser("~/multi_robot_training_new/source/quadruped_locomotion"),
+]
+for _p in _MRT_CANDIDATES:
+    _p = os.path.abspath(_p)
+    if os.path.isdir(_p) and _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import (
     SpotMasonHybridEnvCfg,
@@ -44,7 +51,6 @@ from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg impo
     HybridCommandsCfg,
     HybridCurriculumCfg,
     HybridSceneCfg,
-    HybridTerminationsCfg,
 )
 from quadruped_locomotion.tasks.locomotion.mdp.rewards import (
     body_height_tracking_penalty,
@@ -60,6 +66,7 @@ from quadruped_locomotion.tasks.locomotion.mdp.rewards import (
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from rewards.motor_power import motor_power_penalty
 from rewards.torque_limit import torque_limit_penalty
+from rewards.orientation_split import base_pitch_penalty, base_roll_penalty
 
 
 # =============================================================================
@@ -68,7 +75,11 @@ from rewards.torque_limit import torque_limit_penalty
 
 @configclass
 class S2RObservationsCfg:
-    """S2R observation config — corruption ENABLED with increased noise."""
+    """Mason's observation config with corruption enabled.
+
+    Noise ranges stay at Mason's values. The ProgressiveS2RWrapper adds
+    additional noise (dropout, drift, spikes) that scales with terrain level.
+    """
 
     @configclass
     class PolicyCfg(ObsGroup):
@@ -76,23 +87,23 @@ class S2RObservationsCfg:
         height_scan = ObsTerm(
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner")},
-            noise=Unoise(n_min=-0.2, n_max=0.2),   # Mason: ±0.1 -> S2R: ±0.2
+            noise=Unoise(n_min=-0.1, n_max=0.1),    # Mason's values
             clip=(-1.0, 1.0),
         )
         base_lin_vel = ObsTerm(
             func=mdp.base_lin_vel,
             params={"asset_cfg": SceneEntityCfg("robot")},
-            noise=Unoise(n_min=-0.2, n_max=0.2),   # Mason: ±0.1 -> S2R: ±0.2
+            noise=Unoise(n_min=-0.1, n_max=0.1),    # Mason's values
         )
         base_ang_vel = ObsTerm(
             func=mdp.base_ang_vel,
             params={"asset_cfg": SceneEntityCfg("robot")},
-            noise=Unoise(n_min=-0.2, n_max=0.2),   # Mason: ±0.1 -> S2R: ±0.2
+            noise=Unoise(n_min=-0.1, n_max=0.1),    # Mason's values
         )
         projected_gravity = ObsTerm(
             func=mdp.projected_gravity,
             params={"asset_cfg": SceneEntityCfg("robot")},
-            noise=Unoise(n_min=-0.05, n_max=0.05),  # Same as Mason
+            noise=Unoise(n_min=-0.05, n_max=0.05),  # Mason's values
         )
         velocity_commands = ObsTerm(
             func=mdp.generated_commands,
@@ -101,17 +112,17 @@ class S2RObservationsCfg:
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot")},
-            noise=Unoise(n_min=-0.08, n_max=0.08),  # Mason: ±0.05 -> S2R: ±0.08
+            noise=Unoise(n_min=-0.05, n_max=0.05),  # Mason's values
         )
         joint_vel = ObsTerm(
             func=mdp.joint_vel_rel,
             params={"asset_cfg": SceneEntityCfg("robot")},
-            noise=Unoise(n_min=-0.8, n_max=0.8),    # Mason: ±0.5 -> S2R: ±0.8
+            noise=Unoise(n_min=-0.5, n_max=0.5),    # Mason's values
         )
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
-            self.enable_corruption = True   # Mason had False — S2R enables it
+            self.enable_corruption = True   # Enable so Mason noise is applied
             self.concatenate_terms = True
 
     policy: PolicyCfg = PolicyCfg()
@@ -123,15 +134,23 @@ class S2RObservationsCfg:
 
 @configclass
 class S2REventCfg:
-    """Wider DR than Mason baseline: more mass, friction, push forces."""
+    """Mason's safe DR values — S2R hardening comes from ProgressiveS2RWrapper.
+
+    Physics DR stays at Mason's proven values to avoid instant falls on
+    low-friction terrain. The ProgressiveS2RWrapper adds sensor noise,
+    dropout, delay, and drift that scale with terrain curriculum level.
+
+    Previous attempt with wider DR (friction 0.15, mass ±5, pushes ±3N)
+    caused 100% body_contact termination — policy fell immediately.
+    """
 
     physics_material = EventTerm(
         func=mdp.randomize_rigid_body_material,
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.15, 1.3),    # Mason: (0.3, 1.0) -> wider
-            "dynamic_friction_range": (0.1, 1.0),     # Mason: (0.3, 0.8) -> wider
+            "static_friction_range": (0.3, 1.0),      # Mason's safe values
+            "dynamic_friction_range": (0.3, 0.8),      # Mason's safe values
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -142,7 +161,7 @@ class S2REventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="body"),
-            "mass_distribution_params": (-5.0, 5.0),  # Mason: (-2.5, 2.5) -> wider
+            "mass_distribution_params": (-2.5, 2.5),   # Mason's safe values
             "operation": "add",
         },
     )
@@ -152,8 +171,8 @@ class S2REventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="body"),
-            "force_range": (-3.0, 3.0),    # Mason: (0.0, 0.0) -> ENABLED
-            "torque_range": (-1.0, 1.0),   # Mason: (0.0, 0.0) -> ENABLED
+            "force_range": (0.0, 0.0),                 # Mason's (disabled)
+            "torque_range": (0.0, 0.0),                # Mason's (disabled)
         },
     )
 
@@ -183,7 +202,7 @@ class S2REventCfg:
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
-        interval_range_s=(7.0, 12.0),      # Mason: (10.0, 15.0) -> more frequent
+        interval_range_s=(10.0, 15.0),                 # Mason's safe values
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)},
@@ -192,7 +211,37 @@ class S2REventCfg:
 
 
 # =============================================================================
-# Rewards — Mason's 14 + 2 S2R additions = 16 terms
+# Terminations — body_contact REMOVED, replaced by soft penalty
+# =============================================================================
+
+@configclass
+class S2RTerminationsCfg:
+    """Soft termination config — no hard body_contact kill.
+
+    Mason's HybridTerminationsCfg has body_contact as a hard termination which
+    kills episodes instantly on any body touch. This prevents exploration when
+    reward weights change (the actor tries new motions, touches ground once,
+    episode ends, no learning signal).
+
+    Our fix: remove body_contact termination entirely. Add undesired_contacts
+    as a soft reward penalty (-1.5) so the policy is discouraged from body
+    contact but can still learn from the rest of the episode.
+    """
+    time_out = DoneTerm(func=mdp.time_out, time_out=True)
+    # body_contact REMOVED — replaced by undesired_contacts soft penalty in rewards
+    body_flip_over = DoneTerm(
+        func=mdp.bad_orientation,
+        params={"asset_cfg": SceneEntityCfg("robot"), "limit_angle": math.radians(150.0)},
+    )
+    terrain_out_of_bounds = DoneTerm(
+        func=mdp.terrain_out_of_bounds,
+        params={"asset_cfg": SceneEntityCfg("robot"), "distance_buffer": 3.0},
+        time_out=True,
+    )
+
+
+# =============================================================================
+# Rewards — Mason's 14 + 2 S2R + 1 undesired_contacts = 17 terms
 # =============================================================================
 
 @configclass
@@ -260,7 +309,17 @@ class S2RRewardsCfg:
     )
     base_orientation = RewardTermCfg(
         func=spot_mdp.base_orientation_penalty,
-        weight=-3.0,  # OVERRIDDEN per expert
+        weight=0.0,  # REPLACED by split pitch/roll below
+        params={"asset_cfg": SceneEntityCfg("robot")},
+    )
+    base_pitch = RewardTermCfg(
+        func=base_pitch_penalty,
+        weight=-0.5,  # Light — allow stair angling. OVERRIDDEN per expert
+        params={"asset_cfg": SceneEntityCfg("robot")},
+    )
+    base_roll = RewardTermCfg(
+        func=base_roll_penalty,
+        weight=-3.0,  # Heavy — prevent samba/lateral tipping. OVERRIDDEN per expert
         params={"asset_cfg": SceneEntityCfg("robot")},
     )
     foot_slip = RewardTermCfg(
@@ -312,6 +371,17 @@ class S2RRewardsCfg:
         func=mdp.joint_pos_limits,
         weight=-3.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
+    )
+
+    # -- Soft body contact penalty (replaces Mason's hard termination) --
+
+    undesired_contacts = RewardTermCfg(
+        func=mdp.undesired_contacts,
+        weight=-1.5,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["body", ".*leg"]),
+            "threshold": 1.0,
+        },
     )
 
     # -- NEW S2R additions --
@@ -373,7 +443,7 @@ class SpotS2RBaseEnvCfg(SpotMasonHybridEnvCfg):
     # Keep Mason's actions, commands, terminations, curriculum, scene
     actions: HybridActionsCfg = HybridActionsCfg()
     commands: HybridCommandsCfg = HybridCommandsCfg()
-    terminations: HybridTerminationsCfg = HybridTerminationsCfg()
+    terminations: S2RTerminationsCfg = S2RTerminationsCfg()
     curriculum: HybridCurriculumCfg = HybridCurriculumCfg()
     scene: HybridSceneCfg = HybridSceneCfg(num_envs=4096, env_spacing=2.5)
 

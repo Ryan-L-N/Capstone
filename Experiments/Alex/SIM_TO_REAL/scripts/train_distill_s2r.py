@@ -84,13 +84,17 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 import isaaclab_tasks  # noqa: F401
 
-# Path setup
-_MRT_SRC = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), "..", "..", "multi_robot_training",
-    "source", "quadruped_locomotion",
-))
-if _MRT_SRC not in sys.path:
-    sys.path.insert(0, _MRT_SRC)
+# Path setup (pip-installed on H100, fallback paths for local)
+for _p in [
+    os.path.join(os.path.dirname(__file__), "..", "..", "multi_robot_training",
+                 "source", "quadruped_locomotion"),
+    os.path.join(os.path.dirname(__file__), "..", "..", "multi_robot_training",
+                 "multi_robot_training", "source", "quadruped_locomotion"),
+    os.path.expanduser("~/multi_robot_training_new/source/quadruped_locomotion"),
+]:
+    _p = os.path.abspath(_p)
+    if os.path.isdir(_p) and _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import quadruped_locomotion  # noqa: F401
 
@@ -139,7 +143,10 @@ def main():
     )
 
     env = gym.make(gym_env_id, cfg=env_cfg)
-    env = RslRlVecEnvWrapper(env, clip_actions=True)
+    try:
+        env = RslRlVecEnvWrapper(env, clip_actions=True)
+    except (TypeError, ValueError):
+        env = RslRlVecEnvWrapper(env)
 
     # Apply S2R wrappers
     env = ObservationDelayWrapper(env, delay_steps=args_cli.obs_delay_steps)
@@ -168,9 +175,9 @@ def main():
         os.path.dirname(__file__), "..", "logs", "rsl_rl", "spot_s2r_distill"
     ))
 
-    runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device="cuda:0")
-    runner.set_log_dir(log_root_path)
-    log_dir = runner.log_dir
+    os.makedirs(log_root_path, exist_ok=True)
+    runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_root_path, device="cuda:0")
+    log_dir = runner.log_dir if hasattr(runner, 'log_dir') else log_root_path
 
     register_std_safety_clamp(runner.alg.policy, args_cli.min_noise_std, args_cli.max_noise_std)
 
