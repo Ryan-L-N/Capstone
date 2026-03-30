@@ -66,7 +66,7 @@ parser.add_argument("--robot", type=str, default="spot",
                     choices=["spot", "vision60"],
                     help="Robot to evaluate (default: spot)")
 parser.add_argument("--env", type=str, required=True,
-                    choices=["friction", "friction_v2", "grass", "boulder", "stairs"],
+                    choices=["friction", "friction_v2", "grass", "boulder", "stairs", "simple_stairs"],
                     help="Environment to evaluate")
 parser.add_argument("--policy", type=str, required=True,
                     choices=["flat", "rough"],
@@ -237,10 +237,9 @@ def main():
             )
             robot_policy.initialize()
             robot_policy.apply_gains()
-            # The main loop calls forward() once per world.step().
             # world.step() advances rendering_dt/physics_dt = 10 physics substeps,
-            # so the loop already runs at 50 Hz (control rate).
-            # Decimation must be 1 here (not 10) to avoid 5 Hz policy rate.
+            # so each world.step() = 10 physics steps. Decimation=1 means policy
+            # evaluates every world.step() = every 10 physics steps = 50Hz control.
             robot_policy._decimation = 1
         else:
             robot_policy = flat_policy
@@ -310,7 +309,12 @@ def main():
     # ── 8. Stabilization period ─────────────────────────────────────────
     print("Stabilizing robot...", flush=True)
     for i in range(STABILIZE_STEPS):
-        spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        # Use flat policy for stabilization (like teleop) to avoid
+        # locking the rough policy into standing mode via adaptive_standing
+        if robot == "spot" and args.policy == "rough":
+            flat_policy.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        else:
+            spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
         world.step(render=not headless)
         if (i + 1) % 25 == 0:
             print(f"  Stabilize step {i+1}/{STABILIZE_STEPS}", flush=True)
