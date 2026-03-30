@@ -155,7 +155,7 @@ def main():
     spawn_pos = list(robot_cfg["spawn_position"])
     # Raise spawn height for stairs to prevent foot clipping on first frame
     if args.env == "stairs":
-        spawn_pos[2] = max(spawn_pos[2], 0.8)  # 0.8m clears initial step geometry
+        spawn_pos[2] = max(spawn_pos[2], 1.0)  # 1.0m clears initial step geometry
 
     print(f"\n{'='*60}")
     print(f"  Capstone Evaluation")
@@ -338,7 +338,8 @@ def main():
         metrics_collector.start_episode(ep_id)
 
         # Brief stabilization after reset
-        for _ in range(10):
+        stabilize_steps = 50 if args.env == "stairs" else 10
+        for _ in range(stabilize_steps):
             spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
             world.step(render=not headless)
 

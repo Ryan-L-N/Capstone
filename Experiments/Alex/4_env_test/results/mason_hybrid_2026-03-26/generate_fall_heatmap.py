@@ -17,8 +17,14 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 ENVIRONMENTS = ["friction", "grass", "boulder", "stairs"]
 ENV_LABELS   = {"friction": "Friction", "grass": "Grass", "boulder": "Boulder", "stairs": "Stairs"}
 
+STAIRS_RERUN_DIR = os.path.join(os.path.dirname(BASE_DIR),
+                                "mason_hybrid_stairs_rerun_2026-03-27")
+
 def load_jsonl(env):
-    path = os.path.join(BASE_DIR, f"{env}_rough_episodes.jsonl")
+    if env == "stairs":
+        path = os.path.join(STAIRS_RERUN_DIR, "stairs_rough_episodes.jsonl")
+    else:
+        path = os.path.join(BASE_DIR, f"{env}_rough_episodes.jsonl")
     records = []
     if os.path.exists(path):
         with open(path) as f:
