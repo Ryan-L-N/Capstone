@@ -66,7 +66,7 @@ parser.add_argument("--robot", type=str, default="spot",
                     choices=["spot", "vision60"],
                     help="Robot to evaluate (default: spot)")
 parser.add_argument("--env", type=str, required=True,
-                    choices=["friction", "friction_v2", "grass", "boulder", "stairs"],
+                    choices=["friction", "friction_v2", "grass", "boulder", "stairs", "simple_stairs"],
                     help="Environment to evaluate")
 parser.add_argument("--policy", type=str, required=True,
                     choices=["flat", "rough"],
@@ -85,6 +85,8 @@ parser.add_argument("--output_dir", type=str, default="results/",
                     help="Output directory for JSONL and video files")
 parser.add_argument("--seed", type=int, default=42,
                     help="Random seed for reproducibility")
+parser.add_argument("--max_episode_time", type=float, default=0,
+                    help="Max seconds per episode (0 = no limit)")
 parser.add_argument("--mason", action="store_true", default=False,
                     help="Use Mason obs order (height_scan first) + action_scale=0.2")
 
@@ -93,39 +95,15 @@ args, remaining = parser.parse_known_args()
 # Determine headless mode
 headless = args.headless and not args.rendered
 
-# ── 1. Create Isaac Sim via AppLauncher ──────────────────────────────────
-# AppLauncher uses isaaclab.python.headless.kit which skips Vulkan entirely.
-# This allows PhysX GPU to work on servers with compute-only NVIDIA drivers
-# (e.g. nvidia-headless-575) where Vulkan is not available.
-#
-# Note: We then manually enable isaacsim.core extensions so that
-# omni.isaac.core.World and omni.isaac.quadruped are available.
-from isaaclab.app import AppLauncher
+# ── 1. Create SimulationApp BEFORE any omni imports ─────────────────────
+from isaacsim import SimulationApp
 
-# AppLauncher reads sys.argv, so inject --headless if needed
-_orig_argv = sys.argv[:]
-sys.argv = [sys.argv[0]] + (["--headless"] if headless else [])
-app_launcher = AppLauncher(headless=headless)
-simulation_app = app_launcher.app
-sys.argv = _orig_argv  # restore for any downstream arg parsing
-
-# ── 1b. Enable required Isaac Sim extensions ────────────────────────────
-# The headless kit doesn't load isaacsim.core.* by default.
-# We need World, SpotFlatTerrainPolicy, etc.
-import omni.kit.app
-_ext_mgr = omni.kit.app.get_app().get_extension_manager()
-_required_exts = [
-    "isaacsim.core",
-    "isaacsim.core.prims",
-    "isaacsim.robot.quadruped",
-    "omni.isaac.core",
-    "omni.isaac.quadruped",
-]
-for ext in _required_exts:
-    try:
-        _ext_mgr.set_extension_enabled_immediate(ext, True)
-    except Exception:
-        pass  # Some may not exist or have different names in this version
+app_config = {
+    "headless": headless,
+    "width": 1920,
+    "height": 1080,
+}
+simulation_app = SimulationApp(app_config)
 
 # ── 2. Now safe to import Isaac and project modules ─────────────────────
 import numpy as np
@@ -177,7 +155,7 @@ def main():
     spawn_pos = list(robot_cfg["spawn_position"])
     # Raise spawn height for stairs to prevent foot clipping on first frame
     if args.env == "stairs":
-        spawn_pos[2] = max(spawn_pos[2], 0.8)  # 0.8m clears initial step geometry
+        spawn_pos[2] = max(spawn_pos[2], 1.0)  # 1.0m clears initial step geometry
 
     print(f"\n{'='*60}")
     print(f"  Capstone Evaluation")
@@ -259,10 +237,9 @@ def main():
             )
             robot_policy.initialize()
             robot_policy.apply_gains()
-            # The main loop calls forward() once per world.step().
             # world.step() advances rendering_dt/physics_dt = 10 physics substeps,
-            # so the loop already runs at 50 Hz (control rate).
-            # Decimation must be 1 here (not 10) to avoid 5 Hz policy rate.
+            # so each world.step() = 10 physics steps. Decimation=1 means policy
+            # evaluates every world.step() = every 10 physics steps = 50Hz control.
             robot_policy._decimation = 1
         else:
             robot_policy = flat_policy
@@ -332,7 +309,12 @@ def main():
     # ── 8. Stabilization period ─────────────────────────────────────────
     print("Stabilizing robot...", flush=True)
     for i in range(STABILIZE_STEPS):
-        spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        # Use flat policy for stabilization (like teleop) to avoid
+        # locking the rough policy into standing mode via adaptive_standing
+        if robot == "spot" and args.policy == "rough":
+            flat_policy.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        else:
+            spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
         world.step(render=not headless)
         if (i + 1) % 25 == 0:
             print(f"  Stabilize step {i+1}/{STABILIZE_STEPS}", flush=True)
@@ -360,7 +342,8 @@ def main():
         metrics_collector.start_episode(ep_id)
 
         # Brief stabilization after reset
-        for _ in range(10):
+        stabilize_steps = 50 if args.env == "stairs" else 10
+        for _ in range(stabilize_steps):
             spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
             world.step(render=not headless)
 
@@ -412,8 +395,10 @@ def main():
                 sim_time=sim_time,
             )
 
-            # Check termination (fall)
+            # Check termination (fall or time limit)
             if metrics_collector.episode_done():
+                break
+            if args.max_episode_time > 0 and (time.time() - ep_start) > args.max_episode_time:
                 break
 
             # Compute navigation commands
@@ -437,7 +422,7 @@ def main():
         ep_time = time.time() - ep_start
 
         # Progress log
-        status = "COMPLETE" if result.get("completion") else "FELL" if result.get("fall_detected") else "TIMEOUT"
+        status = "COMPLETE" if result.get("completion") else "FLIP" if result.get("flip_detected") else "FELL" if result.get("fall_detected") else "TIMEOUT"
         progress = result.get("progress", 0)
         zone = result.get("zone_reached", 0)
         print(f"  [{ep_idx+1:4d}/{args.num_episodes}] {ep_id}  "

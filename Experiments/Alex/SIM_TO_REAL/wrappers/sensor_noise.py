@@ -112,13 +112,16 @@ class SensorNoiseWrapper:
         """
         obs_dict = self.env.get_observations()
 
-        # Extract policy observation tensor
-        if isinstance(obs_dict, dict):
-            obs_key = "policy" if "policy" in obs_dict else list(obs_dict.keys())[0]
-            obs = obs_dict[obs_key]
-        else:
+        # Extract policy observation tensor (handles dict, TensorDict, or raw tensor)
+        obs_key = None
+        try:
+            if hasattr(obs_dict, 'keys'):
+                obs_key = "policy" if "policy" in obs_dict else list(obs_dict.keys())[0]
+                obs = obs_dict[obs_key]
+            else:
+                obs = obs_dict
+        except Exception:
             obs = obs_dict
-            obs_key = None
 
         # Work on a clone to avoid modifying the environment's internal state
         obs = obs.clone()

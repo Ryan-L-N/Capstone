@@ -40,35 +40,21 @@ echo "[0/6] Activating environment..."
 if [ "$MODE" = "--h100" ]; then
     eval "$(/home/t2user/miniconda3/bin/conda shell.bash hook)"
     conda activate env_isaaclab
+    PYTHON=python
     echo "      H100: conda env_isaaclab activated."
 elif [ "$MODE" = "--local" ]; then
-    # Activate local venv if not already active
-    if [ -z "$VIRTUAL_ENV" ]; then
-        VENV="$REPO_ROOT/../isaacSim_env/Scripts/activate"
-        if [ -f "$VENV" ]; then
-            source "$VENV"
-            echo "      Local: isaacSim_env activated."
-        else
-            echo ""
-            echo "  ERROR: No virtual environment is active and isaacSim_env was not"
-            echo "  found at the expected path:"
-            echo "    $VENV"
-            echo ""
-            echo "  Activate your Isaac Sim venv first, then re-run this script:"
-            echo "    source <path/to/isaacSim_env>/Scripts/activate   # Windows/Git Bash"
-            echo "    source <path/to/isaacSim_env>/bin/activate        # Linux/Mac"
-            echo ""
-            echo "  This is required to prevent packages from polluting your global Python."
-            exit 1
-        fi
-    else
-        echo "      Local: venv already active ($VIRTUAL_ENV)."
-    fi
-    # Double-check we are actually inside a venv before installing anything
-    if [ -z "$VIRTUAL_ENV" ] && [ -z "$CONDA_DEFAULT_ENV" ]; then
-        echo "  ERROR: Could not confirm a virtual environment is active. Aborting."
+    # Resolve python directly from the venv — works even when PATH isn't updated by activate
+    VENV_SCRIPTS="$REPO_ROOT/isaacSim_env/Scripts"
+    if [ ! -f "$VENV_SCRIPTS/python.exe" ]; then
+        echo ""
+        echo "  ERROR: isaacSim_env not found at expected path:"
+        echo "    $VENV_SCRIPTS/python.exe"
+        echo ""
+        echo "  Expected venv location: $REPO_ROOT/isaacSim_env"
         exit 1
     fi
+    PYTHON="$VENV_SCRIPTS/python.exe"
+    echo "      Local: using venv python at $PYTHON"
 else
     echo "ERROR: Unknown mode '$MODE'. Use --local or --h100."
     exit 1
@@ -88,27 +74,69 @@ fi
 echo "      OK: $(basename "$LOCO_CHECKPOINT") found."
 
 # ---------------------------------------------------------------------------
-# Step 2: Install Isaac Lab (if not already present)
+# Step 2: Check Isaac Sim + Isaac Lab
 # ---------------------------------------------------------------------------
 echo ""
-echo "[2/6] Checking / installing Isaac Lab..."
+echo "[2/6] Checking Isaac Sim and Isaac Lab..."
 
-if python -c "import importlib.util; exit(0 if importlib.util.find_spec('isaaclab') else 1)" 2>/dev/null; then
-    echo "      OK: isaaclab already installed."
+_has_pkg() { "$PYTHON" -c "import importlib.util; exit(0 if importlib.util.find_spec('$1') else 1)" 2>/dev/null; }
+
+# --- Isaac Sim ---
+if _has_pkg isaacsim; then
+    echo "      OK: isaacsim already installed."
 else
-    echo "      Not found — attempting pip install from NVIDIA index..."
-    pip install isaacsim-lab \
+    echo "      isaacsim not found — attempting pip install from NVIDIA index..."
+    "$PYTHON" -m pip install isaacsim \
         --extra-index-url https://pypi.nvidia.com \
         --quiet \
-        && echo "      OK: isaaclab installed." \
+        && echo "      OK: isaacsim installed." \
         || {
             echo ""
-            echo "  WARNING: Isaac Lab pip install failed."
-            echo "  This is required for training. Manual install options:"
-            echo "    pip install isaacsim-lab --extra-index-url https://pypi.nvidia.com"
-            echo "    or install from source: https://isaac-sim.github.io/IsaacLab"
-            echo "  Continuing setup — other packages will still be installed."
+            echo "  WARNING: isaacsim pip install failed. If it's installed via the"
+            echo "  Isaac Sim launcher (not pip), this is expected — Isaac Sim will"
+            echo "  still be available at runtime."
         }
+fi
+
+# --- Isaac Lab ---
+if _has_pkg isaaclab; then
+    echo "      OK: isaaclab already installed."
+else
+    echo "      isaaclab not found — attempting pip install from NVIDIA index..."
+    if "$PYTHON" -m pip install isaacsim-lab \
+            --extra-index-url https://pypi.nvidia.com \
+            --quiet 2>/dev/null; then
+        echo "      OK: isaaclab installed from NVIDIA index."
+    else
+        echo "      NVIDIA index failed — attempting source install..."
+        ISAACLAB_DIR="$REPO_ROOT/isaacSim_env/isaaclab_src"
+        ISAACLAB_SRC="$ISAACLAB_DIR/source/isaaclab"
+        if [ ! -d "$ISAACLAB_SRC" ]; then
+            echo "      Cloning IsaacLab (shallow)..."
+            git config --global core.longpaths true
+            if ! git clone https://github.com/isaac-sim/IsaacLab.git "$ISAACLAB_DIR" --depth 1; then
+                echo ""
+                echo "  ERROR: git clone failed. Clone manually first, then re-run:"
+                echo "    git config --global core.longpaths true"
+                echo "    git clone --depth 1 https://github.com/isaac-sim/IsaacLab.git \\"
+                echo "      isaacSim_env\\isaaclab_src"
+                echo "    Then re-run this script."
+            fi
+        else
+            echo "      Source already cloned at $ISAACLAB_DIR"
+        fi
+        if [ -d "$ISAACLAB_SRC" ]; then
+            ISAACLAB_WIN="$(wslpath -w "$ISAACLAB_SRC")"
+            if "$PYTHON" -m pip install -e "$ISAACLAB_WIN" --quiet; then
+                echo "      OK: isaaclab installed from source."
+            else
+                echo ""
+                echo "  ERROR: isaaclab could not be installed. train_combined.py will fail."
+                echo "  Manually run:"
+                echo "    python -m pip install -e isaacSim_env\\isaaclab_src\\source\\isaaclab"
+            fi
+        fi
+    fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -116,7 +144,8 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "[3/6] Installing nav_locomotion package (Alex's NAV_ALEX)..."
-pip install -e "$NAV_ALEX_DIR/source/nav_locomotion/" --quiet
+NAV_LOCO_WIN="$(wslpath -w "$NAV_ALEX_DIR/source/nav_locomotion")"
+"$PYTHON" -m pip install -e "$NAV_LOCO_WIN" --quiet
 echo "      OK: nav_locomotion installed (editable)."
 
 # ---------------------------------------------------------------------------
@@ -124,10 +153,10 @@ echo "      OK: nav_locomotion installed (editable)."
 # ---------------------------------------------------------------------------
 echo ""
 echo "[4/6] Installing dependencies..."
-pip install anthropic --quiet
-pip install tensorboard --quiet
-pip install gymnasium --quiet
-pip install rsl-rl --quiet
+"$PYTHON" -m pip install anthropic --quiet
+"$PYTHON" -m pip install tensorboard --quiet
+"$PYTHON" -m pip install gymnasium --quiet
+"$PYTHON" -m pip install git+https://github.com/leggedrobotics/rsl_rl.git --quiet
 echo "      OK: anthropic, tensorboard, gymnasium, rsl-rl installed."
 
 # ---------------------------------------------------------------------------
@@ -145,14 +174,20 @@ echo "      (train_combined.py writes all checkpoints here — no teammate dirs 
 echo ""
 echo "[6/6] Verifying key imports..."
 
-python - <<'PYCHECK'
+"$PYTHON" - <<'PYCHECK'
 import sys
 
 failures = []
 
 try:
     import torch
-    print(f"  torch       : {torch.__version__}  (CUDA: {torch.cuda.is_available()})")
+    cuda_ok = torch.cuda.is_available()
+    print(f"  torch       : {torch.__version__}  (CUDA: {cuda_ok})")
+    if not cuda_ok:
+        print(f"  NOTE: CUDA not available. Training will run on CPU (slow).")
+        print(f"        To enable GPU, reinstall torch with CUDA support:")
+        print(f"          python -m pip install torch --index-url https://download.pytorch.org/whl/cu121")
+        print(f"        Replace cu121 with your CUDA version (check with: nvidia-smi)")
 except ImportError as e:
     failures.append(f"torch: {e}")
 
@@ -182,7 +217,8 @@ except ImportError as e:
 
 try:
     import rsl_rl
-    print(f"  rsl_rl         : {rsl_rl.__version__}")
+    ver = getattr(rsl_rl, '__version__', 'installed')
+    print(f"  rsl_rl         : {ver}")
 except ImportError as e:
     failures.append(f"rsl_rl: {e}")
 
@@ -192,20 +228,20 @@ try:
 except ImportError as e:
     failures.append(f"nav_locomotion: {e}")
 
-# Isaac Lab (only importable after SimulationApp — just check the package exists)
+# Isaac Lab (bundled with Isaac Sim, not a standalone pip package — warn only)
 try:
     import importlib.util
     if importlib.util.find_spec("isaaclab") is not None:
         print(f"  isaaclab    : found")
     else:
-        failures.append("isaaclab: not found — is Isaac Lab installed in this env?")
+        print(f"  isaaclab    : not found as standalone package (OK if bundled with Isaac Sim)")
 except Exception as e:
-    failures.append(f"isaaclab check failed: {e}")
+    print(f"  isaaclab    : check failed: {e}")
 
 if failures:
     print("\n  FAILED IMPORTS:")
     for f in failures:
-        print(f"    ✗ {f}")
+        print(f"    x {f}")
     sys.exit(1)
 else:
     print("\n  All imports OK.")

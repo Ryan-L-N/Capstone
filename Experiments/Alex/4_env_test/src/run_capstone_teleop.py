@@ -42,11 +42,15 @@ import time
 
 parser = argparse.ArgumentParser(description="Capstone teleop")
 parser.add_argument("--env", type=str, default="friction",
-                    choices=["friction", "grass", "boulder", "stairs"],
+                    choices=["friction", "grass", "boulder", "stairs", "simple_stairs"],
                     help="Environment to explore")
 parser.add_argument("--device", type=str, default="keyboard",
                     choices=["keyboard", "xbox"],
                     help="Input device")
+parser.add_argument("--checkpoint", type=str, default=None,
+                    help="Path to rough policy checkpoint (.pt)")
+parser.add_argument("--mason", action="store_true", default=False,
+                    help="Use Mason obs order (height_scan first) + action_scale=0.2")
 args = parser.parse_args()
 
 # ── 1. Create SimulationApp ─────────────────────────────────────────────
@@ -78,7 +82,7 @@ if args.env == "stairs":
 
 # ── Constants ───────────────────────────────────────────────────────────
 DEADZONE = 0.12
-GAIT_SWITCH_STABILIZE = 25  # 0.5 seconds at 50Hz
+GAIT_SWITCH_STABILIZE = 50  # 1 second at 50Hz
 STABILIZE_STEPS = 100       # 2 seconds at 50Hz
 
 DRIVE_MODES = ["MANUAL", "SMOOTH", "PATROL", "AUTO-NAV"]
@@ -165,7 +169,7 @@ def main():
     # ── 6. State variables ──────────────────────────────────────────────
     spot = spot_flat
     spot_rough = None
-    gait_idx = 0  # 0 = flat, 1 = rough
+    gait_idx = 1 if args.checkpoint else 0  # start on rough if checkpoint provided
     drive_mode_idx = 0
     smoother = VelocitySmoother(alpha=0.3)
     gait_switch_timer = 0
@@ -211,6 +215,10 @@ def main():
 
         pressed = event.type == carb.input.KeyboardEventType.KEY_PRESS
         released = event.type == carb.input.KeyboardEventType.KEY_RELEASE
+
+        # Ignore KEY_REPEAT — only act on press/release to support held keys
+        if not pressed and not released:
+            return True
 
         key = event.input
 
@@ -264,7 +272,9 @@ def main():
                 ground_fn = get_stair_elevation if args.env == "stairs" else None
                 spot_rough = SpotRoughTerrainPolicy(
                     flat_policy=spot_flat,
+                    checkpoint_path=args.checkpoint,
                     ground_height_fn=ground_fn,
+                    mason_baseline=args.mason,
                 )
                 spot_rough.initialize()
                 print("[GAIT] Both flat and rough policies loaded", flush=True)
@@ -296,6 +306,7 @@ def main():
             if spot is not spot_rough:
                 if hasattr(spot_rough, 'post_reset'):
                     spot_rough.post_reset()
+                spot_rough.apply_gains()  # re-apply PD gains + solver settings
                 gait_switch_timer = GAIT_SWITCH_STABILIZE
             spot = spot_rough
 
