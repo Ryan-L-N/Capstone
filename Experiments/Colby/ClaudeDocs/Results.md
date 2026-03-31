@@ -22,6 +22,7 @@
 | H100-Rough-30K | Rough terrain locomotion | Terrain Level | 4.42 | ✅ Complete |
 | MH-1 | Mason Hybrid + AI Coach | Terrain Level | — | ❌ Failed (gait destroyed) |
 | MH-2 | Mason Hybrid + VLM Coach | Terrain Level | In progress | 🔄 Active |
+| NAV-001 | Combined nav+loco (depth camera) | Forward Distance | — | ⏳ Not started |
 
 ---
 
@@ -125,6 +126,35 @@ falls more → coach sees low reward → boosts velocity again. Gait collapsed e
 
 ---
 
+### RUN-004 — Combined Nav + Loco (NAV-001)
+
+**Date:** March 2026 — ⏳ **NOT STARTED**
+**Hardware:** H100 NVL 96GB
+**Goal:** Train depth-camera navigation policy on top of frozen RSL-RL locomotion policy
+**Config:** 2,048 parallel envs, ActorCriticCNN (CNN + MLP), 10 Hz nav / 50 Hz loco, 30K iters
+**Loco checkpoint:** `mason_hybrid_best_33200.pt` (Ryan's, frozen)
+**Script:** `Experiments/Colby/CombinedPolicyTraining/train_combined.py`
+
+#### Final Metrics
+| Metric | Start | Final | Change |
+|--------|------:|------:|--------|
+| Mean Reward | — | — | — |
+| Forward Distance (m) | — | — | — |
+| Survival Rate | — | — | — |
+| Terrain Level (1–6) | — | — | — |
+| Flip Rate | — | — | — |
+
+**Total training:** —
+**Checkpoint:** `Experiments/Colby/CombinedPolicyTraining/logs/spot_nav_explore_ppo/<timestamp>/model_final.pt`
+
+#### Outcome
+*Fill in when run completes.*
+
+#### Key Takeaway
+> *Fill in when run completes.*
+
+---
+
 ## Benchmark Targets (ARL Delivery)
 
 Targets from the project plan. Fill in actual results as runs complete.
@@ -136,6 +166,25 @@ Targets from the project plan. Fill in actual results as runs complete.
 | Two-room + doorway | >80% | <90s | — | ⏳ |
 | Stairs (2 floors) | >75% | <120s | — | ⏳ |
 | Full obstacle course (100m) | Completion | — | ✅ Working | ✅ |
+
+---
+
+## Benchmark Targets (Combined Nav + Loco — NAV-001)
+
+Phase-based targets for the combined training run. Pull from `watch_training.py` or TensorBoard.
+
+| Iteration | Metric | Target | Actual | Status |
+|-----------|--------|-------:|--------|--------|
+| 500 | Forward Distance | >5m | — | ⏳ |
+| 500 | Survival Rate | >40% | — | ⏳ |
+| 2,000 | Forward Distance | >15m | — | ⏳ |
+| 2,000 | Terrain Level | >2.0 | — | ⏳ |
+| 5,000 | Forward Distance | >25m | — | ⏳ |
+| 5,000 | Terrain Level | >3.0 | — | ⏳ |
+| 30,000 | Forward Distance | >40m | — | ⏳ |
+| 30,000 | Terrain Level | >4.0 | — | ⏳ |
+
+**Rule of thumb:** If `forward_distance < 2m` and `survival_rate < 25%` after 500 iterations, something is broken — stop and debug.
 
 ---
 
