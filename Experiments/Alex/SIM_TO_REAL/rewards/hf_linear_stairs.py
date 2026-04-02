@@ -1,12 +1,10 @@
-"""Linear Staircase Heightfield — One-directional ascending stairs.
+"""Linear Staircase Heightfields — Ascending and Descending stairs.
 
-Returns a 2D numpy height array (like all HfTerrainBaseCfg functions).
-Steps go UP in the +X direction only. No pyramid, no radial, no descent.
-Robot spawns at X=0 (low), must walk +X to climb.
+Returns 2D numpy height arrays (like all HfTerrainBaseCfg functions).
+  - linear_stairs_terrain:      Steps go UP in +X. Spawn at X=0 (ground).
+  - linear_stairs_down_terrain: Steps go DOWN in +X. Spawn at X=0 (elevated).
 
 Difficulty controls step height (3cm to 22cm).
-
-Drop this file into IsaacLab's heightfield terrains module or import from SIM_TO_REAL.
 """
 from __future__ import annotations
 
@@ -62,3 +60,24 @@ def linear_stairs_terrain(difficulty: float, cfg: hf_terrains_cfg.HfTerrainBaseC
         x = x_end
 
     return hf
+
+
+def linear_stairs_down_terrain(difficulty: float, cfg: hf_terrains_cfg.HfTerrainBaseCfg) -> np.ndarray:
+    """Generate a one-directional descending staircase heightfield.
+
+    Steps go DOWN in +X direction. The robot spawns at X=0 (elevated)
+    and must walk forward to descend. Mirror of linear_stairs_terrain.
+
+    Args:
+        difficulty: 0.0 to 1.0, controls step height.
+        cfg: HfTerrainBaseCfg with size, horizontal_scale, vertical_scale.
+
+    Returns:
+        2D numpy height array, shape (num_x, num_y), discretized heights.
+    """
+    # Generate ascending stairs then flip along X axis
+    hf_up = linear_stairs_terrain(difficulty, cfg)
+    max_height = hf_up.max()
+    # Invert: highest point becomes ground, ground becomes highest
+    hf_down = max_height - hf_up
+    return hf_down.astype(np.int16)

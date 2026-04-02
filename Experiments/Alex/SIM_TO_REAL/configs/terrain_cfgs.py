@@ -364,3 +364,33 @@ DISTILLATION_TERRAINS_CFG = TerrainGeneratorCfg(
         ),
     },
 )
+
+
+# =============================================================================
+# BIDIRECTIONAL STAIRS V6 — 35% up + 35% down + 15% flat + 15% rough/flat
+# =============================================================================
+
+_NARROW_COMMON = {**_COMMON, "size": (8.0, 3.0)}  # Narrow Y prevents sideways skirting
+
+BIDIRECTIONAL_STAIRS_TERRAINS_CFG = TerrainGeneratorCfg(
+    **_NARROW_COMMON,
+    sub_terrains={
+        "linear_stairs_up": terrain_gen.HfLinearStairsTerrainCfg(
+            proportion=0.35,
+            platform_width=2.0,
+        ),
+        "linear_stairs_down": terrain_gen.HfLinearStairsDownTerrainCfg(
+            proportion=0.35,
+            platform_width=2.0,
+        ),
+        "flat": terrain_gen.MeshPlaneTerrainCfg(
+            proportion=0.15,
+        ),
+        "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
+            proportion=0.15,
+            noise_range=(0.02, 0.10),
+            noise_step=0.02,
+            border_width=0.25,
+        ),
+    },
+)
