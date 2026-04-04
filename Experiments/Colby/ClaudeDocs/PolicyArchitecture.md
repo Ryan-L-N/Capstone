@@ -103,7 +103,6 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100   
 
 Installs into the active venv only:
 - `nav_locomotion` (Alex's package, editable install — his files unchanged)
-- `anthropic` (AI coach)
 - `tensorboard` (metrics)
 - `gymnasium` (RL env interface)
 - `rsl-rl` (PPO runner)
@@ -113,7 +112,7 @@ Installs into the active venv only:
 # Local smoke test (16 envs, 100 iterations)
 bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local
 
-# H100 full run (2048 envs, 30000 iterations, with AI coach)
+# H100 full run (2048 envs, 30000 iterations)
 bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --h100
 ```
 
@@ -155,5 +154,5 @@ tensorboard --logdir Experiments/Colby/CombinedPolicyTraining/logs/
 
 **Remaining:**
 - [ ] Run `install_prerequisites.sh --h100` on the H100 to confirm all imports pass
-- [ ] Start NAV-001 training run — use `--no_coach` for the first smoke test iteration, then enable for full 30K run
+- [ ] Start NAV-001 training run — smoke test locally first (16 envs, 100 iters), then full 30K run on H100
 - [ ] Fill in RUN-004 card in `Results.md` as training progresses

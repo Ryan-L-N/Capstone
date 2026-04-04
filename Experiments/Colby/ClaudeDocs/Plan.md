@@ -288,7 +288,7 @@ python train.py --headless --num_envs 4096 --max_iterations 10
 | value_loss explodes to millions | LR too high for phase | Use lr_max=5e-5 for Phase B+ |
 | action_smoothness → -infinity / NaN | Unbounded L2 penalty | Cap at 10.0 |
 | Terrain plateaus at level ~4.8 | Too many reward terms or network too large | ≤12 terms, [512,256,128] network |
-| Gait destroyed mid-training | AI Coach over-boosted velocity reward | Deferred coach mode; velocity bounds 3.0–7.0 |
+| Gait destroyed mid-training | Velocity reward weight too high | Keep velocity reward weight ≤ 7.0 |
 | value_loss spike ~1000 at iter 1025 | Normal at lr=5e-5 Phase B-easy | Wait — it recovers. Kill only if >5000 and still rising at iter 1050 |
 
 ---
@@ -313,7 +313,6 @@ spot_nav_waypoint_01
 - **Mason's 11-term config > our 22-term config** — simpler reward = clearer gradient signal
 - **Never skip Phase A.5** — direct A → robust terrain causes instant explosion (Trial 10)
 - **lr_max = 5e-5 is the safe ceiling for Phase B+** — anything higher re-explodes
-- **AI Coach must run in deferred mode** — 300+ silent iterations before first intervention
-- **MH-1 failure:** coach positive-feedback-looped velocity reward 5→14.26 → gait destroyed. Fix: velocity bounds 3–7, disable LR changes from coach entirely
+- **MH-1 lesson:** velocity reward weight runaway (5→14.26) destroyed gait — keep velocity reward weight bounded 3–7
 - **RTX 4070:** fine for env dev and smoke tests; not enough VRAM for production scale
 - **H100 SSH:** one session only — parallel sessions cause unresponsive server, physical reboot required
