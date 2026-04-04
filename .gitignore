@@ -12,6 +12,7 @@ checkpoints/
 # Exception: evaluated policies folder (shared for team eval)
 !Experiments/Alex/4_env_test/policies/*.pt
 # Exception: Colby's nav policy checkpoints
+!CombinedPolicyTraining/logs/**/*.pt
 !Experiments/Colby/CombinedPolicyTraining/logs/**/*.pt
 *training_log*.txt
 *.log
