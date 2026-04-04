@@ -55,11 +55,15 @@ class ObservationDelayWrapper:
         """Lazily initialize the observation ring buffer.
 
         Args:
-            obs_tensor: (num_envs, obs_dim) sample observation.
+            obs_tensor: (num_envs, obs_dim) sample observation tensor.
         """
-        obs_dim = obs_tensor.shape[1]
+        if obs_tensor.dim() == 1:
+            obs_dim = obs_tensor.shape[0]
+        else:
+            obs_dim = obs_tensor.shape[-1]
+        num_envs = obs_tensor.shape[0] if obs_tensor.dim() > 1 else self.num_envs
         self.buffer = torch.zeros(
-            self.delay_steps, self.num_envs, obs_dim,
+            self.delay_steps, num_envs, obs_dim,
             device=self.device, dtype=torch.float32,
         )
         self.head = 0
@@ -89,13 +93,17 @@ class ObservationDelayWrapper:
         """
         obs_dict = self.env.get_observations()
 
-        # Extract the policy observation tensor
-        if isinstance(obs_dict, dict):
-            obs_key = "policy" if "policy" in obs_dict else list(obs_dict.keys())[0]
-            current_obs = obs_dict[obs_key]
-        else:
+        # Extract the policy observation tensor (handles dict, TensorDict, or raw tensor)
+        obs_key = None
+        try:
+            # TensorDict or dict-like
+            if hasattr(obs_dict, 'keys'):
+                obs_key = "policy" if "policy" in obs_dict else list(obs_dict.keys())[0]
+                current_obs = obs_dict[obs_key]
+            else:
+                current_obs = obs_dict
+        except Exception:
             current_obs = obs_dict
-            obs_key = None
 
         # Lazy init on first call
         if not self._initialized:

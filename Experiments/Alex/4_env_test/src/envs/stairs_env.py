@@ -31,8 +31,8 @@ def _create_step_material(stage):
 
     prim = stage.GetPrimAtPath(mat_path)
     phys_mat = UsdPhysics.MaterialAPI.Apply(prim)
-    phys_mat.CreateStaticFrictionAttr(0.6)
-    phys_mat.CreateDynamicFrictionAttr(0.5)
+    phys_mat.CreateStaticFrictionAttr(1.0)
+    phys_mat.CreateDynamicFrictionAttr(1.0)
     phys_mat.CreateRestitutionAttr(0.01)
 
     physx_mat = PhysxSchema.PhysxMaterialAPI.Apply(prim)
@@ -103,8 +103,8 @@ def create_stair_zone(stage, zone_path, step_height, step_depth, num_steps,
         # Contact offset prevents foot penetration into step geometry
         from pxr import PhysxSchema
         collision_api = PhysxSchema.PhysxCollisionAPI.Apply(prim)
-        collision_api.CreateContactOffsetAttr().Set(0.02)  # 2cm buffer
-        collision_api.CreateRestOffsetAttr().Set(0.01)     # 1cm rest
+        collision_api.CreateContactOffsetAttr().Set(0.04)  # 4cm buffer
+        collision_api.CreateRestOffsetAttr().Set(0.02)     # 2cm rest
         binding = UsdShade.MaterialBindingAPI.Apply(prim)
         binding.Bind(UsdShade.Material.Get(stage, mat_path))
 

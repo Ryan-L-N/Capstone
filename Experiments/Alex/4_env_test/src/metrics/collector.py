@@ -13,6 +13,8 @@ import numpy as np
 
 # Fall threshold in meters
 FALL_THRESHOLD = 0.15
+# Flip threshold in radians (~150 degrees, matching training body_flip_over)
+FLIP_THRESHOLD = 2.618  # math.radians(150)
 # Completion threshold in meters (x-axis)
 COMPLETION_X = 49.0
 # Zone length in meters
@@ -84,6 +86,7 @@ class MetricsCollector:
         self._energies = []       # |torque * joint_vel| sum per step
         self._sim_times = []
         self._fall_detected = False
+        self._flip_detected = False
         self._fall_location = None
         self._fall_zone = None
         self._max_x = 0.0
@@ -149,6 +152,30 @@ class MetricsCollector:
         # Check completion
         if self._completion_time is None and x >= COMPLETION_X:
             self._completion_time = sim_time
+
+        # Check flip — orientation exceeds 150 degrees (matches training termination).
+        # projected_gravity Z < cos(150°) means the robot is upside down.
+        # Using roll/pitch: if either exceeds ~150° from upright, it's a flip.
+        if not self._flip_detected:
+            # Compute angle between body Z-axis and world up.
+            # gravity_body = R_body_to_world^T @ [0,0,-1]
+            # When upright, gravity_b ≈ [0,0,-1], so gravity_b[2] ≈ -1.
+            # Flip angle = acos(-gravity_b[2]) = acos(dot(body_z, world_z))
+            w, qx, qy, qz = root_quat[0], root_quat[1], root_quat[2], root_quat[3]
+            # Body Z in world frame: R @ [0,0,1]
+            body_z_world = np.array([
+                2.0 * (qx * qz + w * qy),
+                2.0 * (qy * qz - w * qx),
+                1.0 - 2.0 * (qx * qx + qy * qy),
+            ])
+            # Angle between body Z and world Z (up)
+            cos_angle = np.clip(body_z_world[2], -1.0, 1.0)
+            tilt_angle = math.acos(cos_angle)
+            if tilt_angle > FLIP_THRESHOLD:
+                self._flip_detected = True
+                self._fall_detected = True  # treat flip as fall for episode_done
+                self._fall_location = x
+                self._fall_zone = _get_zone(x) + 1
 
         # Check fall — uses height RELATIVE to local ground surface.
         # On stairs at z=8m with ground_z=7.5m, height_above_ground=0.5m (standing).
@@ -217,6 +244,7 @@ class MetricsCollector:
             "height_variance": round(height_var, 6),
             "mean_ang_vel": round(mean_ang_vel, 6),
             "fall_detected": self._fall_detected,
+            "flip_detected": self._flip_detected,
             "fall_location": round(self._fall_location, 3) if self._fall_location is not None else None,
             "fall_zone": self._fall_zone,
             "mean_velocity": round(float(np.mean(fwd_vels)), 4),

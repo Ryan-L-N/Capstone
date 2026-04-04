@@ -203,12 +203,77 @@ MIXED_ROUGH_TERRAINS_CFG = TerrainGeneratorCfg(
 
 
 # =============================================================================
+# Expert 7: OBSTACLE PARKOUR — 50% stairs + 50% boulders (no flat!)
+# =============================================================================
+
+OBSTACLE_PARKOUR_TERRAINS_CFG = TerrainGeneratorCfg(
+    **_COMMON,
+    sub_terrains={
+        # Stairs (50%) — mix of up and down
+        "pyramid_stairs_up": terrain_gen.MeshPyramidStairsTerrainCfg(
+            proportion=0.20,
+            step_height_range=(0.03, 0.25),
+            step_width=0.3,
+            platform_width=3.0,
+            border_width=1.0,
+            holes=False,
+        ),
+        "hf_stairs_up": terrain_gen.HfPyramidStairsTerrainCfg(
+            proportion=0.15,
+            step_height_range=(0.03, 0.20),
+            step_width=0.3,
+            border_width=0.25,
+        ),
+        "pyramid_stairs_down": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+            proportion=0.15,
+            step_height_range=(0.03, 0.25),
+            step_width=0.3,
+            platform_width=3.0,
+            border_width=1.0,
+            holes=False,
+        ),
+        # Boulders (50%) — boxes + discrete + repeated
+        "boxes": terrain_gen.MeshRandomGridTerrainCfg(
+            proportion=0.20,
+            grid_width=0.45,
+            grid_height_range=(0.05, 0.25),
+            platform_width=2.0,
+        ),
+        "discrete_obstacles": terrain_gen.HfDiscreteObstaclesTerrainCfg(
+            proportion=0.15,
+            obstacle_height_mode="choice",
+            obstacle_width_range=(0.25, 0.75),
+            obstacle_height_range=(0.05, 0.30),
+            num_obstacles=40,
+            platform_width=2.0,
+            border_width=0.25,
+        ),
+        "repeated_boxes": terrain_gen.MeshRepeatedBoxesTerrainCfg(
+            proportion=0.15,
+            object_params_start=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=20,
+                height=0.05,
+                size=(0.3, 0.3),
+            ),
+            object_params_end=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=40,
+                height=0.20,
+                size=(0.5, 0.5),
+            ),
+            platform_width=2.0,
+        ),
+    },
+)
+
+
+# =============================================================================
 # DISTILLATION — Balanced all-terrain mix for generalist student
 # =============================================================================
 
+_DISTILL_COMMON = {**_COMMON, "num_cols": 40}  # More columns for terrain variety
+
 DISTILLATION_TERRAINS_CFG = TerrainGeneratorCfg(
-    **_COMMON,
-    num_cols=40,  # More columns for terrain variety during distillation
+    **_DISTILL_COMMON,
     sub_terrains={
         # Stairs (20%)
         "pyramid_stairs_up": terrain_gen.MeshPyramidStairsTerrainCfg(
@@ -295,6 +360,36 @@ DISTILLATION_TERRAINS_CFG = TerrainGeneratorCfg(
             proportion=0.10,
             step_height_range=(0.03, 0.20),
             step_width=0.3,
+            border_width=0.25,
+        ),
+    },
+)
+
+
+# =============================================================================
+# BIDIRECTIONAL STAIRS V6 — 35% up + 35% down + 15% flat + 15% rough/flat
+# =============================================================================
+
+_NARROW_COMMON = {**_COMMON, "size": (8.0, 3.0)}  # Narrow Y prevents sideways skirting
+
+BIDIRECTIONAL_STAIRS_TERRAINS_CFG = TerrainGeneratorCfg(
+    **_NARROW_COMMON,
+    sub_terrains={
+        "linear_stairs_up": terrain_gen.HfLinearStairsTerrainCfg(
+            proportion=0.35,
+            platform_width=2.0,
+        ),
+        "linear_stairs_down": terrain_gen.HfLinearStairsDownTerrainCfg(
+            proportion=0.35,
+            platform_width=2.0,
+        ),
+        "flat": terrain_gen.MeshPlaneTerrainCfg(
+            proportion=0.15,
+        ),
+        "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
+            proportion=0.15,
+            noise_range=(0.02, 0.10),
+            noise_step=0.02,
             border_width=0.25,
         ),
     },

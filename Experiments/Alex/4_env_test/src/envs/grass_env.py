@@ -34,6 +34,8 @@ def get_zone_drag_coeff(x_pos):
         float: Drag coefficient for the current zone
     """
     zones = ZONE_PARAMS["grass"]
+    # Clamp to arena bounds — before zone 1 uses zone 1 drag, not zone 5
+    x_pos = max(x_pos, zones[0]["x_start"])
     for zone in zones:
         if zone["x_start"] <= x_pos < zone["x_end"]:
             return zone["drag_coeff"]

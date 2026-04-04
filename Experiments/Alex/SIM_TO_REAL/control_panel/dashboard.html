@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Control Panel</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --accent: #0f3460;
+    --highlight: #e94560;
+    --text: #eee;
+    --muted: #8899aa;
+    --green: #4ecca3;
+    --orange: #f0a500;
+    --red: #e94560;
+    --blue: #4fc3f7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .header {
+    background: var(--card);
+    border-bottom: 2px solid var(--accent);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 { font-size: 1.3rem; font-weight: 600; }
+  .header .tabs { display: flex; gap: 8px; }
+  .header .tab {
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: var(--accent);
+    border: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
+  .header .tab:hover { background: var(--highlight); }
+  .header .tab.active { background: var(--highlight); }
+  .status-bar {
+    background: var(--card);
+    padding: 12px 24px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--accent);
+  }
+  .stat { text-align: center; }
+  .stat .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat .value { font-size: 1.1rem; font-weight: 700; font-family: 'Consolas', monospace; }
+  .stat .value.green { color: var(--green); }
+  .stat .value.blue { color: var(--blue); }
+  .stat .value.orange { color: var(--orange); }
+  .main { padding: 16px 24px; display: none; }
+  .main.active { display: block; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--accent);
+  }
+  .card h3 {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 6px;
+  }
+  .weight-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 4px 0;
+  }
+  .weight-row .name {
+    width: 180px;
+    font-size: 0.82rem;
+    font-family: 'Consolas', monospace;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .weight-row .name.frozen { color: var(--muted); text-decoration: line-through; }
+  .weight-row input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--accent);
+    border-radius: 3px;
+    outline: none;
+  }
+  .weight-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--highlight);
+    cursor: pointer;
+  }
+  .weight-row .val {
+    width: 70px;
+    text-align: right;
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .weight-row .val.positive { color: var(--green); }
+  .weight-row .val.negative { color: var(--orange); }
+  .weight-row .send-btn {
+    padding: 2px 10px;
+    background: var(--accent);
+    border: 1px solid var(--highlight);
+    color: var(--highlight);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    visibility: hidden;
+  }
+  .weight-row .send-btn.changed { visibility: visible; }
+  .weight-row .send-btn:hover { background: var(--highlight); color: white; }
+  .param-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .param-row label { width: 120px; font-size: 0.82rem; color: var(--muted); }
+  .param-row input[type="number"] {
+    width: 100px;
+    padding: 4px 8px;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.85rem;
+  }
+  .param-row .send-btn {
+    padding: 4px 12px;
+    background: var(--accent);
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+  }
+  .param-row .send-btn:hover { background: var(--blue); color: var(--bg); }
+  .cmd-btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+  .cmd-btn.save { background: var(--green); color: var(--bg); }
+  .cmd-btn.save:hover { filter: brightness(1.2); }
+  .cmd-btn.stop { background: var(--red); color: white; }
+  .cmd-btn.stop:hover { filter: brightness(1.2); }
+  .history-list { max-height: 300px; overflow-y: auto; }
+  .history-entry {
+    font-family: 'Consolas', monospace;
+    font-size: 0.78rem;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    gap: 12px;
+  }
+  .history-entry .ts { color: var(--muted); width: 80px; }
+  .history-entry .iter { color: var(--blue); width: 60px; }
+  .history-entry .type { color: var(--orange); width: 120px; }
+  .history-entry .detail { color: var(--text); flex: 1; }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 999;
+    transition: opacity 0.3s;
+  }
+  .toast.ok { background: var(--green); color: var(--bg); }
+  .toast.err { background: var(--red); color: white; }
+  .help-section { max-width: 800px; line-height: 1.6; }
+  .help-section h2 { color: var(--highlight); margin: 20px 0 8px; font-size: 1.1rem; }
+  .help-section h4 { color: var(--blue); margin: 14px 0 6px; font-size: 0.95rem; }
+  .help-section p { color: var(--text); margin-bottom: 8px; font-size: 0.88rem; }
+  .help-section code {
+    background: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.83rem;
+  }
+  .help-section pre {
+    background: var(--accent);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+    overflow-x: auto;
+    margin: 8px 0;
+    line-height: 1.5;
+  }
+  .help-section table { border-collapse: collapse; margin: 8px 0; width: 100%; }
+  .help-section th, .help-section td {
+    text-align: left;
+    padding: 6px 12px;
+    border: 1px solid var(--accent);
+    font-size: 0.82rem;
+  }
+  .help-section th { background: var(--accent); color: var(--muted); }
+  .pulse { animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .connected { color: var(--green); }
+  .disconnected { color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Training Control Panel</h1>
+  <span id="connStatus" class="connected">LIVE</span>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('controls')">Controls</button>
+    <button class="tab" onclick="showTab('history')">History</button>
+    <button class="tab" onclick="showTab('help')">How To Use</button>
+  </div>
+</div>
+
+<div class="status-bar" id="statusBar">
+  <div class="stat"><div class="label">Iteration</div><div class="value blue" id="sIter">--</div></div>
+  <div class="stat"><div class="label">Terrain Level</div><div class="value green" id="sTerrain">--</div></div>
+  <div class="stat"><div class="label">Learning Rate</div><div class="value" id="sLR">--</div></div>
+  <div class="stat"><div class="label">Noise Std</div><div class="value" id="sNoise">--</div></div>
+  <div class="stat"><div class="label">S2R Scale</div><div class="value orange" id="sS2R">--</div></div>
+  <div class="stat"><div class="label">Last Update</div><div class="value" id="sTime" style="font-size:0.8rem">--</div></div>
+</div>
+
+<!-- CONTROLS TAB -->
+<div class="main active" id="tab-controls">
+  <div class="grid">
+    <!-- Task Rewards -->
+    <div class="card">
+      <h3>Task Rewards (positive = good)</h3>
+      <div id="taskRewards"></div>
+    </div>
+    <!-- Penalties -->
+    <div class="card">
+      <h3>Penalties (negative = bad)</h3>
+      <div id="penalties"></div>
+    </div>
+    <!-- Training Params -->
+    <div class="card">
+      <h3>Training Parameters</h3>
+      <div class="param-row">
+        <label>LR Max:</label>
+        <input type="number" id="inLrMax" step="0.000001" min="0.0000001" max="0.01">
+        <button class="send-btn" onclick="sendLR()">Apply</button>
+      </div>
+      <div class="param-row">
+        <label>LR Min:</label>
+        <input type="number" id="inLrMin" step="0.000001" min="0.0000001" max="0.01">
+      </div>
+      <div class="param-row">
+        <label>Noise Max:</label>
+        <input type="number" id="inNoiseMax" step="0.01" min="0.1" max="1.0">
+        <button class="send-btn" onclick="sendNoise()">Apply</button>
+      </div>
+      <div class="param-row">
+        <label>Noise Min:</label>
+        <input type="number" id="inNoiseMin" step="0.01" min="0.1" max="1.0">
+      </div>
+    </div>
+    <!-- S2R Params -->
+    <div class="card">
+      <h3>S2R Wrapper Parameters</h3>
+      <div class="param-row">
+        <label>Dropout Rate:</label>
+        <input type="number" id="inDropout" step="0.01" min="0" max="0.3">
+        <button class="send-btn" onclick="sendS2R('max_dropout_rate','inDropout')">Apply</button>
+      </div>
+      <div class="param-row">
+        <label>Drift Rate:</label>
+        <input type="number" id="inDrift" step="0.001" min="0" max="0.05">
+        <button class="send-btn" onclick="sendS2R('max_drift_rate','inDrift')">Apply</button>
+      </div>
+      <div class="param-row">
+        <label>Spike Prob:</label>
+        <input type="number" id="inSpike" step="0.001" min="0" max="0.05">
+        <button class="send-btn" onclick="sendS2R('max_spike_prob','inSpike')">Apply</button>
+      </div>
+      <div class="param-row">
+        <label>Action Delay:</label>
+        <input type="number" id="inActDelay" step="1" min="0" max="5">
+        <button class="send-btn" onclick="sendS2R('max_action_delay','inActDelay')">Apply</button>
+      </div>
+    </div>
+    <!-- Commands -->
+    <div class="card" style="grid-column: 1 / -1;">
+      <h3>Commands</h3>
+      <button class="cmd-btn save" onclick="sendSave()">Save Checkpoint Now</button>
+      <button class="cmd-btn stop" onclick="confirmStop()">Emergency Stop</button>
+      <span style="font-size:0.8rem; color:var(--muted); margin-left:12px">
+        Save label: <input type="text" id="saveLabel" value="manual" style="background:var(--bg);border:1px solid var(--accent);color:var(--text);padding:3px 8px;border-radius:4px;width:120px">
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY TAB -->
+<div class="main" id="tab-history">
+  <div class="card">
+    <h3>Change History (most recent first)</h3>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<!-- HELP TAB -->
+<div class="main" id="tab-help">
+  <div class="card help-section">
+    <h2>Training Control Panel - User Guide</h2>
+    <p>This dashboard lets you tune training parameters <strong>live</strong> without stopping
+    the training run. Changes are picked up within 1 iteration (~0.3 seconds).</p>
+
+    <h2>How It Works</h2>
+    <p>The dashboard writes commands to a <code>control.yaml</code> file. The training loop
+    polls this file every iteration. When it finds pending commands, it validates them through
+    safety guardrails and applies them immediately to the running environment.</p>
+    <pre>
+Browser (you)  -->  control.yaml  -->  training loop
+  send command       pending_commands     poll_and_apply()
+                          |                    |
+                     atomic write          validates + applies
+                     (no race)            reward_manager / LR / noise
+                          |                    |
+                          v                    v
+                     status updated     change_log.jsonl</pre>
+
+    <h2>Controls Reference</h2>
+
+    <h4>Reward Weight Sliders</h4>
+    <p>Each slider controls one reward term. <span style="color:var(--green)">Green values</span> are task
+    rewards (positive = more reward). <span style="color:var(--orange)">Orange values</span> are penalties
+    (more negative = stronger penalty).</p>
+    <p>Drag a slider to adjust. The <strong>Send</strong> button appears when the value differs
+    from the current training value. Click it to queue the change.</p>
+
+    <table>
+      <tr><th>Guardrail</th><th>Rule</th></tr>
+      <tr><td>Sign Preservation</td><td>Rewards must stay positive, penalties must stay negative</td></tr>
+      <tr><td>Max Delta</td><td>Changes > 50% of current value are rejected (use CLI <code>--force</code> to override)</td></tr>
+      <tr><td>Bounds</td><td>Values are clamped to safe ranges per reward term</td></tr>
+      <tr><td>Frozen Weights</td><td><code>stumble</code> and <code>body_height_tracking</code> cannot be changed (Bug #22/#28b)</td></tr>
+    </table>
+
+    <h4>Training Parameters</h4>
+    <table>
+      <tr><th>Param</th><th>What it does</th><th>When to change</th></tr>
+      <tr><td>LR Max/Min</td><td>Bounds for cosine annealing LR schedule</td><td>Increase if learning is too slow, decrease if value loss spikes</td></tr>
+      <tr><td>Noise Max/Min</td><td>Bounds for action noise (exploration)</td><td>Increase for more exploration, decrease if policy is too random</td></tr>
+    </table>
+
+    <h4>S2R Wrapper Parameters</h4>
+    <table>
+      <tr><th>Param</th><th>What it does</th><th>Range</th></tr>
+      <tr><td>Dropout Rate</td><td>% of height scan rays randomly zeroed</td><td>0.0 - 0.3</td></tr>
+      <tr><td>Drift Rate</td><td>Ornstein-Uhlenbeck IMU drift magnitude</td><td>0.0 - 0.05</td></tr>
+      <tr><td>Spike Prob</td><td>Probability of large sensor noise spikes</td><td>0.0 - 0.05</td></tr>
+      <tr><td>Action Delay</td><td>Steps of action delay (1 step = 20ms at 50Hz)</td><td>0 - 5</td></tr>
+    </table>
+
+    <h2>Obstacle Parkour Tuning Guide</h2>
+    <p>The <strong>kinematic chain principle</strong>: tune rewards that govern the same physical motion together.</p>
+    <table>
+      <tr><th>Motion</th><th>Reward Terms</th><th>Direction for obstacle climbing</th></tr>
+      <tr><td>Step-up/over</td><td>foot_clearance, action_smoothness, joint_pos</td><td>foot_clearance UP, action_smooth & joint_pos LESS penalty</td></tr>
+      <tr><td>Body tilting</td><td>base_orientation, base_motion</td><td>Both LESS penalty (obstacles need body lean)</td></tr>
+      <tr><td>Power output</td><td>motor_power, joint_torques</td><td>Both LESS penalty (climbing needs force)</td></tr>
+      <tr><td>Gait quality</td><td>gait, air_time, air_time_variance</td><td>Keep stable or increase (prevents belly-crawl)</td></tr>
+    </table>
+
+    <h2>CLI Alternative</h2>
+    <p>You can also use the CLI in a second SSH terminal:</p>
+    <pre>
+cd ~/SIM_TO_REAL
+
+# Show status
+python -m control_panel.cli status
+
+# Change weights
+python -m control_panel.cli set action_smoothness -0.5
+python -m control_panel.cli set foot_clearance 2.5 joint_pos -0.3
+
+# Force past 50% delta guard
+python -m control_panel.cli set joint_pos -0.1 --force
+
+# Training params
+python -m control_panel.cli lr --max 5e-4
+python -m control_panel.cli noise --max 0.4
+
+# S2R params
+python -m control_panel.cli s2r max_dropout_rate 0.08
+
+# Checkpoint + stop
+python -m control_panel.cli save --label "before_experiment"
+python -m control_panel.cli stop --reason "diverging"
+
+# View history
+python -m control_panel.cli history --last 30</pre>
+
+    <h2>Safety Notes</h2>
+    <ul style="margin-left:20px; font-size:0.88rem; line-height:2">
+      <li>All changes are logged to <code>control_panel_changes.jsonl</code> with timestamps</li>
+      <li>Commands older than 120 seconds are automatically discarded</li>
+      <li>Emergency Stop saves a checkpoint before exiting</li>
+      <li>The dashboard auto-refreshes every 2 seconds</li>
+      <li>Multiple changes can be queued — they process in order next iteration</li>
+    </ul>
+  </div>
+</div>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+// Weight metadata: [min, max, step, category]
+const WEIGHT_META = {
+  air_time:               [0.5,  15, 0.5, 'task'],
+  base_angular_velocity:  [0.5,  15, 0.5, 'task'],
+  base_linear_velocity:   [0.5,  15, 0.5, 'task'],
+  foot_clearance:         [0.1,  10, 0.1, 'task'],
+  gait:                   [2,    20, 0.5, 'task'],
+  action_smoothness:      [-3,   -0.05, 0.05, 'penalty'],
+  air_time_variance:      [-5,   -0.1,  0.1,  'penalty'],
+  base_motion:            [-5,   -0.1,  0.1,  'penalty'],
+  base_orientation:       [-5,   0,     0.1,  'penalty'],
+  base_pitch:             [-5,   -0.1,  0.1,  'penalty'],
+  base_roll:              [-5,   -0.1,  0.1,  'penalty'],
+  foot_slip:              [-3,   -0.05, 0.05, 'penalty'],
+  joint_acc:              [-0.01,-0.000001, 0.000001, 'penalty'],
+  joint_pos:              [-2,   -0.05, 0.05, 'penalty'],
+  joint_torques:          [-0.01,-0.00001, 0.00001, 'penalty'],
+  joint_vel:              [-0.1, -0.0001, 0.0001, 'penalty'],
+  terrain_relative_height:[-5,   -0.1, 0.1, 'penalty'],
+  dof_pos_limits:         [-10,  -0.1, 0.1, 'penalty'],
+  undesired_contacts:     [-5,   -0.1, 0.1, 'penalty'],
+  motor_power:            [-0.05,-0.00001, 0.00001, 'penalty'],
+  torque_limit:           [-2,   -0.01, 0.01, 'penalty'],
+};
+
+const HARD_FROZEN = new Set(['stumble', 'body_height_tracking']);
+let currentWeights = {};
+let serverWeights = {};
+let frozenWeights = new Set();
+let dirtySliders = new Set();  // Sliders user has touched but not sent
+let weightsBuilt = false;      // Whether DOM has been built once
+
+function showTab(name) {
+  document.querySelectorAll('.main').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+async function sendCommand(cmd) {
+  try {
+    const resp = await fetch('/api/command', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(cmd),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('Command sent: ' + cmd.type, 'ok');
+    } else {
+      showToast('Error: ' + (data.error || 'unknown'), 'err');
+    }
+  } catch (e) {
+    showToast('Connection error', 'err');
+  }
+}
+
+function sendWeight(name) {
+  const slider = document.getElementById('slider_' + name);
+  const value = parseFloat(slider.value);
+  sendCommand({type: 'set_weight', name: name, value: value});
+  serverWeights[name] = value;
+  dirtySliders.delete(name);
+  updateSendButton(name);
+}
+
+function sendLR() {
+  sendCommand({
+    type: 'set_lr_bounds',
+    lr_max: parseFloat(document.getElementById('inLrMax').value),
+    lr_min: parseFloat(document.getElementById('inLrMin').value),
+  });
+}
+
+function sendNoise() {
+  sendCommand({
+    type: 'set_noise_bounds',
+    max_std: parseFloat(document.getElementById('inNoiseMax').value),
+    min_std: parseFloat(document.getElementById('inNoiseMin').value),
+  });
+}
+
+function sendS2R(param, inputId) {
+  sendCommand({
+    type: 'set_s2r_param',
+    param: param,
+    value: parseFloat(document.getElementById(inputId).value),
+  });
+}
+
+function sendSave() {
+  const label = document.getElementById('saveLabel').value || 'manual';
+  sendCommand({type: 'save_checkpoint', label: label});
+}
+
+function confirmStop() {
+  if (confirm('EMERGENCY STOP: This will save a checkpoint and terminate training. Continue?')) {
+    const reason = prompt('Reason (optional):', 'manual stop via dashboard');
+    sendCommand({type: 'emergency_stop', reason: reason || 'manual'});
+  }
+}
+
+function updateSendButton(name) {
+  const btn = document.getElementById('btn_' + name);
+  if (!btn) return;
+  const slider = document.getElementById('slider_' + name);
+  const current = serverWeights[name];
+  const val = parseFloat(slider.value);
+  if (Math.abs(val - current) > 0.0001) {
+    btn.classList.add('changed');
+  } else {
+    btn.classList.remove('changed');
+  }
+}
+
+function buildWeightRow(name, value, container) {
+  const meta = WEIGHT_META[name];
+  if (!meta) return;
+  const isFrozen = HARD_FROZEN.has(name) || frozenWeights.has(name);
+
+  const row = document.createElement('div');
+  row.className = 'weight-row';
+  row.innerHTML = `
+    <span class="name ${isFrozen ? 'frozen' : ''}">${name}</span>
+    <input type="range" id="slider_${name}"
+      min="${meta[0]}" max="${meta[1]}" step="${meta[2]}" value="${value}"
+      ${isFrozen ? 'disabled' : ''}
+      oninput="dirtySliders.add('${name}'); document.getElementById('val_${name}').textContent=parseFloat(this.value).toFixed(4); updateSendButton('${name}')">
+    <span class="val ${value >= 0 ? 'positive' : 'negative'}" id="val_${name}">${value.toFixed(4)}</span>
+    <button class="send-btn" id="btn_${name}" onclick="sendWeight('${name}')"
+      ${isFrozen ? 'disabled' : ''}>Send</button>
+  `;
+  container.appendChild(row);
+}
+
+function renderWeights(weights) {
+  const taskDiv = document.getElementById('taskRewards');
+  const penDiv = document.getElementById('penalties');
+
+  // First call: build the DOM from scratch
+  if (!weightsBuilt) {
+    taskDiv.innerHTML = '';
+    penDiv.innerHTML = '';
+    for (const [name, meta] of Object.entries(WEIGHT_META)) {
+      if (!(name in weights)) continue;
+      const value = weights[name];
+      serverWeights[name] = value;
+      if (meta[3] === 'task') {
+        buildWeightRow(name, value, taskDiv);
+      } else {
+        buildWeightRow(name, value, penDiv);
+      }
+    }
+    // Hard-frozen at bottom
+    for (const name of HARD_FROZEN) {
+      if (name in weights) {
+        const row = document.createElement('div');
+        row.className = 'weight-row';
+        row.innerHTML = `
+          <span class="name frozen">${name}</span>
+          <span style="flex:1;text-align:center;color:var(--muted);font-size:0.75rem">HARD-FROZEN (Bug #22/#28b)</span>
+          <span class="val" style="color:var(--muted)">${weights[name].toFixed(4)}</span>
+          <button class="send-btn" disabled>N/A</button>
+        `;
+        penDiv.appendChild(row);
+      }
+    }
+    weightsBuilt = true;
+    return;
+  }
+
+  // Subsequent calls: update in-place, skip dirty sliders
+  for (const [name, meta] of Object.entries(WEIGHT_META)) {
+    if (!(name in weights)) continue;
+    const value = weights[name];
+    serverWeights[name] = value;
+
+    // Skip sliders the user is actively adjusting
+    if (dirtySliders.has(name)) continue;
+
+    const slider = document.getElementById('slider_' + name);
+    const valSpan = document.getElementById('val_' + name);
+    if (slider && valSpan) {
+      slider.value = value;
+      valSpan.textContent = value.toFixed(4);
+      valSpan.className = 'val ' + (value >= 0 ? 'positive' : 'negative');
+    }
+  }
+}
+
+function renderHistory(entries) {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  for (const entry of entries.reverse()) {
+    const div = document.createElement('div');
+    div.className = 'history-entry';
+    const ts = entry.timestamp ? entry.timestamp.split('T')[1] || entry.timestamp : '?';
+    const applied = JSON.stringify(entry.applied || {});
+    div.innerHTML = `
+      <span class="ts">${ts}</span>
+      <span class="iter">#${entry.iteration || '?'}</span>
+      <span class="type">${entry.command_type || '?'}</span>
+      <span class="detail">${applied.substring(0, 80)}</span>
+    `;
+    list.appendChild(div);
+  }
+  if (entries.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);padding:12px">No changes yet. Use the sliders or CLI to make changes.</div>';
+  }
+}
+
+async function refresh() {
+  try {
+    const resp = await fetch('/api/state');
+    const data = await resp.json();
+
+    const s = data.status || {};
+    document.getElementById('sIter').textContent = s.iteration ?? '--';
+    document.getElementById('sTerrain').textContent = typeof s.terrain_level === 'number' ? s.terrain_level.toFixed(2) : '--';
+    document.getElementById('sLR').textContent = typeof s.lr === 'number' ? s.lr.toExponential(1) : '--';
+    document.getElementById('sNoise').textContent = typeof s.noise_std === 'number' ? s.noise_std.toFixed(3) : '--';
+    document.getElementById('sS2R').textContent = typeof s.s2r_scale === 'number' ? s.s2r_scale.toFixed(2) : '--';
+    document.getElementById('sTime').textContent = s.last_poll ? s.last_poll.split('T')[1] || s.last_poll : '--';
+
+    document.getElementById('connStatus').className = 'connected';
+    document.getElementById('connStatus').textContent = 'LIVE';
+
+    const weights = data.current_weights || {};
+    frozenWeights = new Set(data.frozen_weights || []);
+    renderWeights(weights);
+
+    // Update param inputs (don't overwrite if user is editing)
+    const lrB = data.lr_bounds || {};
+    const nB = data.noise_bounds || {};
+    if (document.activeElement.id !== 'inLrMax') document.getElementById('inLrMax').value = lrB.max || '';
+    if (document.activeElement.id !== 'inLrMin') document.getElementById('inLrMin').value = lrB.min || '';
+    if (document.activeElement.id !== 'inNoiseMax') document.getElementById('inNoiseMax').value = nB.max || '';
+    if (document.activeElement.id !== 'inNoiseMin') document.getElementById('inNoiseMin').value = nB.min || '';
+
+    // S2R params
+    const s2r = data.s2r_params || {};
+    if (document.activeElement.id !== 'inDropout' && s2r.max_dropout_rate !== undefined)
+      document.getElementById('inDropout').value = s2r.max_dropout_rate;
+    if (document.activeElement.id !== 'inDrift' && s2r.max_drift_rate !== undefined)
+      document.getElementById('inDrift').value = s2r.max_drift_rate;
+    if (document.activeElement.id !== 'inSpike' && s2r.max_spike_prob !== undefined)
+      document.getElementById('inSpike').value = s2r.max_spike_prob;
+    if (document.activeElement.id !== 'inActDelay' && s2r.max_action_delay !== undefined)
+      document.getElementById('inActDelay').value = s2r.max_action_delay;
+
+    // History
+    renderHistory(data.history || []);
+
+  } catch (e) {
+    document.getElementById('connStatus').className = 'disconnected pulse';
+    document.getElementById('connStatus').textContent = 'DISCONNECTED';
+  }
+}
+
+// Auto-refresh every 2 seconds
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>
