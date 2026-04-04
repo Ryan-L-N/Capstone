@@ -286,6 +286,11 @@ python train.py --headless --num_envs 4096 --max_iterations 10
 | Isaac Sim hangs on startup (H100) | Previous zombie holds GPU memory | Physical reboot |
 | D-state zombie after run ends | Called `simulation_app.close()` | Use `os._exit(0)` only |
 | value_loss explodes to millions | LR too high for phase | Use lr_max=5e-5 for Phase B+ |
+| `ModuleNotFoundError: No module named 'h5py'` | h5py not installed | `python -m pip install h5py` |
+| `KeyError: 'class_name'` at OnPolicyRunner init (first pass) | `isaaclab_rl` not installed | `python -m pip install -e isaacSim_env\isaaclab_src\source\isaaclab_rl` |
+| `KeyError: 'class_name'` even with `isaaclab_rl` installed | rsl_rl 5.0.1 broke the old `policy` config format — now expects separate `actor`/`critic` dicts AND new `MLPModel` class interface; `ActorCriticCNN` uses old combined API | Fixed in `train_combined.py`: manual config dict + `cnn_compat.py` adapter classes (`ActorCNNWrapper`, `CriticCNNWrapper`) that wrap `ActorCriticCNN` to the new interface. No teammate files changed. |
+| `AssertionError: Torch not compiled with CUDA enabled` | Isaac Sim installs CPU-only torch | `python -m pip install torch --index-url https://download.pytorch.org/whl/cu128 --force-reinstall` |
+| `WinError 1114` / `c10.dll` crash on startup | Isaac Sim's CUDA 11 extscache DLLs load before torch's CUDA 12 DLLs | `import torch` must appear before `AppLauncher` in train script (already done in `train_combined.py`) |
 | action_smoothness → -infinity / NaN | Unbounded L2 penalty | Cap at 10.0 |
 | Terrain plateaus at level ~4.8 | Too many reward terms or network too large | ≤12 terms, [512,256,128] network |
 | Gait destroyed mid-training | Velocity reward weight too high | Keep velocity reward weight ≤ 7.0 |

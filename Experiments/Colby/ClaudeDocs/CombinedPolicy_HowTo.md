@@ -32,9 +32,20 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100   
 
 The install script sets up (all inside the venv):
 - `nav_locomotion` — Alex's nav package (editable install, no files modified in his dir)
+- `isaaclab` — installed from `isaacSim_env/isaaclab_src/source/isaaclab` (editable)
+- `isaaclab_rl` — Isaac Lab's RSL-RL wrapper, installed from `isaacSim_env/isaaclab_src/source/isaaclab_rl` (editable). Required by `SpotNavPPORunnerCfg`.
 - `tensorboard` — training metrics viewer
-- `gymnasium` — RL environment interface used by `train_combined.py`
-- `rsl-rl` — PPO runner used by `train_combined.py`
+- `gymnasium` — RL environment interface
+- `rsl-rl` — PPO runner (GitHub source)
+- `h5py` — required by isaaclab's dataset utilities
+- `torch (cu128)` — CUDA-enabled torch. Isaac Sim ships CPU-only by default; the script installs the CUDA build automatically if CUDA is not available.
+
+**Known gotchas handled automatically by the install script:**
+- `h5py` — isaaclab fails to import without it (`ModuleNotFoundError: No module named 'h5py'`)
+- `isaaclab_rl` — required for config classes; missing causes first-pass `KeyError: 'class_name'`
+- `torch CUDA` — Isaac Sim installs CPU-only torch; training requires the CUDA build
+- **DLL load order (Windows)** — `train_combined.py` imports torch before `AppLauncher` to prevent Isaac Sim's CUDA 11 extscache DLLs from conflicting with torch's CUDA 12 DLLs (`WinError 1114 / c10.dll`). Do not move this import.
+- **rsl_rl 5.0.1 API break** — rsl_rl 5.0.1 replaced the old combined `ActorCritic` class with separate `actor`/`critic` `MLPModel` objects. Alex's `ActorCriticCNN` uses the old API. Fixed via `cnn_compat.py` (adapter classes) + manual `runner_cfg_dict` in `train_combined.py`. Do not revert to `class_to_dict(SpotNavPPORunnerCfg)`.
 
 Currently missing from the venv (handled by install script above):
 `rsl-rl`, `gymnasium`, `tensorboard`

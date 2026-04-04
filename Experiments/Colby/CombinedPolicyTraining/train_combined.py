@@ -87,6 +87,15 @@ def parse_args() -> argparse.Namespace:
 args = parse_args()
 
 # ---------------------------------------------------------------------------
+# Pre-load torch before Isaac Sim starts.
+# Isaac Sim's extension loader imports torch internally during AppLauncher
+# init. If its older CUDA 11 extscache DLLs load first, torch's c10.dll
+# crashes (WinError 1114). Importing torch here first puts it in sys.modules
+# in a clean state so Isaac Sim's extensions reuse the already-loaded DLLs.
+# ---------------------------------------------------------------------------
+import torch  # noqa: E402 — must be before AppLauncher
+
+# ---------------------------------------------------------------------------
 # Isaac Lab boot — must happen before any omni/isaaclab imports
 # ---------------------------------------------------------------------------
 
@@ -99,7 +108,6 @@ simulation_app = app_launcher.app
 # Remaining imports (safe after AppLauncher)
 # ---------------------------------------------------------------------------
 
-import torch
 import gymnasium as gym
 
 from rsl_rl.runners import OnPolicyRunner
@@ -110,8 +118,15 @@ from nav_locomotion.modules.depth_cnn import ActorCriticCNN, TOTAL_OBS_DIMS
 from nav_locomotion.modules.loco_wrapper import FrozenLocoPolicy
 from nav_locomotion.modules.nav_env_wrapper import NavEnvWrapper
 from nav_locomotion.tasks.navigation.config.spot.nav_env_cfg import SpotNavExploreCfg
-from nav_locomotion.tasks.navigation.config.spot.agents.rsl_rl_ppo_cfg import SpotNavPPORunnerCfg
-from isaaclab.utils import class_to_dict
+
+# cnn_compat: adapter classes that bridge ActorCriticCNN (old rsl_rl < 4.0 API) to
+# rsl_rl 5.0.1's separate actor/critic MLPModel interface.
+# CombinedPolicyTraining/ is on sys.path when running as "python train_combined.py",
+# so "cnn_compat:ActorCNNWrapper" resolves correctly via resolve_callable().
+import cnn_compat  # noqa: F401 — must be imported so resolve_callable can find it
+import rsl_rl.models as _rsl_models
+_rsl_models.ActorCNNWrapper = cnn_compat.ActorCNNWrapper
+_rsl_models.CriticCNNWrapper = cnn_compat.CriticCNNWrapper
 
 
 # ---------------------------------------------------------------------------
@@ -156,26 +171,83 @@ def main() -> None:
     nav_env = NavEnvWrapper(env, loco_policy)
 
     # ------------------------------------------------------------------
-    # RSL-RL runner
+    # RSL-RL runner  (rsl_rl 5.0.1 compatible config dict)
     # ------------------------------------------------------------------
-    runner_cfg = SpotNavPPORunnerCfg()
-    runner_cfg.max_iterations = args.max_iterations
-    runner_cfg.save_interval  = args.save_interval
-    runner_cfg.logger = "tensorboard"
+    # rsl_rl 5.0.1 broke the old "policy" config format — it now expects separate
+    # "actor" and "critic" dicts with class_name pointing to MLPModel subclasses.
+    # We bypass class_to_dict(SpotNavPPORunnerCfg) and build the dict manually,
+    # pointing class_name at our ActorCNNWrapper / CriticCNNWrapper adapters.
+    # obs_groups tells rsl_rl which observation group to feed to each model.
+    # NavEnvWrapper returns {"policy": tensor(N, 4108)} so both use ["policy"].
 
-    # Inject our custom policy class into RSL-RL's namespace so it can
-    # find it when instantiating via class_name="ActorCriticCNN"
-    import rsl_rl.runners.on_policy_runner as _runner_module
-    _runner_module.ActorCriticCNN = ActorCriticCNN
+    # NavEnvWrapper has no .cfg attribute; Logger stores it but only uses it for
+    # wandb/neptune (we use tensorboard), so an empty dict is safe.
+    nav_env.cfg = {}
+
+    runner_cfg_dict = {
+        # --- Runner bookkeeping ---
+        "seed": 42,
+        "num_steps_per_env": 128,
+        "max_iterations": args.max_iterations,
+        "save_interval": args.save_interval,
+        "logger": "tensorboard",
+        "experiment_name": "spot_nav_explore_ppo",
+        "run_name": "",
+        "device": device,
+        "check_for_nan": False,   # disable NaN check (slow + we handle NaN in cnn)
+        "resume": False,
+        "load_run": ".*",
+        "load_checkpoint": "model_.*.pt",
+        "clip_actions": None,
+        "multi_gpu": None,        # overwritten by OnPolicyRunner._configure_multi_gpu
+
+        # --- Observation routing ---
+        # NavEnvWrapper.get_observations() returns {"policy": tensor(N, 4108)}
+        "obs_groups": {"actor": ["policy"], "critic": ["policy"]},
+
+        # --- Actor model (CNN adapter) ---
+        "actor": {
+            "class_name": "rsl_rl.models:ActorCNNWrapper",
+            # No other fields — ActorCNNWrapper absorbs extras via **kwargs
+        },
+
+        # --- Critic model (CNN adapter) ---
+        "critic": {
+            "class_name": "rsl_rl.models:CriticCNNWrapper",
+        },
+
+        # --- PPO algorithm ---
+        "algorithm": {
+            "class_name": "PPO",
+            "value_loss_coef": 1.0,
+            "use_clipped_value_loss": True,
+            "clip_param": 0.2,
+            "entropy_coef": 0.01,
+            "num_learning_epochs": 8,
+            "num_mini_batches": 8,
+            "learning_rate": args.lr,
+            "schedule": "fixed",
+            "gamma": 0.99,
+            "lam": 0.95,
+            "desired_kl": 0.01,
+            "max_grad_norm": 1.0,
+            "optimizer": "adam",
+            "normalize_advantage_per_mini_batch": False,
+            "share_cnn_encoders": False,
+            "rnd_cfg": None,
+            "symmetry_cfg": None,
+        },
+    }
 
     runner = OnPolicyRunner(
         nav_env,
-        class_to_dict(runner_cfg),
+        runner_cfg_dict,
         log_dir=str(LOG_DIR),
         device=device,
     )
 
-    nav_policy = runner.alg.policy
+    # runner.alg.actor is our ActorCNNWrapper; ._net is the actual ActorCriticCNN
+    nav_policy = runner.alg.actor._net
     print(f"[TRAIN] ActorCriticCNN: "
           f"{sum(p.numel() for p in nav_policy.parameters()):,} params")
 
@@ -199,12 +271,14 @@ def main() -> None:
                             getattr(runner, "it", 0))
 
         # Log terrain curriculum level every 10 iterations
-        if runner.writer is not None and iteration % 10 == 0:
+        # rsl_rl 5.0.1 uses runner.logger.writer (not runner.writer directly)
+        writer = getattr(getattr(runner, "logger", None), "writer", None)
+        if writer is not None and iteration % 10 == 0:
             try:
                 terrain = nav_env._unwrapped.scene.terrain
                 if hasattr(terrain, "terrain_levels"):
                     mean_level = terrain.terrain_levels.float().mean().item()
-                    runner.writer.add_scalar(
+                    writer.add_scalar(
                         "Curriculum/terrain_level", mean_level, iteration
                     )
             except Exception:
@@ -235,7 +309,7 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Save final checkpoint to our directory
     # ------------------------------------------------------------------
-    final_path = LOG_DIR / runner_cfg.experiment_name / "model_final.pt"
+    final_path = LOG_DIR / "spot_nav_explore_ppo" / "model_final.pt"
     final_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"model_state_dict": nav_policy.state_dict()}, final_path)
     print(f"[TRAIN] Final checkpoint saved: {final_path}")

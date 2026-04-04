@@ -103,9 +103,20 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100   
 
 Installs into the active venv only:
 - `nav_locomotion` (Alex's package, editable install — his files unchanged)
+- `isaaclab` (editable, from `isaacSim_env/isaaclab_src/source/isaaclab`)
+- `isaaclab_rl` (editable, from `isaacSim_env/isaaclab_src/source/isaaclab_rl` — required by `SpotNavPPORunnerCfg`)
 - `tensorboard` (metrics)
 - `gymnasium` (RL env interface)
-- `rsl-rl` (PPO runner)
+- `rsl-rl` (PPO runner, GitHub source)
+- `h5py` (required by isaaclab internals)
+- `torch cu128` (CUDA build — installed automatically if CPU-only torch is detected)
+
+**Windows-specific gotchas (all handled automatically):**
+- `h5py` missing → `ModuleNotFoundError` on isaaclab import
+- `isaaclab_rl` missing → `KeyError: 'class_name'` at RSL-RL runner init (first pass)
+- CPU torch → `AssertionError: Torch not compiled with CUDA enabled`
+- DLL conflict → `WinError 1114 / c10.dll` crash. Fixed by importing torch before `AppLauncher` in `train_combined.py` — do not change this order.
+- `KeyError: 'class_name'` even with `isaaclab_rl` installed → rsl_rl 5.0.1 broke the old combined `ActorCritic` API. `train_combined.py` now uses a manual config dict + `cnn_compat.py` adapter classes instead of `class_to_dict(SpotNavPPORunnerCfg)`. No Alex files touched.
 
 ### Step 2 — Train
 ```bash
