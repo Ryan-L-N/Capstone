@@ -32,13 +32,12 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100   
 
 The install script sets up (all inside the venv):
 - `nav_locomotion` — Alex's nav package (editable install, no files modified in his dir)
-- `anthropic` — Claude API for the AI coach
 - `tensorboard` — training metrics viewer
 - `gymnasium` — RL environment interface used by `train_combined.py`
 - `rsl-rl` — PPO runner used by `train_combined.py`
 
 Currently missing from the venv (handled by install script above):
-`rsl-rl`, `gymnasium`, `anthropic`, `tensorboard`
+`rsl-rl`, `gymnasium`, `tensorboard`
 
 ---
 
@@ -51,6 +50,8 @@ bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local
 # Full training run on H100
 bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --h100
 ```
+
+> Note: The AI coach has been removed from `train_combined.py`. The `--no_coach` flag no longer exists.
 
 The script automatically:
 1. Installs Alex's nav package (`pip install -e`) — no files in his directory are modified
@@ -94,7 +95,7 @@ tensorboard --logdir Experiments/Colby/CombinedPolicyTraining/logs/
 # Or use the live terminal dashboard (no browser needed)
 python Experiments/Colby/CombinedPolicyTraining/watch_training.py
 ```
-This gives you live reward curves, terrain level, survival rate, and AI Coach decisions all in one place.
+This gives you live reward curves, terrain level, and survival rate all in one place.
 
 ---
 
@@ -146,7 +147,7 @@ Change how often they save with `--save_interval`:
 python Experiments/Colby/CombinedPolicyTraining/train_combined.py \
     --save_interval 50 \
     --loco_checkpoint Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt \
-    --headless --no_coach --num_envs 16 --max_iterations 100
+    --headless --num_envs 16 --max_iterations 100
 ```
 
 ### Manual checkpoint (save right now mid-run)
