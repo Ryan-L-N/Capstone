@@ -8,6 +8,8 @@ during swing phase — like a dog pulling its hind legs up and over.
 
 Changes from V6:
   - NEW: rear_clearance reward (weight=3.0) — rear feet lift bonus
+  - NEW: front_clearance reward (weight=3.0) — front feet clear next obstacle surface
+  - NEW: riser_collision penalty (weight=-2.0) — penalize front feet hitting obstacle faces
   - Resume from boulder_v6_expert_4500.pt (best V6 checkpoint)
 """
 from isaaclab.utils import configclass
@@ -29,6 +31,10 @@ from rewards.stair_climbing_rewards import height_gain_reward
 from rewards.stair_rewards import (
     flying_gait_penalty,
     dont_wait_penalty,
+)
+from rewards.stair_climbing_rewards import (
+    front_foot_step_clearance_reward,
+    riser_collision_penalty,
 )
 
 _COMMON = dict(
@@ -181,6 +187,23 @@ class SpotBoulderV7EnvCfg(SpotS2RBaseEnvCfg):
             params={
                 "asset_cfg": SceneEntityCfg("robot", body_names=["hl_foot", "hr_foot"]),
                 "sensor_cfg": SceneEntityCfg("height_scanner"),
+            },
+        )
+
+        # ── FRONT FOOT OBSTACLE CLEARANCE ─────────────────────────────
+        self.rewards.front_clearance = RewardTermCfg(
+            func=front_foot_step_clearance_reward, weight=3.0,
+            params={
+                "asset_cfg": SceneEntityCfg("robot", body_names=["fl_foot", "fr_foot"]),
+            },
+        )
+
+        # ── OBSTACLE COLLISION PENALTY (front feet hitting boulder faces) ─
+        self.rewards.riser_collision = RewardTermCfg(
+            func=riser_collision_penalty, weight=-2.0,
+            params={
+                "asset_cfg": SceneEntityCfg("robot", body_names=["fl_foot", "fr_foot"]),
+                "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["fl_foot", "fr_foot"]),
             },
         )
 

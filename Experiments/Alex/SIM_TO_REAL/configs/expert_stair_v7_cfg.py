@@ -1,24 +1,26 @@
-"""Stair Master V6 — Bidirectional stairs training.
+"""Stair Master V7 — Conservative bidirectional + mixed terrain.
 
-35% ascending + 35% descending + 15% flat + 15% rough.
-15% standing envs (zero velocity commands on any terrain).
+Fixes from V6c: too fast curriculum (56% flip), pure stairs (no diversity).
 
-Key change: directional_progress_reward replaces height_gain_reward.
-Detects terrain slope from height scan and rewards:
-  - Ascending: upward body velocity + forward walking
-  - Descending: controlled downward velocity + forward walking
-  - Flat: forward walking only
+V7 changes:
+  - 1m wide terrain (no sidestepping, OOB termination on lateral drift)
+  - Slow curriculum (2x promotion thresholds, target <10% flip)
+  - Mixed terrain: 30% up + 30% down + 10% rough + 10% boulders + 20% flat
+  - 20% standing envs (stability on stairs)
+  - rear_clearance_bonus (hind foot lift — from boulder V7)
+  - Tighter OOB: distance_buffer=0.3 (1m wide terrain)
 
-Resume from boulder_v6_4500.pt (22.9m on stairs without stair training).
+Resume from boulder_v6_4500.pt.
 """
 from isaaclab.utils import configclass
-from isaaclab.managers import RewardTermCfg, SceneEntityCfg
+from isaaclab.managers import RewardTermCfg, SceneEntityCfg, TerminationTermCfg as DoneTerm
 from isaaclab.managers import CurriculumTermCfg as CurrTerm
+import math
 
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 
 from .base_s2r_env_cfg import SpotS2RBaseEnvCfg
-from .terrain_cfgs import BIDIRECTIONAL_STAIRS_TERRAINS_CFG
+from .terrain_cfgs import STAIR_V7_TERRAINS_CFG
 from rewards.adaptive_rewards import (
     adaptive_clearance_reward,
     adaptive_velocity_reward,
@@ -26,6 +28,7 @@ from rewards.adaptive_rewards import (
     adaptive_height_penalty,
     adaptive_gait_reward,
     adaptive_slip_penalty,
+    rear_clearance_bonus,
 )
 from rewards.directional_progress_reward import directional_progress_reward
 from rewards.stair_rewards import (
@@ -33,22 +36,33 @@ from rewards.stair_rewards import (
     flying_gait_penalty,
     dont_wait_penalty,
 )
+from rewards.stair_climbing_rewards import (
+    front_foot_step_clearance_reward,
+    riser_collision_penalty,
+)
 
 
 @configclass
-class StairBidirectionalCurriculumCfg:
-    """Abs-height curriculum — promotes based on |Z change|, rewards both up AND down."""
-    terrain_levels = CurrTerm(func=mdp.terrain_levels_abs_height)
+class StairSlowCurriculumCfg:
+    """Slow abs-height curriculum — 2x promotion thresholds for <10% flip."""
+    terrain_levels = CurrTerm(func=mdp.terrain_levels_abs_height_slow)
 
 
 @configclass
-class SpotStairV6EnvCfg(SpotS2RBaseEnvCfg):
+class SpotStairV7EnvCfg(SpotS2RBaseEnvCfg):
     def __post_init__(self):
         super().__post_init__()
-        self.scene.terrain.terrain_generator = BIDIRECTIONAL_STAIRS_TERRAINS_CFG
+        self.scene.terrain.terrain_generator = STAIR_V7_TERRAINS_CFG
 
-        # ── BIDIRECTIONAL CURRICULUM (abs height change) ─────────────
-        self.curriculum = StairBidirectionalCurriculumCfg()
+        # ── SLOW CURRICULUM ──────────────────────────────────────────
+        self.curriculum = StairSlowCurriculumCfg()
+
+        # ── TIGHT OOB — 1m wide terrain, terminate on lateral drift ──
+        self.terminations.terrain_out_of_bounds = DoneTerm(
+            func=mdp.terrain_out_of_bounds,
+            params={"asset_cfg": SceneEntityCfg("robot"), "distance_buffer": 0.3},
+            time_out=True,
+        )
 
         # ── DR FIXES ─────────────────────────────────────────────────
         self.events.base_external_force_torque.params["force_range"] = (-1.0, 1.0)
@@ -56,8 +70,8 @@ class SpotStairV6EnvCfg(SpotS2RBaseEnvCfg):
         self.events.physics_material.params["static_friction_range"] = (0.5, 1.0)
         self.events.physics_material.params["dynamic_friction_range"] = (0.5, 0.8)
         self.events.reset_base.params["velocity_range"] = {
-            "x": (-0.5, 0.5), "y": (-0.5, 0.5), "z": (-0.3, 0.3),
-            "roll": (-0.3, 0.3), "pitch": (-0.3, 0.3), "yaw": (-0.5, 0.5),
+            "x": (-0.5, 0.5), "y": (-0.3, 0.3), "z": (-0.3, 0.3),
+            "roll": (-0.2, 0.2), "pitch": (-0.2, 0.2), "yaw": (-0.3, 0.3),
         }
 
         # ── ADAPTIVE REWARDS ─────────────────────────────────────────
@@ -130,7 +144,7 @@ class SpotStairV6EnvCfg(SpotS2RBaseEnvCfg):
             },
         )
 
-        # ── NEW V6: DIRECTIONAL PROGRESS (replaces height_gain) ─────
+        # ── DIRECTIONAL PROGRESS ─────────────────────────────────────
         self.rewards.directional_progress = RewardTermCfg(
             func=directional_progress_reward, weight=4.0,
             params={
@@ -139,5 +153,31 @@ class SpotStairV6EnvCfg(SpotS2RBaseEnvCfg):
             },
         )
 
-        # ── 15% STANDING ENVS ────────────────────────────────────────
-        self.commands.base_velocity.rel_standing_envs = 0.15
+        # ── REAR CLEARANCE BONUS (from boulder V7) ───────────────────
+        self.rewards.rear_clearance = RewardTermCfg(
+            func=rear_clearance_bonus, weight=3.0,
+            params={
+                "asset_cfg": SceneEntityCfg("robot", body_names=["hl_foot", "hr_foot"]),
+                "sensor_cfg": SceneEntityCfg("height_scanner"),
+            },
+        )
+
+        # ── FRONT FOOT STEP CLEARANCE (clear the riser, don't hit it) ─
+        self.rewards.front_clearance = RewardTermCfg(
+            func=front_foot_step_clearance_reward, weight=3.0,
+            params={
+                "asset_cfg": SceneEntityCfg("robot", body_names=["fl_foot", "fr_foot"]),
+            },
+        )
+
+        # ── RISER COLLISION PENALTY (penalize hitting step edges) ─────
+        self.rewards.riser_collision = RewardTermCfg(
+            func=riser_collision_penalty, weight=-2.0,
+            params={
+                "asset_cfg": SceneEntityCfg("robot", body_names=["fl_foot", "fr_foot"]),
+                "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["fl_foot", "fr_foot"]),
+            },
+        )
+
+        # ── 20% STANDING ENVS ────────────────────────────────────────
+        self.commands.base_velocity.rel_standing_envs = 0.20

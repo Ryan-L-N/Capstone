@@ -394,3 +394,42 @@ BIDIRECTIONAL_STAIRS_TERRAINS_CFG = TerrainGeneratorCfg(
         ),
     },
 )
+
+
+# =============================================================================
+# STAIR V7 — Conservative bidirectional + mixed terrain, 1m narrow
+# =============================================================================
+
+_ULTRA_NARROW = {**_COMMON, "size": (8.0, 1.0)}  # 1m wide — no sidestepping at all
+
+STAIR_V7_TERRAINS_CFG = TerrainGeneratorCfg(
+    **_ULTRA_NARROW,
+    sub_terrains={
+        "linear_stairs_up": terrain_gen.HfLinearStairsTerrainCfg(
+            proportion=0.30,
+            platform_width=1.5,
+        ),
+        "linear_stairs_down": terrain_gen.HfLinearStairsDownTerrainCfg(
+            proportion=0.30,
+            platform_width=1.5,
+        ),
+        "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
+            proportion=0.10,
+            noise_range=(0.02, 0.10),
+            noise_step=0.02,
+            border_width=0.1,
+        ),
+        "discrete_obstacles": terrain_gen.HfDiscreteObstaclesTerrainCfg(
+            proportion=0.10,
+            obstacle_height_mode="choice",
+            obstacle_width_range=(0.10, 0.50),
+            obstacle_height_range=(0.03, 0.30),
+            num_obstacles=40,
+            platform_width=1.5,
+            border_width=0.1,
+        ),
+        "flat": terrain_gen.MeshPlaneTerrainCfg(
+            proportion=0.20,
+        ),
+    },
+)

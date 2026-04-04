@@ -24,7 +24,7 @@ import sys
 
 from isaaclab.app import AppLauncher
 
-EXPERT_TYPES = ["friction", "stairs_up", "stairs_down", "boulders", "slopes", "mixed_rough", "obstacle_parkour", "boulder_v6", "boulder_v7", "stair_v5j", "stair_v6"]
+EXPERT_TYPES = ["friction", "stairs_up", "stairs_down", "boulders", "slopes", "mixed_rough", "obstacle_parkour", "boulder_v6", "boulder_v7", "stair_v5j", "stair_v6", "stair_v7"]
 
 parser = argparse.ArgumentParser(description="S2R terrain expert training")
 parser.add_argument("--expert_type", type=str, required=True, choices=EXPERT_TYPES,
@@ -149,6 +149,9 @@ def load_expert_config(expert_type: str):
     elif expert_type == "stair_v6":
         from configs.expert_stair_v6_cfg import SpotStairV6EnvCfg
         return SpotStairV6EnvCfg()
+    elif expert_type == "stair_v7":
+        from configs.expert_stair_v7_cfg import SpotStairV7EnvCfg
+        return SpotStairV7EnvCfg()
     else:
         raise ValueError(f"Unknown expert type: {expert_type}")
 
