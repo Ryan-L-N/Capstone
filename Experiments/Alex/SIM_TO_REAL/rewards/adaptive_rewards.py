@@ -101,6 +101,52 @@ def adaptive_clearance_reward(
 
 
 # =====================================================================
+# 1b. REAR CLEARANCE BONUS — break the 22m boulder wall
+# =====================================================================
+
+def rear_clearance_bonus(
+    env, asset_cfg, sensor_cfg,
+    target_flat=0.06, target_rough=0.35,
+    tanh_mult=2.0,
+):
+    """Bonus for rear feet lifting higher during swing.
+
+    The 22m boulder wall: front legs clear 25cm+ boulders, rear legs wedge.
+    Root cause: adaptive_clearance treats all 4 feet equally but rear legs
+    naturally drag. This reward gives extra incentive for rear feet (hl, hr)
+    to lift high when swinging (not in contact with ground).
+
+    Only active on rough terrain + when moving (scales to zero on flat/standing).
+    Uses foot z-velocity > 0 (upward) as the swing gate instead of xy-velocity,
+    rewarding the *upward arc* of the rear leg swing — like a dog/cat pulling
+    its hind legs up and over an obstacle.
+    """
+    terrain_scale, command_scale = _compute_scales(env)
+    asset = env.scene[asset_cfg.name]
+
+    # Adaptive target: higher on rough terrain, zero when standing
+    target = _lerp(target_flat, target_rough, terrain_scale) * command_scale
+
+    # Rear foot z-positions (hl_foot, hr_foot only)
+    foot_z = asset.data.body_pos_w[:, asset_cfg.body_ids, 2]
+    foot_z = torch.nan_to_num(foot_z, nan=0.0)
+
+    # Reward: how close to target height (Gaussian kernel)
+    height_error = torch.square(foot_z - target.unsqueeze(1))
+    height_error = torch.clamp(height_error, 0.0, 1.0)
+    height_reward = torch.exp(-height_error / 0.02)  # Tighter std = stronger gradient
+
+    # Swing gate: only reward when foot is moving upward (z-velocity > 0)
+    foot_vz = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, 2]
+    foot_vz = torch.nan_to_num(foot_vz, nan=0.0)
+    swing_up = torch.tanh(tanh_mult * torch.clamp(foot_vz, min=0.0))
+
+    # Combined: height accuracy during upward swing
+    reward = (height_reward * swing_up).mean(dim=1)
+    return torch.nan_to_num(reward, nan=0.0)
+
+
+# =====================================================================
 # 2. ADAPTIVE VELOCITY
 # =====================================================================
 

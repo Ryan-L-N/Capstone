@@ -343,7 +343,7 @@ def main():
 
         # Brief stabilization after reset
         stabilize_steps = 50 if args.env == "stairs" else 10
-        for _ in range(stabilize_steps):
+        for stab_i in range(stabilize_steps):
             spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
             world.step(render=not headless)
 
@@ -412,6 +412,10 @@ def main():
             # Step policy and simulation
             spot.forward(PHYSICS_DT, cmd)
             world.step(render=not headless)
+
+            # Progress heartbeat (prevents render pipeline stall on Windows)
+            if step % 500 == 0:
+                print(f"    step {step}/{MAX_CONTROL_STEPS}  x={pos_np[0]:.1f}m  cmd=[{cmd[0]:.2f},{cmd[1]:.2f},{cmd[2]:.2f}]", flush=True)
 
             # Check waypoint completion
             if waypoint_follower.is_done:

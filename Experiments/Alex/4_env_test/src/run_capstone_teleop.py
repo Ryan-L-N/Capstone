@@ -94,6 +94,7 @@ SPEED_PROFILES = {
 }
 
 SPAWN_POS = np.array(SPAWN_POSITION)
+SPAWN_POS = SPAWN_POS  # no override
 SPAWN_QUAT = np.array([1.0, 0.0, 0.0, 0.0])
 
 

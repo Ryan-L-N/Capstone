@@ -1,29 +1,15 @@
 #!/usr/bin/env bash
 # run_combined_nav_loco.sh
 #
-# Launches Alex's NAV_ALEX navigation policy training on top of
-# Ryan's mason_hybrid locomotion checkpoint (the frozen loco layer).
+# Launches combined nav + loco training.
+# Cleanup of orphaned Isaac Sim processes is handled automatically by
+# isaac_cleanup.sh — fires on normal exit, crash, or Ctrl+C.
 #
-# No teammate files are modified. This script just wires the two
-# together via CLI args and installs the package if needed.
-#
-# Usage (local smoke test, 100 iters, no GUI):
+# Usage (local smoke test, 100 iters):
 #   bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local
 #
 # Usage (H100 full run):
 #   bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --h100
-#
-# Architecture being trained:
-#   Depth Camera (64x64) -> CNN Encoder -> 128-dim
-#     + Proprioception (12-dim)
-#           |
-#   [Alex's Nav Policy, 10 Hz]   <- BEING TRAINED
-#           |
-#   Velocity Command [vx, vy, wz]
-#           |
-#   [Ryan's Frozen Loco Policy, 50 Hz]  <- FROZEN (mason_hybrid_best_33200.pt)
-#           |
-#   12 Joint Targets -> Spot
 
 set -e
 
@@ -37,17 +23,41 @@ NAV_ALEX_DIR="$REPO_ROOT/Experiments/Alex/NAV_ALEX"
 LOCO_CHECKPOINT="$REPO_ROOT/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt"
 TRAIN_SCRIPT="$SCRIPT_DIR/train_combined.py"
 
+# ---------------------------------------------------------------------------
+# Register automatic Isaac Sim process cleanup on exit
+# ---------------------------------------------------------------------------
+source "$SCRIPT_DIR/../ExitKillScript/isaac_cleanup.sh"
+
+# ---------------------------------------------------------------------------
+# Resolve Python and validate loco checkpoint
+# ---------------------------------------------------------------------------
+MODE="${1:---local}"
+
+if [ "$MODE" = "--local" ]; then
+    VENV_SCRIPTS="$REPO_ROOT/isaacSim_env/Scripts"
+    if [ ! -f "$VENV_SCRIPTS/python.exe" ]; then
+        echo "ERROR: isaacSim_env not found at: $VENV_SCRIPTS"
+        exit 1
+    fi
+    PYTHON="$VENV_SCRIPTS/python.exe"
+elif [ "$MODE" = "--h100" ]; then
+    eval "$(/home/t2user/miniconda3/bin/conda shell.bash hook)"
+    conda activate env_isaaclab
+    PYTHON=python
+else
+    echo "ERROR: Unknown mode '$MODE'. Use --local or --h100."
+    exit 1
+fi
+
 echo "=== Combined Nav + Loco Training ==="
 echo "Train script      : $TRAIN_SCRIPT"
 echo "Loco checkpoint   : $LOCO_CHECKPOINT"
 echo "Checkpoint output : $SCRIPT_DIR/logs/"
+echo "Python            : $PYTHON"
 echo ""
 
-# ---------------------------------------------------------------------------
-# Validate that the loco checkpoint exists
-# ---------------------------------------------------------------------------
 if [ ! -f "$LOCO_CHECKPOINT" ]; then
-    echo "ERROR: Loco checkpoint not found. Run install_prerequisites.sh first."
+    echo "ERROR: Loco checkpoint not found: $LOCO_CHECKPOINT"
     exit 1
 fi
 
@@ -55,43 +65,33 @@ fi
 # Install Alex's NAV_ALEX package (idempotent — no files modified in his dir)
 # ---------------------------------------------------------------------------
 echo "Installing nav_locomotion package (pip install -e)..."
-pip install -e "$NAV_ALEX_DIR/source/nav_locomotion/" --quiet
+NAV_LOCO_WIN="$(wslpath -w "$NAV_ALEX_DIR/source/nav_locomotion")"
+"$PYTHON" -m pip install -e "$NAV_LOCO_WIN" --quiet
 echo "Package installed."
 echo ""
 
 # ---------------------------------------------------------------------------
-# Determine run mode
+# Launch training
 # ---------------------------------------------------------------------------
-MODE="${1:---local}"
-
 if [ "$MODE" = "--local" ]; then
-    echo "Mode: LOCAL smoke test (16 envs, 100 iterations, no coach)"
-    echo "Use --h100 for a full production run."
+    echo "Mode: LOCAL smoke test (16 envs, 100 iterations)"
     echo ""
-    python "$TRAIN_SCRIPT" \
+    TRAIN_SCRIPT_WIN="$(wslpath -w "$TRAIN_SCRIPT")"
+    LOCO_CHECKPOINT_WIN="$(wslpath -w "$LOCO_CHECKPOINT")"
+    launch_training "$PYTHON" "$TRAIN_SCRIPT_WIN" \
         --headless \
-        --no_coach \
-        --loco_checkpoint "$LOCO_CHECKPOINT" \
+        --loco_checkpoint "$LOCO_CHECKPOINT_WIN" \
         --num_envs 16 \
         --max_iterations 100 \
         --save_interval 50
 
 elif [ "$MODE" = "--h100" ]; then
-    echo "Mode: H100 full training run (2048 envs, 30000 iterations, with AI coach)"
+    echo "Mode: H100 full training run (2048 envs, 30000 iterations)"
     echo ""
-    # Activate conda env on H100 (bashrc not sourced in non-interactive SSH)
-    eval "$(/home/t2user/miniconda3/bin/conda shell.bash hook)"
-    conda activate env_isaaclab
-
-    python "$TRAIN_SCRIPT" \
+    launch_training "$PYTHON" "$TRAIN_SCRIPT" \
         --headless \
         --loco_checkpoint "$LOCO_CHECKPOINT" \
         --num_envs 2048 \
         --max_iterations 30000 \
-        --save_interval 100 \
-        --coach_interval 250
-
-else
-    echo "ERROR: Unknown mode '$MODE'. Use --local or --h100."
-    exit 1
+        --save_interval 100
 fi

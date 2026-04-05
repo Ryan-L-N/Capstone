@@ -1,0 +1,80 @@
+(isaacSim_env) PS C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap> bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local                      
+=== Combined Nav + Loco Training ===
+Train script      : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/Experiments/Colby/CombinedPolicyTraining/train_combined.py
+Loco checkpoint   : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt
+Checkpoint output : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/Experiments/Colby/CombinedPolicyTraining/logs/
+Python            : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/isaacSim_env/Scripts/python.exe
+
+Installing nav_locomotion package (pip install -e)...
+
+[notice] A new release of pip is available: 24.0 -> 26.0.1
+[notice] To update, run: python.exe -m pip install --upgrade pip
+Package installed.
+
+Mode: LOCAL smoke test (16 envs, 100 iterations)
+
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\isaacSim_env\isaaclab_src\apps\isaaclab.python.headless.kit
+============================================================
+  COMBINED NAV + LOCO TRAINING
+============================================================
+  Loco checkpoint : C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Ryan\checkpoints\mason_hybrid_best_33200.pt
+  Num envs        : 16
+  Max iterations  : 100
+  Save interval   : 50
+  Checkpoint dir  : C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Colby\CombinedPolicyTraining\logs
+  Device          : cpu
+============================================================
+Traceback (most recent call last):
+Loading user config located at: 'c:/users/colby johnson/documents/class/capstone/maincap/isaacsim_env/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: c:/users/colby johnson/documents/class/capstone/maincap/isaacsim_env/lib/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260403_231827.log
+2026-04-04T03:18:28Z [423ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-04-04T03:18:29Z [1,424ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-04-04T03:18:29Z [1,451ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-04-04T03:18:35Z [7,586ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+2026-04-04T03:18:35Z [7,587ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 573.44        | Graphics API: D3D12
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA RTX 2000 Ada Generation.. | Yes: 0 |     | 7960    MB | 10de      | 3a1d0100.. |
+|     |                                  |        |     |            | 28b8      | 0          |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Graphics                |        |     | 128     MB | 8086      | f5180100.. |
+|     |                                  |        |     |            | 7dd5      | 0          |
+|     |                                  |        |     |            | N/A       |            |
+|=============================================================================================|
+| OS: Windows 11 Pro, Version: 10.0 (25H2), Build: 26200, Kernel: 10.0.26100.7824
+| Processor: Intel(R) Core(TM) Ultra 9 185H
+| Cores: 16 | Logical Cores: 22
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 32212 | Free Memory: 10154
+| Total Page/Swap (MB): 35158 | Free Page/Swap: 4755
+|---------------------------------------------------------------------------------------------|
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Colby\CombinedPolicyTraining\train_combined.py", line 256, in <module>
+    main()
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Colby\CombinedPolicyTraining\train_combined.py", line 150, in main
+    env = gym.make("Navigation-Explore-Spot-v0", cfg=env_cfg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\isaacSim_env\Lib\site-packages\gymnasium\envs\registration.py", line 734, in make
+    env = env_creator(**env_spec_kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:/users/colby johnson/documents/class/capstone/maincap/isaacsim_env/isaaclab_src/source/isaaclab/isaaclab/envs/manager_based_rl_env.py", line 77, in __init__
+    self.episode_length_buf = torch.zeros(cfg.scene.num_envs, device=cfg.sim.device, dtype=torch.long)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\isaacSim_env\Lib\site-packages\torch\cuda\__init__.py", line 363, in _lazy_init
+    raise AssertionError("Torch not compiled with CUDA enabled")
+AssertionError: Torch not compiled with CUDA enabled
+2026-04-04T03:18:39Z [12,003ms] [Warning] [omni.physx.plugin] USD stage detach not called, holding a loose ptr to a stage!
+2026-04-04T03:18:39Z [12,279ms] [Warning] [carb] Recursive unloadAllPlugins() detected!
+
+[RUN] Training exited with code 0
+
+[CLEANUP] Killing orphaned Isaac Sim processes...
+[CLEANUP] Done.
+[CLEANUP] GPU clear.

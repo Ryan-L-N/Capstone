@@ -103,17 +103,27 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100   
 
 Installs into the active venv only:
 - `nav_locomotion` (Alex's package, editable install — his files unchanged)
-- `anthropic` (AI coach)
+- `isaaclab` (editable, from `isaacSim_env/isaaclab_src/source/isaaclab`)
+- `isaaclab_rl` (editable, from `isaacSim_env/isaaclab_src/source/isaaclab_rl` — required by `SpotNavPPORunnerCfg`)
 - `tensorboard` (metrics)
 - `gymnasium` (RL env interface)
-- `rsl-rl` (PPO runner)
+- `rsl-rl` (PPO runner, GitHub source)
+- `h5py` (required by isaaclab internals)
+- `torch cu128` (CUDA build — installed automatically if CPU-only torch is detected)
+
+**Windows-specific gotchas (all handled automatically):**
+- `h5py` missing → `ModuleNotFoundError` on isaaclab import
+- `isaaclab_rl` missing → `KeyError: 'class_name'` at RSL-RL runner init (first pass)
+- CPU torch → `AssertionError: Torch not compiled with CUDA enabled`
+- DLL conflict → `WinError 1114 / c10.dll` crash. Fixed by importing torch before `AppLauncher` in `train_combined.py` — do not change this order.
+- `KeyError: 'class_name'` even with `isaaclab_rl` installed → rsl_rl 5.0.1 broke the old combined `ActorCritic` API. `train_combined.py` now uses a manual config dict + `cnn_compat.py` adapter classes instead of `class_to_dict(SpotNavPPORunnerCfg)`. No Alex files touched.
 
 ### Step 2 — Train
 ```bash
 # Local smoke test (16 envs, 100 iterations)
 bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local
 
-# H100 full run (2048 envs, 30000 iterations, with AI coach)
+# H100 full run (2048 envs, 30000 iterations)
 bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --h100
 ```
 
@@ -155,5 +165,5 @@ tensorboard --logdir Experiments/Colby/CombinedPolicyTraining/logs/
 
 **Remaining:**
 - [ ] Run `install_prerequisites.sh --h100` on the H100 to confirm all imports pass
-- [ ] Start NAV-001 training run — use `--no_coach` for the first smoke test iteration, then enable for full 30K run
+- [ ] Start NAV-001 training run — smoke test locally first (16 envs, 100 iters), then full 30K run on H100
 - [ ] Fill in RUN-004 card in `Results.md` as training progresses
