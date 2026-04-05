@@ -57,10 +57,20 @@ reward:
   distance_reward: 0.0  # disabled
   heading_reward: 0.2  # reward for facing waypoint (applies throughout approach)
   speed_reward: 0.3  # reward for fast movement when path clear
+  lateral_velocity_penalty: 0.15  # penalty for strafe (left/right) motion to prevent drift
   wrong_direction_penalty: 0.0  # REMOVED - no penalty multiplier
   fall_penalty: -100.0  # INCREASED from -50 (doubled)
   boundary_penalty: -5.0  # penalty for leaving arena
   stillness_penalty: -1  # NEW: penalty per timestep for not moving (forces locomotion learning)
+  
+  # Push reward/penalty system (Stage 3: Object Pushing Training)
+  push_exploration_weight: 8.0     # Reward for initial light contact with pushable objects
+  push_sustained_weight: 12.0      # Reward for sustained pushing momentum (moving while in contact)
+  push_success_weight: 15.0        # Bonus for each successful 1m+ push
+  push_wasted_effort_weight: -1.0  # Penalty for high effort without progress
+  
+  # Efficiency bonus - reward for completing objectives fast (before time runs out)
+  efficiency_bonus_weight: 0.5     # Points per second remaining when objective complete
 
 # 7-Stage Curriculum (Stability -> Pushing -> Navigation Progression)
 curriculum:
@@ -78,6 +88,8 @@ curriculum:
       obstacles_heavy_coverage: 0.05  # 5% heavy obstacles
       obstacles_small_coverage: 0.05  # 5% small obstacles
       use_progress_shaping: false
+      success_window: 50  # 50 iterations to advance (40/50 at 80% = faster progression)
+      success_threshold: 0.80
       success_criterion: "Remain stable for 60s without falling"
       
     # Stage 2: Stability with increased obstacles
@@ -90,6 +102,8 @@ curriculum:
       obstacles_heavy_coverage: 0.10  # 10% heavy obstacles
       obstacles_small_coverage: 0.10  # 10% small obstacles
       use_progress_shaping: false
+      success_window: 50  # 50 iterations to advance (40/50 at 80% = faster progression)
+      success_threshold: 0.80
       success_criterion: "Remain stable for 180s with increased obstacle density"
       
     # Stage 3: Object Pushing Training
@@ -152,6 +166,8 @@ curriculum:
       obstacles_heavy_coverage: 0.10  # 10% heavy
       obstacles_small_coverage: 0.10  # 10% small
       use_progress_shaping: true
+      success_window: 100
+      success_threshold: 0.90  # 90% success (90 of 100) for final stage
       success_criterion: "Capture all 25 waypoints with variable distance and maximum obstacles - TRAINING COMPLETE"
 
 # PPO hyperparameters

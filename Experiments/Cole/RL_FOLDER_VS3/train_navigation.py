@@ -173,7 +173,7 @@ def main():
     
     # Stage advancement tracking
     stage_iterations = 0  # Iterations completed at current stage
-    min_iterations_per_stage = 125  # Minimum iterations before stage advancement allowed
+    min_iterations_per_stage = 100  # Minimum iterations before stage advancement allowed
     
     # Reset environment for first episode
     obs = env.reset()

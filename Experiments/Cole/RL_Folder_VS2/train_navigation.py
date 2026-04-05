@@ -63,7 +63,7 @@ def main():
     # Setup directories
     checkpoint_dir = Path(args.checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    log_file = open(checkpoint_dir / "training_log.txt", "w", encoding="utf-8")
+    log_file = open(checkpoint_dir / "VS2_training_logs.txt", "w", encoding="utf-8")
     
     log("=" * 80, log_file)
     log("NAVIGATION POLICY TRAINING - HIERARCHICAL RL", log_file)
@@ -136,13 +136,21 @@ def main():
         checkpoint = torch.load(args.checkpoint)
         policy.load_state_dict(checkpoint['policy_state_dict'])
         trainer.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        start_iter = checkpoint.get('iteration', 0) + 1
         checkpoint_stage = checkpoint.get('stage', args.stage - 1)
+        checkpoint_iter = checkpoint.get('iteration', 0)
+        
         # Use command-line stage if explicitly provided (allows advancing stages)
         # Convert from 1-indexed (stages 1-8) to 0-indexed (index 0-7)
         env.current_stage = args.stage - 1
-        log(f"Resumed from iteration {start_iter}", log_file)
-        log(f"Checkpoint was at stage {checkpoint_stage + 1}, advancing to stage {env.current_stage + 1}", log_file)
+        
+        # Reset iteration counter if advancing to a new stage
+        if env.current_stage != checkpoint_stage:
+            start_iter = 0
+            log(f"Checkpoint was at stage {checkpoint_stage + 1}, advancing to stage {env.current_stage + 1}", log_file)
+            log(f"Iteration counter reset to 0 for new stage", log_file)
+        else:
+            start_iter = 0
+            log(f"Loaded checkpoint from stage {checkpoint_stage + 1}, starting fresh at iteration 0", log_file)
     else:
         # Convert from 1-indexed (stages 1-8) to 0-indexed (index 0-7)
         env.current_stage = args.stage - 1
@@ -159,7 +167,7 @@ def main():
     # Training loop
     rollout_buffer = RolloutBuffer()
     steps_per_iteration = config['training']['steps_per_iteration']
-    checkpoint_freq = config['training']['checkpoint_frequency']
+    checkpoint_freq = 25  # Save every 25 iterations for better stage tracking
     
     best_success_rate = 0.0
     episode_count = 0
@@ -180,6 +188,9 @@ def main():
         episode_lengths = []
         episode_successes = []
         episode_waypoints = []
+        episode_reward_breakdowns = []  # NEW: collect breakdown data
+        episode_score_breakdowns = []   # NEW: collect score breakdown data
+        episode_failures = []    # NEW: track how each episode failed (timeout, fall, boundary, incomplete)
         
         while len(rollout_buffer) < steps_per_iteration:
             # Get action from policy
@@ -205,6 +216,22 @@ def main():
                 episode_lengths.append(info['episode_time'])
                 episode_successes.append(info['success'])
                 episode_waypoints.append(info['waypoints_captured'])
+                episode_reward_breakdowns.append(info.get('reward_breakdown', {}))  # NEW
+                episode_score_breakdowns.append(info.get('score_breakdown', {}))    # NEW
+                
+                # NEW: Track failure reason
+                if info['success']:
+                    failure_reason = 'SUCCESS'
+                elif info.get('fall', False):
+                    failure_reason = 'FALL'
+                elif info.get('boundary', False):
+                    failure_reason = 'BOUNDARY'
+                elif info.get('timeout', False):
+                    failure_reason = 'TIMEOUT'
+                else:
+                    failure_reason = 'INCOMPLETE'
+                episode_failures.append(failure_reason)
+                
                 episode_count += 1
                 
                 # Reset for next episode
@@ -245,6 +272,49 @@ def main():
         log(f"  Mean waypoints captured: {mean_waypoints:.1f}/{total_waypoints}", log_file)
         log(f"  Mean length: {mean_length:.1f}s", log_file)
         log(f"  Success rate (last {env.success_window}): {success_rate:.1%}", log_file)
+        
+        # NEW: Log failure breakdown
+        if episode_failures:
+            failure_counts = {}
+            for failure in episode_failures:
+                failure_counts[failure] = failure_counts.get(failure, 0) + 1
+            log("  [FAILURE BREAKDOWN]", log_file)
+            for failure_type, count in sorted(failure_counts.items()):
+                pct = (count / len(episode_failures)) * 100
+                log(f"    {failure_type:12s}: {count:3d} ({pct:5.1f}%)", log_file)
+        
+        # NEW: Log reward component breakdown
+        if episode_reward_breakdowns:
+            avg_reward_breakdown = {}
+            for component in episode_reward_breakdowns[0].keys():
+                values = [bd.get(component, 0.0) for bd in episode_reward_breakdowns]
+                avg_reward_breakdown[component] = np.mean(values)
+            
+            total_reward = sum(avg_reward_breakdown.values())
+            log("  [REWARD BREAKDOWN]", log_file)
+            log(f"    TOTAL REWARD: {total_reward:8.4f}", log_file)
+            # Sort by absolute value (descending) for readability
+            sorted_components = sorted(avg_reward_breakdown.items(), key=lambda x: abs(x[1]), reverse=True)
+            for component, value in sorted_components:
+                if abs(value) > 0.001:  # Only show significant components
+                    log(f"    {component:20s}: {value:8.4f}", log_file)
+        
+        # NEW: Log score component breakdown
+        if episode_score_breakdowns:
+            avg_score_breakdown = {}
+            for component in episode_score_breakdowns[0].keys():
+                values = [bd.get(component, 0.0) for bd in episode_score_breakdowns]
+                avg_score_breakdown[component] = np.mean(values)
+            
+            total_score = sum(avg_score_breakdown.values())
+            log("  [SCORE BREAKDOWN]", log_file)
+            log(f"    TOTAL SCORE: {total_score:8.1f}", log_file)
+            # Sort by absolute value (descending) for readability
+            sorted_components = sorted(avg_score_breakdown.items(), key=lambda x: abs(x[1]), reverse=True)
+            for component, value in sorted_components:
+                if abs(value) > 0.1:  # Only show significant components
+                    log(f"    {component:20s}: {value:8.1f}", log_file)
+        
         log(f"  Policy loss: {train_stats['policy_loss']:.4f}", log_file)
         log(f"  Value loss: {train_stats['value_loss']:.4f}", log_file)
         log(f"  Entropy: {train_stats['entropy']:.4f}", log_file)
@@ -253,12 +323,14 @@ def main():
         if train_stats['early_stopped']:
             log(f"  [EARLY STOP] KL divergence exceeded target ({config['ppo']['target_kl']:.4f})", log_file)
         
-        # Check curriculum advancement
-        if env.should_advance_curriculum():
+        # Check curriculum advancement (requires 100 iterations minimum + success threshold)
+        iterations_on_stage = iteration - start_iter
+        if env.should_advance_curriculum(iterations_on_stage):
             log("", log_file)
             log("=" * 80, log_file)
             log(f"[MILESTONE] STAGE {env.current_stage + 1} REACHED TARGET SUCCESS!", log_file)
             log(f"Success rate: {success_rate:.1%} (threshold: {env.success_threshold:.1%})", log_file)
+            log(f"Iterations on stage: {iterations_on_stage}", log_file)
             
             # Save stage completion checkpoint
             stage_checkpoint_path = checkpoint_dir / f"stage_{env.current_stage + 1}_complete.pt"
@@ -273,9 +345,10 @@ def main():
             log(f"  [NO AUTO-ADVANCE] Continuing training on current stage", log_file)
             log("=" * 80, log_file)
         
-        # Save checkpoint periodically
-        if (iteration + 1) % checkpoint_freq == 0:
-            checkpoint_path = checkpoint_dir / f"checkpoint_{iteration + 1}.pt"
+        # Save checkpoint every 25 iterations
+        if (iteration - start_iter + 1) % checkpoint_freq == 0:
+            iter_on_stage = iteration - start_iter + 1
+            checkpoint_path = checkpoint_dir / f"checkpoint_stage{env.current_stage + 1}_iter{iter_on_stage:03d}.pt"
             torch.save({
                 'iteration': iteration,
                 'policy_state_dict': policy.state_dict(),

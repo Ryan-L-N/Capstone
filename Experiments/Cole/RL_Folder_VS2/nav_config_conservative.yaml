@@ -1,7 +1,6 @@
-# Navigation Policy Training Configuration - STAGE 7 MODERATE
-# Learning Rate: 1e-4 (Moderate - balanced learning)
-# Starting from: run_6_aggressive/final_model.pt (100% Stage 6 success)
-# Focus: Heavy obstacle avoidance learning through contact testing
+# Navigation Policy Training Configuration - Conservative Learning Rate
+# VS2 8-Stage Curriculum: Stability -> Navigation -> Obstacles
+# Learning Rate: Conservative (5.0e-5) - Slower, more stable learning
 
 # Environment geometry
 arena:
@@ -30,7 +29,7 @@ observation:
 # Waypoint settings
 waypoints:
   total_count: 25
-  capture_radius: 1.2  # meters (increased to reduce circling)
+  capture_radius: 0.25  # meters
   boundary_margin: 2.0  # keep waypoints inside arena by this margin
 
 # Obstacle settings (reuse from Baseline_Environment.py)
@@ -51,32 +50,46 @@ scoring:
 # RL Reward weights
 reward:
   time_penalty: 0.0  # REMOVED - time decay in score is sufficient
-  waypoint_capture: 15.0  # Reward for capturing each waypoint (score gets +15, reward gets +10)
-  timeout_penalty: -100.0  # Penalty if robot runs out of score points (reaches 0)
+  waypoint_capture: 25.0  # Reward for capturing each waypoint (score gets +15, reward gets +25)
+  timeout_penalty: -150.0  # Penalty if robot runs out of score points (reaches 0)
   progress_shaping: 10.0  # alpha for distance-based shaping (Stages 2-5 only) - INCREASED for faster learning
   distance_reward: 0.0  # DISABLED - no reward just for proximity to waypoint
-  heading_reward: 0.2  # reward for facing toward waypoint
+  heading_reward: 1.0  # reward for facing toward waypoint
   speed_reward: 0.3  # reward for moving fast when path is clear
+  lateral_velocity_penalty: 0.25  # penalty for strafe (left/right) motion to prevent drift
+  cross_track_error_weight: 0.4  # penalty for deviating left/right from ideal path to waypoint
+  static_turn_reward: 0.5  # reward for high angular velocity when forward speed is low (turn in place)
   wrong_direction_penalty: 2.0  # extra penalty multiplier when moving away from waypoint
-  fall_penalty: -100.0
+  fall_penalty: -150.0
   boundary_penalty: -5.0  # if leaving arena
+  
+  # Push reward/penalty system (Stages 6-8: with obstacles)
+  push_exploration_weight: 3.2    # Reward for initial light contact with pushable obstacles
+  push_sustained_weight: 4.8      # Reward for sustained pushing momentum (moving while in contact)
+  push_stuck_weight: -0.4         # Penalty for high contact but no movement (stuck pushing)
+  push_wasted_effort_weight: -0.4  # Penalty for high joint effort without progress
+  
+  # Efficiency bonus (completing waypoints before score expires)
+  efficiency_bonus_weight: 1.0    # Multiplier on remaining score when waypoint captured (higher = stronger incentive to finish fast)
 
-# Curriculum stages - STARTING AT STAGE 7
+# Curriculum stages
 curriculum:
-  success_window: 100  # episodes
-  success_threshold: 0.80  # 80% success rate to advance
+  success_window: 50  # episodes
+  success_threshold: 0.80  # 80% success rate to advance (40 of 50 episodes)
 
   stages:
     - id: 1
       name: "Random Walking"
-      max_time: 60.0  # seconds
+      max_time: 120.0  # seconds - 2 minutes for stable exploration
       waypoint_distance_first: null  # no waypoints
       waypoint_distance_subsequent: null
       obstacles_light_coverage: 0.0
       obstacles_heavy_coverage: 0.0
       obstacles_small_coverage: 0.0
       use_progress_shaping: false
-      success_criterion: "No falls for 60s"
+      success_criterion: "Remain upright for 120s without falling - Earn +100 points"
+      success_window: 50  # episodes for stage 1
+      success_threshold: 0.80  # 80% success (40 of 50)
       
     - id: 2
       name: "Waypoints 5m"
@@ -88,6 +101,8 @@ curriculum:
       obstacles_small_coverage: 0.0
       use_progress_shaping: true
       success_criterion: "Capture all 25 waypoints"
+      success_window: 100  # episodes for stage 2+ (reset to 100)
+      success_threshold: 0.80  # 80% success (80 of 100)
       
     - id: 3
       name: "Waypoints 10m"
@@ -99,6 +114,8 @@ curriculum:
       obstacles_small_coverage: 0.0
       use_progress_shaping: true
       success_criterion: "Capture all 25 waypoints"
+      success_window: 100
+      success_threshold: 0.80
       
     - id: 4
       name: "Waypoints 20m"
@@ -110,6 +127,8 @@ curriculum:
       obstacles_small_coverage: 0.0
       use_progress_shaping: true
       success_criterion: "Capture all 25 waypoints"
+      success_window: 100
+      success_threshold: 0.80
       
     - id: 5
       name: "Waypoints 20m then 40m"
@@ -127,21 +146,21 @@ curriculum:
       max_time: null  # NO TIME LIMIT
       waypoint_distance_first: 20.0
       waypoint_distance_subsequent: 40.0
-      obstacles_light_coverage: 0.10  # 10% of arena
+      obstacles_light_coverage: 0.25  # 25% of arena
       obstacles_heavy_coverage: 0.0
       obstacles_small_coverage: 0.0
-      use_progress_shaping: false  # remove shaping with obstacles
+      use_progress_shaping: true  # small progress shaping reward
       success_criterion: "Capture all 25 waypoints"
       
     - id: 7
       name: "Add Heavy Obstacles"
       max_time: null  # NO TIME LIMIT
-      waypoint_distance_first: 20.0  # 20m to first waypoint
-      waypoint_distance_subsequent: 40.0  # 40m between subsequent waypoints
-      obstacles_light_coverage: 0.10  # 10% lightweight (pushable)
-      obstacles_heavy_coverage: 0.10  # 10% heavy (immovable) - reduced to allow contact learning
+      waypoint_distance_first: 20.0
+      waypoint_distance_subsequent: 40.0
+      obstacles_light_coverage: 0.10  # 10% light obstacles
+      obstacles_heavy_coverage: 0.10  # 10% heavy obstacles
       obstacles_small_coverage: 0.0
-      use_progress_shaping: false
+      use_progress_shaping: true  # small progress shaping reward
       success_criterion: "Capture all 25 waypoints"
       
     - id: 8
@@ -149,15 +168,16 @@ curriculum:
       max_time: null  # NO TIME LIMIT
       waypoint_distance_first: 20.0
       waypoint_distance_subsequent: 40.0
-      obstacles_light_coverage: 0.10
-      obstacles_heavy_coverage: 0.10
-      obstacles_small_coverage: 0.10  # 10% small static
-      use_progress_shaping: false
+      obstacles_light_coverage: 0.10  # 10% light obstacles
+      obstacles_heavy_coverage: 0.10  # 10% heavy obstacles
+      obstacles_small_coverage: 0.10  # 10% small static obstacles
+      use_progress_shaping: true  # small progress shaping reward
+      success_threshold: 0.90  # 90% success (90 of 100)
       success_criterion: "Capture all 25 waypoints - TRAINING COMPLETE"
 
-# PPO hyperparameters
+# PPO hyperparameters - CONSERVATIVE
 ppo:
-  learning_rate: 1.0e-4  # MODERATE - balanced learning
+  learning_rate: 5.0e-5  # CONSERVATIVE: 0.5x base rate for slower, more stable learning
   clip_param: 0.2
   value_coef: 0.5
   entropy_coef: 0.01

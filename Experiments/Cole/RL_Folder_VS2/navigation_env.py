@@ -85,9 +85,21 @@ class NavigationEnvironment:
         self.reward_distance_weight = self.config['reward'].get('distance_reward', 0.0)
         self.reward_heading_weight = self.config['reward'].get('heading_reward', 0.0)
         self.reward_speed_weight = self.config['reward'].get('speed_reward', 0.0)
+        self.reward_lateral_velocity_penalty = self.config['reward'].get('lateral_velocity_penalty', 0.0)
+        self.reward_cross_track_error_weight = self.config['reward'].get('cross_track_error_weight', 0.0)
+        self.reward_static_turn_reward = self.config['reward'].get('static_turn_reward', 0.0)
         self.reward_wrong_direction_penalty = self.config['reward'].get('wrong_direction_penalty', 0.0)
         self.reward_fall = self.config['reward']['fall_penalty']
         self.reward_boundary = self.config['reward']['boundary_penalty']
+        
+        # Push rewards/penalties (stages 6-8 with obstacles) - now config-driven
+        self.push_exploration_weight = self.config['reward'].get('push_exploration_weight', 3.2)
+        self.push_sustained_weight = self.config['reward'].get('push_sustained_weight', 4.8)
+        self.push_stuck_weight = self.config['reward'].get('push_stuck_weight', -0.4)
+        self.push_wasted_effort_weight = self.config['reward'].get('push_wasted_effort_weight', -0.4)
+        
+        # Efficiency bonus - reward for completing waypoints before score expires
+        self.efficiency_bonus_weight = self.config['reward'].get('efficiency_bonus_weight', 0.5)
         
         # Physics
         self.control_dt = 1.0 / self.config['physics']['control_hz']
@@ -107,6 +119,38 @@ class NavigationEnvironment:
         self.waypoints_captured = 0
         self.last_waypoint_distance = None
         self.episode_active = False
+        
+        # Episode reward breakdown tracking (for logging)
+        self.episode_reward_components = {
+            'waypoint_capture': 0.0,
+            'time_penalty': 0.0,
+            'progress_shaping': 0.0,
+            'distance_reward': 0.0,
+            'heading_reward': 0.0,
+            'speed_reward': 0.0,
+            'lateral_penalty': 0.0,
+            'cross_track_error': 0.0,
+            'static_turn_reward': 0.0,
+            'stagnation_penalty': 0.0,
+            'decel_reward': 0.0,
+            'push_exploration': 0.0,
+            'push_sustained': 0.0,
+            'push_stuck': 0.0,
+            'push_wasted': 0.0,
+            'fall_penalty': 0.0,
+            'boundary_penalty': 0.0,
+            'timeout_penalty': 0.0,
+            'efficiency_bonus': 0.0
+        }
+        
+        # Episode score breakdown tracking (for logging)
+        self.episode_score_components = {
+            'initial_points': 0.0,
+            'time_decay': 0.0,
+            'waypoint_bonus': 0.0,
+            'stage_success_bonus': 0.0,
+            'fall_penalty': 0.0
+        }
         
         # Curriculum tracking
         self.episode_history = []  # Last N episodes for success calculation
@@ -156,8 +200,16 @@ class NavigationEnvironment:
         """
         if stage_id is not None:
             self.current_stage = stage_id
+            # Reset episode history when advancing to a new stage
+            self.episode_history = []
         
         stage = self.curriculum_stages[self.current_stage]
+        
+        # Update success criteria from stage config if specified (otherwise use global defaults)
+        if 'success_window' in stage:
+            self.success_window = stage['success_window']
+        if 'success_threshold' in stage:
+            self.success_threshold = stage['success_threshold']
         
         # Reset robot
         self.spot.robot.set_world_pose(self.start_pos, self.start_ori)
@@ -180,6 +232,13 @@ class NavigationEnvironment:
         self.episode_active = True
         self.last_control_time = self.world.current_time
         self.current_command = np.zeros(3, dtype=np.float32)  # Reset command
+        
+        # Reset reward and score breakdowns
+        for key in self.episode_reward_components:
+            self.episode_reward_components[key] = 0.0
+        for key in self.episode_score_components:
+            self.episode_score_components[key] = 0.0
+        self.episode_score_components['initial_points'] = self.initial_points  # Track initial points
         
         # Generate waypoints (if stage has them)
         self.waypoints = []
@@ -242,7 +301,12 @@ class NavigationEnvironment:
         self.episode_time = self.world.current_time - self.episode_start_time
         
         # Update score
-        self.score -= self.time_decay * self.control_dt
+        # NO TIME DECAY for stages 1-3 (stability + pushing foundation)
+        if self.current_stage >= 3:  # Stages 4+ (0-indexed: 3+)
+            time_decay_amount = self.time_decay * self.control_dt
+            self.score -= time_decay_amount
+            self.episode_score_components['time_decay'] -= time_decay_amount
+            self.episode_reward_components['time_penalty'] -= self.reward_time_penalty
         
         # Get robot state
         pos, ori = self.spot.robot.get_world_pose()
@@ -253,15 +317,50 @@ class NavigationEnvironment:
         fall = robot_z < self.fall_threshold
         out_of_bounds = not self._inside_arena(robot_x, robot_y)
         timeout = False
+        stage_success = False  # Track if stage-specific success criterion met
         
         stage = self.curriculum_stages[self.current_stage]
         if stage['max_time'] is not None:
             timeout = self.episode_time >= stage['max_time']
+            # Award bonus for stages 1-2 when reaching max_time without falling
+            if timeout and not fall and self.current_stage < 2:  # Stages 1-2 (0-indexed: 0-1)
+                # Stage 1: +100 bonus, Stage 2+: +50 bonus
+                bonus = 100.0 if self.current_stage == 0 else 50.0
+                self.score += bonus
+                self.episode_score_components['stage_success_bonus'] += bonus
+                stage_success = True
         else:
             timeout = self.score <= 0
         
         # Calculate reward
-        reward = self.reward_time_penalty  # constant time penalty
+        # NO TIME PENALTY for RL reward in stages 1-3 (let them focus on learning stability)
+        if self.current_stage >= 3:
+            reward = self.reward_time_penalty  # constant time penalty (stages 4+)
+            self.episode_reward_components['time_penalty'] += self.reward_time_penalty
+        else:
+            reward = 0.0  # no time penalty for stages 1-3
+        
+        # Stage success bonus for stages 1-2 (completing without falling)
+        if stage_success:
+            # Stage 1: +100 bonus, Stage 2+: +50 bonus
+            bonus = 100.0 if self.current_stage == 0 else 50.0
+            reward += bonus
+        
+        # Stage 1 only: Stagnation penalty (-1.0 per second not moving)
+        if self.current_stage == 0:
+            if not hasattr(self, '_last_robot_pos_stage1'):
+                self._last_robot_pos_stage1 = pos.copy()
+            
+            dist_moved = np.linalg.norm(pos[:2] - self._last_robot_pos_stage1[:2])
+            # Movement threshold: approximately 0.05m per control tick at 60Hz = 0.05 * (1/60) = ~0.0008m per 0.0167s
+            min_movement_threshold = 0.05  # meters per timestep
+            if dist_moved < min_movement_threshold:
+                # Apply -1.0 penalty per second, scaled to control_dt
+                stagnation_penalty = -1.0 * self.control_dt
+                reward += stagnation_penalty
+                self.score += stagnation_penalty
+                self.episode_reward_components['stagnation_penalty'] += stagnation_penalty
+            self._last_robot_pos_stage1 = pos.copy()
         
         # Speed reward - encourage fast movement when path is clear AND far from waypoint
         if self.reward_speed_weight > 0:
@@ -284,6 +383,30 @@ class NavigationEnvironment:
                 # Reward proportional to speed, scaled 0-1 for speeds 0-5 m/s
                 speed_reward = self.reward_speed_weight * min(forward_speed / 5.0, 1.0)
                 reward += speed_reward
+                self.episode_reward_components['speed_reward'] += speed_reward
+        
+        # Lateral velocity penalty - discourage unnecessary strafing to prevent drift
+        if self.reward_lateral_velocity_penalty > 0:
+            vel = self.spot.robot.get_linear_velocity()
+            lateral_speed = abs(vel[1])  # |vy| - absolute value for left/right strafe
+            # Penalty proportional to lateral speed, scaled 0-1 for speeds 0-0.5 m/s
+            lateral_penalty = self.reward_lateral_velocity_penalty * min(lateral_speed / 0.5, 1.0)
+            reward -= lateral_penalty
+            self.episode_reward_components['lateral_penalty'] -= lateral_penalty
+        
+        # Static turn reward - reward turning in place (high omega, low vx)
+        if self.reward_static_turn_reward > 0:
+            vel = self.spot.robot.get_linear_velocity()
+            angvel = self.spot.robot.get_angular_velocity()
+            vx = vel[0]
+            omega = angvel[2]  # yaw rate
+            
+            # If forward speed is low (< 0.3 m/s) but turning fast (> 0.3 rad/s), reward it
+            if abs(vx) < 0.3 and abs(omega) > 0.3:
+                # Reward proportional to turn rate, scaled 0-1 for rotations 0.3-2.0 rad/s
+                turn_reward = self.reward_static_turn_reward * min(abs(omega) / 2.0, 1.0)
+                reward += turn_reward
+                self.episode_reward_components['static_turn_reward'] += turn_reward
         
         # Check waypoint capture
         waypoint_captured = False
@@ -297,12 +420,19 @@ class NavigationEnvironment:
                 self.waypoints_captured += 1
                 self.current_waypoint_idx += 1
                 self.score += self.waypoint_bonus_points
+                self.episode_score_components['waypoint_bonus'] += self.waypoint_bonus_points
                 reward += self.reward_waypoint
+                self.episode_reward_components['waypoint_capture'] += self.reward_waypoint
                 self.last_waypoint_distance = None
                 
                 # Check if all waypoints captured
                 if self.current_waypoint_idx >= len(self.waypoints):
                     done = True
+                    # Efficiency bonus: reward for completing with points remaining
+                    if self.score > 0:
+                        efficiency_bonus = self.efficiency_bonus_weight * self.score
+                        reward += efficiency_bonus
+                        self.episode_reward_components['efficiency_bonus'] += efficiency_bonus
             else:
                 # Enhanced reward shaping (Stages 2-5 only)
                 if stage['use_progress_shaping']:
@@ -310,15 +440,14 @@ class NavigationEnvironment:
                     if self.last_waypoint_distance is not None:
                         progress = self.last_waypoint_distance - dist_to_wp
                         progress_reward = self.reward_progress_alpha * progress
-                        # Apply extra penalty if moving in wrong direction
-                        if progress < 0 and self.reward_wrong_direction_penalty > 0:
-                            progress_reward *= self.reward_wrong_direction_penalty
                         reward += progress_reward
+                        self.episode_reward_components['progress_shaping'] += progress_reward
                     
                     # 2. Distance-based reward - continuous guidance (inverse distance)
                     # Reward decreases with distance, max at 1m, zero at 20m
                     distance_reward = self.reward_distance_weight * max(0, 1.0 - dist_to_wp / 20.0)
                     reward += distance_reward
+                    self.episode_reward_components['distance_reward'] += distance_reward
                     
                     # 3. Heading reward - reward for facing toward waypoint (applies throughout approach)
                     if self.reward_heading_weight > 0:
@@ -331,6 +460,29 @@ class NavigationEnvironment:
                             heading_alignment = np.dot(vel_direction, waypoint_direction)
                             heading_reward = self.reward_heading_weight * max(0, heading_alignment)
                             reward += heading_reward
+                            self.episode_reward_components['heading_reward'] += heading_reward
+                    
+                    # 3b. Cross-track error penalty - penalize deviating left/right from ideal path
+                    if self.reward_cross_track_error_weight > 0 and dist_to_wp > 0.5:
+                        vel = self.spot.robot.get_linear_velocity()
+                        if np.linalg.norm(vel[:2]) > 0.1:  # only if moving
+                            # Ideal direction toward waypoint
+                            waypoint_direction = np.array([wp[0] - robot_x, wp[1] - robot_y])
+                            waypoint_direction = waypoint_direction / (dist_to_wp + 1e-6)
+                            
+                            # Perpendicular vector (cross-track direction - pure left/right)
+                            perp_direction = np.array([-waypoint_direction[1], waypoint_direction[0]])
+                            
+                            # Robot velocity direction
+                            vel_direction = vel[:2] / np.linalg.norm(vel[:2])
+                            
+                            # Cross-track error = how much velocity is perpendicular to ideal path
+                            cross_track_component = abs(np.dot(vel_direction, perp_direction))
+                            
+                            # Penalty proportional to perpendicular motion
+                            cross_track_penalty = self.reward_cross_track_error_weight * cross_track_component
+                            reward -= cross_track_penalty
+                            self.episode_reward_components['cross_track_error'] -= cross_track_penalty
                     
                     # 4. Proximity deceleration reward - encourage slowing near waypoint
                     # Reward low speed when within 2.5m of waypoint to enable smooth capture
@@ -343,16 +495,52 @@ class NavigationEnvironment:
                         # Reward being close to ideal speed (inverse error)
                         decel_reward = 0.15 * max(0, 1.0 - speed_error)
                         reward += decel_reward
+                        self.episode_reward_components['decel_reward'] += decel_reward
                 
                 self.last_waypoint_distance = dist_to_wp
+        
+        # Push rewards/penalties for stages 6-8 (with obstacles)
+        if self.current_stage >= 5:  # Stages 6-8 (0-indexed: 5-7)
+            contact_force = self._calculate_contact_force()
+            joint_effort = self._calculate_joint_effort()
+            vel = self.spot.robot.get_linear_velocity()
+            speed = np.linalg.norm(vel[:2])
+            
+            # Reward contact with obstacles (high contact force + low joint effort)
+            if contact_force > 0.4 and joint_effort < 0.7:
+                # Light contact detected - reward exploration and pushing
+                push_exploration_reward = self.push_exploration_weight * contact_force * (1.0 - joint_effort)
+                reward += push_exploration_reward
+                self.episode_reward_components['push_exploration'] += push_exploration_reward
+                
+                # Bonus reward for sustained pushing (moving while in contact)
+                if speed > 0.2:
+                    sustained_push_reward = self.push_sustained_weight * contact_force
+                    reward += sustained_push_reward
+                    self.episode_reward_components['push_sustained'] += sustained_push_reward
+                else:
+                    # Penalty for high contact without moving (stuck pushing attempt)
+                    stuck_penalty = self.push_stuck_weight * contact_force
+                    reward += stuck_penalty
+                    self.episode_reward_components['push_stuck'] += stuck_penalty
+            elif contact_force > 0.3 and joint_effort > 0.8:
+                # High effort with moderate contact but likely not pushing effectively
+                wasted_push_effort = self.push_wasted_effort_weight * joint_effort
+                reward += wasted_push_effort
+                self.episode_reward_components['push_wasted'] += wasted_push_effort
         
         # Fall penalty
         if fall:
             reward += self.reward_fall
+            self.episode_reward_components['fall_penalty'] += self.reward_fall
+            self.episode_score_components['fall_penalty'] += self.reward_fall
+            done = True  # Terminate immediately on fall
         
         # Boundary penalty
         if out_of_bounds:
             reward += self.reward_boundary
+            self.episode_reward_components['boundary_penalty'] += self.reward_boundary
+            done = True
         
         # Stage 7+ Obstacle Intelligence Rewards & Penalties (detect push resistance, not immediate termination)
         if self.current_stage >= 6:  # Stage 7 is index 6 (0-indexed)
@@ -364,17 +552,10 @@ class NavigationEnvironment:
                 reward += 0.1  # Small reward for detecting immovable obstacle
                 # (robot should learn to navigate around on next attempt)
         
-        # Boundary penalty
-        if out_of_bounds:
-            reward += self.reward_boundary
-            done = True
-        
         # Timeout penalty (ran out of score points)
         if timeout and self.score <= 0:
             reward += self.reward_timeout
-            done = True
-        elif timeout:
-            done = True
+            self.episode_reward_components['timeout_penalty'] += self.reward_timeout
         
         # Get next observation
         obs = self._get_observation()
@@ -390,7 +571,9 @@ class NavigationEnvironment:
             'boundary': out_of_bounds,
             'timeout': timeout,
             'waypoint_captured_this_step': waypoint_captured,
-            'success': (self.waypoints_captured >= len(self.waypoints)) if self.waypoints else (self.episode_time >= stage['max_time'] and not fall)
+            'success': (self.waypoints_captured >= len(self.waypoints)) if self.waypoints else (self.episode_time >= stage['max_time'] and not fall),
+            'reward_breakdown': self.episode_reward_components.copy(),
+            'score_breakdown': self.episode_score_components.copy()
         }
         
         # Track episode completion
@@ -741,11 +924,34 @@ class NavigationEnvironment:
             return 0.0
         return sum(self.episode_history) / len(self.episode_history)
     
-    def should_advance_curriculum(self) -> bool:
-        """Check if should advance to next curriculum stage."""
-        if len(self.episode_history) < self.success_window:
+    def should_advance_curriculum(self, iterations_on_stage: int = 0) -> bool:
+        """
+        Check if should advance to next curriculum stage.
+        
+        Requires BOTH conditions:
+        - Minimum 100 iterations on current stage
+        - Success rate meets threshold (80% for stages 2-7, 90% for stage 8)
+        
+        Args:
+            iterations_on_stage: number of iterations completed on current stage
+        
+        Returns:
+            True if both conditions met, False otherwise
+        """
+        # Must complete at least 100 iterations on this stage
+        if iterations_on_stage < 100:
             return False
-        return self.get_success_rate() >= self.success_threshold
+        
+        # Must have enough episodes in history for success calculation
+        stage = self.curriculum_stages[self.current_stage]
+        stage_window = stage.get('success_window', self.success_window)
+        stage_threshold = stage.get('success_threshold', self.success_threshold)
+        
+        if len(self.episode_history) < stage_window:
+            return False
+        
+        # Check if success rate meets stage-specific threshold
+        return self.get_success_rate() >= stage_threshold
     
     def advance_stage(self) -> bool:
         """
