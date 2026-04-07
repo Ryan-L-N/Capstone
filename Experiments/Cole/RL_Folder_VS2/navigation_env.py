@@ -84,7 +84,11 @@ class NavigationEnvironment:
         self.reward_progress_alpha = self.config['reward']['progress_shaping']
         self.reward_distance_weight = self.config['reward'].get('distance_reward', 0.0)
         self.reward_heading_weight = self.config['reward'].get('heading_reward', 0.0)
-        self.reward_speed_weight = self.config['reward'].get('speed_reward', 0.0)
+        # Distance-based speed reward tiers (NEW)
+        self.speed_reward_tier_1_threshold = self.config['reward'].get('speed_reward_tier_1_threshold', 0.9)
+        self.speed_reward_tier_2_threshold = self.config['reward'].get('speed_reward_tier_2_threshold', 1.79)
+        self.speed_reward_tier_2_per_meter = self.config['reward'].get('speed_reward_tier_2_per_meter', 0.25)
+        self.speed_reward_tier_3_per_meter = self.config['reward'].get('speed_reward_tier_3_per_meter', 0.50)
         self.reward_lateral_velocity_penalty = self.config['reward'].get('lateral_velocity_penalty', 0.0)
         self.reward_cross_track_error_weight = self.config['reward'].get('cross_track_error_weight', 0.0)
         self.reward_static_turn_reward = self.config['reward'].get('static_turn_reward', 0.0)
@@ -175,6 +179,9 @@ class NavigationEnvironment:
         self._last_vx = 0.0
         self._last_vy = 0.0
         
+        # Position tracking for distance-based speed reward
+        self._last_robot_pos_for_speed_reward = np.zeros(3)  # [x, y, z]
+        
         # Stage 7+ obstacle intelligence (contact force feedback & repeated bump detection)
         self.recent_contact_force = 0.0  # Normalized contact force magnitude [0, 1]
         self.contact_force_history = []  # Last N contact forces for trending
@@ -232,6 +239,7 @@ class NavigationEnvironment:
         self.episode_active = True
         self.last_control_time = self.world.current_time
         self.current_command = np.zeros(3, dtype=np.float32)  # Reset command
+        self._last_robot_pos_for_speed_reward = self.start_pos.copy()  # Initialize position tracking for speed reward
         
         # Reset reward and score breakdowns
         for key in self.episode_reward_components:
@@ -362,28 +370,42 @@ class NavigationEnvironment:
                 self.episode_reward_components['stagnation_penalty'] += stagnation_penalty
             self._last_robot_pos_stage1 = pos.copy()
         
-        # Speed reward - encourage fast movement when path is clear AND far from waypoint
-        if self.reward_speed_weight > 0:
-            vel = self.spot.robot.get_linear_velocity()
-            forward_speed = np.linalg.norm(vel[:2])  # horizontal velocity magnitude
+        # Speed reward - distance-based tier system (replaces old linear speed_reward)
+        # Tier 1: <0.9 m/s (2 mph) = 0 reward
+        # Tier 2: 0.9-1.79 m/s (2-4 mph) = 0.25 per meter
+        # Tier 3: ≥1.79 m/s (4+ mph) = 0.50 per meter
+        vel = self.spot.robot.get_linear_velocity()
+        forward_speed = np.linalg.norm(vel[:2])  # horizontal velocity magnitude (m/s)
+        
+        # Calculate distance traveled this frame
+        pos = self.spot.robot.get_world_pose()[0]
+        distance_traveled = np.linalg.norm(pos[:2] - self._last_robot_pos_for_speed_reward[:2])
+        
+        # Check if path is clear (obstacle check) and not near waypoint
+        dist_to_wp = 999.0
+        if self.waypoints and self.current_waypoint_idx < len(self.waypoints):
+            wp = self.waypoints[self.current_waypoint_idx]
+            dist_to_wp = np.sqrt((robot_x - wp[0])**2 + (robot_y - wp[1])**2)
+        
+        yaw = self._quat_to_yaw(ori)
+        obstacle_dists = self._raycast_obstacles(robot_x, robot_y, yaw)
+        min_obstacle_dist = min(obstacle_dists[6:10]) if len(obstacle_dists) >= 10 else 5.0  # front rays
+        
+        # Apply speed reward if path is clear AND not near waypoint
+        if min_obstacle_dist > 2.0 and dist_to_wp > 3.0:
+            speed_reward = 0.0
+            if forward_speed >= self.speed_reward_tier_2_threshold:  # Tier 3 (≥1.79 m/s)
+                speed_reward = self.speed_reward_tier_3_per_meter * distance_traveled
+            elif forward_speed >= self.speed_reward_tier_1_threshold:  # Tier 2 (0.9-1.79 m/s)
+                speed_reward = self.speed_reward_tier_2_per_meter * distance_traveled
+            # Tier 1 (<0.9 m/s) yields 0 reward (no bonus for slow movement)
             
-            # Check distance to current waypoint - don't reward speed when close
-            dist_to_wp = 999.0
-            if self.waypoints and self.current_waypoint_idx < len(self.waypoints):
-                wp = self.waypoints[self.current_waypoint_idx]
-                dist_to_wp = np.sqrt((robot_x - wp[0])**2 + (robot_y - wp[1])**2)
-            
-            # Only reward speed if no close obstacles (> 2m clear ahead) AND far from waypoint (>3m)
-            # Get robot heading for obstacle check
-            yaw = self._quat_to_yaw(ori)
-            obstacle_dists = self._raycast_obstacles(robot_x, robot_y, yaw)
-            # Check forward-facing obstacle rays (indices around front)
-            min_obstacle_dist = min(obstacle_dists[6:10]) if len(obstacle_dists) >= 10 else 5.0  # front 4 rays
-            if min_obstacle_dist > 2.0 and dist_to_wp > 3.0:  # path is clear AND not near waypoint
-                # Reward proportional to speed, scaled 0-1 for speeds 0-5 m/s
-                speed_reward = self.reward_speed_weight * min(forward_speed / 5.0, 1.0)
+            if speed_reward > 0:
                 reward += speed_reward
                 self.episode_reward_components['speed_reward'] += speed_reward
+        
+        # Update position for next frame
+        self._last_robot_pos_for_speed_reward = pos.copy()
         
         # Lateral velocity penalty - discourage unnecessary strafing to prevent drift
         if self.reward_lateral_velocity_penalty > 0:
