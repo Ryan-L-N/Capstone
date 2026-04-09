@@ -66,7 +66,7 @@ parser.add_argument("--robot", type=str, default="spot",
                     choices=["spot", "vision60"],
                     help="Robot to evaluate (default: spot)")
 parser.add_argument("--env", type=str, required=True,
-                    choices=["friction", "friction_v2", "grass", "boulder", "stairs"],
+                    choices=["friction", "friction_v2", "grass", "boulder", "stairs", "stairs_approach"],
                     help="Environment to evaluate")
 parser.add_argument("--policy", type=str, required=True,
                     choices=["flat", "rough"],
@@ -140,7 +140,7 @@ if args.env == "grass":
     from envs.grass_env import get_velocity_scale
 
 # Stairs-specific ground elevation function
-if args.env == "stairs":
+if args.env in ("stairs", "stairs_approach"):
     from configs.zone_params import get_stair_elevation
 
 
@@ -156,6 +156,10 @@ def main():
     # Raise spawn height for stairs to prevent foot clipping on first frame
     if args.env == "stairs":
         spawn_pos[2] = max(spawn_pos[2], 1.0)  # 1.0m clears initial step geometry
+    # Approach env: spawn 10m before the stairs on flat ground
+    if args.env == "stairs_approach":
+        spawn_pos[0] = -10.0
+        spawn_pos[2] = 0.52  # standing body height — no drop on spawn
 
     print(f"\n{'='*60}")
     print(f"  Capstone Evaluation")
@@ -210,7 +214,7 @@ def main():
     # Ground height function for stairs
     # - Metrics: uses analytical fn for correct fall detection on elevated terrain
     # - Height scanner: uses PhysX raycasting for ALL environments (sees real geometry)
-    ground_fn_metrics = get_stair_elevation if args.env == "stairs" else None
+    ground_fn_metrics = get_stair_elevation if args.env in ("stairs", "stairs_approach") else None
     ground_fn_scanner = None  # PhysX raycasting for all envs
 
     if robot == "spot":
@@ -329,6 +333,28 @@ def main():
             orientation=SPAWN_QUAT,
         )
 
+        # Reset joints to standing pose so the robot isn't spawned in a crumpled
+        # post-fall configuration. Without this, the body teleports to spawn_pos
+        # but joints remain in the fallen state, causing immediate collapse.
+        from spot_rough_terrain_policy import _FALLBACK_DEFAULT_POS
+        n_joints = _FALLBACK_DEFAULT_POS.shape[0]
+        spot.robot.set_joint_positions(
+            positions=_FALLBACK_DEFAULT_POS,
+            joint_indices=np.arange(n_joints),
+        )
+        spot.robot.set_joint_velocities(
+            velocities=np.zeros(n_joints),
+            joint_indices=np.arange(n_joints),
+        )
+        # Zero out root body linear and angular velocity. set_world_pose moves
+        # the body but preserves momentum — a robot that fell fast will continue
+        # falling at the new spawn position unless these are explicitly cleared.
+        spot.robot.set_linear_velocity(np.zeros(3))
+        spot.robot.set_angular_velocity(np.zeros(3))
+        # Step once so Isaac Sim flushes all state writes before the
+        # stabilization loop runs.
+        world.step(render=False)
+
         # Reset policy state
         if hasattr(spot, 'post_reset'):
             spot.post_reset()
@@ -338,7 +364,7 @@ def main():
         metrics_collector.start_episode(ep_id)
 
         # Brief stabilization after reset
-        stabilize_steps = 50 if args.env == "stairs" else 10
+        stabilize_steps = 50 if args.env in ("stairs", "stairs_approach") else 10
         for _ in range(stabilize_steps):
             spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
             world.step(render=not headless)
