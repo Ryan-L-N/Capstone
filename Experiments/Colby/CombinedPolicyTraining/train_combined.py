@@ -3,8 +3,8 @@ train_combined.py
 =================
 Combined nav + loco training script for Colby's capstone work.
 
-Imports Alex's nav_locomotion modules (nav policy, loco wrapper, env wrapper,
-AI coach) and Ryan's locomotion checkpoint — but owns its own configuration,
+Imports Alex's nav_locomotion modules (nav policy, loco wrapper, env wrapper)
+and Ryan's locomotion checkpoint — but owns its own configuration,
 log directory, and checkpoint output. Zero modifications to any teammate's files.
 
 Architecture:
@@ -24,12 +24,12 @@ Checkpoints saved to:
 
 Usage:
     # Local smoke test
-    python train_combined.py --headless --no_coach --num_envs 16 --max_iterations 100 \
+    python train_combined.py --headless --num_envs 16 --max_iterations 100 \
         --loco_checkpoint <path/to/mason_hybrid_best_33200.pt>
 
     # H100 full run
     python train_combined.py --headless --num_envs 2048 --max_iterations 30000 \
-        --loco_checkpoint <path/to/mason_hybrid_best_33200.pt> --coach_interval 250
+        --loco_checkpoint <path/to/mason_hybrid_best_33200.pt>
 
 IMPORTANT: CLI args must be parsed before any Isaac Lab imports (AppLauncher rule).
 Exit with os._exit(0) — never call simulation_app.close() (CUDA deadlock).
@@ -77,11 +77,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume",         type=str, default=None,
                         help="Path to a nav checkpoint to resume from")
 
-    # AI Coach
-    parser.add_argument("--coach_interval", type=int, default=250)
-    parser.add_argument("--no_coach", action="store_true",
-                        help="Disable AI coach (use for smoke tests)")
-
     # Isaac Lab
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--no_wandb", action="store_true", default=True)
@@ -90,6 +85,15 @@ def parse_args() -> argparse.Namespace:
 
 
 args = parse_args()
+
+# ---------------------------------------------------------------------------
+# Pre-load torch before Isaac Sim starts.
+# Isaac Sim's extension loader imports torch internally during AppLauncher
+# init. If its older CUDA 11 extscache DLLs load first, torch's c10.dll
+# crashes (WinError 1114). Importing torch here first puts it in sys.modules
+# in a clean state so Isaac Sim's extensions reuse the already-loaded DLLs.
+# ---------------------------------------------------------------------------
+import torch  # noqa: E402 — must be before AppLauncher
 
 # ---------------------------------------------------------------------------
 # Isaac Lab boot — must happen before any omni/isaaclab imports
@@ -104,7 +108,6 @@ simulation_app = app_launcher.app
 # Remaining imports (safe after AppLauncher)
 # ---------------------------------------------------------------------------
 
-import torch
 import gymnasium as gym
 
 from rsl_rl.runners import OnPolicyRunner
@@ -115,9 +118,15 @@ from nav_locomotion.modules.depth_cnn import ActorCriticCNN, TOTAL_OBS_DIMS
 from nav_locomotion.modules.loco_wrapper import FrozenLocoPolicy
 from nav_locomotion.modules.nav_env_wrapper import NavEnvWrapper
 from nav_locomotion.tasks.navigation.config.spot.nav_env_cfg import SpotNavExploreCfg
-from nav_locomotion.tasks.navigation.config.spot.agents.rsl_rl_ppo_cfg import SpotNavPPORunnerCfg
-from nav_locomotion.ai_coach.guardrails import NAV_WEIGHT_BOUNDS
-from isaaclab.utils import class_to_dict
+
+# cnn_compat: adapter classes that bridge ActorCriticCNN (old rsl_rl < 4.0 API) to
+# rsl_rl 5.0.1's separate actor/critic MLPModel interface.
+# CombinedPolicyTraining/ is on sys.path when running as "python train_combined.py",
+# so "cnn_compat:ActorCNNWrapper" resolves correctly via resolve_callable().
+import cnn_compat  # noqa: F401 — must be imported so resolve_callable can find it
+import rsl_rl.models as _rsl_models
+_rsl_models.ActorCNNWrapper = cnn_compat.ActorCNNWrapper
+_rsl_models.CriticCNNWrapper = cnn_compat.CriticCNNWrapper
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +145,6 @@ def main() -> None:
     print(f"  Num envs        : {args.num_envs}")
     print(f"  Max iterations  : {args.max_iterations}")
     print(f"  Save interval   : {args.save_interval}")
-    print(f"  AI Coach        : {'OFF' if args.no_coach else 'ON'}")
     print(f"  Checkpoint dir  : {LOG_DIR}")
     print(f"  Device          : {device}")
     print("=" * 60)
@@ -163,26 +171,83 @@ def main() -> None:
     nav_env = NavEnvWrapper(env, loco_policy)
 
     # ------------------------------------------------------------------
-    # RSL-RL runner
+    # RSL-RL runner  (rsl_rl 5.0.1 compatible config dict)
     # ------------------------------------------------------------------
-    runner_cfg = SpotNavPPORunnerCfg()
-    runner_cfg.max_iterations = args.max_iterations
-    runner_cfg.save_interval  = args.save_interval
-    runner_cfg.logger = "tensorboard"
+    # rsl_rl 5.0.1 broke the old "policy" config format — it now expects separate
+    # "actor" and "critic" dicts with class_name pointing to MLPModel subclasses.
+    # We bypass class_to_dict(SpotNavPPORunnerCfg) and build the dict manually,
+    # pointing class_name at our ActorCNNWrapper / CriticCNNWrapper adapters.
+    # obs_groups tells rsl_rl which observation group to feed to each model.
+    # NavEnvWrapper returns {"policy": tensor(N, 4108)} so both use ["policy"].
 
-    # Inject our custom policy class into RSL-RL's namespace so it can
-    # find it when instantiating via class_name="ActorCriticCNN"
-    import rsl_rl.runners.on_policy_runner as _runner_module
-    _runner_module.ActorCriticCNN = ActorCriticCNN
+    # NavEnvWrapper has no .cfg attribute; Logger stores it but only uses it for
+    # wandb/neptune (we use tensorboard), so an empty dict is safe.
+    nav_env.cfg = {}
+
+    runner_cfg_dict = {
+        # --- Runner bookkeeping ---
+        "seed": 42,
+        "num_steps_per_env": 128,
+        "max_iterations": args.max_iterations,
+        "save_interval": args.save_interval,
+        "logger": "tensorboard",
+        "experiment_name": "spot_nav_explore_ppo",
+        "run_name": "",
+        "device": device,
+        "check_for_nan": False,   # disable NaN check (slow + we handle NaN in cnn)
+        "resume": False,
+        "load_run": ".*",
+        "load_checkpoint": "model_.*.pt",
+        "clip_actions": None,
+        "multi_gpu": None,        # overwritten by OnPolicyRunner._configure_multi_gpu
+
+        # --- Observation routing ---
+        # NavEnvWrapper.get_observations() returns {"policy": tensor(N, 4108)}
+        "obs_groups": {"actor": ["policy"], "critic": ["policy"]},
+
+        # --- Actor model (CNN adapter) ---
+        "actor": {
+            "class_name": "rsl_rl.models:ActorCNNWrapper",
+            # No other fields — ActorCNNWrapper absorbs extras via **kwargs
+        },
+
+        # --- Critic model (CNN adapter) ---
+        "critic": {
+            "class_name": "rsl_rl.models:CriticCNNWrapper",
+        },
+
+        # --- PPO algorithm ---
+        "algorithm": {
+            "class_name": "PPO",
+            "value_loss_coef": 1.0,
+            "use_clipped_value_loss": True,
+            "clip_param": 0.2,
+            "entropy_coef": 0.01,
+            "num_learning_epochs": 8,
+            "num_mini_batches": 8,
+            "learning_rate": args.lr,
+            "schedule": "fixed",
+            "gamma": 0.99,
+            "lam": 0.95,
+            "desired_kl": 0.01,
+            "max_grad_norm": 1.0,
+            "optimizer": "adam",
+            "normalize_advantage_per_mini_batch": False,
+            "share_cnn_encoders": False,
+            "rnd_cfg": None,
+            "symmetry_cfg": None,
+        },
+    }
 
     runner = OnPolicyRunner(
         nav_env,
-        class_to_dict(runner_cfg),
+        runner_cfg_dict,
         log_dir=str(LOG_DIR),
         device=device,
     )
 
-    nav_policy = runner.alg.policy
+    # runner.alg.actor is our ActorCNNWrapper; ._net is the actual ActorCriticCNN
+    nav_policy = runner.alg.actor._net
     print(f"[TRAIN] ActorCriticCNN: "
           f"{sum(p.numel() for p in nav_policy.parameters()):,} params")
 
@@ -195,175 +260,29 @@ def main() -> None:
         nav_policy.load_state_dict(ckpt.get("model_state_dict", ckpt))
 
     # ------------------------------------------------------------------
-    # AI Coach (optional — skip with --no_coach for smoke tests)
+    # Training loop — patch update() to inject terrain level logging
     # ------------------------------------------------------------------
-    coach = guardrails = actuator = metrics_collector = decision_log = None
-
-    if not args.no_coach:
-        try:
-            from nav_locomotion.ai_coach.coach import Coach
-            from nav_locomotion.ai_coach.guardrails import Guardrails
-            from nav_locomotion.ai_coach.actuator import Actuator
-            from nav_locomotion.ai_coach.metrics import MetricsCollector
-            from nav_locomotion.ai_coach.decision_log import DecisionLog
-
-            coach            = Coach(weight_bounds=NAV_WEIGHT_BOUNDS)
-            guardrails       = Guardrails(weight_bounds=NAV_WEIGHT_BOUNDS)
-            actuator         = Actuator(nav_env, runner)
-            metrics_collector = MetricsCollector(nav_env, runner)
-            decision_log     = DecisionLog(
-                str(LOG_DIR / runner_cfg.experiment_name / "coach_decisions.jsonl")
-            )
-            print(f"[TRAIN] AI Coach enabled — every {args.coach_interval} iters")
-        except Exception as e:
-            print(f"[TRAIN] AI Coach init failed: {e} — continuing without coach")
-            coach = None
-
-    # ------------------------------------------------------------------
-    # Training loop — intercept runner internals for coach + metrics
-    # ------------------------------------------------------------------
-    start_time   = time.time()
-    reward_info  = {}
-    recent_decisions = []
-    halt_training    = False
-
-    # Capture RSL-RL's internal log dict for the metrics collector
-    original_log = getattr(runner, "_log_process", None) or getattr(runner, "log", None)
-
-    def intercepted_log(info: dict, *a, **kw):
-        nonlocal reward_info
-        reward_info.update(info)
-        if metrics_collector:
-            metrics_collector.update_extras(info)
-        if original_log:
-            return original_log(info, *a, **kw)
-
-    if hasattr(runner, "_log_process"):
-        runner._log_process = intercepted_log
-    elif hasattr(runner, "log"):
-        runner.log = intercepted_log
-
-    # Patch update() to inject terrain level logging + coach consultations
     original_update = runner.alg.update
 
     def patched_update(*a, **kw):
-        nonlocal halt_training
         result = original_update(*a, **kw)
 
         iteration = getattr(runner, "current_learning_iteration",
                             getattr(runner, "it", 0))
 
         # Log terrain curriculum level every 10 iterations
-        if runner.writer is not None and iteration % 10 == 0:
+        # rsl_rl 5.0.1 uses runner.logger.writer (not runner.writer directly)
+        writer = getattr(getattr(runner, "logger", None), "writer", None)
+        if writer is not None and iteration % 10 == 0:
             try:
                 terrain = nav_env._unwrapped.scene.terrain
                 if hasattr(terrain, "terrain_levels"):
                     mean_level = terrain.terrain_levels.float().mean().item()
-                    runner.writer.add_scalar(
+                    writer.add_scalar(
                         "Curriculum/terrain_level", mean_level, iteration
                     )
             except Exception:
                 pass
-
-        # AI Coach consultation
-        if (coach and metrics_collector
-                and iteration > 0
-                and iteration % args.coach_interval == 0):
-
-            elapsed_hours = (time.time() - start_time) / 3600
-            lr = runner.alg.optimizer.param_groups[0]["lr"]
-
-            snapshot = metrics_collector.collect(
-                iteration=iteration,
-                elapsed_hours=elapsed_hours,
-                reward_info=reward_info,
-                lr=lr,
-            )
-
-            emergency = guardrails.check_emergency(snapshot)
-            if emergency:
-                if emergency == "halve_lr":
-                    new_lr = actuator.emergency_halve_lr()
-                    decision_log.log_emergency(
-                        iteration, emergency,
-                        f"Value loss {snapshot.value_loss:.1f} > 100 — LR → {new_lr:.2e}"
-                    )
-                elif emergency == "nan_halt":
-                    decision_log.log_emergency(
-                        iteration, emergency, "NaN in policy params"
-                    )
-                    print("[COACH] EMERGENCY: NaN — halting")
-                    halt_training = True
-                return result
-
-            decision, latency = coach.get_decision(
-                snapshot=snapshot,
-                recent_history=metrics_collector.get_recent(5),
-                recent_decisions=recent_decisions,
-                plateau_detected=metrics_collector.is_plateau(),
-            )
-            recent_decisions.append(decision)
-            if len(recent_decisions) > 5:
-                recent_decisions.pop(0)
-
-            print(f"[COACH] iter={iteration} action={decision.action} "
-                  f"conf={decision.confidence:.2f} latency={latency:.0f}ms")
-
-            applied = {}
-            guardrail_msgs = []
-
-            if decision.action == "adjust_weights" and decision.weight_changes:
-                approved, msgs = guardrails.validate_weight_changes(
-                    decision.weight_changes,
-                    snapshot.current_weights,
-                    snapshot.mean_terrain_level,
-                )
-                guardrail_msgs.extend(msgs)
-                if approved:
-                    applied = actuator.apply_weight_changes(approved)
-
-            if decision.action == "adjust_lr" and decision.lr_change:
-                validated_lr, msgs = guardrails.validate_lr_change(
-                    decision.lr_change, lr
-                )
-                guardrail_msgs.extend(msgs)
-                if validated_lr:
-                    old_lr = actuator.apply_lr_change(validated_lr)
-                    applied["lr"] = (old_lr, validated_lr)
-
-            decision_log.log_decision(
-                iteration=iteration,
-                metrics={
-                    "reward":      snapshot.mean_reward,
-                    "terrain":     snapshot.mean_terrain_level,
-                    "survival":    snapshot.survival_rate,
-                    "body_height": snapshot.mean_body_height,
-                    "value_loss":  snapshot.value_loss,
-                },
-                decision=decision,
-                guardrail_msgs=guardrail_msgs,
-                applied_changes=applied,
-                api_latency_ms=latency,
-            )
-            for msg in guardrail_msgs:
-                print(f"  {msg}")
-
-            # Write nav + coach metrics to TensorBoard
-            if runner.writer is not None:
-                w, it = runner.writer, iteration
-                w.add_scalar("Nav/forward_distance", snapshot.mean_forward_distance, it)
-                w.add_scalar("Nav/body_height",      snapshot.mean_body_height,      it)
-                w.add_scalar("Nav/survival_rate",    snapshot.survival_rate,          it)
-                w.add_scalar("Nav/flip_rate",        snapshot.flip_rate,              it)
-                action_map = {
-                    "no_change": 0, "adjust_weights": 1,
-                    "adjust_lr": 2, "emergency_stop": 3
-                }
-                w.add_scalar("AI_Coach/action",         action_map.get(decision.action, -1), it)
-                w.add_scalar("AI_Coach/confidence",     decision.confidence,  it)
-                w.add_scalar("AI_Coach/api_latency_ms", latency,              it)
-                for term, weight in (snapshot.current_weights or {}).items():
-                    w.add_scalar(f"Reward_Weights/{term}", weight, it)
 
         return result
 
@@ -383,17 +302,14 @@ def main() -> None:
     except KeyboardInterrupt:
         print("\n[TRAIN] Interrupted by user — saving final checkpoint...")
     except Exception as e:
-        if halt_training:
-            print("[TRAIN] Halted by AI Coach emergency (NaN)")
-        else:
-            import traceback
-            print(f"[TRAIN] Error: {e}")
-            traceback.print_exc()
+        import traceback
+        print(f"[TRAIN] Error: {e}")
+        traceback.print_exc()
 
     # ------------------------------------------------------------------
     # Save final checkpoint to our directory
     # ------------------------------------------------------------------
-    final_path = LOG_DIR / runner_cfg.experiment_name / "model_final.pt"
+    final_path = LOG_DIR / "spot_nav_explore_ppo" / "model_final.pt"
     final_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"model_state_dict": nav_policy.state_dict()}, final_path)
     print(f"[TRAIN] Final checkpoint saved: {final_path}")

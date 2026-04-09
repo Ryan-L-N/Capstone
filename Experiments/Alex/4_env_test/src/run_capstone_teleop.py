@@ -42,7 +42,7 @@ import time
 
 parser = argparse.ArgumentParser(description="Capstone teleop")
 parser.add_argument("--env", type=str, default="friction",
-                    choices=["friction", "grass", "boulder", "stairs"],
+                    choices=["friction", "grass", "boulder", "stairs", "simple_stairs"],
                     help="Environment to explore")
 parser.add_argument("--device", type=str, default="keyboard",
                     choices=["keyboard", "xbox"],
@@ -94,6 +94,7 @@ SPEED_PROFILES = {
 }
 
 SPAWN_POS = np.array(SPAWN_POSITION)
+SPAWN_POS = SPAWN_POS  # no override
 SPAWN_QUAT = np.array([1.0, 0.0, 0.0, 0.0])
 
 

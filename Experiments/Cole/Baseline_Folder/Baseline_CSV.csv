@@ -1,109 +1,14 @@
 # AGGREGATE STATISTICS (Updated after each episode)
 Metric,Value
-Average_Waypoints_Reached,1.68
-Max_Waypoints_Reached,8
-Failure_Rate_Fell_Over,35.00%
-Failure_Rate_Ran_Out_of_Points,65.00%
-Completion_Rate,0.00%
+Average_Waypoints_Reached,9.60
+Max_Waypoints_Reached,25
+Failure_Rate_Fell_Over,80.00%
+Failure_Rate_Ran_Out_of_Points,0.00%
+Completion_Rate,20.00%
 
 Episode,Waypoints_Reached,Failure_Reason,Final_Score
-1,0,Ran Out of Points,-0.00
-2,0,Ran Out of Points,-0.00
-3,0,Fell Over,0.00
-4,1,Ran Out of Points,-0.00
-5,0,Ran Out of Points,-0.00
-6,2,Ran Out of Points,-0.00
-7,3,Ran Out of Points,-0.00
-8,4,Ran Out of Points,-0.00
-9,1,Ran Out of Points,-0.00
-10,1,Ran Out of Points,-0.00
-11,1,Fell Over,0.00
-12,1,Ran Out of Points,-0.00
-13,1,Fell Over,0.00
-14,1,Fell Over,0.00
-15,0,Ran Out of Points,-0.00
-16,0,Ran Out of Points,-0.00
-17,2,Ran Out of Points,-0.00
-18,0,Ran Out of Points,-0.00
-19,2,Ran Out of Points,-0.00
-20,1,Ran Out of Points,-0.00
-21,1,Ran Out of Points,-0.00
-22,0,Ran Out of Points,-0.00
-23,4,Ran Out of Points,-0.00
-24,0,Fell Over,0.00
-25,0,Fell Over,0.00
-26,0,Fell Over,0.00
-27,0,Ran Out of Points,-0.00
-28,1,Fell Over,0.00
-29,2,Ran Out of Points,-0.00
-30,1,Fell Over,0.00
-31,1,Ran Out of Points,-0.00
-32,0,Fell Over,0.00
-33,4,Ran Out of Points,-0.00
-34,0,Ran Out of Points,-0.00
-35,0,Ran Out of Points,-0.00
-36,0,Ran Out of Points,-0.00
-37,1,Fell Over,0.00
-38,2,Ran Out of Points,-0.00
-39,6,Fell Over,0.00
-40,1,Ran Out of Points,-0.00
-41,0,Ran Out of Points,-0.00
-42,5,Fell Over,0.00
-43,2,Fell Over,0.00
-44,3,Ran Out of Points,-0.00
-45,4,Fell Over,0.00
-46,1,Ran Out of Points,-0.00
-47,0,Fell Over,0.00
-48,0,Ran Out of Points,-0.00
-49,3,Ran Out of Points,-0.00
-50,3,Ran Out of Points,-0.00
-51,0,Ran Out of Points,-0.00
-52,5,Fell Over,0.00
-53,3,Fell Over,0.00
-54,0,Fell Over,0.00
-55,4,Ran Out of Points,-0.00
-56,1,Ran Out of Points,-0.00
-57,5,Ran Out of Points,-0.00
-58,8,Ran Out of Points,-0.00
-59,0,Ran Out of Points,-0.00
-60,1,Ran Out of Points,-0.00
-61,2,Ran Out of Points,-0.00
-62,6,Ran Out of Points,-0.00
-63,0,Fell Over,0.00
-64,2,Ran Out of Points,-0.00
-65,0,Ran Out of Points,-0.00
-66,1,Fell Over,0.00
-67,0,Ran Out of Points,-0.00
-68,2,Fell Over,0.00
-69,0,Ran Out of Points,-0.00
-70,0,Fell Over,0.00
-71,8,Ran Out of Points,-0.00
-72,0,Ran Out of Points,-0.00
-73,1,Fell Over,0.00
-74,0,Fell Over,0.00
-75,0,Fell Over,0.00
-76,0,Fell Over,0.00
-77,0,Fell Over,0.00
-78,0,Fell Over,0.00
-79,0,Fell Over,0.00
-80,0,Fell Over,0.00
-81,3,Ran Out of Points,-0.00
-82,2,Ran Out of Points,-0.00
-83,3,Fell Over,0.00
-84,6,Ran Out of Points,-0.00
-85,8,Ran Out of Points,-0.00
-86,4,Fell Over,0.00
-87,0,Ran Out of Points,-0.00
-88,1,Ran Out of Points,-0.00
-89,0,Ran Out of Points,-0.00
-90,1,Ran Out of Points,-0.00
-91,1,Ran Out of Points,-0.00
-92,6,Ran Out of Points,-0.00
-93,6,Ran Out of Points,-0.00
-94,1,Ran Out of Points,-0.00
-95,4,Fell Over,0.00
-96,0,Fell Over,0.00
-97,2,Ran Out of Points,-0.00
-98,2,Ran Out of Points,-0.00
-99,1,Ran Out of Points,-0.00
-100,2,Ran Out of Points,-0.00
+1,7,Fell Over,0.00
+2,0,Fell Over,0.00
+3,11,Fell Over,0.00
+4,5,Fell Over,0.00
+5,25,Completed All Waypoints,218.88

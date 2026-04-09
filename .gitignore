@@ -6,8 +6,13 @@ __pycache__/
 # Training artifacts (checkpoints and logs)
 checkpoints/
 *.pt
+# Exceptions: best models for version control
+!Experiments/Cole/RL_Folder_VS2/checkpoints/*/best_model.pt
+!Experiments/Cole/RL_FOLDER_VS3/CS3_checkpoints/*/best_model.pt
 # Exception: evaluated policies folder (shared for team eval)
 !Experiments/Alex/4_env_test/policies/*.pt
+# Exception: Colby's nav policy checkpoints
+!Experiments/Colby/CombinedPolicyTraining/logs/**/*.pt
 *training_log*.txt
 *.log
 

@@ -1,0 +1,206 @@
+(isaacSim_env) PS C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap> bash Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh --local                                     
+=== Combined Nav + Loco Training ===
+Train script      : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/Experiments/Colby/CombinedPolicyTraining/train_combined.py
+Loco checkpoint   : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt
+Checkpoint output : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/Experiments/Colby/CombinedPolicyTraining/logs/
+Python            : /mnt/c/Users/Colby Johnson/Documents/Class/Capstone/MainCap/isaacSim_env/Scripts/python.exe
+
+Installing nav_locomotion package (pip install -e)...
+
+[notice] A new release of pip is available: 24.0 -> 26.0.1
+[notice] To update, run: python.exe -m pip install --upgrade pip
+Package installed.
+
+Mode: LOCAL smoke test (16 envs, 100 iterations)
+
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\isaacSim_env\isaaclab_src\apps\isaaclab.python.headless.kit
+============================================================
+  COMBINED NAV + LOCO TRAINING
+============================================================
+  Loco checkpoint : C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Ryan\checkpoints\mason_hybrid_best_33200.pt
+  Num envs        : 16
+  Max iterations  : 100
+  Save interval   : 50
+  Checkpoint dir  : C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Colby\CombinedPolicyTraining\logs
+  Device          : cuda:0
+============================================================
+
+======================================================================================================================
+[INFO][IsaacLab]: Logging to file: C:\Users\COLBYJ~1\AppData\Local\Temp\isaaclab\logs\isaaclab_2026-04-03_23-24-45.log
+======================================================================================================================
+
+23:24:45 [simulation_context.py] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.
+[INFO]: Base environment:
+        Environment device    : cuda:0
+        Environment seed      : None
+        Physics step-size     : 0.002
+        Rendering step-size   : 0.1
+        Environment step-size : 0.1
+[INFO] Generating terrains based on curriculum took : 2.235500 seconds
+[INFO]: Time taken for scene creation : 4.670802 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+        Number of environments: 16
+        Environment spacing   : 10.0
+        Source prim name      : /World/envs/env_0
+        Global prim paths     : ['/World/ground']
+        Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 6.672446 seconds
+[INFO] Command Manager:  <CommandManager> contains 0 active terms.
++------------------------+
+|  Active Command Terms  |
++--------+-------+-------+
+| Index  | Name  |  Type |
++--------+-------+-------+
++--------+-------+-------+
+
+[INFO] Event Manager:  <EventManager> contains 3 active terms.
++--------------------------------------+
+| Active Event Terms in Mode: 'startup' |
++----------+---------------------------+
+|  Index   | Name                      |
++----------+---------------------------+
+|    0     | physics_material          |
+|    1     | add_base_mass             |
++----------+---------------------------+
++-----------------------------------+
+| Active Event Terms in Mode: 'reset' |
++-----------+-----------------------+
+|   Index   | Name                  |
++-----------+-----------------------+
+|     0     | reset_base            |
+|     1     | reset_joints          |
++-----------+-----------------------+
++----------------------------------------------+
+|    Active Event Terms in Mode: 'interval'    |
++-------+------------+-------------------------+
+| Index | Name       | Interval time range (s) |
++-------+------------+-------------------------+
+|   0   | push_robot |       (10.0, 15.0)      |
++-------+------------+-------------------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++--------------------------------------+
+|   Active Action Terms (shape: 12)    |
++-------+------------------+-----------+
+| Index | Name             | Dimension |
++-------+------------------+-----------+
+|   0   | velocity_command |        12 |
++-------+------------------+-----------+
+
+[INFO] Observation Manager: <ObservationManager> contains 1 groups.
++------------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (4108,)) |
++-----------+--------------------------------+---------------+
+|   Index   | Name                           |     Shape     |
++-----------+--------------------------------+---------------+
+|     0     | depth_image                    |    (4096,)    |
+|     1     | base_lin_vel                   |      (3,)     |
+|     2     | base_ang_vel                   |      (3,)     |
+|     3     | projected_gravity              |      (3,)     |
+|     4     | last_action                    |      (3,)     |
++-----------+--------------------------------+---------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 3 active terms.
++------------------------------------+
+|      Active Termination Terms      |
++-------+-----------------+----------+
+| Index | Name            | Time Out |
++-------+-----------------+----------+
+|   0   | time_out        |   True   |
+|   1   | body_flip       |  False   |
+|   2   | bad_orientation |  False   |
++-------+-----------------+----------+
+
+[VegetationDragReward] Terrain-aware: 0/10 vegetation cols, 0/10 friction cols
+[INFO] Reward Manager:  <RewardManager> contains 9 active terms.
++------------------------------------------+
+|           Active Reward Terms            |
++-------+-------------------------+--------+
+| Index | Name                    | Weight |
++-------+-------------------------+--------+
+|   0   | forward_velocity        |   10.0 |
+|   1   | survival                |    1.0 |
+|   2   | terrain_traversal       |    2.0 |
+|   3   | terrain_relative_height |   -2.0 |
+|   4   | drag_penalty            |   -1.5 |
+|   5   | cmd_smoothness          |   -1.0 |
+|   6   | lateral_velocity        |   -0.3 |
+|   7   | angular_velocity        |   -0.5 |
+|   8   | vegetation_drag         | -0.001 |
++-------+-------------------------+--------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+[TRAIN] Environment ready � device=cuda:0
+[LocoWrapper] Auto-detected architecture: [512, 256, 128]
+[LocoWrapper] Loaded frozen loco policy from C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Ryan\checkpoints\mason_hybrid_best_33200.pt (286,604 params, arch=[512, 256, 128], device=cuda:0)
+[NavEnvWrapper] Initialized: num_envs=16, nav_obs=4108, nav_actions=3, loco_steps=5
+Traceback (most recent call last):
+Loading user config located at: 'c:/users/colby johnson/documents/class/capstone/maincap/isaacsim_env/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: c:/users/colby johnson/documents/class/capstone/maincap/isaacsim_env/lib/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260403_232435.log
+2026-04-04T03:24:36Z [376ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-04-04T03:24:36Z [1,245ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-04-04T03:24:36Z [1,281ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-04-04T03:24:42Z [6,369ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+2026-04-04T03:24:42Z [6,370ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 573.44        | Graphics API: D3D12
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA RTX 2000 Ada Generation.. | Yes: 0 |     | 7960    MB | 10de      | 3a1d0100.. |
+|     |                                  |        |     |            | 28b8      | 0          |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Graphics                |        |     | 128     MB | 8086      | f5180100.. |
+|     |                                  |        |     |            | 7dd5      | 0          |
+|     |                                  |        |     |            | N/A       |            |
+|=============================================================================================|
+| OS: Windows 11 Pro, Version: 10.0 (25H2), Build: 26200, Kernel: 10.0.26100.7824
+| Processor: Intel(R) Core(TM) Ultra 9 185H
+| Cores: 16 | Logical Cores: 22
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 32212 | Free Memory: 10201
+| Total Page/Swap (MB): 35070 | Free Page/Swap: 4163
+|---------------------------------------------------------------------------------------------|
+2026-04-04T03:24:45Z [9,806ms] [Warning] [isaaclab.envs.manager_based_env] Seed not set for the environment. The environment creation may not be deterministic.
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Colby\CombinedPolicyTraining\train_combined.py", line 256, in <module>
+    main()
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\Experiments\Colby\CombinedPolicyTraining\train_combined.py", line 179, in main
+    runner = OnPolicyRunner(
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\isaacSim_env\Lib\site-packages\rsl_rl\runners\on_policy_runner.py", line 40, in __init__
+    self.alg = alg_class.construct_algorithm(obs, self.env, self.cfg, self.device)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Colby Johnson\Documents\Class\Capstone\MainCap\isaacSim_env\Lib\site-packages\rsl_rl\algorithms\ppo.py", line 477, in construct_algorithm
+    actor_class: type[MLPModel] = resolve_callable(cfg["actor"].pop("class_name"))  # type: ignore
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'class_name'
+2026-04-04T03:24:57Z [21,748ms] [Warning] [omni.physx.plugin] USD stage detach not called, holding a loose ptr to a stage!
+2026-04-04T03:24:58Z [22,608ms] [Warning] [carb] Recursive unloadAllPlugins() detected!
+
+[RUN] Training exited with code 0
+
+[CLEANUP] Killing orphaned Isaac Sim processes...
+[CLEANUP] Done.
+[CLEANUP] GPU clear.

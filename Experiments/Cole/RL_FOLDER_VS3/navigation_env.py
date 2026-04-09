@@ -89,7 +89,7 @@ class NavigationEnvironment:
         self.reward_fall = self.config['reward']['fall_penalty']
         self.reward_boundary = self.config['reward']['boundary_penalty']
         self.reward_stillness = self.config['reward'].get('stillness_penalty', 0.0)  # NEW: penalty for not moving
-        self.reward_stillness = self.config['reward'].get('stillness_penalty', 0.0)  # NEW: penalty for not moving
+        self.efficiency_bonus_weight = self.config['reward'].get('efficiency_bonus_weight', 0.5)  # Multiplier for time bonus
         
         # Physics
         self.control_dt = 1.0 / self.config['physics']['control_hz']
@@ -134,10 +134,11 @@ class NavigationEnvironment:
         self.current_object_id = 0  # Unique ID for current object being pushed
         self.last_contact_time = 0.0  # Timestamp of last contact with obstacle
         self.contact_loss_threshold = 0.5  # seconds - treat as new object if contact lost this long
-        self.push_exploration_weight = 0.5  # Reward for initial contact with pushable objects
-        self.push_sustained_weight = 0.8  # Reward for sustained pushing momentum
-        self.push_success_weight = 15.0  # Bonus for each successful 1m+ push
-        self.push_wasted_effort_weight = -0.3  # Penalty for high effort without progress
+        self.push_exploration_weight = self.config['reward'].get('push_exploration_weight', 8.0)  # Reward for initial contact with pushable objects
+        self.push_sustained_weight = self.config['reward'].get('push_sustained_weight', 12.0)  # Reward for sustained pushing momentum
+        self.push_success_weight = self.config['reward'].get('push_success_weight', 15.0)  # Bonus for each successful 1m+ push
+        self.push_wasted_effort_weight = self.config['reward'].get('push_wasted_effort_weight', -1.0)  # Penalty for high effort without progress
+        self.score_depletion_penalty = -100.0  # Penalty when score reaches 0
         
         # Control timing
         self.last_control_time = 0.0
@@ -250,7 +251,9 @@ class NavigationEnvironment:
         self.episode_time = self.world.current_time - self.episode_start_time
         
         # Update score
-        self.score -= self.time_decay * self.control_dt
+        # NO TIME DECAY for stages 1-3 (stability + pushing foundation)
+        if self.current_stage >= 3:  # Stages 4+ (0-indexed: 3+)
+            self.score -= self.time_decay * self.control_dt
         
         # Get robot state
         pos, ori = self.spot.robot.get_world_pose()
@@ -265,15 +268,28 @@ class NavigationEnvironment:
         fall = robot_z < self.fall_threshold
         out_of_bounds = not self._inside_arena(robot_x, robot_y)
         timeout = False
+        stage_success = False  # Track if stage-specific success criterion met
         
         stage = self.curriculum_stages[self.current_stage]
         if stage['max_time'] is not None:
             timeout = self.episode_time >= stage['max_time']
+            # Award bonus for stages 1-2 when reaching max_time without falling
+            if timeout and not fall and self.current_stage < 2:  # Stages 1-2 (0-indexed: 0-1)
+                self.score += 50.0  # Success bonus
+                stage_success = True
         else:
             timeout = self.score <= 0
         
         # Calculate reward
-        reward = self.reward_time_penalty  # constant time penalty
+        # NO TIME PENALTY for RL reward in stages 1-3 (let them focus on learning stability)
+        if self.current_stage >= 3:
+            reward = self.reward_time_penalty  # constant time penalty (stages 4+)
+        else:
+            reward = 0.0  # no time penalty for stages 1-3
+        
+        # Stage success bonus for stages 1-2 (completing 60s without falling)
+        if stage_success:
+            reward += 50.0  # RL reward bonus for stage completion
         
         # Stagnation penalty for Stages 1-3 (stability + pushing training)
         if self.current_stage < 3:  # Stages 1, 2, 3 (0-indexed: 0, 1, 2)
@@ -361,9 +377,9 @@ class NavigationEnvironment:
                 self.last_waypoint_distance = dist_to_wp
         
         # Force-based pushing rewards and penalties (all stages, but scaled by stage priority)
-        # Scales: Stages 1-2 get 0.2x, Stage 3 gets 1.0x, Stages 4-7 get 0.4x
+        # Scales: Stages 1-2 get 0.5x (increased to encourage pushing), Stage 3 gets 1.0x, Stages 4-7 get 0.4x
         if self.current_stage < 2:
-            push_scale = 0.2  # Stages 1-2: low priority (focus on stability)
+            push_scale = 0.5  # Stages 1-2: moderate push rewards (encourage lightweight object interaction)
         elif self.current_stage == 2:
             push_scale = 1.0  # Stage 3: full rewards (dedicated pushing training)
         else:
@@ -438,7 +454,7 @@ class NavigationEnvironment:
         
         # Timeout penalty (ran out of score points)
         if timeout and self.score <= 0:
-            reward += self.reward_timeout
+            reward += self.reward_timeout + self.score_depletion_penalty  # Large penalty for score depletion
             done = True
         elif timeout:
             done = True
@@ -465,8 +481,21 @@ class NavigationEnvironment:
             info['success'] = self.lightweight_objects_found >= 5
             if info['success']:
                 done = True
+                # Time efficiency bonus: configurable points per second remaining
+                remaining_time = stage['max_time'] - self.episode_time
+                efficiency_bonus = remaining_time * self.efficiency_bonus_weight
+                self.score += efficiency_bonus
+                reward += efficiency_bonus
         else:  # Stages 1-2 and 4-7: by waypoint capture or time limit
             info['success'] = (self.waypoints_captured >= len(self.waypoints)) if self.waypoints else (self.episode_time >= stage['max_time'] and not fall)
+            # Time efficiency bonus for stages 4-7 (waypoint navigation)
+            if info['success'] and self.waypoints_captured >= len(self.waypoints) and self.current_stage >= 3:
+                # Use 300s as reasonable max time budget for waypoint completion
+                max_time_budget = 300.0
+                remaining_time = max(0, max_time_budget - self.episode_time)
+                efficiency_bonus = remaining_time * self.efficiency_bonus_weight
+                self.score += efficiency_bonus
+                reward += efficiency_bonus
         
         # Track episode completion
         if done:

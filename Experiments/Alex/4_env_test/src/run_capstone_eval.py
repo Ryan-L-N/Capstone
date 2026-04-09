@@ -66,7 +66,7 @@ parser.add_argument("--robot", type=str, default="spot",
                     choices=["spot", "vision60"],
                     help="Robot to evaluate (default: spot)")
 parser.add_argument("--env", type=str, required=True,
-                    choices=["friction", "friction_v2", "grass", "boulder", "stairs", "stairs_approach"],
+                    choices=["friction", "friction_v2", "grass", "boulder", "stairs", "stairs_approach", "simple_stairs"],
                     help="Environment to evaluate")
 parser.add_argument("--policy", type=str, required=True,
                     choices=["flat", "rough"],
@@ -241,10 +241,9 @@ def main():
             )
             robot_policy.initialize()
             robot_policy.apply_gains()
-            # The main loop calls forward() once per world.step().
             # world.step() advances rendering_dt/physics_dt = 10 physics substeps,
-            # so the loop already runs at 50 Hz (control rate).
-            # Decimation must be 1 here (not 10) to avoid 5 Hz policy rate.
+            # so each world.step() = 10 physics steps. Decimation=1 means policy
+            # evaluates every world.step() = every 10 physics steps = 50Hz control.
             robot_policy._decimation = 1
         else:
             robot_policy = flat_policy
@@ -314,7 +313,12 @@ def main():
     # ── 8. Stabilization period ─────────────────────────────────────────
     print("Stabilizing robot...", flush=True)
     for i in range(STABILIZE_STEPS):
-        spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        # Use flat policy for stabilization (like teleop) to avoid
+        # locking the rough policy into standing mode via adaptive_standing
+        if robot == "spot" and args.policy == "rough":
+            flat_policy.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        else:
+            spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
         world.step(render=not headless)
         if (i + 1) % 25 == 0:
             print(f"  Stabilize step {i+1}/{STABILIZE_STEPS}", flush=True)
@@ -364,7 +368,7 @@ def main():
         metrics_collector.start_episode(ep_id)
 
         # Brief stabilization after reset
-        stabilize_steps = 50 if args.env in ("stairs", "stairs_approach") else 10
+        stabilize_steps = 50 if args.env in ("stairs", "stairs_approach", "simple_stairs") else 10
         for _ in range(stabilize_steps):
             spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
             world.step(render=not headless)
@@ -434,6 +438,10 @@ def main():
             # Step policy and simulation
             spot.forward(PHYSICS_DT, cmd)
             world.step(render=not headless)
+
+            # Progress heartbeat (prevents render pipeline stall on Windows)
+            if step % 500 == 0:
+                print(f"    step {step}/{MAX_CONTROL_STEPS}  x={pos_np[0]:.1f}m  cmd=[{cmd[0]:.2f},{cmd[1]:.2f},{cmd[2]:.2f}]", flush=True)
 
             # Check waypoint completion
             if waypoint_follower.is_done:

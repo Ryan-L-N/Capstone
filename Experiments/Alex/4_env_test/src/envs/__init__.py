@@ -12,6 +12,7 @@ from .grass_env import create_grass_environment
 from .boulder_env import create_boulder_environment
 from .stairs_env import create_stairs_environment
 from .stairs_approach_env import create_stairs_approach_environment
+from .simple_stairs_env import create_simple_stairs_environment
 
 ENVIRONMENT_BUILDERS = {
     "friction": create_friction_environment,
@@ -20,6 +21,7 @@ ENVIRONMENT_BUILDERS = {
     "boulder": create_boulder_environment,
     "stairs": create_stairs_environment,
     "stairs_approach": create_stairs_approach_environment,
+    "simple_stairs": create_simple_stairs_environment,
 }
 
 

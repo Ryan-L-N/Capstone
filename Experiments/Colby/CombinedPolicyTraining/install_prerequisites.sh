@@ -139,6 +139,23 @@ else
     fi
 fi
 
+# Install isaaclab_rl (Isaac Lab's RSL-RL wrapper — required by SpotNavPPORunnerCfg)
+ISAACLAB_RL_SRC="$REPO_ROOT/isaacSim_env/isaaclab_src/source/isaaclab_rl"
+if _has_pkg isaaclab_rl; then
+    echo "      OK: isaaclab_rl already installed."
+elif [ -d "$ISAACLAB_RL_SRC" ]; then
+    ISAACLAB_RL_WIN="$(wslpath -w "$ISAACLAB_RL_SRC")"
+    if "$PYTHON" -m pip install -e "$ISAACLAB_RL_WIN" --quiet; then
+        echo "      OK: isaaclab_rl installed from source."
+    else
+        echo "  ERROR: isaaclab_rl install failed. Manually run:"
+        echo "    python -m pip install -e isaacSim_env\\isaaclab_src\\source\\isaaclab_rl"
+    fi
+else
+    echo "  WARNING: isaaclab_rl source not found at $ISAACLAB_RL_SRC"
+    echo "  Ensure IsaacLab is cloned to isaacSim_env/isaaclab_src first."
+fi
+
 # ---------------------------------------------------------------------------
 # Step 3: Install nav_locomotion package
 # ---------------------------------------------------------------------------
@@ -157,7 +174,24 @@ echo "[4/6] Installing dependencies..."
 "$PYTHON" -m pip install tensorboard --quiet
 "$PYTHON" -m pip install gymnasium --quiet
 "$PYTHON" -m pip install git+https://github.com/leggedrobotics/rsl_rl.git --quiet
-echo "      OK: anthropic, tensorboard, gymnasium, rsl-rl installed."
+"$PYTHON" -m pip install h5py --quiet
+echo "      OK: anthropic, tensorboard, gymnasium, rsl-rl, h5py installed."
+
+# CUDA torch — must be installed AFTER Isaac Sim but BEFORE first training run.
+# Isaac Sim ships CPU torch by default. The CUDA build is required for training.
+# NOTE: torch must also be imported BEFORE AppLauncher in train_combined.py
+#       (already done) to prevent Isaac Sim's CUDA 11 extscache DLLs from
+#       conflicting with torch's CUDA 12 DLLs (WinError 1114 / c10.dll crash).
+if "$PYTHON" -c "import torch; exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null; then
+    echo "      OK: torch CUDA already available."
+else
+    echo "      torch CUDA not available — installing cu128 build..."
+    "$PYTHON" -m pip install torch \
+        --index-url https://download.pytorch.org/whl/cu128 \
+        --force-reinstall --quiet \
+        && echo "      OK: torch cu128 installed." \
+        || echo "  WARNING: torch CUDA install failed. Training will run on CPU."
+fi
 
 # ---------------------------------------------------------------------------
 # Step 5: Create Colby's log directory
@@ -186,8 +220,8 @@ try:
     if not cuda_ok:
         print(f"  NOTE: CUDA not available. Training will run on CPU (slow).")
         print(f"        To enable GPU, reinstall torch with CUDA support:")
-        print(f"          python -m pip install torch --index-url https://download.pytorch.org/whl/cu121")
-        print(f"        Replace cu121 with your CUDA version (check with: nvidia-smi)")
+        print(f"          python -m pip install torch --index-url https://download.pytorch.org/whl/cu128")
+        print(f"        Replace cu128 with your CUDA version (check with: nvidia-smi)")
 except ImportError as e:
     failures.append(f"torch: {e}")
 
@@ -237,6 +271,12 @@ try:
         print(f"  isaaclab    : not found as standalone package (OK if bundled with Isaac Sim)")
 except Exception as e:
     print(f"  isaaclab    : check failed: {e}")
+
+try:
+    import isaaclab_rl
+    print(f"  isaaclab_rl : found")
+except ImportError as e:
+    failures.append(f"isaaclab_rl: {e} — required by SpotNavPPORunnerCfg")
 
 if failures:
     print("\n  FAILED IMPORTS:")
