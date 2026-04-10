@@ -2,7 +2,6 @@
 Navigation Policy Training
 ==========================
 Main training script for hierarchical RL navigation policy.
-RL_FOLDER_VS3: 5-stage curriculum with obstacles at every level.
 
 Usage:
     python train_navigation.py --headless --iterations 10000
@@ -27,12 +26,8 @@ parser.add_argument("--iterations", type=int, default=10000, help="Training iter
 parser.add_argument("--config", type=str, default="nav_config.yaml", help="Config file")
 parser.add_argument("--checkpoint", type=str, default=None, help="Resume from checkpoint")
 parser.add_argument("--checkpoint-dir", type=str, default="checkpoints/navigation_policy", help="Directory for checkpoints")
-parser.add_argument("--stage", type=int, default=1, help="Starting curriculum stage (1-7, default=1)")
-parser.add_argument("--stop-at-stage-complete", action="store_true", help="Stop training when stage reaches 80% success (allows testing before advancing)")
+parser.add_argument("--stage", type=int, default=1, help="Starting curriculum stage (1-6, default=1 for Stage 1)")
 args = parser.parse_args()
-
-# Convert user-facing 1-indexed stage to 0-indexed for internal use
-args.stage = args.stage - 1
 
 # Initialize Isaac Sim
 from isaacsim import SimulationApp
@@ -68,10 +63,12 @@ def main():
     # Setup directories
     checkpoint_dir = Path(args.checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    log_file = open(checkpoint_dir / "training_log.txt", "w", encoding="utf-8")
+    variant_dir = checkpoint_dir.parent  # Get variant root directory (conservative/moderate/aggressive)
+    variant_name = variant_dir.name
+    log_file = open(variant_dir / f"{variant_name}_log.txt", "w", encoding="utf-8")
     
     log("=" * 80, log_file)
-    log("NAVIGATION POLICY TRAINING - HIERARCHICAL RL (VS3 - 5 STAGE)", log_file)
+    log("NAVIGATION POLICY TRAINING - HIERARCHICAL RL", log_file)
     log("=" * 80, log_file)
     log(f"Config: {args.config}", log_file)
     log(f"Iterations: {args.iterations}", log_file)
@@ -117,9 +114,9 @@ def main():
     world.add_physics_callback("spot_navigation_control", on_physics_step)
     log("Physics callback registered", log_file)
     
-    # Create policy - UPDATED FOR 75-DIMENSIONAL OBSERVATION SPACE (7 stages)
+    # Create policy
     log("Creating navigation policy...", log_file)
-    obs_dim = 75  # Multi-sensor fusion: 3 + 2 + 4 + 3 + 48 + 4 + 4 + 7 = 75
+    obs_dim = 34
     action_dim = 3
     policy = NavigationPolicy(
         obs_dim=obs_dim,
@@ -128,8 +125,6 @@ def main():
         activation=config['network']['activation']
     )
     log(f"Policy created with {sum(p.numel() for p in policy.parameters())} parameters", log_file)
-    log(f"  Observation dimension: {obs_dim}", log_file)
-    log(f"  Action dimension: {action_dim}", log_file)
     
     # Create PPO trainer
     log("Creating PPO trainer...", log_file)
@@ -143,18 +138,28 @@ def main():
         checkpoint = torch.load(args.checkpoint)
         policy.load_state_dict(checkpoint['policy_state_dict'])
         trainer.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        start_iter = checkpoint.get('iteration', 0) + 1
-        checkpoint_stage = checkpoint.get('stage', args.stage)
+        checkpoint_stage = checkpoint.get('stage', args.stage - 1)
+        checkpoint_iter = checkpoint.get('iteration', 0)
+        
         # Use command-line stage if explicitly provided (allows advancing stages)
-        env.current_stage = args.stage
-        log(f"Resumed from iteration {start_iter}", log_file)
-        log(f"Checkpoint was at stage {checkpoint_stage + 1}, advancing to stage {env.current_stage + 1}", log_file)
+        # Convert from 1-indexed (stages 1-6) to 0-indexed (index 0-5)
+        env.current_stage = args.stage - 1
+        
+        # Reset iteration counter if advancing to a new stage
+        if env.current_stage != checkpoint_stage:
+            start_iter = 0
+            log(f"Checkpoint was at stage {checkpoint_stage + 1}, advancing to stage {env.current_stage + 1}", log_file)
+            log(f"Iteration counter reset to 0 for new stage", log_file)
+        else:
+            start_iter = 0
+            log(f"Loaded checkpoint from stage {checkpoint_stage + 1}, starting fresh at iteration 0", log_file)
     else:
-        env.current_stage = args.stage
+        # Convert from 1-indexed (stages 1-6) to 0-indexed (index 0-5)
+        env.current_stage = args.stage - 1
     
     log("", log_file)
     log("=" * 80, log_file)
-    log(f"STARTING TRAINING FROM STAGE {env.current_stage + 1}/7", log_file)
+    log(f"STARTING TRAINING FROM STAGE {env.current_stage + 1}", log_file)
     stage_info = config['curriculum']['stages'][env.current_stage]
     log(f"Stage: {stage_info['name']}", log_file)
     log(f"Goal: {stage_info['success_criterion']}", log_file)
@@ -164,31 +169,42 @@ def main():
     # Training loop
     rollout_buffer = RolloutBuffer()
     steps_per_iteration = config['training']['steps_per_iteration']
-    checkpoint_freq = config['training']['checkpoint_frequency']
+    checkpoint_freq = 25  # Save every 25 iterations for better stage tracking
+    max_iterations_per_stage = 500  # Maximum iterations allowed per stage
     
     best_success_rate = 0.0
     episode_count = 0
     step_count = 0
     iteration = start_iter - 1  # Initialize in case loop doesn't run
-    
-    # Stage advancement tracking
-    stage_iterations = 0  # Iterations completed at current stage
-    min_iterations_per_stage = 100  # Minimum iterations before stage advancement allowed
+    stage_start_iteration = start_iter  # Track when current stage started (for iteration reset per stage)
     
     # Reset environment for first episode
     obs = env.reset()
+    obs = env.get_network_observation()  # Extract 34-dim network observation
     
     for iteration in range(start_iter, start_iter + args.iterations):
+        # Check if maximum iterations per stage exceeded
+        iterations_on_stage = iteration - stage_start_iteration + 1
+        if iterations_on_stage > max_iterations_per_stage:
+            log("", log_file)
+            log("=" * 80, log_file)
+            log(f"[STAGE ITERATION LIMIT] Maximum 500 iterations reached on Stage {env.current_stage + 1}", log_file)
+            log(f"Iterations on stage: {iterations_on_stage - 1} (limit: {max_iterations_per_stage})", log_file)
+            log(f"Stopping training. To advance to next stage, run with --stage {env.current_stage + 2}", log_file)
+            log("=" * 80, log_file)
+            break
         iter_start = datetime.now()
         
-        log(f"[ITER {iteration + 1}/{args.iterations}] Stage {env.current_stage + 1}/7: {stage_info['name']}", log_file)
+        log(f"[ITER {iterations_on_stage}/500] Stage {env.current_stage + 1}/6: {stage_info['name']}", log_file)
         
         # Collect rollout
         episode_rewards = []
         episode_lengths = []
         episode_successes = []
         episode_waypoints = []
-        episode_details = []  # Track detailed per-episode info
+        episode_reward_breakdowns = []  # NEW: collect breakdown data
+        episode_score_breakdowns = []   # NEW: collect score breakdown data
+        episode_failures = []    # NEW: track how each episode failed (timeout, fall, boundary, incomplete)
         
         while len(rollout_buffer) < steps_per_iteration:
             # Get action from policy
@@ -200,6 +216,7 @@ def main():
             
             # Environment step
             next_obs, reward, done, info = env.step(action)
+            next_obs = env.get_network_observation()  # Extract 34-dim network observation
             
             # Store transition
             rollout_buffer.add(obs, action, reward, value, log_prob, done)
@@ -213,36 +230,27 @@ def main():
                 episode_lengths.append(info['episode_time'])
                 episode_successes.append(info['success'])
                 episode_waypoints.append(info['waypoints_captured'])
+                episode_reward_breakdowns.append(info.get('reward_breakdown', {}))  # NEW
+                episode_score_breakdowns.append(info.get('score_breakdown', {}))    # NEW
                 
-                # Capture detailed episode information
+                # NEW: Track failure reason
                 if info['success']:
-                    failure_reason = "SUCCESS"
+                    failure_reason = 'SUCCESS'
+                elif info.get('fall', False):
+                    failure_reason = 'FALL'
+                elif info.get('boundary', False):
+                    failure_reason = 'BOUNDARY'
+                elif info.get('timeout', False):
+                    failure_reason = 'TIMEOUT'
                 else:
-                    # Determine specific failure reason from environment flags
-                    # Note: OUT_OF_BOUNDS is a soft penalty (doesn't terminate), so it's not a failure reason
-                    if info.get('fall', False):
-                        failure_reason = "FALL"
-                    elif info.get('timeout', False):
-                        failure_reason = "TIMEOUT"
-                    else:
-                        # Fallback if no specific reason detected
-                        failure_reason = "UNKNOWN"
+                    failure_reason = 'INCOMPLETE'
+                episode_failures.append(failure_reason)
                 
-                episode_detail = {
-                    'episode_num': episode_count + 1,
-                    'score': info['score'],
-                    'time': info['episode_time'],
-                    'success': info['success'],
-                    'failure': failure_reason,
-                    'waypoints': info.get('waypoints_captured', 0),
-                    'push_reward': info.get('push_reward', 0),
-                    'objects_pushed': info.get('objects_pushed', 0)
-                }
-                episode_details.append(episode_detail)
                 episode_count += 1
                 
                 # Reset for next episode
                 obs = env.reset()
+                obs = env.get_network_observation()  # Extract 34-dim network observation
         
         # Compute next value for GAE
         obs_tensor = torch.FloatTensor(obs).unsqueeze(0)
@@ -271,13 +279,65 @@ def main():
         success_rate = env.get_success_rate()
         
         log("", log_file)
-        log(f"Iteration {iteration + 1}/{args.iterations} completed in {iter_time:.2f}s", log_file)
+        log(f"Iteration {iteration + 1}/{args.iterations} | Stage {env.current_stage + 1} completed in {iter_time:.2f}s", log_file)
+        log(f"  Iterations on this stage: {iterations_on_stage}/{max_iterations_per_stage}", log_file)
         log(f"  Episodes this iter: {len(episode_rewards)}", log_file)
         log(f"  Total episodes: {episode_count}", log_file)
         log(f"  Mean score: {mean_reward:.1f}", log_file)
         log(f"  Mean waypoints captured: {mean_waypoints:.1f}/{total_waypoints}", log_file)
         log(f"  Mean length: {mean_length:.1f}s", log_file)
         log(f"  Success rate (last {env.success_window}): {success_rate:.1%}", log_file)
+        
+        # Per-episode breakdown
+        log("", log_file)
+        log("  [EPISODE BREAKDOWN]", log_file)
+        for ep_idx in range(len(episode_rewards)):
+            ep_num = episode_count - len(episode_rewards) + ep_idx + 1
+            status = "✓ SUCCESS" if episode_successes[ep_idx] else "✗ " + episode_failures[ep_idx]
+            log(f"    Ep {ep_num:4d}: Score={episode_rewards[ep_idx]:6.1f}  Waypoints={episode_waypoints[ep_idx]:2.0f}/{total_waypoints}  Time={episode_lengths[ep_idx]:6.1f}s  [{status}]", log_file)
+        
+        # NEW: Log failure breakdown
+        if episode_failures:
+            failure_counts = {}
+            for failure in episode_failures:
+                failure_counts[failure] = failure_counts.get(failure, 0) + 1
+            log("  [FAILURE BREAKDOWN]", log_file)
+            for failure_type, count in sorted(failure_counts.items()):
+                pct = (count / len(episode_failures)) * 100
+                log(f"    {failure_type:12s}: {count:3d} ({pct:5.1f}%)", log_file)
+        
+        # NEW: Log reward component breakdown
+        if episode_reward_breakdowns:
+            avg_reward_breakdown = {}
+            for component in episode_reward_breakdowns[0].keys():
+                values = [bd.get(component, 0.0) for bd in episode_reward_breakdowns]
+                avg_reward_breakdown[component] = np.mean(values)
+            
+            total_reward = sum(avg_reward_breakdown.values())
+            log("  [REWARD BREAKDOWN]", log_file)
+            log(f"    TOTAL REWARD: {total_reward:8.4f}", log_file)
+            # Sort by absolute value (descending) for readability
+            sorted_components = sorted(avg_reward_breakdown.items(), key=lambda x: abs(x[1]), reverse=True)
+            for component, value in sorted_components:
+                if abs(value) > 0.001:  # Only show significant components
+                    log(f"    {component:20s}: {value:8.4f}", log_file)
+        
+        # NEW: Log score component breakdown
+        if episode_score_breakdowns:
+            avg_score_breakdown = {}
+            for component in episode_score_breakdowns[0].keys():
+                values = [bd.get(component, 0.0) for bd in episode_score_breakdowns]
+                avg_score_breakdown[component] = np.mean(values)
+            
+            total_score = sum(avg_score_breakdown.values())
+            log("  [SCORE BREAKDOWN]", log_file)
+            log(f"    TOTAL SCORE: {total_score:8.1f}", log_file)
+            # Sort by absolute value (descending) for readability
+            sorted_components = sorted(avg_score_breakdown.items(), key=lambda x: abs(x[1]), reverse=True)
+            for component, value in sorted_components:
+                if abs(value) > 0.1:  # Only show significant components
+                    log(f"    {component:20s}: {value:8.1f}", log_file)
+        
         log(f"  Policy loss: {train_stats['policy_loss']:.4f}", log_file)
         log(f"  Value loss: {train_stats['value_loss']:.4f}", log_file)
         log(f"  Entropy: {train_stats['entropy']:.4f}", log_file)
@@ -286,30 +346,13 @@ def main():
         if train_stats['early_stopped']:
             log(f"  [EARLY STOP] KL divergence exceeded target ({config['ppo']['target_kl']:.4f})", log_file)
         
-        # Log detailed episode information
-        log("", log_file)
-        log(f"  Episode Details (this iteration):", log_file)
-        for ep in episode_details:
-            push_info = f", push_reward: {ep['push_reward']:.1f}, objects: {ep['objects_pushed']}" if ep['push_reward'] != 0 else ""
-            if ep['success']:
-                log(f"    Ep {ep['episode_num']:3d}: PASS | Score: {ep['score']:6.1f} | Time: {ep['time']:6.1f}s | Waypts: {ep['waypoints']}/25{push_info}", log_file)
-            else:
-                log(f"    Ep {ep['episode_num']:3d}: FAIL | Score: {ep['score']:6.1f} | Reason: {ep['failure']:12s} | Time: {ep['time']:6.1f}s | Waypts: {ep['waypoints']}/25{push_info}", log_file)
-        
-        # Increment stage iteration counter
-        stage_iterations += 1
-        log(f"  Iterations at Stage {env.current_stage + 1}: {stage_iterations}/{min_iterations_per_stage}", log_file)
-        
-        # Check curriculum advancement (requires BOTH conditions)
-        success_threshold_met = env.should_advance_curriculum()
-        iterations_threshold_met = stage_iterations >= min_iterations_per_stage
-        
-        if success_threshold_met and iterations_threshold_met:
+        # Check curriculum progression milestone (informational only - requires 50 iterations + success threshold)
+        if env.should_advance_curriculum(iterations_on_stage):
             log("", log_file)
             log("=" * 80, log_file)
-            log(f"[SUCCESS] STAGE {env.current_stage + 1} COMPLETE!", log_file)
+            log(f"[MILESTONE] STAGE {env.current_stage + 1} REACHED TARGET SUCCESS!", log_file)
             log(f"Success rate: {success_rate:.1%} (threshold: {env.success_threshold:.1%})", log_file)
-            log(f"Iterations completed: {stage_iterations} (minimum: {min_iterations_per_stage})", log_file)
+            log(f"Iterations on stage: {iterations_on_stage}", log_file)
             
             # Save stage completion checkpoint
             stage_checkpoint_path = checkpoint_dir / f"stage_{env.current_stage + 1}_complete.pt"
@@ -321,40 +364,12 @@ def main():
                 'success_rate': success_rate
             }, stage_checkpoint_path)
             log(f"  Stage checkpoint saved: {stage_checkpoint_path.name}", log_file)
-            
-            # Handle stage advancement
-            if args.stop_at_stage_complete:
-                # Stop training to allow testing
-                log("", log_file)
-                log("[STOP] Training stopped at stage completion for testing.", log_file)
-                log(f"To continue to Stage {env.current_stage + 2}, run:", log_file)
-                log(f"  python train_navigation.py --headless --iterations {args.iterations} \\", log_file)
-                log(f"    --checkpoint {stage_checkpoint_path.name} --stage {env.current_stage + 2}", log_file)
-                break
-            elif env.current_stage < len(env.curriculum_stages) - 1:
-                # Auto-advance to next stage
-                env.advance_stage()  # This clears episode_history for fresh start
-                stage_iterations = 0  # Reset iteration counter for new stage
-                log(f"[AUTO-ADVANCING] Moving to Stage {env.current_stage + 1}...", log_file)
-                log("=" * 80, log_file)
-                # Reset environment to new stage
-                obs = env.reset(stage_id=env.current_stage)
-                # Update stage_info for logging
-                stage_info = config['curriculum']['stages'][env.current_stage]
-            else:
-                log("[COMPLETE] All stages finished! Training complete.", log_file)
-                log("=" * 80, log_file)
-                break
-        elif success_threshold_met:
-            log("", log_file)
-            log(f"[INFO] Success threshold met (80%), but need {min_iterations_per_stage - stage_iterations} more iterations", log_file)
-        elif iterations_threshold_met:
-            log("", log_file)
-            log(f"[INFO] Iteration threshold met ({min_iterations_per_stage}), but need {(env.success_threshold - success_rate)*100:.1f}% more success", log_file)
+            log(f"  [MILESTONE REACHED] To advance to next stage, run with: --stage {env.current_stage + 2}", log_file)
+            log("=" * 80, log_file)
         
-        # Save checkpoint periodically
-        if (iteration + 1) % checkpoint_freq == 0:
-            checkpoint_path = checkpoint_dir / f"checkpoint_{iteration + 1}.pt"
+        # Save checkpoint every 25 iterations
+        if iterations_on_stage % checkpoint_freq == 0:
+            checkpoint_path = checkpoint_dir / f"checkpoint_stage{env.current_stage + 1}_iter{iterations_on_stage:03d}.pt"
             torch.save({
                 'iteration': iteration,
                 'policy_state_dict': policy.state_dict(),
@@ -392,7 +407,7 @@ def main():
     log("TRAINING COMPLETE", log_file)
     log(f"Total iterations: {iteration + 1}", log_file)
     log(f"Total episodes: {episode_count}", log_file)
-    log(f"Final stage: {env.current_stage + 1}/7", log_file)
+    log(f"Final stage: {env.current_stage + 1}/6", log_file)
     log(f"Best success rate: {best_success_rate:.1%}", log_file)
     log(f"Final model saved: {final_path}", log_file)
     log("=" * 80, log_file)
