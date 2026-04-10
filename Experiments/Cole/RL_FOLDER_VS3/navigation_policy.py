@@ -20,20 +20,18 @@ class NavigationPolicy(nn.Module):
     """
     High-level navigation policy MLP.
     
-    Input: observation vector (75 dims for VS3 7-stage curriculum)
+    Input: observation vector (34 dims)
         - Base velocity: [vx, vy, omega] (3)
         - Heading: [sin(yaw), cos(yaw)] (2)
-        - IMU data: [roll, pitch, accel_x, accel_y] (4)
         - Waypoint info: [dx, dy, distance] (3)
-        - Multi-layer obstacle distances: 16 rays × 3 heights (48)
-        - Foot contact feedback: 4 feet (4)
-        - Leg joint summary: 4 legs (4)
-        - Stage encoding: one-hot 7 stages (7)
+        - Obstacle distances: 18 raycasts (18)
+        - Stage encoding: one-hot (6)
+        - Mode encoding: [is_turning, is_approaching] (2)
     
     Output: action means [vx, vy, omega] (3)
     """
     
-    def __init__(self, obs_dim: int = 75, action_dim: int = 3, 
+    def __init__(self, obs_dim: int = 34, action_dim: int = 3, 
                  hidden_dims: Tuple[int] = (256, 256, 128),
                  activation: str = "relu"):
         super().__init__()
@@ -174,13 +172,13 @@ def scale_action(action: np.ndarray, vx_range: Tuple[float, float],
 
 if __name__ == "__main__":
     # Test network creation and export
-    print("Testing NavigationPolicy network (75-dim observation)...")
+    print("Testing NavigationPolicy network...")
     
-    policy = NavigationPolicy(obs_dim=75, action_dim=3)
+    policy = NavigationPolicy(obs_dim=34, action_dim=3)
     print(f"Policy created with {sum(p.numel() for p in policy.parameters())} parameters")
     
     # Test forward pass
-    obs = torch.randn(1, 75)
+    obs = torch.randn(1, 34)
     action, log_prob, value = policy.get_action(obs)
     print(f"Action: {action}")
     print(f"Log prob: {log_prob}")

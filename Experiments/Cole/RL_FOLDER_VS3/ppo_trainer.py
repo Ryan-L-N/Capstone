@@ -37,49 +37,6 @@ class PPOTrainer:
         self.ppo_epochs = config.get('ppo_epochs', 10)  # Multi-epoch training
         
         self.optimizer = optim.Adam(policy.parameters(), lr=self.lr)
-        
-    def compute_gae(self, rewards: np.ndarray, values: np.ndarray, 
-                    dones: np.ndarray, next_value: float) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Compute Generalized Advantage Estimation (GAE).
-        
-        Args:
-            rewards: array of rewards, shape (T,)
-            values: array of value estimates, shape (T,)
-            dones: array of done flags, shape (T,)
-            next_value: value estimate for the state after the last step
-        
-        Returns:
-            returns: discounted returns, shape (T,)
-            advantages: GAE advantages, shape (T,)
-        """
-        T = len(rewards)
-        advantages = np.zeros(T, dtype=np.float32)
-        returns = np.zeros(T, dtype=np.float32)
-        
-        gae = 0
-        next_val = next_value
-        
-        for t in reversed(range(T)):
-            if t == T - 1:
-                next_val = next_value
-            else:
-                next_val = values[t + 1]
-            
-            # TD error: δ_t = r_t + γ * V(s_{t+1}) - V(s_t)
-            if dones[t]:
-                next_val = 0.0
-            
-            delta = rewards[t] + self.gamma * next_val - values[t]
-            
-            # GAE: A_t = δ_t + γλ * A_{t+1}
-            gae = delta + self.gamma * self.gae_lambda * gae * (1 - dones[t])
-            advantages[t] = gae
-            
-            # Return: R_t = A_t + V(s_t)
-            returns[t] = advantages[t] + values[t]
-        
-        return returns, advantages
     
     def update(self, rollout: Dict) -> Dict[str, float]:
         """
