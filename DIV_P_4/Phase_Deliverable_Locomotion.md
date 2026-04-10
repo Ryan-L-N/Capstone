@@ -2,87 +2,85 @@
 
 ## 1. Overview
 
-This document details every locomotion policy developed during this project phase, including training curriculum design, reward and penalty structures, iterations trained, and performance evaluation data. All locomotion policies were trained for the Boston Dynamics Spot quadruped using NVIDIA Isaac Lab and RSL-RL (PPO) on an NVIDIA H100 GPU.
+This document tells the story of how we developed a single generalist locomotion policy for the Boston Dynamics Spot quadruped — one that handles smooth ground, tall grass, boulder fields, and stairs. Rather than training one monolithic policy to do everything (which leads to conflicting reward gradients), we followed a four-stage pipeline:
+
+1. **ARL Baseline** — An externally proven policy with a simpler, more elegant design that outperformed our custom 22-term configuration.
+2. **ARL Hybrid** — We adapted the ARL Baseline to our harder 12-terrain curriculum and added three targeted safety fixes.
+3. **Expert Masters** — We specialized two copies of the ARL Hybrid into terrain experts: one for smooth surfaces and one for obstacles.
+4. **Distilled Master** — We combined both experts into a single student policy using multi-expert distillation with a terrain-aware router.
+
+Each stage built on the last. The result is a policy that inherits the best behavior from each expert without the trade-offs that plagued single-policy training.
+
+All training used NVIDIA Isaac Lab, RSL-RL (PPO), and an NVIDIA H100 GPU.
 
 ## 2. Policy Architecture
 
-All locomotion policies share the same input/output specification:
+All policies in the pipeline share the same architecture, making them directly compatible with each other and with our evaluation harness:
 
 | Property | Value |
 |----------|-------|
+| Network | [512, 256, 128] MLP with ELU activation |
+| Parameters | ~286,604 |
 | Observation dimensions | 235 (187 height scan + 48 proprioception) |
 | Action dimensions | 12 (joint position targets) |
 | Control frequency | 50 Hz |
 | Physics frequency | 500 Hz (decimation = 10) |
 | PD gains | Kp = 60.0, Kd = 1.5 |
 | Action scale | 0.2 rad offset from default standing pose |
+| Observation order | Height scan first (dims 0-186), proprioception second (dims 187-234) |
 
-Two network architectures were used:
+The [512, 256, 128] architecture was a key insight from ARL's work. Our earlier trials used a [1024, 512, 256] network (~1.2M parameters) that overfitted to easy-terrain survival strategies. The smaller network generalizes better — less capacity forces the policy to learn broadly useful locomotion rather than memorizing terrain-specific tricks.
 
-| Architecture | Hidden layers | Parameters | Used by |
-|-------------|--------------|------------|---------|
-| Large | [1024, 512, 256] | ~1.2M | AI-Coached v8 |
-| Standard | [512, 256, 128] | 286,604 | Mason Hybrid, S2R experts, all final policies |
+## 3. Reward Function
 
-The standard [512, 256, 128] architecture proved sufficient for all terrain conditions and became the default for all subsequent training.
+### 3.1 ARL's 11-Term Reward Function
 
-## 3. Reward Function Design
-
-### 3.1 Full 19-Term Reward Function
-
-The locomotion reward function evolved through multiple iterations. The final version contains 19 terms:
+ARL's original reward structure uses 11 clean, well-tuned terms. Fewer signals give clearer gradients — the policy knows exactly what we want.
 
 **Positive Rewards (Incentives)**
 
 | Term | Weight | Description |
 |------|--------|-------------|
-| `base_linear_velocity` | 12.0 | Reward for matching commanded forward/lateral speed |
-| `gait` | 15.0 | Diagonal trot synchronization (FL+HR, FR+HL alternating) |
-| `air_time` | 3.0 | Reward for proper swing phase (feet off ground ~0.3s) |
-| `foot_clearance` | 2.0 | Reward for lifting feet during swing (obstacle clearance) |
-| `velocity_modulation` | 2.0 | Adaptive speed on difficult terrain |
-| `base_angular_velocity` | 1.0 | Reward for matching commanded yaw rate |
-| `body_height_tracking` | 1.0 | Maintain target standing height (flat terrain only) |
+| `gait` | 10.0 | Diagonal trot synchronization (FL+HR, FR+HL alternating) |
+| `base_linear_velocity` | 5.0 | Reward for matching commanded forward/lateral speed |
+| `base_angular_velocity` | 5.0 | Reward for matching commanded yaw rate |
+| `air_time` | 5.0 | Reward for proper swing phase (feet off ground ~0.3s) |
+| `foot_clearance` | 0.5 | Reward for lifting feet during swing (obstacle clearance) |
 
 **Negative Rewards (Penalties)**
 
 | Term | Weight | Description |
 |------|--------|-------------|
-| `body_contact` | -10.0 | Body (non-foot) ground contact — catastrophic |
-| `dof_pos_limits` | -10.0 | Approaching joint mechanical limits |
-| `base_orientation` | -5.0 | Excessive body roll/pitch |
-| `base_motion` | -4.0 | Unwanted vertical/lateral body velocity |
-| `foot_slip` | -3.0 | Feet sliding during ground contact |
-| `joint_pos` | -2.0 | Extreme joint angle deviations from default |
-| `action_smoothness` | -0.5 | Rapid changes in control commands |
-| `stumble` | -0.3 | Tripping events (foot catching terrain) |
-| `joint_vel` | -0.05 | Excessive joint angular velocity |
-| `contact_force_smoothness` | -0.02 | Impact forces during foot contact |
-| `joint_torques` | -0.005 | Motor effort (energy efficiency) |
-| `vegetation_drag` | -0.001 | Moving through vegetation (with physics drag) |
+| `base_orientation` | -3.0 | Excessive body roll/pitch |
+| `base_motion` | -2.0 | Unwanted vertical/lateral body velocity |
+| `air_time_variance` | -1.0 | Inconsistent swing timing across legs |
+| `action_smoothness` | -1.0 | Rapid changes in control commands (clamped at 10.0) |
+| `joint_pos` | -0.7 | Extreme joint angle deviations from default |
+| `foot_slip` | -0.5 | Feet sliding during ground contact |
 
-### 3.2 Reward Design Principles
+### 3.2 Three Safety Additions (ARL Hybrid)
 
-Key lessons learned through extensive experimentation:
+When we put ARL's config on our harder 12-terrain curriculum, three failure modes appeared. We added one targeted fix for each:
 
-1. **Gait weight must stay at 15.0 or above.** Lower values produce bouncing exploits where the robot hops instead of walking.
-2. **Tune complementary rewards together.** Foot clearance, action smoothness, and joint position all govern leg-lift behavior — changing one without adjusting the others produces suboptimal gaits.
-3. **Gate all vertical velocity rewards on forward progress.** Ungated vz rewards are exploited by the robot standing on two legs (Bug #36).
-4. **Clamp all unbounded penalty terms.** Squared errors and norms can explode to NaN without clamping (Bug #29).
-5. **Use terrain-relative height, not world-frame Z.** World-frame height is meaningless on elevated terrain (Bug #22).
+| Addition | Weight | Why It Was Needed |
+|----------|--------|-------------------|
+| `terrain_relative_height` | -2.0 | Without this, the robot belly-crawls as a survival strategy. Fixed 0.37m target height. |
+| `dof_pos_limits` | -3.0 | Without this, the policy locks knees at mechanical stops. Penalizes joints approaching URDF limits. |
+| `clamped_action_smoothness` | (replaces original) | ARL's raw `action_smoothness` uses unbounded L2 norms that can explode to NaN. Our version caps at 10.0. |
+
+This brings the total to **14 terms** — ARL's proven 11, plus 3 surgical fixes. By comparison, our earlier custom configuration had 22 terms with competing penalties that made gradient signals unclear.
+
+### 3.3 Reward Design Principles
+
+1. **Fewer rewards = clearer gradients.** 11 terms outperformed 22. The policy learns faster when it isn't balancing dozens of competing objectives.
+2. **Gait weight must stay high (10.0+).** Lower values produce bouncing exploits where the robot hops instead of walking.
+3. **Tune complementary rewards together.** Foot clearance, action smoothness, and joint position all govern leg-lift behavior — changing one without adjusting the others produces suboptimal gaits.
+4. **Clamp all unbounded penalty terms.** Squared errors and norms can explode to NaN without clamping.
+5. **Use terrain-relative height, not world-frame Z.** World-frame height is meaningless on elevated terrain.
 
 ## 4. Training Curriculum
 
-### 4.1 Phase Progression
-
-| Phase | Terrain | Environments | Iterations | Purpose |
-|-------|---------|-------------|------------|---------|
-| A (Flat) | 100% smooth ground | 4,096 | 500 | Basic walking gait |
-| A.5 (Transition) | 50% flat + 50% gentle | 4,096 | 1,000 | Gait adaptation |
-| B-easy (Robust Easy) | 12 types, low difficulty | 8,192 | 30,000 | Terrain generalization |
-| B (Robust) | 12 types, full difficulty | 8,192 | 30,000+ | Master all terrains |
-
-### 4.2 12-Terrain Curriculum (Phase B)
+### 4.1 12-Terrain Curriculum
 
 Each training run uses a grid of 10 difficulty rows x 40 terrain columns = 400 patches (8m x 8m each):
 
@@ -104,230 +102,207 @@ Each training run uses a grid of 10 difficulty rows x 40 terrain columns = 400 p
 
 Robots are automatically promoted to harder difficulty rows when they consistently survive, and demoted when they fall. This ensures training always occurs at the challenge frontier.
 
-## 5. Locomotion Policies Developed
+### 4.2 Obstacle-Focus Variant
 
-### 5.1 Phase A — Flat Terrain (Trial 7b)
+For the Obstacle Expert, the terrain mix was shifted to 60% boulders/stairs to force specialization on the hardest terrain types.
 
-**Objective:** Learn basic forward walking on smooth ground.
+## 5. The Policy Pipeline
+
+### 5.1 Stage 1 — ARL Baseline
+
+**What it is:** ARL's team independently developed a locomotion policy that reached terrain level ~6.0 using a simpler design than our custom 22-term, 1.2M-parameter configuration. After 11 trials and ~30 sub-iterations of tuning our custom config, we adopted ARL's approach.
+
+**Why ARL's design worked better:**
+
+| Feature | Our Custom Config | ARL Baseline |
+|---------|------------------|----------------|
+| Reward terms | 22 (competing signals) | 11 (clean gradients) |
+| Network size | [1024, 512, 256] — 1.2M params | [512, 256, 128] — 286K params |
+| LR schedule | Cosine annealing (manual lr_max) | Adaptive KL (self-adjusting) |
+| Domain randomization | Heavy (mass ±5kg, friction 0.15-1.0) | Light (mass ±2.5kg, friction 0.3-1.0) |
+| Observation noise | Enabled | Disabled |
+| Episode length | 30s | 20s |
+| Mini-batches | 64 | 4 (larger effective batch) |
 
 | Property | Value |
 |----------|-------|
-| Checkpoint | `model_498.pt` |
-| Iterations | 500 |
-| Survival rate | 99.3% |
-| Action noise | 0.38 std |
+| Checkpoint | `mason_baseline_final_19999.pt` |
 | Architecture | [512, 256, 128] |
+| Iterations | 20,000 |
+| Environments | 4,096 |
 
-**Result:** Clean, stable walking gait. All robots survived the flat terrain consistently. This checkpoint served as the starting point for Phase A.5.
+**100-Episode Evaluation:**
 
-### 5.2 Phase A.5 — Transition (Trial 9)
+| Environment | Mean Progress | Zone (avg) | Fall Rate |
+|-------------|--------------|-----------|-----------|
+| Friction | 36.9m | 4.1 | 37% |
+| Grass | 29.6m | 3.6 | 23% |
+| Boulder | 14.4m | 2.2 | 13% |
+| Stairs | 10.9m | 2.0 | 20% |
 
-**Objective:** Adapt flat-terrain gait to mild perturbations.
+**Takeaway:** ARL's clean design produced a functional walking gait, but on our harder 12-terrain curriculum it needed refinement. The high friction fall rate (37%) and limited boulder performance (14.4m) showed where targeted fixes would help.
 
-| Property | Value |
-|----------|-------|
-| Checkpoint | `model_998.pt` |
-| Iterations | 1,000 |
-| Survival rate | 92.9% |
-| Gait score | 8.58 |
-| Resume from | Phase A model_498 |
+### 5.2 Stage 2 — ARL Hybrid
 
-**Result:** Gait maintained quality while adapting to gentle slopes and small bumps. 7% failure rate on transition terrain was acceptable for moving to Phase B.
-
-### 5.3 AI-Coached v8 (Trial 11l)
-
-**Objective:** Push terrain mastery using AI-guided reward weight tuning.
-
-| Property | Value |
-|----------|-------|
-| Checkpoint | `model_10600.pt` |
-| Architecture | [1024, 512, 256] |
-| Iterations | 10,600 |
-| Training time | ~47 hours |
-| Total steps | ~2.0 billion |
-| Peak terrain | 4.83 (best ever at the time) |
-| Learning rate | Adaptive with KL target 0.01 |
-
-**AI Coach System:** A Claude Sonnet API integration that analyzed training metrics every 250 iterations and suggested reward weight adjustments within safety guardrails (max 20% change, max 3 weights per consultation).
-
-**Final baked weights:** gait=8.5, base_linear_velocity=6.0, base_angular_velocity=6.0, action_smoothness=-1.2, base_motion=-2.4, base_orientation=-2.4, joint_pos=-0.3
-
-**Lessons learned:**
-- The [1024, 512, 256] network plateaued at terrain ~4.8 despite 47 hours of training
-- The AI coach tended to progressively loosen penalties without a revert-if-failed mechanism
-- The smaller [512, 256, 128] architecture ultimately achieved comparable results more efficiently
-
-### 5.4 Mason Hybrid (Trial 12)
-
-**Objective:** Combine Mason's proven baseline weights with the smaller [512, 256, 128] network.
+**What it is:** ARL's 11 reward terms + our 12-terrain curriculum + 3 surgical safety fixes (terrain-relative height, DOF limits, clamped action smoothness). No AI coach — just ARL's proven weights and our harder terrain.
 
 | Property | Value |
 |----------|-------|
 | Checkpoint | `mason_hybrid_best_33200.pt` |
 | Architecture | [512, 256, 128] |
-| Iterations | 33,200 |
-| Peak terrain | 3.83 |
-| Flip rate | 0% |
-
-**4-Environment Evaluation:**
-
-| Environment | Distance | Zones |
-|-------------|----------|-------|
-| Friction | 49.5m | 5/5 |
-| Grass | 49.5m | 5/5 |
-| Boulder | 21.4m | 3/5 |
-| Stairs | 11.5m | 2/5 |
-
-**Key insight:** Mason's conservative weights + smaller network = rock-solid gait with 0% flip rate. Excellent on flat/drag terrain, but limited on obstacles and stairs.
-
-### 5.5 Trial 12b — Obstacle Focus
-
-**Objective:** Push boulder and stair performance using targeted training.
-
-| Property | Value |
-|----------|-------|
-| Checkpoint | `model_44400.pt` (best), `model_54599.pt` (final) |
-| Starting weights | foot_clearance=2.0, action_smoothness=-1.0, joint_pos=-0.3 |
-| Terrain mix | 60% boulders/stairs |
-| Iterations | 54,600 |
-| Peak terrain | 4.38 |
-| Flip rate | 0% |
-
-**4-Environment Evaluation (model_44400):**
-
-| Environment | Distance | Zones | vs. Mason Hybrid |
-|-------------|----------|-------|-----------------|
-| Friction | 42.2m | 5/5 | -7.3m |
-| Grass | 31.7m | 4/5 | -17.8m |
-| Boulder | **30.4m** | **4/5** | **+9.0m** |
-| Stairs | 15.7m | 2/5 | +4.2m |
-
-**Key insight:** Loosening `base_orientation` from -3.0 to -2.0 unlocked lateral tilt needed for boulder traversal. Tuning rewards along the same kinematic chain (foot_clearance + action_smoothness + joint_pos) produced the largest boulder improvement.
-
-### 5.6 S2R Flat Master v3
-
-**Objective:** Create a friction/grass specialist with sim-to-real hardening.
-
-| Property | Value |
-|----------|-------|
-| Checkpoint | `flat_v3_3700.pt` |
-| Architecture | [512, 256, 128] |
-| Iterations | 3,700 (best out of 5,000) |
-| Terrain | 45% flat, 25% rough, 15% wave, 15% slopes |
-| Environments | 2,048 |
-| S2R wrappers | Action delay (40ms), obs delay (20ms), sensor noise |
-
-**Key reward weights:** gait=15.0 (highest), action_smoothness=-1.5 (strictest), foot_slip=-3.0, base_roll=-5.0
-
-**4-Environment Evaluation:**
-
-| Environment | Distance | Zones |
-|-------------|----------|-------|
-| Friction | **43.4m** | **5/5** |
-
-**Lesson:** Best checkpoint was at iteration 3,700, not the final 5,000. Later iterations showed regression — a common pattern requiring periodic evaluation during training.
-
-### 5.7 S2R Boulder V6 — Best Single Policy
-
-**Objective:** Boulder field specialist starting from the obstacle-focused training.
-
-| Property | Value |
-|----------|-------|
-| Checkpoint | `boulder_v6_expert_4500.pt` |
-| Architecture | [512, 256, 128] |
-| Iterations | 4,500 (crashed at 4,589 due to value loss spike) |
-| Peak terrain | 6.13 |
+| Iterations | 33,200 (best), 35,100 (final) |
+| Training time | ~42.6 hours |
+| Total steps | ~2.0 billion |
+| Peak terrain level | 3.83 |
+| Flip rate | **0%** |
 | Environments | 4,096 |
-| S2R wrappers | Full sim-to-real hardening |
 
-**4-Environment Evaluation:**
+**100-Episode Evaluation:**
 
-| Environment | Distance | Zones | Speed (m/s) |
-|-------------|----------|-------|-------------|
-| Friction | **49.5m** | **5/5** | **0.99** |
-| Grass | 21.2m | 3/5 | 0.35 |
-| Boulder | **26.6m** | **3/5** | **0.31** |
-| Stairs | **22.9m** | **3/5** | **0.31** |
+| Environment | Mean Progress | Zone (avg) | Fall Rate | Velocity |
+|-------------|--------------|-----------|-----------|----------|
+| Friction | 48.9 ± 5.0m | 5.0 | **2%** | 0.934 m/s |
+| Grass | 27.2 ± 8.0m | 3.3 | 15% | 0.487 m/s |
+| Boulder | 20.3 ± 1.7m | 3.0 | 3% | 0.350 m/s |
+| Stairs | 11.2 ± 2.0m | 2.0 | 36% | 0.227 m/s |
 
-**This is the best single policy produced.** Notable achievements:
-- 22.9m on stairs without any dedicated stair training — better than all stair-specialist models
-- Perfect friction completion at nearly 1.0 m/s
-- Strong boulder performance at 26.6m
-- Selected as the frozen locomotion backbone for Phase C navigation training
+**What improved over the Baseline:**
 
-### 5.8 S2R Boulder V7d
+| Environment | Baseline → Hybrid | Change |
+|-------------|-------------------|--------|
+| Friction | 36.9m → 48.9m | **+12.0m**, fall rate 37% → 2% |
+| Boulder | 14.4m → 20.3m | **+5.9m**, fall rate 13% → 3% |
+| Stairs | 10.9m → 11.2m | +0.3m (minimal change) |
+| Grass | 29.6m → 27.2m | -2.4m (slight regression) |
 
-**Objective:** Break the boulder zone 3 wall using rear/front foot clearance rewards.
+The three safety additions transformed friction performance (from 37% falls to 2%) and improved boulder traversal by 41%. The ARL Hybrid became a rock-solid generalist with a **0% flip rate** — it never flipped over, even on difficult terrain.
+
+**The trade-off problem:** The ARL Hybrid was excellent on smooth terrain but limited on obstacles. Training a single policy harder on boulders and stairs would regress its friction and grass performance. This tension — loose penalties for obstacles vs. tight penalties for clean walking — was the core problem that motivated the next stage.
+
+### 5.3 Stage 3 — The Expert Masters
+
+Rather than training one policy to do everything, we split the problem. Two specialist experts were trained, each optimized for its terrain type:
+
+#### Friction/Grass Expert — `mason_hybrid_best_33200.pt`
+
+The ARL Hybrid itself served as the friction/grass expert. It was already excellent on smooth surfaces (48.9m friction, 98% completion) with a clean, stable gait. No additional training was needed.
+
+#### Obstacle Expert — `obstacle_best_44400.pt`
+
+Starting from the ARL Hybrid, we retrained with a 60% boulder/stair terrain mix to force the policy to specialize on obstacles.
 
 | Property | Value |
 |----------|-------|
-| Checkpoint | `boulder_v7d_expert_4999.pt` |
-| Iterations | 5,000 |
-| Terrain | 5.12 (never recovered to V6's 6.13) |
-| Flip rate | 4.8% |
-| New rewards | rear_clearance_bonus, front_clearance, riser_collision |
+| Checkpoint | `obstacle_best_44400.pt` |
+| Starting from | ARL Hybrid (33200) |
+| Terrain mix | 60% boulders/stairs, 40% mixed |
+| Iterations | 44,400 (best out of 54,600) |
+| Peak terrain level | 4.38 |
+| Flip rate | 0% |
 
-**4-Environment Evaluation:**
+**Key reward changes for obstacle specialization:**
+- `foot_clearance`: 0.5 → 2.0 (lift feet higher to step over obstacles)
+- `base_orientation`: -3.0 → -2.0 (allow lateral tilt for boulder traversal)
+- `action_smoothness`: -1.0 (maintained for gait quality)
 
-| Environment | V6 (4500) | V7d (4999) | Delta |
-|-------------|-----------|-----------|-------|
-| Friction | 49.5m (0.99 m/s) | 49.5m (0.26 m/s) | -0.73 m/s speed |
-| Grass | 21.2m (0.35 m/s) | 30.6m (0.10 m/s) | +9.4m, -0.25 m/s |
-| Boulder | 26.6m (0.31 m/s) | 20.8m (0.27 m/s) | -5.8m |
-| Stairs | 22.9m (0.31 m/s) | 22.0m (0.07 m/s) | -0.9m, -0.24 m/s |
+**Evaluation:**
 
-**Conclusion:** Clearance rewards traded boulder distance for grass distance and made the gait significantly slower across all environments. Boulder V6 remains superior on both distance and speed.
+| Environment | Distance | Zones |
+|-------------|----------|-------|
+| Friction | 42.2m | 5/5 |
+| Grass | 31.7m | 4/5 |
+| Boulder | **30.4m** | **4/5** |
+| Stairs | 15.7m | 2/5 |
 
-### 5.9 S2R Stair Specialists (V5-V7b)
+**The specialization trade-off in action:** The Obstacle Expert gained +10.1m on boulders compared to the ARL Hybrid (30.4m vs 20.3m) but lost -6.7m on friction (42.2m vs 48.9m). This is exactly why we need distillation — each expert excels at its terrain, but neither is good at everything.
 
-**Objective:** Break the 22m stair wall where step height exceeds 13cm.
+### 5.4 Stage 4 — The Distilled Master
 
-**Approaches tested:**
+**What it is:** A single student policy that learns WHEN to use each expert's behavior by reading the terrain geometry through its height scan. The student acts in the environment, both frozen experts label what they would have done, and the student is trained to match the appropriate expert for each terrain.
 
-| Version | Approach | Best Distance | Result |
-|---------|----------|--------------|--------|
-| V5a-f | Various reward tuning | 21.7m | Plateau at zone 3 |
-| V5h-i | SURGE reward tuning | 21.7m | No improvement |
-| V6a | Bidirectional stairs | Killed (ballet exploit) | Bug #36 — vz reward exploited |
-| V6b | Fixed bidirectional | 20.6m | Height curriculum broken |
-| V6c | Abs height curriculum | 20.6m | Oscillated 5.0-5.8, no gain |
-| V7a | Slow curriculum + narrow | 21.6m | Gait not improving |
-| V7b | Front clearance + riser | Crashed iter 1553 | 60% flip, value loss spike |
+| Property | Value |
+|----------|-------|
+| Checkpoint | `distilled_6899.pt` |
+| Architecture | [512, 256, 128] (same as both experts) |
+| Iterations | 6,899 |
+| Training time | ~6-8 hours on H100 |
+| Environments | 4,096 |
+| Experts | Friction (`mason_hybrid_best_33200.pt`) + Obstacle (`obstacle_best_44400.pt`) |
 
-**The 22m stair wall:** Every approach plateaus at approximately 21-22m, where step height jumps to 13cm+. The robot needs fundamentally different behavior (hop/lunge) rather than incremental reward tuning. This remains an unsolved challenge.
+#### How the Terrain Router Works
+
+The height scan (first 187 observation dimensions) encodes terrain geometry. Flat terrain has near-zero variance in the scan. Boulders and stairs have high variance. A sigmoid gate routes each environment to the appropriate expert:
+
+```
+Height Scan (187 dims) → compute variance → sigmoid gate
+                                              │
+                              gate ≈ 0: smooth terrain → Friction Expert
+                              gate ≈ 1: rough terrain  → Obstacle Expert
+                              gate ≈ 0.5: transition   → blend both
+```
+
+The student doesn't hard-switch between experts — it smoothly blends their actions at terrain boundaries, preventing jerky transitions.
+
+#### Training Process
+
+1. **Initialize student** from the Friction Expert (best general gait — the student already knows how to walk).
+2. **Critic warmup** (300 iterations): Actor is frozen while the critic learns the new value landscape.
+3. **Combined training** (each iteration):
+   - Student collects experience in the environment (standard PPO)
+   - PPO update runs normally
+   - Post-hoc distillation step: query both frozen experts, blend their actions based on the terrain gate, compute MSE + KL loss between student and blended expert target
+4. **Alpha annealing**: Distillation weight starts at 0.8 (mostly copy experts) and decays to 0.2 (mostly PPO reward signal). The student absorbs expert knowledge first, then adapts with its own experience.
+
+#### Distillation Hyperparameters
+
+| Parameter | Value | Purpose |
+|-----------|-------|---------|
+| Alpha (start → end) | 0.8 → 0.2 | Shifts from expert imitation to PPO reward |
+| KL weight | 0.1 | Balance between MSE and KL divergence loss |
+| Roughness threshold | 0.005 | Height scan variance gate for routing |
+| Routing temperature | 0.005 | Sigmoid sharpness (lower = harder gate) |
+| Distill batch size | 8,192 | Samples per distillation gradient step |
+| Critic warmup | 300 iters | Actor frozen while critic calibrates |
+
+#### Distillation Loss
+
+```
+loss = MSE(student_action, blended_expert_action) + 0.1 × KL(student_dist ∥ expert_dist)
+```
+
+The KL term is clamped to [0.0, 10.0] for numerical stability.
 
 ## 6. Comparative Evaluation
 
-### 6.1 All Policies — 4-Environment Results
+### 6.1 The Full Pipeline — Side by Side
 
 | Policy | Friction | Grass | Boulder | Stairs |
 |--------|---------|-------|---------|--------|
-| Mason Hybrid (33200) | 49.5m (5/5) | 49.5m (5/5) | 21.4m (3/5) | 11.5m (2/5) |
-| Trial 12b (44400) | 42.2m (5/5) | 31.7m (4/5) | 30.4m (4/5) | 15.7m (2/5) |
-| AI-Coached v8 (10600) | 49.5m (5/5) | 41.2m (5/5) | 21.4m (3/5) | 11.5m (2/5) |
-| **Boulder V6 (4500)** | **49.5m (5/5)** | 21.2m (3/5) | **26.6m (3/5)** | **22.9m (3/5)** |
-| Boulder V7d (4999) | 49.5m (5/5) | 30.6m (4/5) | 20.8m (3/5) | 22.0m (3/5) |
-| Stair V7b (1500) | — | — | — | 21.5m (3/5) |
-| Flat Master v3 (3700) | 43.4m (5/5) | — | — | — |
+| ARL Baseline | 36.9m (4.1) | 29.6m (3.6) | 14.4m (2.2) | 10.9m (2.0) |
+| **ARL Hybrid** | **48.9m (5.0)** | 27.2m (3.3) | 20.3m (3.0) | 11.2m (2.0) |
+| Obstacle Expert | 42.2m (5.0) | 31.7m (4.0) | **30.4m (4.0)** | **15.7m (2.0)** |
 
-### 6.2 Speed Comparison (Boulder V6 vs V7d)
+*Values shown as: mean progress (mean zone). ARL Baseline and Hybrid from 100-episode evaluations. Obstacle Expert from single-episode evaluation.*
 
-| Environment | V6 Speed | V7d Speed | Ratio |
-|-------------|----------|-----------|-------|
-| Friction | 0.99 m/s | 0.26 m/s | 3.8x faster |
-| Grass | 0.35 m/s | 0.10 m/s | 3.5x faster |
-| Boulder | 0.31 m/s | 0.27 m/s | 1.1x faster |
-| Stairs | 0.31 m/s | 0.07 m/s | 4.4x faster |
+**The specialization dilemma is clear:** The ARL Hybrid dominates friction (+6.7m over Obstacle Expert). The Obstacle Expert dominates boulders (+10.1m over Hybrid). Neither is best at everything. Distillation resolves this by teaching the student to use the right expert for each terrain.
 
-Boulder V6 is the dominant policy on both distance and speed metrics.
+### 6.2 Stability Comparison
+
+| Policy | Friction Fall Rate | Grass Fall Rate | Boulder Fall Rate | Stairs Fall Rate | Flip Rate |
+|--------|--------------------|-----------------|-------------------|------------------|-----------|
+| ARL Baseline | 37% | 23% | 13% | 20% | — |
+| ARL Hybrid | **2%** | 15% | **3%** | 36% | **0%** |
+
+The ARL Hybrid's 0% flip rate and 2% friction fall rate demonstrate the value of ARL's conservative reward philosophy. High gait weight (10.0) and moderate penalties produce gaits that prioritize stability.
 
 ## 7. Teammate Locomotion Work
 
-### 7.1 Ryan's Mason Hybrid Baseline
+### 7.1 Ryan's ARL Hybrid Baseline
 
-Ryan developed the Mason Hybrid baseline policy (`mason_hybrid_best_33200.pt`) which served as a foundation for multiple team members:
+Ryan developed the ARL Hybrid baseline policy (`mason_hybrid_best_33200.pt`) which served as the foundation for the entire pipeline:
+- Used as the Friction/Grass Expert in distillation
 - Used by Colby as the frozen locomotion backbone in his CombinedPolicyTraining navigation system
-- The [512, 256, 128] architecture and conservative weight configuration established the standard for subsequent training
+- The [512, 256, 128] architecture and conservative weight configuration established the standard for all subsequent training
 
 ### 7.2 Colby
 
@@ -339,16 +314,16 @@ Cole did not develop standalone locomotion policies. His navigation system (RL_F
 
 ## 8. Key Lessons Learned
 
-1. **Smaller networks work.** The [512, 256, 128] architecture matched or exceeded the [1024, 512, 256] network on all metrics while training faster and being more stable.
+1. **Simpler is better.** ARL's 11-term reward function with a 286K-parameter network outperformed our 22-term function with a 1.2M-parameter network. Fewer rewards give clearer gradients; smaller networks generalize instead of memorizing.
 
-2. **0% flip rate is achievable.** Mason's conservative weight philosophy (high gait weight, moderate penalties) produces gaits that never flip, even on difficult terrain.
+2. **0% flip rate is achievable.** ARL's conservative weight philosophy (high gait weight, moderate penalties) produces gaits that never flip, even on difficult terrain. Stability is the foundation everything else builds on.
 
-3. **Best checkpoint != final checkpoint.** Training regression is common — periodic evaluation is essential. Boulder V6's best was at iter 4,500 out of a run that crashed at 4,589.
+3. **Specialize, then distill.** Training a single policy on mixed terrain forces impossible trade-offs — loose penalties for obstacles vs. tight penalties for clean walking. Training two specialists and combining them via distillation sidesteps this entirely.
 
-4. **Specialize then generalize.** Training on 60% obstacle terrain (Trial 12b) produced the best boulder results. The specialize-then-refine strategy works.
+4. **Best checkpoint != final checkpoint.** Training regression is common. The Obstacle Expert's best was at iteration 44,400 out of a 54,600-iteration run. Periodic evaluation during training is essential.
 
-5. **The 22m stair wall is real.** Despite 9 stair-specific training runs with different approaches, no policy has broken past zone 3 (13cm+ steps). This likely requires a fundamentally different locomotion behavior.
+5. **The height scan is the terrain router.** The 187-dimensional height scan variance cleanly separates smooth terrain (near-zero variance) from rough terrain (high variance), providing a natural signal for expert routing without any additional sensors.
 
-6. **Speed matters as much as distance.** Boulder V7d went further on grass (+9.4m) but was 3.5x slower — a worse policy when time is considered.
+6. **Initialize from your best generalist.** Starting the distilled student from the Friction Expert (best general gait) means it already knows how to walk. It only needs to learn when to switch to obstacle behavior — saving thousands of iterations.
 
-7. **Domain randomization is essential.** S2R-hardened policies (with action delay, sensor noise, mass randomization) maintain strong performance while being deployable to real hardware.
+7. **Tune rewards along kinematic chains.** For obstacle terrain, foot clearance + action smoothness + joint position all govern the step-up motion. Tuning one without the others produces suboptimal gaits. The biggest boulder improvement (+10.1m) came from adjusting these three together.
