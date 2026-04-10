@@ -1,14 +1,10 @@
 # AGGREGATE STATISTICS (Updated after each episode)
 Metric,Value
-Average_Waypoints_Reached,9.60
-Max_Waypoints_Reached,25
-Failure_Rate_Fell_Over,80.00%
+Average_Waypoints_Reached,3.00
+Max_Waypoints_Reached,3
+Failure_Rate_Fell_Over,100.00%
 Failure_Rate_Ran_Out_of_Points,0.00%
-Completion_Rate,20.00%
+Completion_Rate,0.00%
 
 Episode,Waypoints_Reached,Failure_Reason,Final_Score
-1,7,Fell Over,0.00
-2,0,Fell Over,0.00
-3,11,Fell Over,0.00
-4,5,Fell Over,0.00
-5,25,Completed All Waypoints,218.88
+1,3,Fell Over,0.00

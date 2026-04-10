@@ -162,7 +162,7 @@ STARTING_ZONE_BUFFER = 2.0          # meters — 2m×2m buffer zone around (0,0)
 # Small Static Obstacles (unmovable hazards)
 SMALL_OBSTACLE_MIN_SIZE = 0.043     # meters (1.7 inches - golf ball)
 SMALL_OBSTACLE_MAX_SIZE = 0.102     # meters (4.0 inches - softball)
-SMALL_OBSTACLE_COVERAGE = 0.10      # 10% of remaining area (after main obstacles take 20%)
+SMALL_OBSTACLE_COVERAGE = 0.10 / 3  # ~3.33% of arena (10% total / 3 types)
 SMALL_OBSTACLE_CLEARANCE = 0.3      # meters — minimum distance between small obstacles
 COLOR_SMALL_OBSTACLE = Gf.Vec3f(0.4, 0.4, 0.4)  # dark gray — visually distinct
 
@@ -518,7 +518,43 @@ class ObstacleManager:
         self.obstacles = []  # list of {path, pos, dims, mass}
         self.small_obstacles = []  # list of small static obstacles {path, pos, size, shape}
 
-    def spawn_one(self, idx: int, margin: float = 1.5, min_spawn_clearance: float = 2.0) -> None:
+    def calculate_footprint_area(self, shape: str, dims: tuple) -> float:
+        """
+        Calculate actual ground footprint area based on shape type.
+        Uses actual geometric areas, not bounding boxes.
+        
+        dims format depends on shape (from spawn_one):
+          - rectangle, square, trapezoid: (width/side, depth, height)
+          - sphere, cylinder: (diameter, diameter, height) -> area = π * r²
+          - oval: (2*r_major, 2*r_minor, height) -> area = π * r_major * r_minor
+          - diamond: (base, base, height) -> area ≈ base² / 2
+        """
+        if shape == "rectangle":
+            return dims[0] * dims[1]  # width * depth
+        elif shape == "square":
+            return dims[0] * dims[1]  # side²
+        elif shape == "trapezoid":
+            # dims[0] already stores average_width
+            return dims[0] * dims[1]  # avg_width * depth
+        elif shape == "sphere":
+            r = dims[0] / 2  # diameter to radius
+            return math.pi * r * r  # π * r²
+        elif shape == "oval":
+            r_major = dims[0] / 2  # diameter to radius
+            r_minor = dims[1] / 2  # diameter to radius
+            return math.pi * r_major * r_minor  # π * r_major * r_minor
+        elif shape == "cylinder":
+            r = dims[0] / 2  # diameter to radius
+            return math.pi * r * r  # π * r²
+        elif shape == "diamond":
+            # Diamond (45° rotated square): footprint = base² / 2
+            return dims[0] * dims[1] / 2  # base² / 2
+        else:
+            # Unknown shape: fallback to bounding box
+            return dims[0] * dims[1]
+
+    def spawn_one(self, idx: int, margin: float = 1.5, min_spawn_clearance: float = 2.0, 
+                   force_weight_class: str = None) -> None:
         """
         Spawn a single random obstacle inside the arena.
         Enforces buffer zone around starting position and clearance from other obstacles.
@@ -526,6 +562,9 @@ class ObstacleManager:
         Weight Categories:
         - Moveable (≤ 32.7 kg):  Pushable or tippable by Spot, dynamic rigid body, low friction
         - Non-moveable (> 32.7 kg): Immovable, static rigid body, Spot must avoid
+        
+        Args:
+            force_weight_class: If specified ('moveable' or 'non_moveable'), force this category
         """
         shape = self.rng.choice(self.SHAPES)
         
@@ -551,15 +590,28 @@ class ObstacleManager:
             # Could not find valid position after max_attempts
             return  # Skip this obstacle
         
-        mass = self.rng.uniform(OBSTACLE_MIN_MASS, OBSTACLE_MOVEABLE_MAX)
+        # Sample mass from full range
+        mass = self.rng.uniform(OBSTACLE_MIN_MASS, OBSTACLE_MAX_MASS)
         
-        # Categorize obstacle by weight
-        if mass <= OBSTACLE_MOVEABLE_MAX:
+        # Categorize obstacle by weight or force category
+        if force_weight_class == "moveable":
+            # Force moveable: sample from moveable range
+            mass = self.rng.uniform(OBSTACLE_MIN_MASS, OBSTACLE_MOVEABLE_MAX)
             weight_class = "moveable"
             color = COLOR_MOVEABLE_OBSTACLE
-        else:
+        elif force_weight_class == "non_moveable":
+            # Force non-moveable: sample from non-moveable range
+            mass = self.rng.uniform(OBSTACLE_MOVEABLE_MAX + 0.1, OBSTACLE_MAX_MASS)
             weight_class = "non_moveable"
             color = COLOR_NON_MOVEABLE_OBSTACLE
+        else:
+            # Auto-categorize based on sampled mass
+            if mass <= OBSTACLE_MOVEABLE_MAX:
+                weight_class = "moveable"
+                color = COLOR_MOVEABLE_OBSTACLE
+            else:
+                weight_class = "non_moveable"
+                color = COLOR_NON_MOVEABLE_OBSTACLE
 
         path = f"/World/Obstacles/Obst_{idx:03d}"
         rot_deg = self.rng.uniform(0, 360)
@@ -695,40 +747,88 @@ class ObstacleManager:
             "shape": shape
         })
 
-    def populate(self, target_coverage_pct: float = OBSTACLE_AREA_FRAC * 100,
+    def populate(self, moveable_coverage_pct: float = 10.0, non_moveable_coverage_pct: float = 10.0,
                  min_spawn_clearance: float = 2.0) -> None:
         """
-        Populate arena with obstacles until target coverage is met.
+        Populate arena with obstacles with separate targets for moveable and non-moveable.
         Enforces 2m×2m buffer zone around starting position (0,0).
         
         Obstacles are categorized by weight:
-        - Moveable: ≤ 32.7 kg (pushable or tippable by Spot)
-        - Non-moveable: > 32.7 kg (immovable obstacles Spot must avoid)
+        - Moveable: ≤ 32.7 kg (pushable or tippable by Spot) - Orange
+        - Non-moveable: > 32.7 kg (immovable obstacles Spot must avoid) - Steel Blue
+        
+        Args:
+            moveable_coverage_pct: Target coverage % for moveable obstacles (default 10%)
+            non_moveable_coverage_pct: Target coverage % for non-moveable obstacles (default 10%)
         """
         arena_area = math.pi * (ARENA_RADIUS - 1.5) ** 2
-        target_area = arena_area * target_coverage_pct / 100.0
-        total_area = 0.0
+        
+        moveable_target_area = arena_area * moveable_coverage_pct / 100.0
+        non_moveable_target_area = arena_area * non_moveable_coverage_pct / 100.0
+        
+        moveable_area = 0.0
+        non_moveable_area = 0.0
         idx = 0
         
         # Track weight distribution
         weight_counts = {"moveable": 0, "non_moveable": 0}
 
-        print(f"[INFO] Spawning obstacles (target {target_coverage_pct}% coverage = {target_area:.1f} m²)")
+        print(f"[INFO] Spawning obstacles:")
+        print(f"[INFO]   - Moveable (Orange) target: {moveable_coverage_pct}% coverage = {moveable_target_area:.1f} m²")
+        print(f"[INFO]   - Non-moveable (Blue) target: {non_moveable_coverage_pct}% coverage = {non_moveable_target_area:.1f} m²")
+        print(f"[INFO]   - Total target: {moveable_coverage_pct + non_moveable_coverage_pct}% coverage = {moveable_target_area + non_moveable_target_area:.1f} m²")
         print(f"[INFO] Starting zone buffer: {STARTING_ZONE_BUFFER}m radius around (0,0)")
 
-        while total_area < target_area and idx < 200:
+        # Phase 1: Spawn moveable obstacles until target reached
+        print(f"[INFO] Phase 1: Spawning ORANGE moveable obstacles...")
+        phase1_idx = 0
+        while moveable_area < moveable_target_area and phase1_idx < 1000:
             old_count = len(self.obstacles)
-            self.spawn_one(idx, margin=1.5, min_spawn_clearance=min_spawn_clearance)
+            self.spawn_one(idx, margin=1.5, min_spawn_clearance=2.0, 
+                          force_weight_class="moveable")
             
             if len(self.obstacles) > old_count:
-                dims = self.obstacles[-1]["dims"]
-                total_area += dims[0] * dims[1]
-                weight_counts[self.obstacles[-1]["weight_class"]] += 1
+                obs = self.obstacles[-1]
+                dims = obs["dims"]
+                shape = obs["shape"]
+                footprint_area = self.calculate_footprint_area(shape, dims)
+                moveable_area += footprint_area
+                weight_counts["moveable"] += 1
+                print(f"[SPAWN] Moveable #{weight_counts['moveable']} ({shape}): {dims[0]:.2f}×{dims[1]:.2f}m, area={footprint_area:.2f}m², total={moveable_area:.1f}m²")
             
             idx += 1
+            phase1_idx += 1
+        
+        print(f"[INFO] Phase 1 complete: {weight_counts['moveable']} moveable obstacles, {moveable_area:.1f}m² coverage")
 
-        print(f"[OK] {len(self.obstacles)} obstacles spawned (coverage {total_area:.1f} m², {100 * total_area / arena_area:.1f}%)")
-        print(f"[INFO] Weight distribution: {weight_counts['moveable']} moveable, {weight_counts['non_moveable']} non-moveable")
+        # Phase 2: Spawn non-moveable obstacles until target reached (less strict clearance to find positions)
+        print(f"[INFO] Phase 2: Spawning BLUE non-moveable obstacles...")
+        phase2_idx = 0
+        while non_moveable_area < non_moveable_target_area and phase2_idx < 1000:
+            old_count = len(self.obstacles)
+            self.spawn_one(idx, margin=1.5, min_spawn_clearance=1.5,  # Slightly less strict clearance for phase 2
+                          force_weight_class="non_moveable")
+            
+            if len(self.obstacles) > old_count:
+                obs = self.obstacles[-1]
+                dims = obs["dims"]
+                shape = obs["shape"]
+                footprint_area = self.calculate_footprint_area(shape, dims)
+                non_moveable_area += footprint_area
+                weight_counts["non_moveable"] += 1
+                print(f"[SPAWN] Non-moveable #{weight_counts['non_moveable']} ({shape}): {dims[0]:.2f}×{dims[1]:.2f}m, area={footprint_area:.2f}m², total={non_moveable_area:.1f}m²")
+            
+            idx += 1
+            phase2_idx += 1
+
+        print(f"[INFO] Phase 2 complete: {weight_counts['non_moveable']} non-moveable obstacles, {non_moveable_area:.1f}m² coverage")
+
+        total_area = moveable_area + non_moveable_area
+        total_coverage_pct = (total_area / arena_area) * 100.0
+        print(f"\n[OK] {len(self.obstacles)} obstacles spawned (total coverage {total_area:.1f} m², {total_coverage_pct:.1f}%)")
+        print(f"[INFO] Weight distribution:")
+        print(f"[INFO]   - ORANGE Moveable: {weight_counts['moveable']} obstacles, {moveable_area:.1f} m² ({(moveable_area/arena_area)*100:.1f}% of arena)")
+        print(f"[INFO]   - BLUE Non-moveable: {weight_counts['non_moveable']} obstacles, {non_moveable_area:.1f} m² ({(non_moveable_area/arena_area)*100:.1f}% of arena)")
 
     def nearest_obstacle_distance(self, x: float, y: float) -> float:
         """Return the distance to the nearest obstacle center."""
@@ -756,20 +856,19 @@ class ObstacleManager:
         Spawn small static obstacles (golf ball to softball size).
         These are unmovable hazards that Spot must navigate around.
         
-        Coverage: 10% of remaining area after main obstacles (which take 20%).
+        Coverage: Equal to moveable and non-moveable obstacles (10% of total arena).
         Size range: 1.7-4 inches (0.043-0.102 meters)
         All shapes available, all static (RigidBodyEnabled = False)
         """
-        # Calculate target area: 10% of remaining 80% = 8% of total arena
+        # Calculate target area: target_coverage_pct% of total arena (same as moveable/non-moveable)
         arena_area = math.pi * (ARENA_RADIUS - 1.5) ** 2
-        remaining_area = arena_area * 0.80  # 80% remains after main obstacles took 20%
-        target_area = remaining_area * target_coverage_pct / 100.0
+        target_area = arena_area * target_coverage_pct / 100.0
         total_area = 0.0
         idx = 0
         
         shape_counts = {shape: 0 for shape in self.SHAPES}
         
-        print(f"[INFO] Spawning small static obstacles (target {target_coverage_pct:.0f}% of remaining = {target_area:.1f} m²)")
+        print(f"[INFO] Spawning small static obstacles (target {target_coverage_pct:.0f}% of arena = {target_area:.1f} m²)")
 
         while total_area < target_area and idx < 500:
             shape = self.rng.choice(self.SHAPES)
@@ -807,41 +906,44 @@ class ObstacleManager:
                 path = f"/World/SmallObstacles/Small_{idx:03d}"
                 rot_deg = self.rng.uniform(0, 360)
                 
-                # Create small obstacle geometry based on shape
+                # Create small obstacle geometry based on shape and calculate actual footprint
                 if shape == "sphere":
                     create_sphere_mesh(self.stage, path, size, COLOR_SMALL_OBSTACLE)
-                    footprint = math.pi * (size / 2) ** 2
+                    dims = (size * 2, size * 2, size * 2)  # diameter stored
                 elif shape == "cylinder":
                     h = size
                     create_cylinder_mesh(self.stage, path, size / 2, h, COLOR_SMALL_OBSTACLE)
-                    footprint = math.pi * (size / 2) ** 2
+                    dims = (size, size, h)  # diameter stored
                 elif shape == "square":
                     create_square_mesh(self.stage, path, size, size, COLOR_SMALL_OBSTACLE)
-                    footprint = size * size
+                    dims = (size, size, size)
                 elif shape == "rectangle":
                     w = size
                     d = size * self.rng.uniform(0.6, 1.4)
                     h = size
                     create_rectangle_mesh(self.stage, path, w, d, h, COLOR_SMALL_OBSTACLE)
-                    footprint = w * d
+                    dims = (w, d, h)
                 elif shape == "diamond":
                     create_diamond_mesh(self.stage, path, size, size, COLOR_SMALL_OBSTACLE)
-                    footprint = size * size * 0.5  # approximate
+                    dims = (size, size, size)
                 elif shape == "trapezoid":
                     w_bot = size
                     w_top = size * 0.7  # tapered top
                     d = size
                     h = size
                     create_trapezoid_mesh(self.stage, path, w_bot, w_top, d, h, COLOR_SMALL_OBSTACLE)
-                    footprint = w_bot * d * 0.75  # approximate
+                    dims = ((w_bot + w_top) / 2, d, h)  # store average width like main obstacles
                 elif shape == "oval":
-                    w = size
-                    d = size * self.rng.uniform(0.6, 1.4)
+                    r_major = size
+                    r_minor = size * self.rng.uniform(0.6, 1.4)
                     h = size * 0.8
-                    create_oval_mesh(self.stage, path, w, d, h, COLOR_SMALL_OBSTACLE)
-                    footprint = math.pi * (w / 2) * (d / 2)
+                    create_oval_mesh(self.stage, path, r_major, r_minor, h, COLOR_SMALL_OBSTACLE)
+                    dims = (r_major * 2, r_minor * 2, h)  # diameter stored
                 else:
-                    footprint = size * size
+                    dims = (size, size, size)
+                
+                # Calculate actual geometric footprint using helper function
+                footprint = self.calculate_footprint_area(shape, dims)
                 
                 # Position and rotate
                 prim = self.stage.GetPrimAtPath(path)
@@ -1062,6 +1164,11 @@ class CircularWaypointEnv:
         print(f"\n{'-' * 72}")
         print(f"[RESET] Episode {episode}")
         print(f"{'-' * 72}")
+        print(f"\n[DEBUG] COVERAGE CONFIGURATION:")
+        print(f"[DEBUG]   moveable_coverage_pct = 10.0/3 = {10.0/3:.4f}%")
+        print(f"[DEBUG]   non_moveable_coverage_pct = 10.0/3 = {10.0/3:.4f}%")
+        print(f"[DEBUG]   SMALL_OBSTACLE_COVERAGE * 100 = {(0.10/3)*100:.4f}%")
+        print(f"[DEBUG]   TOTAL PLANNED COVERAGE = {(10.0/3 + 10.0/3 + (0.10/3)*100):.2f}%")
 
         self.episode_num = episode
         self.score = EPISODE_START_SCORE
@@ -1089,12 +1196,11 @@ class CircularWaypointEnv:
             self.current_marker_paths.extend(paths)
             print(f"[INFO] Current target: Waypoint {wp['label']} at ({wp['pos'][0]:.1f}, {wp['pos'][1]:.1f})")
 
-        # Populate obstacles
-        self.obstacle_mgr.populate(target_coverage_pct=OBSTACLE_AREA_FRAC * 100,
+        # Populate obstacles: 1% moveable + 1% non-moveable obstacles (reduced from 10%/10% for testing)
+        self.obstacle_mgr.populate(moveable_coverage_pct=1.0, non_moveable_coverage_pct=1.0,
                                     min_spawn_clearance=2.0)
         
-        # Spawn small static obstacles
-        # TEMPORARILY DISABLED FOR TESTING
+        # Spawn small static obstacles - DISABLED for this test
         # self.obstacle_mgr.spawn_small_static(target_coverage_pct=SMALL_OBSTACLE_COVERAGE * 100)
 
         # Reset Spot position
