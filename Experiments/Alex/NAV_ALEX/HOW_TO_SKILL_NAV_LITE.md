@@ -2,7 +2,7 @@
 
 Waypoint-driven navigation for Spot in Cole's 25m obstacle arena. No new RL training required — layers a Skill-Nav-style P-controller + APF obstacle avoidance on top of the trained Flat Master V3 locomotion policy.
 
-**Validated result (Apr 17 2026):** 15/25 waypoints, 674m traversed, zero falls, zero OOB through 40 random obstacles. Exit reason was episode-score timeout, not collision.
+**Validated result (Apr 18 2026):** **25/25 waypoints, 1085m, 646s, zero falls, zero OOB** through 40 random obstacles (Flat Master V3 + APF at max_spd=2.2 m/s, R=1.8, gain=1.1). Earlier baseline at 1.5 m/s: 15/25.
 
 ---
 
@@ -46,7 +46,8 @@ Results CSV lands in `NAV_ALEX/results/cole_arena_skillnav_lite.csv`.
 | `--num_obstacles K` | 40 | Obstacle count (ignored if `--no_obstacles`) |
 | `--loco_checkpoint PATH` | `flat_v3_3700.pt` | RSL-RL checkpoint for loco policy |
 | `--stock_flat` | off | Use stock Isaac `SpotFlatTerrainPolicy` instead (debug — will fall) |
-| `--kp_lin`, `--kp_ang`, `--max_lin_speed` | 1.0 / 2.0 / 1.5 | P-controller gains |
+| `--kp_lin`, `--kp_ang`, `--max_lin_speed` | 1.0 / 2.0 / **2.2** | P-controller gains (tuned) |
+| `--apf_radius`, `--apf_gain`, `--apf_tangent` | **1.8 / 1.1 / 0.6** | APF obstacle avoidance (tuned for 2.2 m/s) |
 
 ## 4. What to expect
 
@@ -77,13 +78,16 @@ These were painful to find. Changing any breaks the stack:
 5. **APF params `R=1.2m, gain=0.8, tangent_bias=0.6`.** Earlier `R=2.5, gain=3.0` saturated the arena and the robot orbited forever in local minima. Tangent bias lets the robot slide around obstacles instead of bouncing head-on.
 6. **`mason_baseline=True`** on the `SpotRoughTerrainPolicy` — the Flat Master V3 checkpoint uses Mason obs order (height_scan first, then proprio).
 
-## 6. Tuning for longer circuits
+## 6. Speed ↔ collision tradeoff
 
-Current run ends at SCORE_DEPLETED with 15/25 WPs — stops because the episode-score budget is spent, not because of a fall. To push past 15:
+Speed scaling works as long as APF margin scales with it. Measured on same seed, same 40 obstacles, Flat Master V3:
 
-- Raise `EPISODE_START_SCORE` (default 300) in `cole_arena_skillnav_lite.py`.
-- Or raise `WAYPOINT_REWARD` (default +15).
-- Or actually make traversal faster: raise `max_lin_speed` to 2.0, but watch for fall rate.
+| `max_lin_speed` | APF `R` / `gain` | WPs | Dist | Falls | Status |
+|---|---|---|---|---|---|
+| 1.5 m/s | 1.2 / 0.8 | 15/25 | 674m | 0 | SCORE_DEPLETED |
+| 2.2 m/s | 1.8 / 1.1 | **25/25** | **1085m** | **0** | **COMPLETE** |
+
+Rule of thumb when raising speed: grow `R` roughly linearly with `max_lin_speed` so the robot sees obstacles the same number of decision-ticks in advance.
 
 ## 7. File tree
 

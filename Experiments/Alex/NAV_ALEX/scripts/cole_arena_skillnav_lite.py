@@ -35,7 +35,10 @@ parser.add_argument("--rendered", action="store_true")
 parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--kp_lin", type=float, default=1.0)
 parser.add_argument("--kp_ang", type=float, default=2.0)
-parser.add_argument("--max_lin_speed", type=float, default=1.5)
+parser.add_argument("--max_lin_speed", type=float, default=2.2)
+parser.add_argument("--apf_radius", type=float, default=1.8)
+parser.add_argument("--apf_gain", type=float, default=1.1)
+parser.add_argument("--apf_tangent", type=float, default=0.6)
 parser.add_argument("--no_obstacles", action="store_true",
                     help="Empty arena (skip 40-cube generation) — isolates nav stack from collisions.")
 parser.add_argument("--num_obstacles", type=int, default=40,
@@ -226,12 +229,12 @@ def main():
         kp_ang=args.kp_ang,
         max_lin_speed=args.max_lin_speed,
         obstacles=obstacles_info,
-        obstacle_influence_radius=1.2,
-        obstacle_repulse_gain=0.8,
-        obstacle_tangent_bias=0.6,
+        obstacle_influence_radius=args.apf_radius,
+        obstacle_repulse_gain=args.apf_gain,
+        obstacle_tangent_bias=args.apf_tangent,
         robot_radius=0.45,
     )
-    print(f"[NAV] APF obstacles: {len(obstacles_info)}  R=1.2m  gain=0.8  tangent=0.6")
+    print(f"[NAV] APF obstacles: {len(obstacles_info)}  R={args.apf_radius}m  gain={args.apf_gain}  tangent={args.apf_tangent}  max_spd={args.max_lin_speed}")
 
     all_results = []
     for ep in range(1, args.episodes + 1):
@@ -276,7 +279,7 @@ def main():
             print("  Stabilized.", flush=True)
 
         step_count = 0
-        max_steps = 300000
+        max_steps = 500000
         nav_step_counter = 0
         nav_tick = 0
 
