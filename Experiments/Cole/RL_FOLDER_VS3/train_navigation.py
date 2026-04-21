@@ -205,6 +205,7 @@ def main():
         episode_reward_breakdowns = []  # NEW: collect breakdown data
         episode_score_breakdowns = []   # NEW: collect score breakdown data
         episode_failures = []    # NEW: track how each episode failed (timeout, fall, boundary, incomplete)
+        episode_safety_layers = []  # Track safety layer activations per episode
         
         while len(rollout_buffer) < steps_per_iteration:
             # Get action from policy
@@ -232,6 +233,7 @@ def main():
                 episode_waypoints.append(info['waypoints_captured'])
                 episode_reward_breakdowns.append(info.get('reward_breakdown', {}))  # NEW
                 episode_score_breakdowns.append(info.get('score_breakdown', {}))    # NEW
+                episode_safety_layers.append(info.get('safety_layer', {}))
                 
                 # NEW: Track failure reason
                 if info['success']:
@@ -345,6 +347,13 @@ def main():
         log(f"  PPO epochs: {train_stats['epochs_completed']}/{config['ppo']['ppo_epochs']}", log_file)
         if train_stats['early_stopped']:
             log(f"  [EARLY STOP] KL divergence exceeded target ({config['ppo']['target_kl']:.4f})", log_file)
+        
+        # Safety layer activation summary
+        if episode_safety_layers:
+            avg_hard = np.mean([s.get('hard_stops', 0) for s in episode_safety_layers])
+            avg_soft = np.mean([s.get('soft_brakes', 0) for s in episode_safety_layers])
+            avg_nudge = np.mean([s.get('nudges', 0) for s in episode_safety_layers])
+            log(f"  [SAFETY LAYER] hard_stops={avg_hard:.1f}/ep  soft_brakes={avg_soft:.1f}/ep  nudges={avg_nudge:.1f}/ep", log_file)
         
         # Check curriculum progression milestone (informational only - requires 50 iterations + success threshold)
         if env.should_advance_curriculum(iterations_on_stage):

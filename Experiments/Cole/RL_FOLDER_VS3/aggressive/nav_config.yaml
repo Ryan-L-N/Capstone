@@ -63,12 +63,15 @@ reward:
   lateral_velocity_penalty: 0.25
   cross_track_error_weight: 0.4
   static_turn_reward: 0.1
-  fall_penalty: -500.0
+  fall_penalty: -1000.0
   boundary_penalty: -5.0
-  collision_penalty: -100.0
+  collision_penalty: -8.0
+  collision_contact_penalty: -1.5
   min_safe_distance: 0.5
-  obstacle_clearance_penalty: -1.0
-  efficiency_bonus_weight: 2.0
+  obstacle_clearance_penalty: -2.0
+  obstacle_avoidance_bonus: 0.0  # DISABLED - hardcoded safety layer
+  decel_reward_weight: 1.0
+  efficiency_bonus_weight: 1.0
 
 # Curriculum stages
 curriculum:

@@ -1,0 +1,3586 @@
+[19:40:38] ================================================================================
+[19:40:38] NAVIGATION POLICY TRAINING - HIERARCHICAL RL
+[19:40:38] ================================================================================
+[19:40:38] Config: moderate/nav_config.yaml
+[19:40:38] Iterations: 10000
+[19:40:38] Starting stage: 2
+[19:40:38] Headless: True
+[19:40:38] 
+[19:40:38] Creating Isaac Sim world...
+[19:40:39] World created and reset
+[19:40:39] Creating Spot robot...
+[19:40:40] Spot initialized
+[19:40:40] Creating navigation environment...
+[19:40:40] Environment created
+[19:40:40] Physics callback registered
+[19:40:40] Creating navigation policy...
+[19:40:40] Policy created with 158215 parameters
+[19:40:40] Creating PPO trainer...
+[19:40:41] PPO trainer created
+[19:40:41] Loading checkpoint: moderate/checkpoints/stage_1_complete.pt
+[19:40:41] Checkpoint was at stage 1, advancing to stage 2
+[19:40:41] Iteration counter reset to 0 for new stage
+[19:40:41] 
+[19:40:41] ================================================================================
+[19:40:41] STARTING TRAINING FROM STAGE 2
+[19:40:41] Stage: Waypoints 10m with 1% coverage
+[19:40:41] Goal: Capture all 25 waypoints
+[19:40:41] ================================================================================
+[19:40:41] 
+[19:40:41] [ITER 1/500] Stage 2/6: Waypoints 10m with 1% coverage
+[19:53:53] 
+[19:53:53] Iteration 1/10000 | Stage 2 completed in 791.93s
+[19:53:53]   Iterations on this stage: 1/500
+[19:53:53]   Episodes this iter: 1
+[19:53:53]   Total episodes: 1
+[19:53:53]   Mean score: 390.4
+[19:53:53]   Mean waypoints captured: 25.0/25
+[19:53:53]   Mean length: 284.6s
+[19:53:53]   Success rate (last 100): 100.0%
+[19:53:53] 
+[19:53:53]   [EPISODE BREAKDOWN]
+[19:53:53]     Ep    1: Score= 390.4  Waypoints=25/25  Time= 284.6s  [✓ SUCCESS]
+[19:53:53]   [FAILURE BREAKDOWN]
+[19:53:53]     SUCCESS     :   1 (100.0%)
+[19:53:53]   [REWARD BREAKDOWN]
+[19:53:53]     TOTAL REWARD: 2917.5815
+[19:53:53]     progress_shaping    : 3658.1657
+[19:53:53]     collision_penalty   : -1789.1000
+[19:53:53]     waypoint_capture    : 1250.0000
+[19:53:53]     obstacle_clearance_penalty: -830.0010
+[19:53:53]     efficiency_bonus    : 780.8000
+[19:53:53]     lateral_penalty     : -749.7352
+[19:53:53]     heading_reward      : 609.9696
+[19:53:53]     cross_track_error   : -479.7097
+[19:53:53]     decel_reward        : 325.2556
+[19:53:53]     static_turn_reward  : 141.9366
+[19:53:53]   [SCORE BREAKDOWN]
+[19:53:53]     TOTAL SCORE:    390.4
+[19:53:53]     waypoint_bonus      :    375.0
+[19:53:53]     initial_points      :    300.0
+[19:53:53]     time_decay          :   -284.6
+[19:53:53]   Policy loss: 0.0002
+[19:53:53]   Value loss: 1099.0809
+[19:53:53]   Entropy: 4.2766
+[19:53:53]   Approx KL: 0.0004
+[19:53:53]   PPO epochs: 10/10
+[19:53:53]   * New best model! Success rate: 100.0%
+[19:53:53] [ITER 2/500] Stage 2/6: Waypoints 10m with 1% coverage
+[20:07:14] 
+[20:07:14] Iteration 2/10000 | Stage 2 completed in 801.21s
+[20:07:14]   Iterations on this stage: 2/500
+[20:07:14]   Episodes this iter: 1
+[20:07:14]   Total episodes: 2
+[20:07:14]   Mean score: 402.1
+[20:07:14]   Mean waypoints captured: 25.0/25
+[20:07:14]   Mean length: 272.9s
+[20:07:14]   Success rate (last 100): 100.0%
+[20:07:14] 
+[20:07:14]   [EPISODE BREAKDOWN]
+[20:07:14]     Ep    2: Score= 402.1  Waypoints=25/25  Time= 272.9s  [✓ SUCCESS]
+[20:07:14]   [FAILURE BREAKDOWN]
+[20:07:14]     SUCCESS     :   1 (100.0%)
+[20:07:14]   [REWARD BREAKDOWN]
+[20:07:14]     TOTAL REWARD: 3112.1799
+[20:07:14]     progress_shaping    : 3663.3701
+[20:07:14]     collision_penalty   : -1759.8000
+[20:07:14]     waypoint_capture    : 1250.0000
+[20:07:14]     efficiency_bonus    : 804.2000
+[20:07:14]     obstacle_clearance_penalty: -788.8154
+[20:07:14]     lateral_penalty     : -697.0406
+[20:07:14]     heading_reward      : 590.5485
+[20:07:14]     cross_track_error   : -411.8219
+[20:07:14]     decel_reward        : 319.4821
+[20:07:14]     static_turn_reward  : 142.0571
+[20:07:14]   [SCORE BREAKDOWN]
+[20:07:14]     TOTAL SCORE:    402.1
+[20:07:14]     waypoint_bonus      :    375.0
+[20:07:14]     initial_points      :    300.0
+[20:07:14]     time_decay          :   -272.9
+[20:07:14]   Policy loss: -0.0002
+[20:07:14]   Value loss: 1051.2239
+[20:07:14]   Entropy: 4.2766
+[20:07:14]   Approx KL: 0.0001
+[20:07:14]   PPO epochs: 10/10
+[20:07:14] [ITER 3/500] Stage 2/6: Waypoints 10m with 1% coverage
+[20:20:22] 
+[20:20:22] Iteration 3/10000 | Stage 2 completed in 788.18s
+[20:20:22]   Iterations on this stage: 3/500
+[20:20:22]   Episodes this iter: 1
+[20:20:22]   Total episodes: 3
+[20:20:22]   Mean score: 400.6
+[20:20:22]   Mean waypoints captured: 25.0/25
+[20:20:22]   Mean length: 274.4s
+[20:20:22]   Success rate (last 100): 100.0%
+[20:20:22] 
+[20:20:22]   [EPISODE BREAKDOWN]
+[20:20:22]     Ep    3: Score= 400.6  Waypoints=25/25  Time= 274.4s  [✓ SUCCESS]
+[20:20:22]   [FAILURE BREAKDOWN]
+[20:20:22]     SUCCESS     :   1 (100.0%)
+[20:20:22]   [REWARD BREAKDOWN]
+[20:20:22]     TOTAL REWARD: 2832.6877
+[20:20:22]     progress_shaping    : 3635.0637
+[20:20:22]     collision_penalty   : -1772.5000
+[20:20:22]     waypoint_capture    : 1250.0000
+[20:20:22]     obstacle_clearance_penalty: -822.8850
+[20:20:22]     efficiency_bonus    : 801.2000
+[20:20:22]     lateral_penalty     : -759.6599
+[20:20:22]     heading_reward      : 601.4464
+[20:20:22]     cross_track_error   : -489.6887
+[20:20:22]     decel_reward        : 257.2690
+[20:20:22]     static_turn_reward  : 132.4421
+[20:20:22]   [SCORE BREAKDOWN]
+[20:20:22]     TOTAL SCORE:    400.6
+[20:20:22]     waypoint_bonus      :    375.0
+[20:20:22]     initial_points      :    300.0
+[20:20:22]     time_decay          :   -274.4
+[20:20:22]   Policy loss: -0.0010
+[20:20:22]   Value loss: 1014.2142
+[20:20:22]   Entropy: 4.2766
+[20:20:22]   Approx KL: 0.0019
+[20:20:22]   PPO epochs: 10/10
+[20:20:22] [ITER 4/500] Stage 2/6: Waypoints 10m with 1% coverage
+[20:35:40] 
+[20:35:40] Iteration 4/10000 | Stage 2 completed in 917.43s
+[20:35:40]   Iterations on this stage: 4/500
+[20:35:40]   Episodes this iter: 1
+[20:35:40]   Total episodes: 4
+[20:35:40]   Mean score: 453.0
+[20:35:40]   Mean waypoints captured: 25.0/25
+[20:35:40]   Mean length: 222.0s
+[20:35:40]   Success rate (last 100): 100.0%
+[20:35:40] 
+[20:35:40]   [EPISODE BREAKDOWN]
+[20:35:40]     Ep    4: Score= 453.0  Waypoints=25/25  Time= 222.0s  [✓ SUCCESS]
+[20:35:40]   [FAILURE BREAKDOWN]
+[20:35:40]     SUCCESS     :   1 (100.0%)
+[20:35:40]   [REWARD BREAKDOWN]
+[20:35:40]     TOTAL REWARD: 3237.0369
+[20:35:40]     progress_shaping    : 3631.1527
+[20:35:40]     collision_penalty   : -1538.4000
+[20:35:40]     waypoint_capture    : 1250.0000
+[20:35:40]     efficiency_bonus    : 906.0000
+[20:35:40]     lateral_penalty     : -734.9144
+[20:35:40]     obstacle_clearance_penalty: -678.4712
+[20:35:40]     heading_reward      : 571.2694
+[20:35:40]     cross_track_error   : -407.2800
+[20:35:40]     decel_reward        : 144.3726
+[20:35:40]     static_turn_reward  :  93.3078
+[20:35:40]   [SCORE BREAKDOWN]
+[20:35:40]     TOTAL SCORE:    453.0
+[20:35:40]     waypoint_bonus      :    375.0
+[20:35:40]     initial_points      :    300.0
+[20:35:40]     time_decay          :   -222.0
+[20:35:40]   Policy loss: -0.0002
+[20:35:40]   Value loss: 1258.5590
+[20:35:40]   Entropy: 4.2766
+[20:35:40]   Approx KL: 0.0003
+[20:35:40]   PPO epochs: 10/10
+[20:35:40] [ITER 5/500] Stage 2/6: Waypoints 10m with 1% coverage
+[20:50:58] 
+[20:50:58] Iteration 5/10000 | Stage 2 completed in 918.42s
+[20:50:58]   Iterations on this stage: 5/500
+[20:50:58]   Episodes this iter: 1
+[20:50:58]   Total episodes: 5
+[20:50:58]   Mean score: 398.9
+[20:50:58]   Mean waypoints captured: 25.0/25
+[20:50:58]   Mean length: 276.1s
+[20:50:58]   Success rate (last 100): 100.0%
+[20:50:58] 
+[20:50:58]   [EPISODE BREAKDOWN]
+[20:50:58]     Ep    5: Score= 398.9  Waypoints=25/25  Time= 276.1s  [✓ SUCCESS]
+[20:50:58]   [FAILURE BREAKDOWN]
+[20:50:58]     SUCCESS     :   1 (100.0%)
+[20:50:58]   [REWARD BREAKDOWN]
+[20:50:58]     TOTAL REWARD: 2760.2046
+[20:50:58]     progress_shaping    : 3642.8293
+[20:50:58]     collision_penalty   : -1898.9000
+[20:50:58]     waypoint_capture    : 1250.0000
+[20:50:58]     obstacle_clearance_penalty: -890.8864
+[20:50:58]     efficiency_bonus    : 797.8000
+[20:50:58]     lateral_penalty     : -716.2781
+[20:50:58]     heading_reward      : 617.0602
+[20:50:58]     cross_track_error   : -452.4466
+[20:50:58]     decel_reward        : 282.5688
+[20:50:58]     static_turn_reward  : 128.4574
+[20:50:58]   [SCORE BREAKDOWN]
+[20:50:58]     TOTAL SCORE:    398.9
+[20:50:58]     waypoint_bonus      :    375.0
+[20:50:58]     initial_points      :    300.0
+[20:50:58]     time_decay          :   -276.1
+[20:50:58]   Policy loss: -0.0004
+[20:50:58]   Value loss: 990.4481
+[20:50:58]   Entropy: 4.2766
+[20:50:58]   Approx KL: 0.0004
+[20:50:58]   PPO epochs: 10/10
+[20:50:58] [ITER 6/500] Stage 2/6: Waypoints 10m with 1% coverage
+[21:06:17] 
+[21:06:17] Iteration 6/10000 | Stage 2 completed in 918.54s
+[21:06:17]   Iterations on this stage: 6/500
+[21:06:17]   Episodes this iter: 2
+[21:06:17]   Total episodes: 7
+[21:06:17]   Mean score: 451.5
+[21:06:17]   Mean waypoints captured: 25.0/25
+[21:06:17]   Mean length: 223.5s
+[21:06:17]   Success rate (last 100): 100.0%
+[21:06:17] 
+[21:06:17]   [EPISODE BREAKDOWN]
+[21:06:17]     Ep    6: Score= 471.8  Waypoints=25/25  Time= 203.2s  [✓ SUCCESS]
+[21:06:17]     Ep    7: Score= 431.2  Waypoints=25/25  Time= 243.8s  [✓ SUCCESS]
+[21:06:17]   [FAILURE BREAKDOWN]
+[21:06:17]     SUCCESS     :   2 (100.0%)
+[21:06:17]   [REWARD BREAKDOWN]
+[21:06:17]     TOTAL REWARD: 3284.9605
+[21:06:17]     progress_shaping    : 3650.9436
+[21:06:17]     collision_penalty   : -1551.9000
+[21:06:17]     waypoint_capture    : 1250.0000
+[21:06:17]     efficiency_bonus    : 903.0500
+[21:06:17]     lateral_penalty     : -703.0107
+[21:06:17]     obstacle_clearance_penalty: -653.6152
+[21:06:17]     heading_reward      : 563.1155
+[21:06:17]     cross_track_error   : -408.8277
+[21:06:17]     decel_reward        : 146.1098
+[21:06:17]     static_turn_reward  :  89.0952
+[21:06:17]   [SCORE BREAKDOWN]
+[21:06:17]     TOTAL SCORE:    451.5
+[21:06:17]     waypoint_bonus      :    375.0
+[21:06:17]     initial_points      :    300.0
+[21:06:17]     time_decay          :   -223.5
+[21:06:17]   Policy loss: -0.0008
+[21:06:17]   Value loss: 2356.7045
+[21:06:17]   Entropy: 4.2767
+[21:06:17]   Approx KL: 0.0015
+[21:06:17]   PPO epochs: 10/10
+[21:06:17] [ITER 7/500] Stage 2/6: Waypoints 10m with 1% coverage
+[21:21:32] 
+[21:21:32] Iteration 7/10000 | Stage 2 completed in 915.39s
+[21:21:32]   Iterations on this stage: 7/500
+[21:21:32]   Episodes this iter: 1
+[21:21:32]   Total episodes: 8
+[21:21:32]   Mean score: 452.9
+[21:21:32]   Mean waypoints captured: 25.0/25
+[21:21:32]   Mean length: 222.1s
+[21:21:32]   Success rate (last 100): 100.0%
+[21:21:32] 
+[21:21:32]   [EPISODE BREAKDOWN]
+[21:21:32]     Ep    8: Score= 452.9  Waypoints=25/25  Time= 222.1s  [✓ SUCCESS]
+[21:21:32]   [FAILURE BREAKDOWN]
+[21:21:32]     SUCCESS     :   1 (100.0%)
+[21:21:32]   [REWARD BREAKDOWN]
+[21:21:32]     TOTAL REWARD: 3551.5900
+[21:21:32]     progress_shaping    : 3644.3348
+[21:21:32]     waypoint_capture    : 1250.0000
+[21:21:32]     collision_penalty   : -1121.4000
+[21:21:32]     efficiency_bonus    : 905.8000
+[21:21:32]     obstacle_clearance_penalty: -767.0529
+[21:21:32]     lateral_penalty     : -741.9380
+[21:21:32]     heading_reward      : 593.1339
+[21:21:32]     cross_track_error   : -434.0330
+[21:21:32]     decel_reward        : 136.4509
+[21:21:32]     static_turn_reward  :  86.2943
+[21:21:32]   [SCORE BREAKDOWN]
+[21:21:32]     TOTAL SCORE:    452.9
+[21:21:32]     waypoint_bonus      :    375.0
+[21:21:32]     initial_points      :    300.0
+[21:21:32]     time_decay          :   -222.1
+[21:21:32]   Policy loss: -0.0011
+[21:21:32]   Value loss: 1218.0931
+[21:21:32]   Entropy: 4.2768
+[21:21:32]   Approx KL: 0.0029
+[21:21:32]   PPO epochs: 10/10
+[21:21:32] [ITER 8/500] Stage 2/6: Waypoints 10m with 1% coverage
+[21:36:43] 
+[21:36:43] Iteration 8/10000 | Stage 2 completed in 910.43s
+[21:36:43]   Iterations on this stage: 8/500
+[21:36:43]   Episodes this iter: 1
+[21:36:43]   Total episodes: 9
+[21:36:43]   Mean score: 456.0
+[21:36:43]   Mean waypoints captured: 25.0/25
+[21:36:43]   Mean length: 219.0s
+[21:36:43]   Success rate (last 100): 100.0%
+[21:36:43] 
+[21:36:43]   [EPISODE BREAKDOWN]
+[21:36:43]     Ep    9: Score= 456.0  Waypoints=25/25  Time= 219.0s  [✓ SUCCESS]
+[21:36:43]   [FAILURE BREAKDOWN]
+[21:36:43]     SUCCESS     :   1 (100.0%)
+[21:36:43]   [REWARD BREAKDOWN]
+[21:36:43]     TOTAL REWARD: 3744.2667
+[21:36:43]     progress_shaping    : 3645.0069
+[21:36:43]     waypoint_capture    : 1250.0000
+[21:36:43]     collision_penalty   : -1081.0000
+[21:36:43]     efficiency_bonus    : 912.0000
+[21:36:43]     lateral_penalty     : -734.1716
+[21:36:43]     obstacle_clearance_penalty: -605.0563
+[21:36:43]     heading_reward      : 572.3599
+[21:36:43]     cross_track_error   : -410.4367
+[21:36:43]     decel_reward        : 119.0551
+[21:36:43]     static_turn_reward  :  76.5094
+[21:36:43]   [SCORE BREAKDOWN]
+[21:36:43]     TOTAL SCORE:    456.0
+[21:36:43]     waypoint_bonus      :    375.0
+[21:36:43]     initial_points      :    300.0
+[21:36:43]     time_decay          :   -219.0
+[21:36:43]   Policy loss: -0.0003
+[21:36:43]   Value loss: 1243.8248
+[21:36:43]   Entropy: 4.2768
+[21:36:43]   Approx KL: 0.0009
+[21:36:43]   PPO epochs: 10/10
+[21:36:43] [ITER 9/500] Stage 2/6: Waypoints 10m with 1% coverage
+[21:51:46] 
+[21:51:46] Iteration 9/10000 | Stage 2 completed in 903.33s
+[21:51:46]   Iterations on this stage: 9/500
+[21:51:46]   Episodes this iter: 2
+[21:51:46]   Total episodes: 11
+[21:51:46]   Mean score: 444.9
+[21:51:46]   Mean waypoints captured: 25.0/25
+[21:51:46]   Mean length: 230.1s
+[21:51:46]   Success rate (last 100): 100.0%
+[21:51:46] 
+[21:51:46]   [EPISODE BREAKDOWN]
+[21:51:46]     Ep   10: Score= 442.3  Waypoints=25/25  Time= 232.7s  [✓ SUCCESS]
+[21:51:46]     Ep   11: Score= 447.5  Waypoints=25/25  Time= 227.5s  [✓ SUCCESS]
+[21:51:46]   [FAILURE BREAKDOWN]
+[21:51:46]     SUCCESS     :   2 (100.0%)
+[21:51:46]   [REWARD BREAKDOWN]
+[21:51:46]     TOTAL REWARD: 3441.5131
+[21:51:46]     progress_shaping    : 3635.0458
+[21:51:46]     collision_penalty   : -1276.9000
+[21:51:46]     waypoint_capture    : 1250.0000
+[21:51:46]     efficiency_bonus    : 889.8500
+[21:51:46]     obstacle_clearance_penalty: -754.8071
+[21:51:46]     lateral_penalty     : -720.8221
+[21:51:46]     heading_reward      : 581.0689
+[21:51:46]     cross_track_error   : -412.3754
+[21:51:46]     decel_reward        : 163.8543
+[21:51:46]     static_turn_reward  :  86.5985
+[21:51:46]   [SCORE BREAKDOWN]
+[21:51:46]     TOTAL SCORE:    444.9
+[21:51:46]     waypoint_bonus      :    375.0
+[21:51:46]     initial_points      :    300.0
+[21:51:46]     time_decay          :   -230.1
+[21:51:46]   Policy loss: -0.0003
+[21:51:46]   Value loss: 2245.7698
+[21:51:46]   Entropy: 4.2767
+[21:51:46]   Approx KL: 0.0007
+[21:51:46]   PPO epochs: 10/10
+[21:51:46] [ITER 10/500] Stage 2/6: Waypoints 10m with 1% coverage
+[22:06:55] 
+[22:06:55] Iteration 10/10000 | Stage 2 completed in 908.61s
+[22:06:55]   Iterations on this stage: 10/500
+[22:06:55]   Episodes this iter: 1
+[22:06:55]   Total episodes: 12
+[22:06:55]   Mean score: 440.8
+[22:06:55]   Mean waypoints captured: 25.0/25
+[22:06:55]   Mean length: 234.2s
+[22:06:55]   Success rate (last 100): 100.0%
+[22:06:55] 
+[22:06:55]   [EPISODE BREAKDOWN]
+[22:06:55]     Ep   12: Score= 440.8  Waypoints=25/25  Time= 234.2s  [✓ SUCCESS]
+[22:06:55]   [FAILURE BREAKDOWN]
+[22:06:55]     SUCCESS     :   1 (100.0%)
+[22:06:55]   [REWARD BREAKDOWN]
+[22:06:55]     TOTAL REWARD: 3208.9977
+[22:06:55]     progress_shaping    : 3637.6237
+[22:06:55]     collision_penalty   : -1560.5000
+[22:06:55]     waypoint_capture    : 1250.0000
+[22:06:55]     efficiency_bonus    : 881.7000
+[22:06:55]     lateral_penalty     : -746.9605
+[22:06:55]     obstacle_clearance_penalty: -664.3695
+[22:06:55]     heading_reward      : 579.9812
+[22:06:55]     cross_track_error   : -431.2310
+[22:06:55]     decel_reward        : 167.9947
+[22:06:55]     static_turn_reward  :  94.7593
+[22:06:55]   [SCORE BREAKDOWN]
+[22:06:55]     TOTAL SCORE:    440.8
+[22:06:55]     waypoint_bonus      :    375.0
+[22:06:55]     initial_points      :    300.0
+[22:06:55]     time_decay          :   -234.2
+[22:06:55]   Policy loss: -0.0003
+[22:06:55]   Value loss: 1245.8673
+[22:06:55]   Entropy: 4.2767
+[22:06:55]   Approx KL: 0.0001
+[22:06:55]   PPO epochs: 10/10
+[22:06:55] [ITER 11/500] Stage 2/6: Waypoints 10m with 1% coverage
+[22:22:08] 
+[22:22:08] Iteration 11/10000 | Stage 2 completed in 913.07s
+[22:22:08]   Iterations on this stage: 11/500
+[22:22:08]   Episodes this iter: 1
+[22:22:08]   Total episodes: 13
+[22:22:08]   Mean score: 417.7
+[22:22:08]   Mean waypoints captured: 25.0/25
+[22:22:08]   Mean length: 257.3s
+[22:22:08]   Success rate (last 100): 100.0%
+[22:22:08] 
+[22:22:08]   [EPISODE BREAKDOWN]
+[22:22:08]     Ep   13: Score= 417.7  Waypoints=25/25  Time= 257.3s  [✓ SUCCESS]
+[22:22:08]   [FAILURE BREAKDOWN]
+[22:22:08]     SUCCESS     :   1 (100.0%)
+[22:22:08]   [REWARD BREAKDOWN]
+[22:22:08]     TOTAL REWARD: 2861.7936
+[22:22:08]     progress_shaping    : 3628.5224
+[22:22:08]     collision_penalty   : -1796.5000
+[22:22:08]     waypoint_capture    : 1250.0000
+[22:22:08]     efficiency_bonus    : 835.5000
+[22:22:08]     lateral_penalty     : -743.7166
+[22:22:08]     obstacle_clearance_penalty: -741.8880
+[22:22:08]     heading_reward      : 586.5298
+[22:22:08]     cross_track_error   : -484.1006
+[22:22:08]     decel_reward        : 230.6439
+[22:22:08]     static_turn_reward  :  96.8028
+[22:22:08]   [SCORE BREAKDOWN]
+[22:22:08]     TOTAL SCORE:    417.7
+[22:22:08]     waypoint_bonus      :    375.0
+[22:22:08]     initial_points      :    300.0
+[22:22:08]     time_decay          :   -257.3
+[22:22:08]   Policy loss: -0.0016
+[22:22:08]   Value loss: 1089.8294
+[22:22:08]   Entropy: 4.2768
+[22:22:08]   Approx KL: 0.0032
+[22:22:08]   PPO epochs: 10/10
+[22:22:08] [ITER 12/500] Stage 2/6: Waypoints 10m with 1% coverage
+[22:37:17] 
+[22:37:17] Iteration 12/10000 | Stage 2 completed in 909.61s
+[22:37:17]   Iterations on this stage: 12/500
+[22:37:17]   Episodes this iter: 1
+[22:37:17]   Total episodes: 14
+[22:37:17]   Mean score: 443.0
+[22:37:17]   Mean waypoints captured: 25.0/25
+[22:37:17]   Mean length: 232.0s
+[22:37:17]   Success rate (last 100): 100.0%
+[22:37:17] 
+[22:37:17]   [EPISODE BREAKDOWN]
+[22:37:17]     Ep   14: Score= 443.0  Waypoints=25/25  Time= 232.0s  [✓ SUCCESS]
+[22:37:17]   [FAILURE BREAKDOWN]
+[22:37:17]     SUCCESS     :   1 (100.0%)
+[22:37:17]   [REWARD BREAKDOWN]
+[22:37:17]     TOTAL REWARD: 2979.1088
+[22:37:17]     progress_shaping    : 3643.4473
+[22:37:17]     collision_penalty   : -1758.2000
+[22:37:17]     waypoint_capture    : 1250.0000
+[22:37:17]     efficiency_bonus    : 886.1000
+[22:37:17]     obstacle_clearance_penalty: -757.4039
+[22:37:17]     lateral_penalty     : -676.3434
+[22:37:17]     heading_reward      : 555.0846
+[22:37:17]     cross_track_error   : -433.6777
+[22:37:17]     decel_reward        : 173.4139
+[22:37:17]     static_turn_reward  :  96.6880
+[22:37:17]   [SCORE BREAKDOWN]
+[22:37:17]     TOTAL SCORE:    443.0
+[22:37:17]     waypoint_bonus      :    375.0
+[22:37:17]     initial_points      :    300.0
+[22:37:17]     time_decay          :   -232.0
+[22:37:17]   Policy loss: -0.0009
+[22:37:17]   Value loss: 1233.1804
+[22:37:17]   Entropy: 4.2768
+[22:37:17]   Approx KL: 0.0035
+[22:37:17]   PPO epochs: 10/10
+[22:37:17] [ITER 13/500] Stage 2/6: Waypoints 10m with 1% coverage
+[22:52:28] 
+[22:52:28] Iteration 13/10000 | Stage 2 completed in 911.03s
+[22:52:28]   Iterations on this stage: 13/500
+[22:52:28]   Episodes this iter: 1
+[22:52:28]   Total episodes: 15
+[22:52:28]   Mean score: 420.5
+[22:52:28]   Mean waypoints captured: 25.0/25
+[22:52:28]   Mean length: 254.5s
+[22:52:28]   Success rate (last 100): 100.0%
+[22:52:28] 
+[22:52:28]   [EPISODE BREAKDOWN]
+[22:52:28]     Ep   15: Score= 420.5  Waypoints=25/25  Time= 254.5s  [✓ SUCCESS]
+[22:52:28]   [FAILURE BREAKDOWN]
+[22:52:28]     SUCCESS     :   1 (100.0%)
+[22:52:28]   [REWARD BREAKDOWN]
+[22:52:28]     TOTAL REWARD: 3416.6254
+[22:52:28]     progress_shaping    : 3635.6547
+[22:52:28]     collision_penalty   : -1296.9000
+[22:52:28]     waypoint_capture    : 1250.0000
+[22:52:28]     efficiency_bonus    : 841.0000
+[22:52:28]     obstacle_clearance_penalty: -766.7041
+[22:52:28]     lateral_penalty     : -715.8224
+[22:52:28]     heading_reward      : 577.5733
+[22:52:28]     cross_track_error   : -452.2737
+[22:52:28]     decel_reward        : 229.5881
+[22:52:28]     static_turn_reward  : 114.5095
+[22:52:28]   [SCORE BREAKDOWN]
+[22:52:28]     TOTAL SCORE:    420.5
+[22:52:28]     waypoint_bonus      :    375.0
+[22:52:28]     initial_points      :    300.0
+[22:52:28]     time_decay          :   -254.5
+[22:52:28]   Policy loss: -0.0018
+[22:52:28]   Value loss: 1062.9314
+[22:52:28]   Entropy: 4.2767
+[22:52:28]   Approx KL: 0.0027
+[22:52:28]   PPO epochs: 10/10
+[22:52:28] [ITER 14/500] Stage 2/6: Waypoints 10m with 1% coverage
+[23:07:47] 
+[23:07:47] Iteration 14/10000 | Stage 2 completed in 918.69s
+[23:07:47]   Iterations on this stage: 14/500
+[23:07:47]   Episodes this iter: 2
+[23:07:47]   Total episodes: 17
+[23:07:47]   Mean score: 439.2
+[23:07:47]   Mean waypoints captured: 25.0/25
+[23:07:47]   Mean length: 235.8s
+[23:07:47]   Success rate (last 100): 100.0%
+[23:07:47] 
+[23:07:47]   [EPISODE BREAKDOWN]
+[23:07:47]     Ep   16: Score= 423.8  Waypoints=25/25  Time= 251.2s  [✓ SUCCESS]
+[23:07:47]     Ep   17: Score= 454.6  Waypoints=25/25  Time= 220.4s  [✓ SUCCESS]
+[23:07:47]   [FAILURE BREAKDOWN]
+[23:07:47]     SUCCESS     :   2 (100.0%)
+[23:07:47]   [REWARD BREAKDOWN]
+[23:07:47]     TOTAL REWARD: 3311.0837
+[23:07:47]     progress_shaping    : 3640.1767
+[23:07:47]     collision_penalty   : -1537.1500
+[23:07:47]     waypoint_capture    : 1250.0000
+[23:07:47]     efficiency_bonus    : 878.4500
+[23:07:47]     obstacle_clearance_penalty: -675.8207
+[23:07:47]     lateral_penalty     : -675.6547
+[23:07:47]     heading_reward      : 572.2780
+[23:07:47]     cross_track_error   : -419.3363
+[23:07:47]     decel_reward        : 191.7077
+[23:07:47]     static_turn_reward  :  86.4331
+[23:07:47]   [SCORE BREAKDOWN]
+[23:07:47]     TOTAL SCORE:    439.2
+[23:07:47]     waypoint_bonus      :    375.0
+[23:07:47]     initial_points      :    300.0
+[23:07:47]     time_decay          :   -235.8
+[23:07:47]   Policy loss: -0.0001
+[23:07:47]   Value loss: 2351.6955
+[23:07:47]   Entropy: 4.2766
+[23:07:47]   Approx KL: 0.0016
+[23:07:47]   PPO epochs: 10/10
+[23:07:47] [ITER 15/500] Stage 2/6: Waypoints 10m with 1% coverage
+[23:22:59] 
+[23:22:59] Iteration 15/10000 | Stage 2 completed in 911.78s
+[23:22:59]   Iterations on this stage: 15/500
+[23:22:59]   Episodes this iter: 1
+[23:22:59]   Total episodes: 18
+[23:22:59]   Mean score: 459.9
+[23:22:59]   Mean waypoints captured: 25.0/25
+[23:22:59]   Mean length: 215.1s
+[23:22:59]   Success rate (last 100): 100.0%
+[23:22:59] 
+[23:22:59]   [EPISODE BREAKDOWN]
+[23:22:59]     Ep   18: Score= 459.9  Waypoints=25/25  Time= 215.1s  [✓ SUCCESS]
+[23:22:59]   [FAILURE BREAKDOWN]
+[23:22:59]     SUCCESS     :   1 (100.0%)
+[23:22:59]   [REWARD BREAKDOWN]
+[23:22:59]     TOTAL REWARD: 3241.7645
+[23:22:59]     progress_shaping    : 3641.9640
+[23:22:59]     collision_penalty   : -1562.9000
+[23:22:59]     waypoint_capture    : 1250.0000
+[23:22:59]     efficiency_bonus    : 919.9000
+[23:22:59]     lateral_penalty     : -720.7227
+[23:22:59]     obstacle_clearance_penalty: -626.8595
+[23:22:59]     heading_reward      : 564.5007
+[23:22:59]     cross_track_error   : -407.1841
+[23:22:59]     decel_reward        : 108.8205
+[23:22:59]     static_turn_reward  :  74.2456
+[23:22:59]   [SCORE BREAKDOWN]
+[23:22:59]     TOTAL SCORE:    459.9
+[23:22:59]     waypoint_bonus      :    375.0
+[23:22:59]     initial_points      :    300.0
+[23:22:59]     time_decay          :   -215.1
+[23:22:59]   Policy loss: -0.0005
+[23:22:59]   Value loss: 1273.8333
+[23:22:59]   Entropy: 4.2766
+[23:22:59]   Approx KL: 0.0006
+[23:22:59]   PPO epochs: 10/10
+[23:22:59] [ITER 16/500] Stage 2/6: Waypoints 10m with 1% coverage
+[23:38:17] 
+[23:38:17] Iteration 16/10000 | Stage 2 completed in 917.76s
+[23:38:17]   Iterations on this stage: 16/500
+[23:38:17]   Episodes this iter: 2
+[23:38:17]   Total episodes: 20
+[23:38:17]   Mean score: 450.4
+[23:38:17]   Mean waypoints captured: 25.0/25
+[23:38:17]   Mean length: 224.6s
+[23:38:17]   Success rate (last 100): 100.0%
+[23:38:17] 
+[23:38:17]   [EPISODE BREAKDOWN]
+[23:38:17]     Ep   19: Score= 465.5  Waypoints=25/25  Time= 209.5s  [✓ SUCCESS]
+[23:38:17]     Ep   20: Score= 435.2  Waypoints=25/25  Time= 239.8s  [✓ SUCCESS]
+[23:38:17]   [FAILURE BREAKDOWN]
+[23:38:17]     SUCCESS     :   2 (100.0%)
+[23:38:17]   [REWARD BREAKDOWN]
+[23:38:17]     TOTAL REWARD: 3465.8473
+[23:38:17]     progress_shaping    : 3644.0128
+[23:38:17]     collision_penalty   : -1433.6500
+[23:38:17]     waypoint_capture    : 1250.0000
+[23:38:17]     efficiency_bonus    : 900.7500
+[23:38:17]     lateral_penalty     : -677.1807
+[23:38:17]     obstacle_clearance_penalty: -640.5108
+[23:38:17]     heading_reward      : 575.8836
+[23:38:17]     cross_track_error   : -378.0224
+[23:38:17]     decel_reward        : 141.3487
+[23:38:17]     static_turn_reward  :  83.2160
+[23:38:17]   [SCORE BREAKDOWN]
+[23:38:17]     TOTAL SCORE:    450.4
+[23:38:17]     waypoint_bonus      :    375.0
+[23:38:17]     initial_points      :    300.0
+[23:38:17]     time_decay          :   -224.6
+[23:38:17]   Policy loss: -0.0004
+[23:38:17]   Value loss: 2386.1932
+[23:38:17]   Entropy: 4.2766
+[23:38:17]   Approx KL: 0.0003
+[23:38:17]   PPO epochs: 10/10
+[23:38:17] [ITER 17/500] Stage 2/6: Waypoints 10m with 1% coverage
+[23:53:26] 
+[23:53:26] Iteration 17/10000 | Stage 2 completed in 909.16s
+[23:53:26]   Iterations on this stage: 17/500
+[23:53:26]   Episodes this iter: 1
+[23:53:26]   Total episodes: 21
+[23:53:26]   Mean score: 431.8
+[23:53:26]   Mean waypoints captured: 25.0/25
+[23:53:26]   Mean length: 243.2s
+[23:53:26]   Success rate (last 100): 100.0%
+[23:53:26] 
+[23:53:26]   [EPISODE BREAKDOWN]
+[23:53:26]     Ep   21: Score= 431.8  Waypoints=25/25  Time= 243.2s  [✓ SUCCESS]
+[23:53:26]   [FAILURE BREAKDOWN]
+[23:53:26]     SUCCESS     :   1 (100.0%)
+[23:53:26]   [REWARD BREAKDOWN]
+[23:53:26]     TOTAL REWARD: 3039.0290
+[23:53:26]     progress_shaping    : 3650.1162
+[23:53:26]     collision_penalty   : -1822.5000
+[23:53:26]     waypoint_capture    : 1250.0000
+[23:53:26]     efficiency_bonus    : 863.7000
+[23:53:26]     lateral_penalty     : -689.2695
+[23:53:26]     obstacle_clearance_penalty: -661.8559
+[23:53:26]     heading_reward      : 587.6118
+[23:53:26]     cross_track_error   : -414.1458
+[23:53:26]     decel_reward        : 185.3050
+[23:53:26]     static_turn_reward  :  90.0672
+[23:53:26]   [SCORE BREAKDOWN]
+[23:53:26]     TOTAL SCORE:    431.8
+[23:53:26]     waypoint_bonus      :    375.0
+[23:53:26]     initial_points      :    300.0
+[23:53:26]     time_decay          :   -243.2
+[23:53:26]   Policy loss: -0.0007
+[23:53:26]   Value loss: 1143.0911
+[23:53:26]   Entropy: 4.2767
+[23:53:26]   Approx KL: 0.0011
+[23:53:26]   PPO epochs: 10/10
+[23:53:26] [ITER 18/500] Stage 2/6: Waypoints 10m with 1% coverage
+[00:08:29] 
+[00:08:29] Iteration 18/10000 | Stage 2 completed in 902.80s
+[00:08:29]   Iterations on this stage: 18/500
+[00:08:29]   Episodes this iter: 1
+[00:08:29]   Total episodes: 22
+[00:08:29]   Mean score: 457.8
+[00:08:29]   Mean waypoints captured: 25.0/25
+[00:08:29]   Mean length: 217.2s
+[00:08:29]   Success rate (last 100): 100.0%
+[00:08:29] 
+[00:08:29]   [EPISODE BREAKDOWN]
+[00:08:29]     Ep   22: Score= 457.8  Waypoints=25/25  Time= 217.2s  [✓ SUCCESS]
+[00:08:29]   [FAILURE BREAKDOWN]
+[00:08:29]     SUCCESS     :   1 (100.0%)
+[00:08:29]   [REWARD BREAKDOWN]
+[00:08:29]     TOTAL REWARD: 3434.4265
+[00:08:29]     progress_shaping    : 3666.7913
+[00:08:29]     collision_penalty   : -1549.6000
+[00:08:29]     waypoint_capture    : 1250.0000
+[00:08:29]     efficiency_bonus    : 915.6000
+[00:08:29]     lateral_penalty     : -681.7587
+[00:08:29]     obstacle_clearance_penalty: -590.3017
+[00:08:29]     heading_reward      : 574.6774
+[00:08:29]     cross_track_error   : -370.4008
+[00:08:29]     decel_reward        : 140.8764
+[00:08:29]     static_turn_reward  :  78.5426
+[00:08:29]   [SCORE BREAKDOWN]
+[00:08:29]     TOTAL SCORE:    457.8
+[00:08:29]     waypoint_bonus      :    375.0
+[00:08:29]     initial_points      :    300.0
+[00:08:29]     time_decay          :   -217.2
+[00:08:29]   Policy loss: -0.0005
+[00:08:29]   Value loss: 1301.2442
+[00:08:29]   Entropy: 4.2767
+[00:08:29]   Approx KL: 0.0009
+[00:08:29]   PPO epochs: 10/10
+[00:08:29] [ITER 19/500] Stage 2/6: Waypoints 10m with 1% coverage
+[00:23:31] 
+[00:23:31] Iteration 19/10000 | Stage 2 completed in 902.91s
+[00:23:31]   Iterations on this stage: 19/500
+[00:23:31]   Episodes this iter: 1
+[00:23:31]   Total episodes: 23
+[00:23:31]   Mean score: 458.4
+[00:23:31]   Mean waypoints captured: 25.0/25
+[00:23:31]   Mean length: 216.6s
+[00:23:31]   Success rate (last 100): 100.0%
+[00:23:31] 
+[00:23:31]   [EPISODE BREAKDOWN]
+[00:23:31]     Ep   23: Score= 458.4  Waypoints=25/25  Time= 216.6s  [✓ SUCCESS]
+[00:23:31]   [FAILURE BREAKDOWN]
+[00:23:31]     SUCCESS     :   1 (100.0%)
+[00:23:31]   [REWARD BREAKDOWN]
+[00:23:31]     TOTAL REWARD: 3290.1258
+[00:23:31]     progress_shaping    : 3656.3570
+[00:23:31]     collision_penalty   : -1533.2000
+[00:23:31]     waypoint_capture    : 1250.0000
+[00:23:31]     efficiency_bonus    : 916.9000
+[00:23:31]     lateral_penalty     : -712.0400
+[00:23:31]     obstacle_clearance_penalty: -667.5913
+[00:23:31]     heading_reward      : 588.5383
+[00:23:31]     cross_track_error   : -413.5452
+[00:23:31]     decel_reward        : 128.6126
+[00:23:31]     static_turn_reward  :  76.0943
+[00:23:31]   [SCORE BREAKDOWN]
+[00:23:31]     TOTAL SCORE:    458.4
+[00:23:31]     waypoint_bonus      :    375.0
+[00:23:31]     initial_points      :    300.0
+[00:23:31]     time_decay          :   -216.6
+[00:23:31]   Policy loss: -0.0013
+[00:23:31]   Value loss: 1271.6331
+[00:23:31]   Entropy: 4.2767
+[00:23:31]   Approx KL: 0.0015
+[00:23:31]   PPO epochs: 10/10
+[00:23:31] [ITER 20/500] Stage 2/6: Waypoints 10m with 1% coverage
+[00:38:33] 
+[00:38:33] Iteration 20/10000 | Stage 2 completed in 901.92s
+[00:38:33]   Iterations on this stage: 20/500
+[00:38:33]   Episodes this iter: 1
+[00:38:33]   Total episodes: 24
+[00:38:33]   Mean score: 427.3
+[00:38:33]   Mean waypoints captured: 25.0/25
+[00:38:33]   Mean length: 247.7s
+[00:38:33]   Success rate (last 100): 100.0%
+[00:38:33] 
+[00:38:33]   [EPISODE BREAKDOWN]
+[00:38:33]     Ep   24: Score= 427.3  Waypoints=25/25  Time= 247.7s  [✓ SUCCESS]
+[00:38:33]   [FAILURE BREAKDOWN]
+[00:38:33]     SUCCESS     :   1 (100.0%)
+[00:38:33]   [REWARD BREAKDOWN]
+[00:38:33]     TOTAL REWARD: 3041.5378
+[00:38:33]     progress_shaping    : 3614.5435
+[00:38:33]     collision_penalty   : -1731.2000
+[00:38:33]     waypoint_capture    : 1250.0000
+[00:38:33]     efficiency_bonus    : 854.6000
+[00:38:33]     obstacle_clearance_penalty: -717.5629
+[00:38:33]     lateral_penalty     : -686.0436
+[00:38:33]     heading_reward      : 572.1074
+[00:38:33]     cross_track_error   : -413.6118
+[00:38:33]     decel_reward        : 196.9827
+[00:38:33]     static_turn_reward  : 101.7224
+[00:38:33]   [SCORE BREAKDOWN]
+[00:38:33]     TOTAL SCORE:    427.3
+[00:38:33]     waypoint_bonus      :    375.0
+[00:38:33]     initial_points      :    300.0
+[00:38:33]     time_decay          :   -247.7
+[00:38:33]   Policy loss: 0.0000
+[00:38:33]   Value loss: 1146.6424
+[00:38:33]   Entropy: 4.2767
+[00:38:33]   Approx KL: 0.0038
+[00:38:33]   PPO epochs: 10/10
+[00:38:33] [ITER 21/500] Stage 2/6: Waypoints 10m with 1% coverage
+[00:53:38] 
+[00:53:38] Iteration 21/10000 | Stage 2 completed in 904.23s
+[00:53:38]   Iterations on this stage: 21/500
+[00:53:38]   Episodes this iter: 2
+[00:53:38]   Total episodes: 26
+[00:53:38]   Mean score: 416.3
+[00:53:38]   Mean waypoints captured: 25.0/25
+[00:53:38]   Mean length: 258.7s
+[00:53:38]   Success rate (last 100): 100.0%
+[00:53:38] 
+[00:53:38]   [EPISODE BREAKDOWN]
+[00:53:38]     Ep   25: Score= 386.2  Waypoints=25/25  Time= 288.8s  [✓ SUCCESS]
+[00:53:38]     Ep   26: Score= 446.5  Waypoints=25/25  Time= 228.5s  [✓ SUCCESS]
+[00:53:38]   [FAILURE BREAKDOWN]
+[00:53:38]     SUCCESS     :   2 (100.0%)
+[00:53:38]   [REWARD BREAKDOWN]
+[00:53:38]     TOTAL REWARD: 3314.8576
+[00:53:38]     progress_shaping    : 3643.6630
+[00:53:38]     collision_penalty   : -1323.1500
+[00:53:38]     waypoint_capture    : 1250.0000
+[00:53:38]     obstacle_clearance_penalty: -840.9208
+[00:53:38]     efficiency_bonus    : 832.7000
+[00:53:38]     lateral_penalty     : -746.9539
+[00:53:38]     heading_reward      : 575.2942
+[00:53:38]     cross_track_error   : -419.7973
+[00:53:38]     decel_reward        : 243.9102
+[00:53:38]     static_turn_reward  : 100.1122
+[00:53:38]   [SCORE BREAKDOWN]
+[00:53:38]     TOTAL SCORE:    416.3
+[00:53:38]     waypoint_bonus      :    375.0
+[00:53:38]     initial_points      :    300.0
+[00:53:38]     time_decay          :   -258.7
+[00:53:38]   Policy loss: -0.0003
+[00:53:38]   Value loss: 2129.1351
+[00:53:38]   Entropy: 4.2766
+[00:53:38]   Approx KL: 0.0010
+[00:53:38]   PPO epochs: 10/10
+[00:53:38] [ITER 22/500] Stage 2/6: Waypoints 10m with 1% coverage
+[01:08:40] 
+[01:08:40] Iteration 22/10000 | Stage 2 completed in 902.27s
+[01:08:40]   Iterations on this stage: 22/500
+[01:08:40]   Episodes this iter: 1
+[01:08:40]   Total episodes: 27
+[01:08:40]   Mean score: 472.9
+[01:08:40]   Mean waypoints captured: 25.0/25
+[01:08:40]   Mean length: 202.1s
+[01:08:40]   Success rate (last 100): 100.0%
+[01:08:40] 
+[01:08:40]   [EPISODE BREAKDOWN]
+[01:08:40]     Ep   27: Score= 472.9  Waypoints=25/25  Time= 202.1s  [✓ SUCCESS]
+[01:08:40]   [FAILURE BREAKDOWN]
+[01:08:40]     SUCCESS     :   1 (100.0%)
+[01:08:40]   [REWARD BREAKDOWN]
+[01:08:40]     TOTAL REWARD: 3716.7181
+[01:08:40]     progress_shaping    : 3652.3250
+[01:08:40]     waypoint_capture    : 1250.0000
+[01:08:40]     collision_penalty   : -1218.3000
+[01:08:40]     efficiency_bonus    : 945.9000
+[01:08:40]     lateral_penalty     : -670.3547
+[01:08:40]     obstacle_clearance_penalty: -596.9396
+[01:08:40]     heading_reward      : 565.1361
+[01:08:40]     cross_track_error   : -380.9826
+[01:08:40]     decel_reward        : 106.8193
+[01:08:40]     static_turn_reward  :  63.1146
+[01:08:40]   [SCORE BREAKDOWN]
+[01:08:40]     TOTAL SCORE:    472.9
+[01:08:40]     waypoint_bonus      :    375.0
+[01:08:40]     initial_points      :    300.0
+[01:08:40]     time_decay          :   -202.1
+[01:08:40]   Policy loss: -0.0006
+[01:08:40]   Value loss: 1381.1623
+[01:08:40]   Entropy: 4.2766
+[01:08:40]   Approx KL: 0.0011
+[01:08:40]   PPO epochs: 10/10
+[01:08:40] [ITER 23/500] Stage 2/6: Waypoints 10m with 1% coverage
+[01:23:46] 
+[01:23:46] Iteration 23/10000 | Stage 2 completed in 906.50s
+[01:23:46]   Iterations on this stage: 23/500
+[01:23:46]   Episodes this iter: 2
+[01:23:46]   Total episodes: 29
+[01:23:46]   Mean score: 451.8
+[01:23:46]   Mean waypoints captured: 25.0/25
+[01:23:46]   Mean length: 223.2s
+[01:23:46]   Success rate (last 100): 100.0%
+[01:23:46] 
+[01:23:46]   [EPISODE BREAKDOWN]
+[01:23:46]     Ep   28: Score= 438.6  Waypoints=25/25  Time= 236.4s  [✓ SUCCESS]
+[01:23:46]     Ep   29: Score= 464.9  Waypoints=25/25  Time= 210.1s  [✓ SUCCESS]
+[01:23:46]   [FAILURE BREAKDOWN]
+[01:23:46]     SUCCESS     :   2 (100.0%)
+[01:23:46]   [REWARD BREAKDOWN]
+[01:23:46]     TOTAL REWARD: 3477.3975
+[01:23:46]     progress_shaping    : 3641.9992
+[01:23:46]     collision_penalty   : -1432.7500
+[01:23:46]     waypoint_capture    : 1250.0000
+[01:23:46]     efficiency_bonus    : 903.6000
+[01:23:46]     lateral_penalty     : -691.7286
+[01:23:46]     obstacle_clearance_penalty: -628.9288
+[01:23:46]     heading_reward      : 551.8604
+[01:23:46]     cross_track_error   : -357.2585
+[01:23:46]     decel_reward        : 162.8632
+[01:23:46]     static_turn_reward  :  77.7405
+[01:23:46]   [SCORE BREAKDOWN]
+[01:23:46]     TOTAL SCORE:    451.8
+[01:23:46]     waypoint_bonus      :    375.0
+[01:23:46]     initial_points      :    300.0
+[01:23:46]     time_decay          :   -223.2
+[01:23:46]   Policy loss: -0.0002
+[01:23:46]   Value loss: 2382.8330
+[01:23:46]   Entropy: 4.2767
+[01:23:46]   Approx KL: 0.0012
+[01:23:46]   PPO epochs: 10/10
+[01:23:46] [ITER 24/500] Stage 2/6: Waypoints 10m with 1% coverage
+[01:38:55] 
+[01:38:55] Iteration 24/10000 | Stage 2 completed in 908.98s
+[01:38:55]   Iterations on this stage: 24/500
+[01:38:55]   Episodes this iter: 1
+[01:38:55]   Total episodes: 30
+[01:38:55]   Mean score: 437.9
+[01:38:55]   Mean waypoints captured: 25.0/25
+[01:38:55]   Mean length: 237.1s
+[01:38:55]   Success rate (last 100): 100.0%
+[01:38:55] 
+[01:38:55]   [EPISODE BREAKDOWN]
+[01:38:55]     Ep   30: Score= 437.9  Waypoints=25/25  Time= 237.1s  [✓ SUCCESS]
+[01:38:55]   [FAILURE BREAKDOWN]
+[01:38:55]     SUCCESS     :   1 (100.0%)
+[01:38:55]   [REWARD BREAKDOWN]
+[01:38:55]     TOTAL REWARD: 3695.9494
+[01:38:55]     progress_shaping    : 3648.2892
+[01:38:55]     waypoint_capture    : 1250.0000
+[01:38:55]     collision_penalty   : -1235.2000
+[01:38:55]     efficiency_bonus    : 875.9000
+[01:38:55]     lateral_penalty     : -675.9082
+[01:38:55]     obstacle_clearance_penalty: -646.3756
+[01:38:55]     heading_reward      : 542.6295
+[01:38:55]     cross_track_error   : -366.5087
+[01:38:55]     decel_reward        : 220.9492
+[01:38:55]     static_turn_reward  :  82.1739
+[01:38:55]   [SCORE BREAKDOWN]
+[01:38:55]     TOTAL SCORE:    437.9
+[01:38:55]     waypoint_bonus      :    375.0
+[01:38:55]     initial_points      :    300.0
+[01:38:55]     time_decay          :   -237.1
+[01:38:55]   Policy loss: -0.0001
+[01:38:55]   Value loss: 1230.0661
+[01:38:55]   Entropy: 4.2767
+[01:38:55]   Approx KL: 0.0002
+[01:38:55]   PPO epochs: 10/10
+[01:38:55] [ITER 25/500] Stage 2/6: Waypoints 10m with 1% coverage
+[01:54:00] 
+[01:54:00] Iteration 25/10000 | Stage 2 completed in 904.40s
+[01:54:00]   Iterations on this stage: 25/500
+[01:54:00]   Episodes this iter: 1
+[01:54:00]   Total episodes: 31
+[01:54:00]   Mean score: 448.2
+[01:54:00]   Mean waypoints captured: 25.0/25
+[01:54:00]   Mean length: 226.8s
+[01:54:00]   Success rate (last 100): 100.0%
+[01:54:00] 
+[01:54:00]   [EPISODE BREAKDOWN]
+[01:54:00]     Ep   31: Score= 448.2  Waypoints=25/25  Time= 226.8s  [✓ SUCCESS]
+[01:54:00]   [FAILURE BREAKDOWN]
+[01:54:00]     SUCCESS     :   1 (100.0%)
+[01:54:00]   [REWARD BREAKDOWN]
+[01:54:00]     TOTAL REWARD: 3296.7174
+[01:54:00]     progress_shaping    : 3637.8314
+[01:54:00]     collision_penalty   : -1635.7000
+[01:54:00]     waypoint_capture    : 1250.0000
+[01:54:00]     efficiency_bonus    : 896.5000
+[01:54:00]     lateral_penalty     : -693.4602
+[01:54:00]     obstacle_clearance_penalty: -625.7671
+[01:54:00]     heading_reward      : 585.1018
+[01:54:00]     cross_track_error   : -341.1994
+[01:54:00]     decel_reward        : 138.5223
+[01:54:00]     static_turn_reward  :  84.8885
+[01:54:00]   [SCORE BREAKDOWN]
+[01:54:00]     TOTAL SCORE:    448.2
+[01:54:00]     waypoint_bonus      :    375.0
+[01:54:00]     initial_points      :    300.0
+[01:54:00]     time_decay          :   -226.8
+[01:54:00]   Policy loss: -0.0018
+[01:54:00]   Value loss: 1263.6361
+[01:54:00]   Entropy: 4.2767
+[01:54:00]   Approx KL: 0.0016
+[01:54:00]   PPO epochs: 10/10
+[01:54:00]   Checkpoint saved: checkpoint_stage2_iter025.pt
+[01:54:00] [ITER 26/500] Stage 2/6: Waypoints 10m with 1% coverage
+[02:09:05] 
+[02:09:05] Iteration 26/10000 | Stage 2 completed in 904.84s
+[02:09:05]   Iterations on this stage: 26/500
+[02:09:05]   Episodes this iter: 1
+[02:09:05]   Total episodes: 32
+[02:09:05]   Mean score: 456.2
+[02:09:05]   Mean waypoints captured: 25.0/25
+[02:09:05]   Mean length: 218.8s
+[02:09:05]   Success rate (last 100): 100.0%
+[02:09:05] 
+[02:09:05]   [EPISODE BREAKDOWN]
+[02:09:05]     Ep   32: Score= 456.2  Waypoints=25/25  Time= 218.8s  [✓ SUCCESS]
+[02:09:05]   [FAILURE BREAKDOWN]
+[02:09:05]     SUCCESS     :   1 (100.0%)
+[02:09:05]   [REWARD BREAKDOWN]
+[02:09:05]     TOTAL REWARD: 3255.9303
+[02:09:05]     progress_shaping    : 3624.8414
+[02:09:05]     collision_penalty   : -1643.2000
+[02:09:05]     waypoint_capture    : 1250.0000
+[02:09:05]     efficiency_bonus    : 912.5000
+[02:09:05]     lateral_penalty     : -653.4347
+[02:09:05]     obstacle_clearance_penalty: -613.1904
+[02:09:05]     heading_reward      : 556.5347
+[02:09:05]     cross_track_error   : -381.3237
+[02:09:05]     decel_reward        : 126.9197
+[02:09:05]     static_turn_reward  :  76.2834
+[02:09:05]   [SCORE BREAKDOWN]
+[02:09:05]     TOTAL SCORE:    456.2
+[02:09:05]     waypoint_bonus      :    375.0
+[02:09:05]     initial_points      :    300.0
+[02:09:05]     time_decay          :   -218.8
+[02:09:05]   Policy loss: -0.0002
+[02:09:05]   Value loss: 1335.9227
+[02:09:05]   Entropy: 4.2766
+[02:09:05]   Approx KL: 0.0024
+[02:09:05]   PPO epochs: 10/10
+[02:09:05] [ITER 27/500] Stage 2/6: Waypoints 10m with 1% coverage
+[02:24:10] 
+[02:24:10] Iteration 27/10000 | Stage 2 completed in 905.04s
+[02:24:10]   Iterations on this stage: 27/500
+[02:24:10]   Episodes this iter: 2
+[02:24:10]   Total episodes: 34
+[02:24:10]   Mean score: 451.3
+[02:24:10]   Mean waypoints captured: 25.0/25
+[02:24:10]   Mean length: 223.7s
+[02:24:10]   Success rate (last 100): 100.0%
+[02:24:10] 
+[02:24:10]   [EPISODE BREAKDOWN]
+[02:24:10]     Ep   33: Score= 430.2  Waypoints=25/25  Time= 244.8s  [✓ SUCCESS]
+[02:24:10]     Ep   34: Score= 472.4  Waypoints=25/25  Time= 202.6s  [✓ SUCCESS]
+[02:24:10]   [FAILURE BREAKDOWN]
+[02:24:10]     SUCCESS     :   2 (100.0%)
+[02:24:10]   [REWARD BREAKDOWN]
+[02:24:10]     TOTAL REWARD: 3184.6761
+[02:24:10]     progress_shaping    : 3637.4890
+[02:24:10]     collision_penalty   : -1644.9000
+[02:24:10]     waypoint_capture    : 1250.0000
+[02:24:10]     efficiency_bonus    : 902.6500
+[02:24:10]     lateral_penalty     : -725.2079
+[02:24:10]     obstacle_clearance_penalty: -628.1775
+[02:24:10]     heading_reward      : 586.4118
+[02:24:10]     cross_track_error   : -415.6355
+[02:24:10]     decel_reward        : 136.8459
+[02:24:10]     static_turn_reward  :  85.2004
+[02:24:10]   [SCORE BREAKDOWN]
+[02:24:10]     TOTAL SCORE:    451.3
+[02:24:10]     waypoint_bonus      :    375.0
+[02:24:10]     initial_points      :    300.0
+[02:24:10]     time_decay          :   -223.7
+[02:24:10]   Policy loss: -0.0003
+[02:24:10]   Value loss: 2348.2783
+[02:24:10]   Entropy: 4.2765
+[02:24:10]   Approx KL: 0.0015
+[02:24:10]   PPO epochs: 10/10
+[02:24:10] [ITER 28/500] Stage 2/6: Waypoints 10m with 1% coverage
+[02:39:12] 
+[02:39:12] Iteration 28/10000 | Stage 2 completed in 901.87s
+[02:39:12]   Iterations on this stage: 28/500
+[02:39:12]   Episodes this iter: 1
+[02:39:12]   Total episodes: 35
+[02:39:12]   Mean score: 447.8
+[02:39:12]   Mean waypoints captured: 25.0/25
+[02:39:12]   Mean length: 227.2s
+[02:39:12]   Success rate (last 100): 100.0%
+[02:39:12] 
+[02:39:12]   [EPISODE BREAKDOWN]
+[02:39:12]     Ep   35: Score= 447.8  Waypoints=25/25  Time= 227.2s  [✓ SUCCESS]
+[02:39:12]   [FAILURE BREAKDOWN]
+[02:39:12]     SUCCESS     :   1 (100.0%)
+[02:39:12]   [REWARD BREAKDOWN]
+[02:39:12]     TOTAL REWARD: 3324.8582
+[02:39:12]     progress_shaping    : 3633.0015
+[02:39:12]     collision_penalty   : -1601.9000
+[02:39:12]     waypoint_capture    : 1250.0000
+[02:39:12]     efficiency_bonus    : 895.7000
+[02:39:12]     lateral_penalty     : -715.2175
+[02:39:12]     heading_reward      : 594.4896
+[02:39:12]     obstacle_clearance_penalty: -592.1892
+[02:39:12]     cross_track_error   : -360.3144
+[02:39:12]     decel_reward        : 140.7078
+[02:39:12]     static_turn_reward  :  80.5805
+[02:39:12]   [SCORE BREAKDOWN]
+[02:39:12]     TOTAL SCORE:    447.8
+[02:39:12]     waypoint_bonus      :    375.0
+[02:39:12]     initial_points      :    300.0
+[02:39:12]     time_decay          :   -227.2
+[02:39:12]   Policy loss: -0.0003
+[02:39:12]   Value loss: 1359.2592
+[02:39:12]   Entropy: 4.2765
+[02:39:12]   Approx KL: 0.0003
+[02:39:12]   PPO epochs: 10/10
+[02:39:12] [ITER 29/500] Stage 2/6: Waypoints 10m with 1% coverage
+[02:54:09] 
+[02:54:09] Iteration 29/10000 | Stage 2 completed in 897.54s
+[02:54:09]   Iterations on this stage: 29/500
+[02:54:09]   Episodes this iter: 2
+[02:54:09]   Total episodes: 37
+[02:54:09]   Mean score: 460.3
+[02:54:09]   Mean waypoints captured: 25.0/25
+[02:54:09]   Mean length: 214.7s
+[02:54:09]   Success rate (last 100): 100.0%
+[02:54:09] 
+[02:54:09]   [EPISODE BREAKDOWN]
+[02:54:09]     Ep   36: Score= 475.9  Waypoints=25/25  Time= 199.1s  [✓ SUCCESS]
+[02:54:09]     Ep   37: Score= 444.7  Waypoints=25/25  Time= 230.3s  [✓ SUCCESS]
+[02:54:09]   [FAILURE BREAKDOWN]
+[02:54:09]     SUCCESS     :   2 (100.0%)
+[02:54:09]   [REWARD BREAKDOWN]
+[02:54:09]     TOTAL REWARD: 3178.8882
+[02:54:09]     progress_shaping    : 3633.6986
+[02:54:09]     collision_penalty   : -1636.0000
+[02:54:09]     waypoint_capture    : 1250.0000
+[02:54:09]     efficiency_bonus    : 920.6500
+[02:54:09]     lateral_penalty     : -710.3235
+[02:54:09]     obstacle_clearance_penalty: -634.8044
+[02:54:09]     heading_reward      : 565.5010
+[02:54:09]     cross_track_error   : -410.3961
+[02:54:09]     decel_reward        : 122.9803
+[02:54:09]     static_turn_reward  :  77.5822
+[02:54:09]   [SCORE BREAKDOWN]
+[02:54:09]     TOTAL SCORE:    460.3
+[02:54:09]     waypoint_bonus      :    375.0
+[02:54:09]     initial_points      :    300.0
+[02:54:09]     time_decay          :   -214.7
+[02:54:09]   Policy loss: -0.0002
+[02:54:09]   Value loss: 2410.9082
+[02:54:09]   Entropy: 4.2765
+[02:54:09]   Approx KL: 0.0002
+[02:54:09]   PPO epochs: 10/10
+[02:54:09] [ITER 30/500] Stage 2/6: Waypoints 10m with 1% coverage
+[03:09:09] 
+[03:09:09] Iteration 30/10000 | Stage 2 completed in 899.71s
+[03:09:09]   Iterations on this stage: 30/500
+[03:09:09]   Episodes this iter: 1
+[03:09:09]   Total episodes: 38
+[03:09:09]   Mean score: 463.9
+[03:09:09]   Mean waypoints captured: 25.0/25
+[03:09:09]   Mean length: 211.1s
+[03:09:09]   Success rate (last 100): 100.0%
+[03:09:09] 
+[03:09:09]   [EPISODE BREAKDOWN]
+[03:09:09]     Ep   38: Score= 463.9  Waypoints=25/25  Time= 211.1s  [✓ SUCCESS]
+[03:09:09]   [FAILURE BREAKDOWN]
+[03:09:09]     SUCCESS     :   1 (100.0%)
+[03:09:09]   [REWARD BREAKDOWN]
+[03:09:09]     TOTAL REWARD: 3697.4866
+[03:09:09]     progress_shaping    : 3629.2354
+[03:09:09]     waypoint_capture    : 1250.0000
+[03:09:09]     collision_penalty   : -1238.5000
+[03:09:09]     efficiency_bonus    : 927.9000
+[03:09:09]     lateral_penalty     : -651.3289
+[03:09:09]     obstacle_clearance_penalty: -573.3879
+[03:09:09]     heading_reward      : 557.7676
+[03:09:09]     cross_track_error   : -391.3343
+[03:09:09]     decel_reward        : 115.5316
+[03:09:09]     static_turn_reward  :  71.6032
+[03:09:09]   [SCORE BREAKDOWN]
+[03:09:09]     TOTAL SCORE:    463.9
+[03:09:09]     waypoint_bonus      :    375.0
+[03:09:09]     initial_points      :    300.0
+[03:09:09]     time_decay          :   -211.1
+[03:09:09]   Policy loss: -0.0006
+[03:09:09]   Value loss: 1348.1133
+[03:09:09]   Entropy: 4.2765
+[03:09:09]   Approx KL: 0.0006
+[03:09:09]   PPO epochs: 10/10
+[03:09:09] [ITER 31/500] Stage 2/6: Waypoints 10m with 1% coverage
+[03:24:09] 
+[03:24:09] Iteration 31/10000 | Stage 2 completed in 900.33s
+[03:24:09]   Iterations on this stage: 31/500
+[03:24:09]   Episodes this iter: 1
+[03:24:09]   Total episodes: 39
+[03:24:09]   Mean score: 447.2
+[03:24:09]   Mean waypoints captured: 25.0/25
+[03:24:09]   Mean length: 227.8s
+[03:24:09]   Success rate (last 100): 100.0%
+[03:24:09] 
+[03:24:09]   [EPISODE BREAKDOWN]
+[03:24:09]     Ep   39: Score= 447.2  Waypoints=25/25  Time= 227.8s  [✓ SUCCESS]
+[03:24:09]   [FAILURE BREAKDOWN]
+[03:24:09]     SUCCESS     :   1 (100.0%)
+[03:24:09]   [REWARD BREAKDOWN]
+[03:24:09]     TOTAL REWARD: 3556.2440
+[03:24:09]     progress_shaping    : 3639.8140
+[03:24:09]     collision_penalty   : -1327.8000
+[03:24:09]     waypoint_capture    : 1250.0000
+[03:24:09]     efficiency_bonus    : 894.5000
+[03:24:09]     obstacle_clearance_penalty: -694.1101
+[03:24:09]     lateral_penalty     : -654.8249
+[03:24:09]     heading_reward      : 572.9566
+[03:24:09]     cross_track_error   : -376.8086
+[03:24:09]     decel_reward        : 173.8998
+[03:24:09]     static_turn_reward  :  78.6174
+[03:24:09]   [SCORE BREAKDOWN]
+[03:24:09]     TOTAL SCORE:    447.2
+[03:24:09]     waypoint_bonus      :    375.0
+[03:24:09]     initial_points      :    300.0
+[03:24:09]     time_decay          :   -227.8
+[03:24:09]   Policy loss: -0.0010
+[03:24:09]   Value loss: 1199.3018
+[03:24:09]   Entropy: 4.2765
+[03:24:09]   Approx KL: 0.0034
+[03:24:09]   PPO epochs: 10/10
+[03:24:09] [ITER 32/500] Stage 2/6: Waypoints 10m with 1% coverage
+[03:39:07] 
+[03:39:07] Iteration 32/10000 | Stage 2 completed in 897.69s
+[03:39:07]   Iterations on this stage: 32/500
+[03:39:07]   Episodes this iter: 3
+[03:39:07]   Total episodes: 42
+[03:39:07]   Mean score: 404.1
+[03:39:07]   Mean waypoints captured: 17.0/25
+[03:39:07]   Mean length: 150.9s
+[03:39:07]   Success rate (last 100): 97.6%
+[03:39:07] 
+[03:39:07]   [EPISODE BREAKDOWN]
+[03:39:07]     Ep   40: Score= 414.4  Waypoints=25/25  Time= 260.6s  [✓ SUCCESS]
+[03:39:07]     Ep   41: Score= 307.5  Waypoints= 1/25  Time=   7.5s  [✗ FALL]
+[03:39:07]     Ep   42: Score= 490.3  Waypoints=25/25  Time= 184.7s  [✓ SUCCESS]
+[03:39:07]   [FAILURE BREAKDOWN]
+[03:39:07]     FALL        :   1 ( 33.3%)
+[03:39:07]     SUCCESS     :   2 ( 66.7%)
+[03:39:07]   [REWARD BREAKDOWN]
+[03:39:07]     TOTAL REWARD: 2193.2705
+[03:39:07]     progress_shaping    : 2477.7236
+[03:39:07]     collision_penalty   : -888.7667
+[03:39:07]     waypoint_capture    : 850.0000
+[03:39:07]     efficiency_bonus    : 603.1667
+[03:39:07]     obstacle_clearance_penalty: -483.2834
+[03:39:07]     lateral_penalty     : -472.8358
+[03:39:07]     heading_reward      : 378.0654
+[03:39:07]     cross_track_error   : -264.2846
+[03:39:07]     fall_penalty        : -166.6667
+[03:39:07]     decel_reward        : 105.2987
+[03:39:07]     static_turn_reward  :  54.8532
+[03:39:07]   [SCORE BREAKDOWN]
+[03:39:07]     TOTAL SCORE:    237.4
+[03:39:07]     initial_points      :    300.0
+[03:39:07]     waypoint_bonus      :    255.0
+[03:39:07]     fall_penalty        :   -166.7
+[03:39:07]     time_decay          :   -150.9
+[03:39:07]   Policy loss: 0.0004
+[03:39:07]   Value loss: 2751.3171
+[03:39:07]   Entropy: 4.2765
+[03:39:07]   Approx KL: 0.0061
+[03:39:07]   PPO epochs: 10/10
+[03:39:07] [ITER 33/500] Stage 2/6: Waypoints 10m with 1% coverage
+[03:54:08] 
+[03:54:08] Iteration 33/10000 | Stage 2 completed in 900.80s
+[03:54:08]   Iterations on this stage: 33/500
+[03:54:08]   Episodes this iter: 1
+[03:54:08]   Total episodes: 43
+[03:54:08]   Mean score: 445.9
+[03:54:08]   Mean waypoints captured: 25.0/25
+[03:54:08]   Mean length: 229.1s
+[03:54:08]   Success rate (last 100): 97.7%
+[03:54:08] 
+[03:54:08]   [EPISODE BREAKDOWN]
+[03:54:08]     Ep   43: Score= 445.9  Waypoints=25/25  Time= 229.1s  [✓ SUCCESS]
+[03:54:08]   [FAILURE BREAKDOWN]
+[03:54:08]     SUCCESS     :   1 (100.0%)
+[03:54:08]   [REWARD BREAKDOWN]
+[03:54:08]     TOTAL REWARD: 3461.8916
+[03:54:08]     progress_shaping    : 3640.5100
+[03:54:08]     collision_penalty   : -1405.7000
+[03:54:08]     waypoint_capture    : 1250.0000
+[03:54:08]     efficiency_bonus    : 891.8000
+[03:54:08]     lateral_penalty     : -690.7391
+[03:54:08]     obstacle_clearance_penalty: -680.5690
+[03:54:08]     heading_reward      : 550.8203
+[03:54:08]     cross_track_error   : -367.8732
+[03:54:08]     decel_reward        : 185.0601
+[03:54:08]     static_turn_reward  :  88.5826
+[03:54:08]   [SCORE BREAKDOWN]
+[03:54:08]     TOTAL SCORE:    445.9
+[03:54:08]     waypoint_bonus      :    375.0
+[03:54:08]     initial_points      :    300.0
+[03:54:08]     time_decay          :   -229.1
+[03:54:08]   Policy loss: -0.0017
+[03:54:08]   Value loss: 1240.7944
+[03:54:08]   Entropy: 4.2766
+[03:54:08]   Approx KL: 0.0038
+[03:54:08]   PPO epochs: 10/10
+[03:54:08] [ITER 34/500] Stage 2/6: Waypoints 10m with 1% coverage
+[04:09:13] 
+[04:09:13] Iteration 34/10000 | Stage 2 completed in 905.63s
+[04:09:13]   Iterations on this stage: 34/500
+[04:09:13]   Episodes this iter: 1
+[04:09:13]   Total episodes: 44
+[04:09:13]   Mean score: 426.6
+[04:09:13]   Mean waypoints captured: 25.0/25
+[04:09:13]   Mean length: 248.4s
+[04:09:13]   Success rate (last 100): 97.7%
+[04:09:13] 
+[04:09:13]   [EPISODE BREAKDOWN]
+[04:09:13]     Ep   44: Score= 426.6  Waypoints=25/25  Time= 248.4s  [✓ SUCCESS]
+[04:09:13]   [FAILURE BREAKDOWN]
+[04:09:13]     SUCCESS     :   1 (100.0%)
+[04:09:13]   [REWARD BREAKDOWN]
+[04:09:13]     TOTAL REWARD: 3135.7401
+[04:09:13]     progress_shaping    : 3631.9753
+[04:09:13]     collision_penalty   : -1565.1000
+[04:09:13]     waypoint_capture    : 1250.0000
+[04:09:13]     efficiency_bonus    : 853.2000
+[04:09:13]     obstacle_clearance_penalty: -777.4133
+[04:09:13]     lateral_penalty     : -735.0104
+[04:09:13]     heading_reward      : 588.7048
+[04:09:13]     cross_track_error   : -404.3558
+[04:09:13]     decel_reward        : 194.3792
+[04:09:13]     static_turn_reward  :  99.3603
+[04:09:13]   [SCORE BREAKDOWN]
+[04:09:13]     TOTAL SCORE:    426.6
+[04:09:13]     waypoint_bonus      :    375.0
+[04:09:13]     initial_points      :    300.0
+[04:09:13]     time_decay          :   -248.4
+[04:09:13]   Policy loss: -0.0008
+[04:09:13]   Value loss: 1156.2655
+[04:09:13]   Entropy: 4.2767
+[04:09:13]   Approx KL: 0.0012
+[04:09:13]   PPO epochs: 10/10
+[04:09:13] [ITER 35/500] Stage 2/6: Waypoints 10m with 1% coverage
+[04:24:48] 
+[04:24:48] Iteration 35/10000 | Stage 2 completed in 934.47s
+[04:24:48]   Iterations on this stage: 35/500
+[04:24:48]   Episodes this iter: 2
+[04:24:48]   Total episodes: 46
+[04:24:48]   Mean score: 462.7
+[04:24:48]   Mean waypoints captured: 25.0/25
+[04:24:48]   Mean length: 212.3s
+[04:24:48]   Success rate (last 100): 97.8%
+[04:24:48] 
+[04:24:48]   [EPISODE BREAKDOWN]
+[04:24:48]     Ep   45: Score= 451.3  Waypoints=25/25  Time= 223.7s  [✓ SUCCESS]
+[04:24:48]     Ep   46: Score= 474.0  Waypoints=25/25  Time= 201.0s  [✓ SUCCESS]
+[04:24:48]   [FAILURE BREAKDOWN]
+[04:24:48]     SUCCESS     :   2 (100.0%)
+[04:24:48]   [REWARD BREAKDOWN]
+[04:24:48]     TOTAL REWARD: 3464.9451
+[04:24:48]     progress_shaping    : 3636.2273
+[04:24:48]     collision_penalty   : -1302.0500
+[04:24:48]     waypoint_capture    : 1250.0000
+[04:24:48]     efficiency_bonus    : 925.3500
+[04:24:48]     lateral_penalty     : -755.8213
+[04:24:48]     obstacle_clearance_penalty: -672.2474
+[04:24:48]     heading_reward      : 575.9221
+[04:24:48]     cross_track_error   : -382.9541
+[04:24:48]     decel_reward        : 114.7595
+[04:24:48]     static_turn_reward  :  75.7591
+[04:24:48]   [SCORE BREAKDOWN]
+[04:24:48]     TOTAL SCORE:    462.7
+[04:24:48]     waypoint_bonus      :    375.0
+[04:24:48]     initial_points      :    300.0
+[04:24:48]     time_decay          :   -212.3
+[04:24:48]   Policy loss: -0.0001
+[04:24:48]   Value loss: 2477.3413
+[04:24:48]   Entropy: 4.2768
+[04:24:48]   Approx KL: 0.0003
+[04:24:48]   PPO epochs: 10/10
+[04:24:48] [ITER 36/500] Stage 2/6: Waypoints 10m with 1% coverage
+[04:40:13] 
+[04:40:13] Iteration 36/10000 | Stage 2 completed in 924.84s
+[04:40:13]   Iterations on this stage: 36/500
+[04:40:13]   Episodes this iter: 1
+[04:40:13]   Total episodes: 47
+[04:40:13]   Mean score: 486.7
+[04:40:13]   Mean waypoints captured: 25.0/25
+[04:40:13]   Mean length: 188.3s
+[04:40:13]   Success rate (last 100): 97.9%
+[04:40:13] 
+[04:40:13]   [EPISODE BREAKDOWN]
+[04:40:13]     Ep   47: Score= 486.7  Waypoints=25/25  Time= 188.3s  [✓ SUCCESS]
+[04:40:13]   [FAILURE BREAKDOWN]
+[04:40:13]     SUCCESS     :   1 (100.0%)
+[04:40:13]   [REWARD BREAKDOWN]
+[04:40:13]     TOTAL REWARD: 4059.7381
+[04:40:13]     progress_shaping    : 3652.3786
+[04:40:13]     waypoint_capture    : 1250.0000
+[04:40:13]     efficiency_bonus    : 973.5000
+[04:40:13]     collision_penalty   : -898.1000
+[04:40:13]     lateral_penalty     : -672.6420
+[04:40:13]     obstacle_clearance_penalty: -577.4123
+[04:40:13]     heading_reward      : 547.0771
+[04:40:13]     cross_track_error   : -344.9837
+[04:40:13]     decel_reward        :  76.2658
+[04:40:13]     static_turn_reward  :  53.6546
+[04:40:13]   [SCORE BREAKDOWN]
+[04:40:13]     TOTAL SCORE:    486.7
+[04:40:13]     waypoint_bonus      :    375.0
+[04:40:13]     initial_points      :    300.0
+[04:40:13]     time_decay          :   -188.3
+[04:40:13]   Policy loss: -0.0004
+[04:40:13]   Value loss: 1455.7599
+[04:40:13]   Entropy: 4.2768
+[04:40:13]   Approx KL: 0.0007
+[04:40:13]   PPO epochs: 10/10
+[04:40:13] [ITER 37/500] Stage 2/6: Waypoints 10m with 1% coverage
+[04:55:27] 
+[04:55:27] Iteration 37/10000 | Stage 2 completed in 914.50s
+[04:55:27]   Iterations on this stage: 37/500
+[04:55:27]   Episodes this iter: 2
+[04:55:27]   Total episodes: 49
+[04:55:27]   Mean score: 467.0
+[04:55:27]   Mean waypoints captured: 25.0/25
+[04:55:27]   Mean length: 208.0s
+[04:55:27]   Success rate (last 100): 98.0%
+[04:55:27] 
+[04:55:27]   [EPISODE BREAKDOWN]
+[04:55:27]     Ep   48: Score= 467.5  Waypoints=25/25  Time= 207.5s  [✓ SUCCESS]
+[04:55:27]     Ep   49: Score= 466.5  Waypoints=25/25  Time= 208.5s  [✓ SUCCESS]
+[04:55:27]   [FAILURE BREAKDOWN]
+[04:55:27]     SUCCESS     :   2 (100.0%)
+[04:55:27]   [REWARD BREAKDOWN]
+[04:55:27]     TOTAL REWARD: 3349.5286
+[04:55:27]     progress_shaping    : 3639.1610
+[04:55:27]     collision_penalty   : -1612.4500
+[04:55:27]     waypoint_capture    : 1250.0000
+[04:55:27]     efficiency_bonus    : 934.1000
+[04:55:27]     lateral_penalty     : -666.7406
+[04:55:27]     obstacle_clearance_penalty: -583.3136
+[04:55:27]     heading_reward      : 551.6396
+[04:55:27]     cross_track_error   : -341.7142
+[04:55:27]     decel_reward        : 111.1845
+[04:55:27]     static_turn_reward  :  67.6618
+[04:55:27]   [SCORE BREAKDOWN]
+[04:55:27]     TOTAL SCORE:    467.0
+[04:55:27]     waypoint_bonus      :    375.0
+[04:55:27]     initial_points      :    300.0
+[04:55:27]     time_decay          :   -208.0
+[04:55:27]   Policy loss: -0.0005
+[04:55:27]   Value loss: 2475.7792
+[04:55:27]   Entropy: 4.2768
+[04:55:27]   Approx KL: 0.0008
+[04:55:27]   PPO epochs: 10/10
+[04:55:27] [ITER 38/500] Stage 2/6: Waypoints 10m with 1% coverage
+[05:10:29] 
+[05:10:29] Iteration 38/10000 | Stage 2 completed in 902.27s
+[05:10:29]   Iterations on this stage: 38/500
+[05:10:29]   Episodes this iter: 1
+[05:10:29]   Total episodes: 50
+[05:10:29]   Mean score: 481.0
+[05:10:29]   Mean waypoints captured: 25.0/25
+[05:10:29]   Mean length: 194.0s
+[05:10:29]   Success rate (last 100): 98.0%
+[05:10:29] 
+[05:10:29]   [EPISODE BREAKDOWN]
+[05:10:29]     Ep   50: Score= 481.0  Waypoints=25/25  Time= 194.0s  [✓ SUCCESS]
+[05:10:29]   [FAILURE BREAKDOWN]
+[05:10:29]     SUCCESS     :   1 (100.0%)
+[05:10:29]   [REWARD BREAKDOWN]
+[05:10:29]     TOTAL REWARD: 3876.7846
+[05:10:29]     progress_shaping    : 3643.3916
+[05:10:29]     waypoint_capture    : 1250.0000
+[05:10:29]     collision_penalty   : -1051.6000
+[05:10:29]     efficiency_bonus    : 962.1000
+[05:10:29]     lateral_penalty     : -685.2013
+[05:10:29]     obstacle_clearance_penalty: -542.6429
+[05:10:29]     heading_reward      : 536.3053
+[05:10:29]     cross_track_error   : -372.0542
+[05:10:29]     decel_reward        :  71.6212
+[05:10:29]     static_turn_reward  :  64.8649
+[05:10:29]   [SCORE BREAKDOWN]
+[05:10:29]     TOTAL SCORE:    481.0
+[05:10:29]     waypoint_bonus      :    375.0
+[05:10:29]     initial_points      :    300.0
+[05:10:29]     time_decay          :   -194.0
+[05:10:29]   Policy loss: -0.0006
+[05:10:29]   Value loss: 1421.0963
+[05:10:29]   Entropy: 4.2768
+[05:10:29]   Approx KL: 0.0010
+[05:10:29]   PPO epochs: 10/10
+[05:10:29] [ITER 39/500] Stage 2/6: Waypoints 10m with 1% coverage
+[05:25:25] 
+[05:25:25] Iteration 39/10000 | Stage 2 completed in 895.22s
+[05:25:25]   Iterations on this stage: 39/500
+[05:25:25]   Episodes this iter: 2
+[05:25:25]   Total episodes: 52
+[05:25:25]   Mean score: 462.8
+[05:25:25]   Mean waypoints captured: 25.0/25
+[05:25:25]   Mean length: 212.2s
+[05:25:25]   Success rate (last 100): 98.1%
+[05:25:25] 
+[05:25:25]   [EPISODE BREAKDOWN]
+[05:25:25]     Ep   51: Score= 444.7  Waypoints=25/25  Time= 230.3s  [✓ SUCCESS]
+[05:25:25]     Ep   52: Score= 480.9  Waypoints=25/25  Time= 194.1s  [✓ SUCCESS]
+[05:25:25]   [FAILURE BREAKDOWN]
+[05:25:25]     SUCCESS     :   2 (100.0%)
+[05:25:25]   [REWARD BREAKDOWN]
+[05:25:25]     TOTAL REWARD: 3587.5758
+[05:25:25]     progress_shaping    : 3647.8513
+[05:25:25]     collision_penalty   : -1272.6000
+[05:25:25]     waypoint_capture    : 1250.0000
+[05:25:25]     efficiency_bonus    : 925.6500
+[05:25:25]     lateral_penalty     : -722.9243
+[05:25:25]     obstacle_clearance_penalty: -656.6055
+[05:25:25]     heading_reward      : 564.2710
+[05:25:25]     cross_track_error   : -355.3584
+[05:25:25]     decel_reward        : 131.7380
+[05:25:25]     static_turn_reward  :  75.5536
+[05:25:25]   [SCORE BREAKDOWN]
+[05:25:25]     TOTAL SCORE:    462.8
+[05:25:25]     waypoint_bonus      :    375.0
+[05:25:25]     initial_points      :    300.0
+[05:25:25]     time_decay          :   -212.2
+[05:25:25]   Policy loss: -0.0006
+[05:25:25]   Value loss: 2390.0345
+[05:25:25]   Entropy: 4.2768
+[05:25:25]   Approx KL: 0.0017
+[05:25:25]   PPO epochs: 10/10
+[05:25:25] [ITER 40/500] Stage 2/6: Waypoints 10m with 1% coverage
+[05:40:23] 
+[05:40:23] Iteration 40/10000 | Stage 2 completed in 898.21s
+[05:40:23]   Iterations on this stage: 40/500
+[05:40:23]   Episodes this iter: 1
+[05:40:23]   Total episodes: 53
+[05:40:23]   Mean score: 475.7
+[05:40:23]   Mean waypoints captured: 25.0/25
+[05:40:23]   Mean length: 199.3s
+[05:40:23]   Success rate (last 100): 98.1%
+[05:40:23] 
+[05:40:23]   [EPISODE BREAKDOWN]
+[05:40:23]     Ep   53: Score= 475.7  Waypoints=25/25  Time= 199.3s  [✓ SUCCESS]
+[05:40:23]   [FAILURE BREAKDOWN]
+[05:40:23]     SUCCESS     :   1 (100.0%)
+[05:40:23]   [REWARD BREAKDOWN]
+[05:40:23]     TOTAL REWARD: 3591.1409
+[05:40:23]     progress_shaping    : 3636.0636
+[05:40:23]     collision_penalty   : -1394.3000
+[05:40:23]     waypoint_capture    : 1250.0000
+[05:40:23]     efficiency_bonus    : 951.4000
+[05:40:23]     lateral_penalty     : -679.3734
+[05:40:23]     heading_reward      : 554.4601
+[05:40:23]     obstacle_clearance_penalty: -517.8604
+[05:40:23]     cross_track_error   : -364.0139
+[05:40:23]     decel_reward        :  92.3820
+[05:40:23]     static_turn_reward  :  62.3830
+[05:40:23]   [SCORE BREAKDOWN]
+[05:40:23]     TOTAL SCORE:    475.7
+[05:40:23]     waypoint_bonus      :    375.0
+[05:40:23]     initial_points      :    300.0
+[05:40:23]     time_decay          :   -199.3
+[05:40:23]   Policy loss: -0.0006
+[05:40:23]   Value loss: 1401.5966
+[05:40:23]   Entropy: 4.2768
+[05:40:23]   Approx KL: 0.0011
+[05:40:23]   PPO epochs: 10/10
+[05:40:23] [ITER 41/500] Stage 2/6: Waypoints 10m with 1% coverage
+[05:55:17] 
+[05:55:17] Iteration 41/10000 | Stage 2 completed in 894.50s
+[05:55:17]   Iterations on this stage: 41/500
+[05:55:17]   Episodes this iter: 2
+[05:55:17]   Total episodes: 55
+[05:55:17]   Mean score: 469.4
+[05:55:17]   Mean waypoints captured: 25.0/25
+[05:55:17]   Mean length: 205.6s
+[05:55:17]   Success rate (last 100): 98.2%
+[05:55:17] 
+[05:55:17]   [EPISODE BREAKDOWN]
+[05:55:17]     Ep   54: Score= 481.5  Waypoints=25/25  Time= 193.5s  [✓ SUCCESS]
+[05:55:17]     Ep   55: Score= 457.3  Waypoints=25/25  Time= 217.7s  [✓ SUCCESS]
+[05:55:17]   [FAILURE BREAKDOWN]
+[05:55:17]     SUCCESS     :   2 (100.0%)
+[05:55:17]   [REWARD BREAKDOWN]
+[05:55:17]     TOTAL REWARD: 3695.5007
+[05:55:17]     progress_shaping    : 3627.7106
+[05:55:17]     collision_penalty   : -1273.1500
+[05:55:17]     waypoint_capture    : 1250.0000
+[05:55:17]     efficiency_bonus    : 938.8500
+[05:55:17]     lateral_penalty     : -644.3681
+[05:55:17]     obstacle_clearance_penalty: -569.2504
+[05:55:17]     heading_reward      : 564.7976
+[05:55:17]     cross_track_error   : -367.4460
+[05:55:17]     decel_reward        : 101.0596
+[05:55:17]     static_turn_reward  :  67.2974
+[05:55:17]   [SCORE BREAKDOWN]
+[05:55:17]     TOTAL SCORE:    469.4
+[05:55:17]     waypoint_bonus      :    375.0
+[05:55:17]     initial_points      :    300.0
+[05:55:17]     time_decay          :   -205.6
+[05:55:17]   Policy loss: -0.0025
+[05:55:17]   Value loss: 2417.0024
+[05:55:17]   Entropy: 4.2769
+[05:55:17]   Approx KL: 0.0040
+[05:55:17]   PPO epochs: 10/10
+[05:55:17] [ITER 42/500] Stage 2/6: Waypoints 10m with 1% coverage
+[06:10:10] 
+[06:10:10] Iteration 42/10000 | Stage 2 completed in 892.23s
+[06:10:10]   Iterations on this stage: 42/500
+[06:10:10]   Episodes this iter: 1
+[06:10:10]   Total episodes: 56
+[06:10:10]   Mean score: 487.3
+[06:10:10]   Mean waypoints captured: 25.0/25
+[06:10:10]   Mean length: 187.7s
+[06:10:10]   Success rate (last 100): 98.2%
+[06:10:10] 
+[06:10:10]   [EPISODE BREAKDOWN]
+[06:10:10]     Ep   56: Score= 487.3  Waypoints=25/25  Time= 187.7s  [✓ SUCCESS]
+[06:10:10]   [FAILURE BREAKDOWN]
+[06:10:10]     SUCCESS     :   1 (100.0%)
+[06:10:10]   [REWARD BREAKDOWN]
+[06:10:10]     TOTAL REWARD: 3666.9556
+[06:10:10]     progress_shaping    : 3633.7761
+[06:10:10]     collision_penalty   : -1348.7000
+[06:10:10]     waypoint_capture    : 1250.0000
+[06:10:10]     efficiency_bonus    : 974.6000
+[06:10:10]     lateral_penalty     : -610.9341
+[06:10:10]     obstacle_clearance_penalty: -540.1387
+[06:10:10]     heading_reward      : 530.4504
+[06:10:10]     cross_track_error   : -324.3730
+[06:10:10]     decel_reward        :  51.7748
+[06:10:10]     static_turn_reward  :  50.5000
+[06:10:10]   [SCORE BREAKDOWN]
+[06:10:10]     TOTAL SCORE:    487.3
+[06:10:10]     waypoint_bonus      :    375.0
+[06:10:10]     initial_points      :    300.0
+[06:10:10]     time_decay          :   -187.7
+[06:10:10]   Policy loss: -0.0009
+[06:10:10]   Value loss: 1399.2663
+[06:10:10]   Entropy: 4.2770
+[06:10:10]   Approx KL: 0.0041
+[06:10:10]   PPO epochs: 10/10
+[06:10:10] [ITER 43/500] Stage 2/6: Waypoints 10m with 1% coverage
+[06:25:05] 
+[06:25:05] Iteration 43/10000 | Stage 2 completed in 895.86s
+[06:25:05]   Iterations on this stage: 43/500
+[06:25:05]   Episodes this iter: 2
+[06:25:05]   Total episodes: 58
+[06:25:05]   Mean score: 471.0
+[06:25:05]   Mean waypoints captured: 25.0/25
+[06:25:05]   Mean length: 204.0s
+[06:25:05]   Success rate (last 100): 98.3%
+[06:25:05] 
+[06:25:05]   [EPISODE BREAKDOWN]
+[06:25:05]     Ep   57: Score= 462.1  Waypoints=25/25  Time= 212.9s  [✓ SUCCESS]
+[06:25:05]     Ep   58: Score= 479.9  Waypoints=25/25  Time= 195.1s  [✓ SUCCESS]
+[06:25:05]   [FAILURE BREAKDOWN]
+[06:25:05]     SUCCESS     :   2 (100.0%)
+[06:25:05]   [REWARD BREAKDOWN]
+[06:25:05]     TOTAL REWARD: 3574.7861
+[06:25:05]     progress_shaping    : 3632.5413
+[06:25:05]     collision_penalty   : -1312.7000
+[06:25:05]     waypoint_capture    : 1250.0000
+[06:25:05]     efficiency_bonus    : 942.0500
+[06:25:05]     lateral_penalty     : -701.7327
+[06:25:05]     obstacle_clearance_penalty: -617.9105
+[06:25:05]     heading_reward      : 569.8745
+[06:25:05]     cross_track_error   : -348.2177
+[06:25:05]     decel_reward        :  88.7332
+[06:25:05]     static_turn_reward  :  72.1480
+[06:25:05]   [SCORE BREAKDOWN]
+[06:25:05]     TOTAL SCORE:    471.0
+[06:25:05]     waypoint_bonus      :    375.0
+[06:25:05]     initial_points      :    300.0
+[06:25:05]     time_decay          :   -204.0
+[06:25:05]   Policy loss: -0.0001
+[06:25:05]   Value loss: 2420.7526
+[06:25:05]   Entropy: 4.2771
+[06:25:05]   Approx KL: 0.0002
+[06:25:05]   PPO epochs: 10/10
+[06:25:05] [ITER 44/500] Stage 2/6: Waypoints 10m with 1% coverage
+[06:40:04] 
+[06:40:04] Iteration 44/10000 | Stage 2 completed in 898.23s
+[06:40:04]   Iterations on this stage: 44/500
+[06:40:04]   Episodes this iter: 1
+[06:40:04]   Total episodes: 59
+[06:40:04]   Mean score: 500.5
+[06:40:04]   Mean waypoints captured: 25.0/25
+[06:40:04]   Mean length: 174.5s
+[06:40:04]   Success rate (last 100): 98.3%
+[06:40:04] 
+[06:40:04]   [EPISODE BREAKDOWN]
+[06:40:04]     Ep   59: Score= 500.5  Waypoints=25/25  Time= 174.5s  [✓ SUCCESS]
+[06:40:04]   [FAILURE BREAKDOWN]
+[06:40:04]     SUCCESS     :   1 (100.0%)
+[06:40:04]   [REWARD BREAKDOWN]
+[06:40:04]     TOTAL REWARD: 3743.2865
+[06:40:04]     progress_shaping    : 3642.3711
+[06:40:04]     collision_penalty   : -1342.1000
+[06:40:04]     waypoint_capture    : 1250.0000
+[06:40:04]     efficiency_bonus    : 1001.1000
+[06:40:04]     lateral_penalty     : -634.0844
+[06:40:04]     heading_reward      : 524.8683
+[06:40:04]     obstacle_clearance_penalty: -481.4958
+[06:40:04]     cross_track_error   : -313.9348
+[06:40:04]     decel_reward        :  52.0999
+[06:40:04]     static_turn_reward  :  44.4621
+[06:40:04]   [SCORE BREAKDOWN]
+[06:40:04]     TOTAL SCORE:    500.5
+[06:40:04]     waypoint_bonus      :    375.0
+[06:40:04]     initial_points      :    300.0
+[06:40:04]     time_decay          :   -174.5
+[06:40:04]   Policy loss: -0.0009
+[06:40:04]   Value loss: 1499.0257
+[06:40:04]   Entropy: 4.2771
+[06:40:04]   Approx KL: 0.0014
+[06:40:04]   PPO epochs: 10/10
+[06:40:04] [ITER 45/500] Stage 2/6: Waypoints 10m with 1% coverage
+[06:54:52] 
+[06:54:52] Iteration 45/10000 | Stage 2 completed in 888.67s
+[06:54:52]   Iterations on this stage: 45/500
+[06:54:52]   Episodes this iter: 2
+[06:54:52]   Total episodes: 61
+[06:54:52]   Mean score: 471.3
+[06:54:52]   Mean waypoints captured: 25.0/25
+[06:54:52]   Mean length: 203.7s
+[06:54:52]   Success rate (last 100): 98.4%
+[06:54:52] 
+[06:54:52]   [EPISODE BREAKDOWN]
+[06:54:52]     Ep   60: Score= 483.0  Waypoints=25/25  Time= 192.0s  [✓ SUCCESS]
+[06:54:52]     Ep   61: Score= 459.6  Waypoints=25/25  Time= 215.4s  [✓ SUCCESS]
+[06:54:52]   [FAILURE BREAKDOWN]
+[06:54:52]     SUCCESS     :   2 (100.0%)
+[06:54:52]   [REWARD BREAKDOWN]
+[06:54:52]     TOTAL REWARD: 3361.9583
+[06:54:52]     progress_shaping    : 3643.5961
+[06:54:52]     collision_penalty   : -1541.7000
+[06:54:52]     waypoint_capture    : 1250.0000
+[06:54:52]     efficiency_bonus    : 942.7000
+[06:54:52]     lateral_penalty     : -696.8048
+[06:54:52]     obstacle_clearance_penalty: -594.1094
+[06:54:52]     heading_reward      : 575.6503
+[06:54:52]     cross_track_error   : -379.8887
+[06:54:52]     decel_reward        :  94.2953
+[06:54:52]     static_turn_reward  :  68.2196
+[06:54:52]   [SCORE BREAKDOWN]
+[06:54:52]     TOTAL SCORE:    471.3
+[06:54:52]     waypoint_bonus      :    375.0
+[06:54:52]     initial_points      :    300.0
+[06:54:52]     time_decay          :   -203.7
+[06:54:52]   Policy loss: -0.0005
+[06:54:52]   Value loss: 2435.4118
+[06:54:52]   Entropy: 4.2771
+[06:54:52]   Approx KL: 0.0014
+[06:54:52]   PPO epochs: 10/10
+[06:54:52] [ITER 46/500] Stage 2/6: Waypoints 10m with 1% coverage
+[07:09:46] 
+[07:09:46] Iteration 46/10000 | Stage 2 completed in 893.65s
+[07:09:46]   Iterations on this stage: 46/500
+[07:09:46]   Episodes this iter: 1
+[07:09:46]   Total episodes: 62
+[07:09:46]   Mean score: 493.4
+[07:09:46]   Mean waypoints captured: 25.0/25
+[07:09:46]   Mean length: 181.6s
+[07:09:46]   Success rate (last 100): 98.4%
+[07:09:46] 
+[07:09:46]   [EPISODE BREAKDOWN]
+[07:09:46]     Ep   62: Score= 493.4  Waypoints=25/25  Time= 181.6s  [✓ SUCCESS]
+[07:09:46]   [FAILURE BREAKDOWN]
+[07:09:46]     SUCCESS     :   1 (100.0%)
+[07:09:46]   [REWARD BREAKDOWN]
+[07:09:46]     TOTAL REWARD: 3673.2338
+[07:09:46]     progress_shaping    : 3649.6854
+[07:09:46]     collision_penalty   : -1453.8000
+[07:09:46]     waypoint_capture    : 1250.0000
+[07:09:46]     efficiency_bonus    : 986.9000
+[07:09:46]     lateral_penalty     : -623.8249
+[07:09:46]     heading_reward      : 542.7646
+[07:09:46]     obstacle_clearance_penalty: -507.3906
+[07:09:46]     cross_track_error   : -292.3956
+[07:09:46]     decel_reward        :  72.7412
+[07:09:46]     static_turn_reward  :  48.5537
+[07:09:46]   [SCORE BREAKDOWN]
+[07:09:46]     TOTAL SCORE:    493.4
+[07:09:46]     waypoint_bonus      :    375.0
+[07:09:46]     initial_points      :    300.0
+[07:09:46]     time_decay          :   -181.6
+[07:09:46]   Policy loss: -0.0006
+[07:09:46]   Value loss: 1471.8381
+[07:09:46]   Entropy: 4.2772
+[07:09:46]   Approx KL: 0.0006
+[07:09:46]   PPO epochs: 10/10
+[07:09:46] [ITER 47/500] Stage 2/6: Waypoints 10m with 1% coverage
+[07:25:05] 
+[07:25:05] Iteration 47/10000 | Stage 2 completed in 919.07s
+[07:25:05]   Iterations on this stage: 47/500
+[07:25:05]   Episodes this iter: 2
+[07:25:05]   Total episodes: 64
+[07:25:05]   Mean score: 468.2
+[07:25:05]   Mean waypoints captured: 25.0/25
+[07:25:05]   Mean length: 206.8s
+[07:25:05]   Success rate (last 100): 98.4%
+[07:25:05] 
+[07:25:05]   [EPISODE BREAKDOWN]
+[07:25:05]     Ep   63: Score= 462.1  Waypoints=25/25  Time= 212.9s  [✓ SUCCESS]
+[07:25:05]     Ep   64: Score= 474.2  Waypoints=25/25  Time= 200.8s  [✓ SUCCESS]
+[07:25:05]   [FAILURE BREAKDOWN]
+[07:25:05]     SUCCESS     :   2 (100.0%)
+[07:25:05]   [REWARD BREAKDOWN]
+[07:25:05]     TOTAL REWARD: 3417.1641
+[07:25:05]     progress_shaping    : 3644.8327
+[07:25:05]     collision_penalty   : -1548.3500
+[07:25:05]     waypoint_capture    : 1250.0000
+[07:25:05]     efficiency_bonus    : 936.4000
+[07:25:05]     lateral_penalty     : -696.8780
+[07:25:05]     obstacle_clearance_penalty: -575.9117
+[07:25:05]     heading_reward      : 572.1873
+[07:25:05]     cross_track_error   : -352.6453
+[07:25:05]     decel_reward        : 118.6490
+[07:25:05]     static_turn_reward  :  68.8801
+[07:25:05]   [SCORE BREAKDOWN]
+[07:25:05]     TOTAL SCORE:    468.2
+[07:25:05]     waypoint_bonus      :    375.0
+[07:25:05]     initial_points      :    300.0
+[07:25:05]     time_decay          :   -206.8
+[07:25:05]   Policy loss: -0.0011
+[07:25:05]   Value loss: 2504.0297
+[07:25:05]   Entropy: 4.2773
+[07:25:05]   Approx KL: 0.0011
+[07:25:05]   PPO epochs: 10/10
+[07:25:05] [ITER 48/500] Stage 2/6: Waypoints 10m with 1% coverage
+[07:40:09] 
+[07:40:09] Iteration 48/10000 | Stage 2 completed in 904.13s
+[07:40:09]   Iterations on this stage: 48/500
+[07:40:09]   Episodes this iter: 1
+[07:40:09]   Total episodes: 65
+[07:40:09]   Mean score: 449.8
+[07:40:09]   Mean waypoints captured: 25.0/25
+[07:40:09]   Mean length: 225.2s
+[07:40:09]   Success rate (last 100): 98.5%
+[07:40:09] 
+[07:40:09]   [EPISODE BREAKDOWN]
+[07:40:09]     Ep   65: Score= 449.8  Waypoints=25/25  Time= 225.2s  [✓ SUCCESS]
+[07:40:09]   [FAILURE BREAKDOWN]
+[07:40:09]     SUCCESS     :   1 (100.0%)
+[07:40:09]   [REWARD BREAKDOWN]
+[07:40:09]     TOTAL REWARD: 3146.5765
+[07:40:09]     progress_shaping    : 3643.6495
+[07:40:09]     collision_penalty   : -1736.4000
+[07:40:09]     waypoint_capture    : 1250.0000
+[07:40:09]     efficiency_bonus    : 899.6000
+[07:40:09]     lateral_penalty     : -723.7970
+[07:40:09]     obstacle_clearance_penalty: -630.5572
+[07:40:09]     heading_reward      : 588.0390
+[07:40:09]     cross_track_error   : -371.9840
+[07:40:09]     decel_reward        : 154.1203
+[07:40:09]     static_turn_reward  :  73.9058
+[07:40:09]   [SCORE BREAKDOWN]
+[07:40:09]     TOTAL SCORE:    449.8
+[07:40:09]     waypoint_bonus      :    375.0
+[07:40:09]     initial_points      :    300.0
+[07:40:09]     time_decay          :   -225.2
+[07:40:09]   Policy loss: -0.0001
+[07:40:09]   Value loss: 1268.7249
+[07:40:09]   Entropy: 4.2774
+[07:40:09]   Approx KL: 0.0002
+[07:40:09]   PPO epochs: 10/10
+[07:40:09] [ITER 49/500] Stage 2/6: Waypoints 10m with 1% coverage
+[07:55:18] 
+[07:55:18] Iteration 49/10000 | Stage 2 completed in 908.84s
+[07:55:18]   Iterations on this stage: 49/500
+[07:55:18]   Episodes this iter: 1
+[07:55:18]   Total episodes: 66
+[07:55:18]   Mean score: 450.7
+[07:55:18]   Mean waypoints captured: 25.0/25
+[07:55:18]   Mean length: 224.3s
+[07:55:18]   Success rate (last 100): 98.5%
+[07:55:18] 
+[07:55:18]   [EPISODE BREAKDOWN]
+[07:55:18]     Ep   66: Score= 450.7  Waypoints=25/25  Time= 224.3s  [✓ SUCCESS]
+[07:55:18]   [FAILURE BREAKDOWN]
+[07:55:18]     SUCCESS     :   1 (100.0%)
+[07:55:18]   [REWARD BREAKDOWN]
+[07:55:18]     TOTAL REWARD: 3475.3053
+[07:55:18]     progress_shaping    : 3673.4468
+[07:55:18]     collision_penalty   : -1449.1000
+[07:55:18]     waypoint_capture    : 1250.0000
+[07:55:18]     efficiency_bonus    : 901.5000
+[07:55:18]     obstacle_clearance_penalty: -690.5545
+[07:55:18]     lateral_penalty     : -678.0037
+[07:55:18]     heading_reward      : 572.6700
+[07:55:18]     cross_track_error   : -358.9028
+[07:55:18]     decel_reward        : 173.0937
+[07:55:18]     static_turn_reward  :  81.1559
+[07:55:18]   [SCORE BREAKDOWN]
+[07:55:18]     TOTAL SCORE:    450.7
+[07:55:18]     waypoint_bonus      :    375.0
+[07:55:18]     initial_points      :    300.0
+[07:55:18]     time_decay          :   -224.3
+[07:55:18]   Policy loss: -0.0007
+[07:55:18]   Value loss: 1202.0734
+[07:55:18]   Entropy: 4.2774
+[07:55:18]   Approx KL: 0.0019
+[07:55:18]   PPO epochs: 10/10
+[07:55:18] [ITER 50/500] Stage 2/6: Waypoints 10m with 1% coverage
+[08:10:22] 
+[08:10:22] Iteration 50/10000 | Stage 2 completed in 904.17s
+[08:10:22]   Iterations on this stage: 50/500
+[08:10:22]   Episodes this iter: 2
+[08:10:22]   Total episodes: 68
+[08:10:22]   Mean score: 482.1
+[08:10:22]   Mean waypoints captured: 25.0/25
+[08:10:22]   Mean length: 192.9s
+[08:10:22]   Success rate (last 100): 98.5%
+[08:10:22] 
+[08:10:22]   [EPISODE BREAKDOWN]
+[08:10:22]     Ep   67: Score= 487.1  Waypoints=25/25  Time= 187.9s  [✓ SUCCESS]
+[08:10:22]     Ep   68: Score= 477.1  Waypoints=25/25  Time= 197.9s  [✓ SUCCESS]
+[08:10:22]   [FAILURE BREAKDOWN]
+[08:10:22]     SUCCESS     :   2 (100.0%)
+[08:10:22]   [REWARD BREAKDOWN]
+[08:10:22]     TOTAL REWARD: 3630.8861
+[08:10:22]     progress_shaping    : 3639.2099
+[08:10:22]     collision_penalty   : -1287.7500
+[08:10:22]     waypoint_capture    : 1250.0000
+[08:10:22]     efficiency_bonus    : 964.3000
+[08:10:22]     lateral_penalty     : -668.7573
+[08:10:22]     obstacle_clearance_penalty: -600.3282
+[08:10:22]     heading_reward      : 553.0791
+[08:10:22]     cross_track_error   : -342.7593
+[08:10:22]     decel_reward        :  65.6921
+[08:10:22]     static_turn_reward  :  58.1998
+[08:10:22]   [SCORE BREAKDOWN]
+[08:10:22]     TOTAL SCORE:    482.1
+[08:10:22]     waypoint_bonus      :    375.0
+[08:10:22]     initial_points      :    300.0
+[08:10:22]     time_decay          :   -192.9
+[08:10:22]   Policy loss: -0.0018
+[08:10:22]   Value loss: 2588.4871
+[08:10:22]   Entropy: 4.2773
+[08:10:22]   Approx KL: 0.0015
+[08:10:22]   PPO epochs: 10/10
+[08:10:22]   Checkpoint saved: checkpoint_stage2_iter050.pt
+[08:10:22] [ITER 51/500] Stage 2/6: Waypoints 10m with 1% coverage
+[08:25:24] 
+[08:25:24] Iteration 51/10000 | Stage 2 completed in 901.82s
+[08:25:24]   Iterations on this stage: 51/500
+[08:25:24]   Episodes this iter: 2
+[08:25:24]   Total episodes: 70
+[08:25:24]   Mean score: 435.8
+[08:25:24]   Mean waypoints captured: 20.5/25
+[08:25:24]   Mean length: 171.7s
+[08:25:24]   Success rate (last 100): 97.1%
+[08:25:24] 
+[08:25:24]   [EPISODE BREAKDOWN]
+[08:25:24]     Ep   69: Score= 471.0  Waypoints=25/25  Time= 204.0s  [✓ SUCCESS]
+[08:25:24]     Ep   70: Score= 400.6  Waypoints=16/25  Time= 139.4s  [✗ FALL]
+[08:25:24]   [FAILURE BREAKDOWN]
+[08:25:24]     FALL        :   1 ( 50.0%)
+[08:25:24]     SUCCESS     :   1 ( 50.0%)
+[08:25:24]   [REWARD BREAKDOWN]
+[08:25:24]     TOTAL REWARD: 2251.2381
+[08:25:24]     progress_shaping    : 3035.0372
+[08:25:24]     collision_penalty   : -1215.8000
+[08:25:24]     waypoint_capture    : 1025.0000
+[08:25:24]     lateral_penalty     : -578.6401
+[08:25:24]     obstacle_clearance_penalty: -483.3566
+[08:25:24]     heading_reward      : 474.7314
+[08:25:24]     efficiency_bonus    : 471.0000
+[08:25:24]     cross_track_error   : -343.1621
+[08:25:24]     fall_penalty        : -250.0000
+[08:25:24]     decel_reward        :  60.2263
+[08:25:24]     static_turn_reward  :  56.2021
+[08:25:24]   [SCORE BREAKDOWN]
+[08:25:24]     TOTAL SCORE:    185.8
+[08:25:24]     waypoint_bonus      :    307.5
+[08:25:24]     initial_points      :    300.0
+[08:25:24]     fall_penalty        :   -250.0
+[08:25:24]     time_decay          :   -171.7
+[08:25:24]   Policy loss: -0.0001
+[08:25:24]   Value loss: 1827.0921
+[08:25:24]   Entropy: 4.2773
+[08:25:24]   Approx KL: 0.0004
+[08:25:24]   PPO epochs: 10/10
+[08:25:24] [ITER 52/500] Stage 2/6: Waypoints 10m with 1% coverage
+[08:40:21] 
+[08:40:21] Iteration 52/10000 | Stage 2 completed in 896.70s
+[08:40:21]   Iterations on this stage: 52/500
+[08:40:21]   Episodes this iter: 1
+[08:40:21]   Total episodes: 71
+[08:40:21]   Mean score: 485.0
+[08:40:21]   Mean waypoints captured: 25.0/25
+[08:40:21]   Mean length: 190.0s
+[08:40:21]   Success rate (last 100): 97.2%
+[08:40:21] 
+[08:40:21]   [EPISODE BREAKDOWN]
+[08:40:21]     Ep   71: Score= 485.0  Waypoints=25/25  Time= 190.0s  [✓ SUCCESS]
+[08:40:21]   [FAILURE BREAKDOWN]
+[08:40:21]     SUCCESS     :   1 (100.0%)
+[08:40:21]   [REWARD BREAKDOWN]
+[08:40:21]     TOTAL REWARD: 3611.4760
+[08:40:21]     progress_shaping    : 3626.6650
+[08:40:21]     collision_penalty   : -1379.7000
+[08:40:21]     waypoint_capture    : 1250.0000
+[08:40:21]     efficiency_bonus    : 970.1000
+[08:40:21]     lateral_penalty     : -613.0257
+[08:40:21]     obstacle_clearance_penalty: -589.2147
+[08:40:21]     heading_reward      : 520.8653
+[08:40:21]     cross_track_error   : -298.1770
+[08:40:21]     static_turn_reward  :  63.4855
+[08:40:21]     decel_reward        :  60.4776
+[08:40:21]   [SCORE BREAKDOWN]
+[08:40:21]     TOTAL SCORE:    485.0
+[08:40:21]     waypoint_bonus      :    375.0
+[08:40:21]     initial_points      :    300.0
+[08:40:21]     time_decay          :   -190.0
+[08:40:21]   Policy loss: -0.0014
+[08:40:21]   Value loss: 1366.1164
+[08:40:21]   Entropy: 4.2773
+[08:40:21]   Approx KL: 0.0021
+[08:40:21]   PPO epochs: 10/10
+[08:40:21] [ITER 53/500] Stage 2/6: Waypoints 10m with 1% coverage
+[08:55:19] 
+[08:55:19] Iteration 53/10000 | Stage 2 completed in 898.14s
+[08:55:19]   Iterations on this stage: 53/500
+[08:55:19]   Episodes this iter: 2
+[08:55:19]   Total episodes: 73
+[08:55:19]   Mean score: 484.8
+[08:55:19]   Mean waypoints captured: 25.0/25
+[08:55:19]   Mean length: 190.2s
+[08:55:19]   Success rate (last 100): 97.3%
+[08:55:19] 
+[08:55:19]   [EPISODE BREAKDOWN]
+[08:55:19]     Ep   72: Score= 477.9  Waypoints=25/25  Time= 197.1s  [✓ SUCCESS]
+[08:55:19]     Ep   73: Score= 491.7  Waypoints=25/25  Time= 183.3s  [✓ SUCCESS]
+[08:55:19]   [FAILURE BREAKDOWN]
+[08:55:19]     SUCCESS     :   2 (100.0%)
+[08:55:19]   [REWARD BREAKDOWN]
+[08:55:19]     TOTAL REWARD: 3679.0099
+[08:55:19]     progress_shaping    : 3640.8725
+[08:55:19]     collision_penalty   : -1259.5500
+[08:55:19]     waypoint_capture    : 1250.0000
+[08:55:19]     efficiency_bonus    : 969.6000
+[08:55:19]     lateral_penalty     : -679.4580
+[08:55:19]     obstacle_clearance_penalty: -559.4264
+[08:55:19]     heading_reward      : 554.4393
+[08:55:19]     cross_track_error   : -358.1386
+[08:55:19]     static_turn_reward  :  61.6692
+[08:55:19]     decel_reward        :  59.0019
+[08:55:19]   [SCORE BREAKDOWN]
+[08:55:19]     TOTAL SCORE:    484.8
+[08:55:19]     waypoint_bonus      :    375.0
+[08:55:19]     initial_points      :    300.0
+[08:55:19]     time_decay          :   -190.2
+[08:55:19]   Policy loss: 0.0005
+[08:55:19]   Value loss: 2607.0302
+[08:55:19]   Entropy: 4.2772
+[08:55:19]   Approx KL: 0.0025
+[08:55:19]   PPO epochs: 10/10
+[08:55:19] [ITER 54/500] Stage 2/6: Waypoints 10m with 1% coverage
+[09:10:12] 
+[09:10:12] Iteration 54/10000 | Stage 2 completed in 893.42s
+[09:10:12]   Iterations on this stage: 54/500
+[09:10:12]   Episodes this iter: 1
+[09:10:12]   Total episodes: 74
+[09:10:12]   Mean score: 474.0
+[09:10:12]   Mean waypoints captured: 25.0/25
+[09:10:12]   Mean length: 201.0s
+[09:10:12]   Success rate (last 100): 97.3%
+[09:10:12] 
+[09:10:12]   [EPISODE BREAKDOWN]
+[09:10:12]     Ep   74: Score= 474.0  Waypoints=25/25  Time= 201.0s  [✓ SUCCESS]
+[09:10:12]   [FAILURE BREAKDOWN]
+[09:10:12]     SUCCESS     :   1 (100.0%)
+[09:10:12]   [REWARD BREAKDOWN]
+[09:10:12]     TOTAL REWARD: 3715.7882
+[09:10:12]     progress_shaping    : 3642.9389
+[09:10:12]     waypoint_capture    : 1250.0000
+[09:10:12]     collision_penalty   : -1223.5000
+[09:10:12]     efficiency_bonus    : 948.1000
+[09:10:12]     lateral_penalty     : -708.6924
+[09:10:12]     heading_reward      : 548.8194
+[09:10:12]     obstacle_clearance_penalty: -545.1249
+[09:10:12]     cross_track_error   : -361.3600
+[09:10:12]     decel_reward        : 100.0660
+[09:10:12]     static_turn_reward  :  64.5412
+[09:10:12]   [SCORE BREAKDOWN]
+[09:10:12]     TOTAL SCORE:    474.0
+[09:10:12]     waypoint_bonus      :    375.0
+[09:10:12]     initial_points      :    300.0
+[09:10:12]     time_decay          :   -201.0
+[09:10:12]   Policy loss: -0.0013
+[09:10:12]   Value loss: 1333.1715
+[09:10:12]   Entropy: 4.2772
+[09:10:12]   Approx KL: 0.0009
+[09:10:12]   PPO epochs: 10/10
+[09:10:12] [ITER 55/500] Stage 2/6: Waypoints 10m with 1% coverage
+[09:25:06] 
+[09:25:06] Iteration 55/10000 | Stage 2 completed in 893.24s
+[09:25:06]   Iterations on this stage: 55/500
+[09:25:06]   Episodes this iter: 2
+[09:25:06]   Total episodes: 76
+[09:25:06]   Mean score: 477.5
+[09:25:06]   Mean waypoints captured: 25.0/25
+[09:25:06]   Mean length: 197.5s
+[09:25:06]   Success rate (last 100): 97.4%
+[09:25:06] 
+[09:25:06]   [EPISODE BREAKDOWN]
+[09:25:06]     Ep   75: Score= 462.5  Waypoints=25/25  Time= 212.5s  [✓ SUCCESS]
+[09:25:06]     Ep   76: Score= 492.5  Waypoints=25/25  Time= 182.5s  [✓ SUCCESS]
+[09:25:06]   [FAILURE BREAKDOWN]
+[09:25:06]     SUCCESS     :   2 (100.0%)
+[09:25:06]   [REWARD BREAKDOWN]
+[09:25:06]     TOTAL REWARD: 3662.0050
+[09:25:06]     progress_shaping    : 3649.3698
+[09:25:06]     collision_penalty   : -1298.8000
+[09:25:06]     waypoint_capture    : 1250.0000
+[09:25:06]     efficiency_bonus    : 955.0000
+[09:25:06]     lateral_penalty     : -664.3837
+[09:25:06]     obstacle_clearance_penalty: -567.6240
+[09:25:06]     heading_reward      : 550.0560
+[09:25:06]     cross_track_error   : -356.2960
+[09:25:06]     decel_reward        :  82.1262
+[09:25:06]     static_turn_reward  :  62.5568
+[09:25:06]   [SCORE BREAKDOWN]
+[09:25:06]     TOTAL SCORE:    477.5
+[09:25:06]     waypoint_bonus      :    375.0
+[09:25:06]     initial_points      :    300.0
+[09:25:06]     time_decay          :   -197.5
+[09:25:06]   Policy loss: -0.0003
+[09:25:06]   Value loss: 2519.5996
+[09:25:06]   Entropy: 4.2772
+[09:25:06]   Approx KL: 0.0004
+[09:25:06]   PPO epochs: 10/10
+[09:25:06] [ITER 56/500] Stage 2/6: Waypoints 10m with 1% coverage
+[09:40:01] 
+[09:40:01] Iteration 56/10000 | Stage 2 completed in 895.13s
+[09:40:01]   Iterations on this stage: 56/500
+[09:40:01]   Episodes this iter: 2
+[09:40:01]   Total episodes: 78
+[09:40:01]   Mean score: 492.1
+[09:40:01]   Mean waypoints captured: 25.0/25
+[09:40:01]   Mean length: 182.9s
+[09:40:01]   Success rate (last 100): 97.4%
+[09:40:01] 
+[09:40:01]   [EPISODE BREAKDOWN]
+[09:40:01]     Ep   77: Score= 493.3  Waypoints=25/25  Time= 181.7s  [✓ SUCCESS]
+[09:40:01]     Ep   78: Score= 490.8  Waypoints=25/25  Time= 184.2s  [✓ SUCCESS]
+[09:40:01]   [FAILURE BREAKDOWN]
+[09:40:01]     SUCCESS     :   2 (100.0%)
+[09:40:01]   [REWARD BREAKDOWN]
+[09:40:01]     TOTAL REWARD: 3625.6572
+[09:40:01]     progress_shaping    : 3647.1781
+[09:40:01]     collision_penalty   : -1371.5000
+[09:40:01]     waypoint_capture    : 1250.0000
+[09:40:01]     efficiency_bonus    : 984.1500
+[09:40:01]     lateral_penalty     : -661.2725
+[09:40:01]     obstacle_clearance_penalty: -539.5018
+[09:40:01]     heading_reward      : 537.0827
+[09:40:01]     cross_track_error   : -332.1660
+[09:40:01]     decel_reward        :  58.5677
+[09:40:01]     static_turn_reward  :  53.1190
+[09:40:01]   [SCORE BREAKDOWN]
+[09:40:01]     TOTAL SCORE:    492.1
+[09:40:01]     waypoint_bonus      :    375.0
+[09:40:01]     initial_points      :    300.0
+[09:40:01]     time_decay          :   -182.9
+[09:40:01]   Policy loss: -0.0005
+[09:40:01]   Value loss: 2678.8685
+[09:40:01]   Entropy: 4.2772
+[09:40:01]   Approx KL: 0.0009
+[09:40:01]   PPO epochs: 10/10
+[09:40:01] [ITER 57/500] Stage 2/6: Waypoints 10m with 1% coverage
+[09:55:00] 
+[09:55:00] Iteration 57/10000 | Stage 2 completed in 898.74s
+[09:55:00]   Iterations on this stage: 57/500
+[09:55:00]   Episodes this iter: 1
+[09:55:00]   Total episodes: 79
+[09:55:00]   Mean score: 464.2
+[09:55:00]   Mean waypoints captured: 25.0/25
+[09:55:00]   Mean length: 210.8s
+[09:55:00]   Success rate (last 100): 97.5%
+[09:55:00] 
+[09:55:00]   [EPISODE BREAKDOWN]
+[09:55:00]     Ep   79: Score= 464.2  Waypoints=25/25  Time= 210.8s  [✓ SUCCESS]
+[09:55:00]   [FAILURE BREAKDOWN]
+[09:55:00]     SUCCESS     :   1 (100.0%)
+[09:55:00]   [REWARD BREAKDOWN]
+[09:55:00]     TOTAL REWARD: 3354.0718
+[09:55:00]     progress_shaping    : 3636.4900
+[09:55:00]     collision_penalty   : -1471.8000
+[09:55:00]     waypoint_capture    : 1250.0000
+[09:55:00]     efficiency_bonus    : 928.4000
+[09:55:00]     lateral_penalty     : -698.0732
+[09:55:00]     obstacle_clearance_penalty: -662.9269
+[09:55:00]     heading_reward      : 565.4176
+[09:55:00]     cross_track_error   : -370.9793
+[09:55:00]     decel_reward        :  99.4659
+[09:55:00]     static_turn_reward  :  78.0776
+[09:55:00]   [SCORE BREAKDOWN]
+[09:55:00]     TOTAL SCORE:    464.2
+[09:55:00]     waypoint_bonus      :    375.0
+[09:55:00]     initial_points      :    300.0
+[09:55:00]     time_decay          :   -210.8
+[09:55:00]   Policy loss: -0.0003
+[09:55:00]   Value loss: 1294.6419
+[09:55:00]   Entropy: 4.2772
+[09:55:00]   Approx KL: 0.0013
+[09:55:00]   PPO epochs: 10/10
+[09:55:00] [ITER 58/500] Stage 2/6: Waypoints 10m with 1% coverage
+[10:09:53] 
+[10:09:53] Iteration 58/10000 | Stage 2 completed in 893.95s
+[10:09:53]   Iterations on this stage: 58/500
+[10:09:53]   Episodes this iter: 2
+[10:09:53]   Total episodes: 81
+[10:09:53]   Mean score: 480.1
+[10:09:53]   Mean waypoints captured: 25.0/25
+[10:09:53]   Mean length: 194.9s
+[10:09:53]   Success rate (last 100): 97.5%
+[10:09:53] 
+[10:09:53]   [EPISODE BREAKDOWN]
+[10:09:53]     Ep   80: Score= 482.7  Waypoints=25/25  Time= 192.3s  [✓ SUCCESS]
+[10:09:53]     Ep   81: Score= 477.6  Waypoints=25/25  Time= 197.4s  [✓ SUCCESS]
+[10:09:53]   [FAILURE BREAKDOWN]
+[10:09:53]     SUCCESS     :   2 (100.0%)
+[10:09:53]   [REWARD BREAKDOWN]
+[10:09:53]     TOTAL REWARD: 3507.2886
+[10:09:53]     progress_shaping    : 3636.8799
+[10:09:53]     collision_penalty   : -1397.3000
+[10:09:53]     waypoint_capture    : 1250.0000
+[10:09:53]     efficiency_bonus    : 960.3000
+[10:09:53]     lateral_penalty     : -684.9691
+[10:09:53]     obstacle_clearance_penalty: -576.0600
+[10:09:53]     heading_reward      : 542.1164
+[10:09:53]     cross_track_error   : -363.4460
+[10:09:53]     decel_reward        :  74.4580
+[10:09:53]     static_turn_reward  :  65.3094
+[10:09:53]   [SCORE BREAKDOWN]
+[10:09:53]     TOTAL SCORE:    480.1
+[10:09:53]     waypoint_bonus      :    375.0
+[10:09:53]     initial_points      :    300.0
+[10:09:53]     time_decay          :   -194.9
+[10:09:53]   Policy loss: 0.0001
+[10:09:53]   Value loss: 2520.5556
+[10:09:53]   Entropy: 4.2773
+[10:09:53]   Approx KL: 0.0004
+[10:09:53]   PPO epochs: 10/10
+[10:09:53] [ITER 59/500] Stage 2/6: Waypoints 10m with 1% coverage
+[10:24:42] 
+[10:24:42] Iteration 59/10000 | Stage 2 completed in 888.15s
+[10:24:42]   Iterations on this stage: 59/500
+[10:24:42]   Episodes this iter: 1
+[10:24:42]   Total episodes: 82
+[10:24:42]   Mean score: 488.1
+[10:24:42]   Mean waypoints captured: 25.0/25
+[10:24:42]   Mean length: 186.9s
+[10:24:42]   Success rate (last 100): 97.6%
+[10:24:42] 
+[10:24:42]   [EPISODE BREAKDOWN]
+[10:24:42]     Ep   82: Score= 488.1  Waypoints=25/25  Time= 186.9s  [✓ SUCCESS]
+[10:24:42]   [FAILURE BREAKDOWN]
+[10:24:42]     SUCCESS     :   1 (100.0%)
+[10:24:42]   [REWARD BREAKDOWN]
+[10:24:42]     TOTAL REWARD: 3720.8102
+[10:24:42]     progress_shaping    : 3639.1325
+[10:24:42]     waypoint_capture    : 1250.0000
+[10:24:42]     collision_penalty   : -1226.9000
+[10:24:42]     efficiency_bonus    : 976.2000
+[10:24:42]     lateral_penalty     : -671.4150
+[10:24:42]     obstacle_clearance_penalty: -572.7139
+[10:24:42]     heading_reward      : 566.5298
+[10:24:42]     cross_track_error   : -342.6120
+[10:24:42]     static_turn_reward  :  56.1769
+[10:24:42]     decel_reward        :  46.4119
+[10:24:42]   [SCORE BREAKDOWN]
+[10:24:42]     TOTAL SCORE:    488.1
+[10:24:42]     waypoint_bonus      :    375.0
+[10:24:42]     initial_points      :    300.0
+[10:24:42]     time_decay          :   -186.9
+[10:24:42]   Policy loss: -0.0019
+[10:24:42]   Value loss: 1390.3379
+[10:24:42]   Entropy: 4.2773
+[10:24:42]   Approx KL: 0.0027
+[10:24:42]   PPO epochs: 10/10
+[10:24:42] [ITER 60/500] Stage 2/6: Waypoints 10m with 1% coverage
+[10:39:37] 
+[10:39:37] Iteration 60/10000 | Stage 2 completed in 895.77s
+[10:39:37]   Iterations on this stage: 60/500
+[10:39:37]   Episodes this iter: 2
+[10:39:37]   Total episodes: 84
+[10:39:37]   Mean score: 479.4
+[10:39:37]   Mean waypoints captured: 25.0/25
+[10:39:37]   Mean length: 195.6s
+[10:39:37]   Success rate (last 100): 97.6%
+[10:39:37] 
+[10:39:37]   [EPISODE BREAKDOWN]
+[10:39:37]     Ep   83: Score= 489.4  Waypoints=25/25  Time= 185.6s  [✓ SUCCESS]
+[10:39:37]     Ep   84: Score= 469.3  Waypoints=25/25  Time= 205.7s  [✓ SUCCESS]
+[10:39:37]   [FAILURE BREAKDOWN]
+[10:39:37]     SUCCESS     :   2 (100.0%)
+[10:39:37]   [REWARD BREAKDOWN]
+[10:39:37]     TOTAL REWARD: 3609.5687
+[10:39:37]     progress_shaping    : 3639.6483
+[10:39:37]     waypoint_capture    : 1250.0000
+[10:39:37]     collision_penalty   : -1206.9000
+[10:39:37]     efficiency_bonus    : 958.8000
+[10:39:37]     lateral_penalty     : -706.5514
+[10:39:37]     obstacle_clearance_penalty: -649.4322
+[10:39:37]     heading_reward      : 548.5995
+[10:39:37]     cross_track_error   : -369.4865
+[10:39:37]     decel_reward        :  80.5561
+[10:39:37]     static_turn_reward  :  64.3349
+[10:39:37]   [SCORE BREAKDOWN]
+[10:39:37]     TOTAL SCORE:    479.4
+[10:39:37]     waypoint_bonus      :    375.0
+[10:39:37]     initial_points      :    300.0
+[10:39:37]     time_decay          :   -195.6
+[10:39:37]   Policy loss: -0.0007
+[10:39:37]   Value loss: 2510.5610
+[10:39:37]   Entropy: 4.2773
+[10:39:37]   Approx KL: 0.0022
+[10:39:37]   PPO epochs: 10/10
+[10:39:37] [ITER 61/500] Stage 2/6: Waypoints 10m with 1% coverage
+[10:54:36] 
+[10:54:36] Iteration 61/10000 | Stage 2 completed in 898.42s
+[10:54:36]   Iterations on this stage: 61/500
+[10:54:36]   Episodes this iter: 1
+[10:54:36]   Total episodes: 85
+[10:54:36]   Mean score: 464.3
+[10:54:36]   Mean waypoints captured: 25.0/25
+[10:54:36]   Mean length: 210.7s
+[10:54:36]   Success rate (last 100): 97.6%
+[10:54:36] 
+[10:54:36]   [EPISODE BREAKDOWN]
+[10:54:36]     Ep   85: Score= 464.3  Waypoints=25/25  Time= 210.7s  [✓ SUCCESS]
+[10:54:36]   [FAILURE BREAKDOWN]
+[10:54:36]     SUCCESS     :   1 (100.0%)
+[10:54:36]   [REWARD BREAKDOWN]
+[10:54:36]     TOTAL REWARD: 3354.4727
+[10:54:36]     progress_shaping    : 3651.9401
+[10:54:36]     collision_penalty   : -1529.3000
+[10:54:36]     waypoint_capture    : 1250.0000
+[10:54:36]     efficiency_bonus    : 928.6000
+[10:54:36]     lateral_penalty     : -741.1287
+[10:54:36]     obstacle_clearance_penalty: -592.2130
+[10:54:36]     heading_reward      : 571.9548
+[10:54:36]     cross_track_error   : -363.6253
+[10:54:36]     decel_reward        : 102.2937
+[10:54:36]     static_turn_reward  :  75.9511
+[10:54:36]   [SCORE BREAKDOWN]
+[10:54:36]     TOTAL SCORE:    464.3
+[10:54:36]     waypoint_bonus      :    375.0
+[10:54:36]     initial_points      :    300.0
+[10:54:36]     time_decay          :   -210.7
+[10:54:36]   Policy loss: -0.0002
+[10:54:36]   Value loss: 1264.6001
+[10:54:36]   Entropy: 4.2773
+[10:54:36]   Approx KL: 0.0011
+[10:54:36]   PPO epochs: 10/10
+[10:54:36] [ITER 62/500] Stage 2/6: Waypoints 10m with 1% coverage
+[11:09:35] 
+[11:09:35] Iteration 62/10000 | Stage 2 completed in 899.09s
+[11:09:35]   Iterations on this stage: 62/500
+[11:09:35]   Episodes this iter: 2
+[11:09:35]   Total episodes: 87
+[11:09:35]   Mean score: 477.7
+[11:09:35]   Mean waypoints captured: 25.0/25
+[11:09:35]   Mean length: 197.3s
+[11:09:35]   Success rate (last 100): 97.7%
+[11:09:35] 
+[11:09:35]   [EPISODE BREAKDOWN]
+[11:09:35]     Ep   86: Score= 491.9  Waypoints=25/25  Time= 183.1s  [✓ SUCCESS]
+[11:09:35]     Ep   87: Score= 463.4  Waypoints=25/25  Time= 211.6s  [✓ SUCCESS]
+[11:09:35]   [FAILURE BREAKDOWN]
+[11:09:35]     SUCCESS     :   2 (100.0%)
+[11:09:35]   [REWARD BREAKDOWN]
+[11:09:35]     TOTAL REWARD: 3516.3120
+[11:09:35]     progress_shaping    : 3633.5373
+[11:09:35]     collision_penalty   : -1350.8000
+[11:09:35]     waypoint_capture    : 1250.0000
+[11:09:35]     efficiency_bonus    : 955.4000
+[11:09:35]     lateral_penalty     : -690.7185
+[11:09:35]     obstacle_clearance_penalty: -587.0322
+[11:09:35]     heading_reward      : 552.7349
+[11:09:35]     cross_track_error   : -380.4141
+[11:09:35]     decel_reward        :  69.9751
+[11:09:35]     static_turn_reward  :  63.6295
+[11:09:35]   [SCORE BREAKDOWN]
+[11:09:35]     TOTAL SCORE:    477.7
+[11:09:35]     waypoint_bonus      :    375.0
+[11:09:35]     initial_points      :    300.0
+[11:09:35]     time_decay          :   -197.3
+[11:09:35]   Policy loss: -0.0002
+[11:09:35]   Value loss: 2479.6218
+[11:09:35]   Entropy: 4.2772
+[11:09:35]   Approx KL: 0.0009
+[11:09:35]   PPO epochs: 10/10
+[11:09:35] [ITER 63/500] Stage 2/6: Waypoints 10m with 1% coverage
+[11:24:35] 
+[11:24:35] Iteration 63/10000 | Stage 2 completed in 900.26s
+[11:24:35]   Iterations on this stage: 63/500
+[11:24:35]   Episodes this iter: 1
+[11:24:35]   Total episodes: 88
+[11:24:35]   Mean score: 491.1
+[11:24:35]   Mean waypoints captured: 25.0/25
+[11:24:35]   Mean length: 183.9s
+[11:24:35]   Success rate (last 100): 97.7%
+[11:24:35] 
+[11:24:35]   [EPISODE BREAKDOWN]
+[11:24:35]     Ep   88: Score= 491.1  Waypoints=25/25  Time= 183.9s  [✓ SUCCESS]
+[11:24:35]   [FAILURE BREAKDOWN]
+[11:24:35]     SUCCESS     :   1 (100.0%)
+[11:24:35]   [REWARD BREAKDOWN]
+[11:24:35]     TOTAL REWARD: 3779.8369
+[11:24:35]     progress_shaping    : 3644.4742
+[11:24:35]     collision_penalty   : -1256.9000
+[11:24:35]     waypoint_capture    : 1250.0000
+[11:24:35]     efficiency_bonus    : 982.2000
+[11:24:35]     lateral_penalty     : -676.0911
+[11:24:35]     heading_reward      : 519.1714
+[11:24:35]     obstacle_clearance_penalty: -471.8801
+[11:24:35]     cross_track_error   : -327.2705
+[11:24:35]     decel_reward        :  58.6456
+[11:24:35]     static_turn_reward  :  57.4874
+[11:24:35]   [SCORE BREAKDOWN]
+[11:24:35]     TOTAL SCORE:    491.1
+[11:24:35]     waypoint_bonus      :    375.0
+[11:24:35]     initial_points      :    300.0
+[11:24:35]     time_decay          :   -183.9
+[11:24:35]   Policy loss: -0.0005
+[11:24:35]   Value loss: 1444.1391
+[11:24:35]   Entropy: 4.2772
+[11:24:35]   Approx KL: 0.0009
+[11:24:35]   PPO epochs: 10/10
+[11:24:35] [ITER 64/500] Stage 2/6: Waypoints 10m with 1% coverage
+[11:39:34] 
+[11:39:34] Iteration 64/10000 | Stage 2 completed in 898.73s
+[11:39:34]   Iterations on this stage: 64/500
+[11:39:34]   Episodes this iter: 2
+[11:39:34]   Total episodes: 90
+[11:39:34]   Mean score: 467.8
+[11:39:34]   Mean waypoints captured: 25.0/25
+[11:39:34]   Mean length: 207.2s
+[11:39:34]   Success rate (last 100): 97.8%
+[11:39:34] 
+[11:39:34]   [EPISODE BREAKDOWN]
+[11:39:34]     Ep   89: Score= 467.6  Waypoints=25/25  Time= 207.4s  [✓ SUCCESS]
+[11:39:34]     Ep   90: Score= 468.0  Waypoints=25/25  Time= 207.0s  [✓ SUCCESS]
+[11:39:34]   [FAILURE BREAKDOWN]
+[11:39:34]     SUCCESS     :   2 (100.0%)
+[11:39:34]   [REWARD BREAKDOWN]
+[11:39:34]     TOTAL REWARD: 3533.6678
+[11:39:34]     progress_shaping    : 3641.5589
+[11:39:34]     collision_penalty   : -1333.9000
+[11:39:34]     waypoint_capture    : 1250.0000
+[11:39:34]     efficiency_bonus    : 935.6500
+[11:39:34]     lateral_penalty     : -697.6544
+[11:39:34]     obstacle_clearance_penalty: -630.1965
+[11:39:34]     heading_reward      : 550.3056
+[11:39:34]     cross_track_error   : -368.3384
+[11:39:34]     decel_reward        : 111.7731
+[11:39:34]     static_turn_reward  :  74.4694
+[11:39:34]   [SCORE BREAKDOWN]
+[11:39:34]     TOTAL SCORE:    467.8
+[11:39:34]     waypoint_bonus      :    375.0
+[11:39:34]     initial_points      :    300.0
+[11:39:34]     time_decay          :   -207.2
+[11:39:34]   Policy loss: -0.0013
+[11:39:34]   Value loss: 2412.7989
+[11:39:34]   Entropy: 4.2771
+[11:39:34]   Approx KL: 0.0037
+[11:39:34]   PPO epochs: 10/10
+[11:39:34] [ITER 65/500] Stage 2/6: Waypoints 10m with 1% coverage
+[11:54:37] 
+[11:54:37] Iteration 65/10000 | Stage 2 completed in 902.79s
+[11:54:37]   Iterations on this stage: 65/500
+[11:54:37]   Episodes this iter: 1
+[11:54:37]   Total episodes: 91
+[11:54:37]   Mean score: 498.3
+[11:54:37]   Mean waypoints captured: 25.0/25
+[11:54:37]   Mean length: 176.7s
+[11:54:37]   Success rate (last 100): 97.8%
+[11:54:37] 
+[11:54:37]   [EPISODE BREAKDOWN]
+[11:54:37]     Ep   91: Score= 498.3  Waypoints=25/25  Time= 176.7s  [✓ SUCCESS]
+[11:54:37]   [FAILURE BREAKDOWN]
+[11:54:37]     SUCCESS     :   1 (100.0%)
+[11:54:37]   [REWARD BREAKDOWN]
+[11:54:37]     TOTAL REWARD: 3662.0355
+[11:54:37]     progress_shaping    : 3643.1508
+[11:54:37]     collision_penalty   : -1375.8000
+[11:54:37]     waypoint_capture    : 1250.0000
+[11:54:37]     efficiency_bonus    : 996.6000
+[11:54:37]     lateral_penalty     : -640.0608
+[11:54:37]     heading_reward      : 516.8279
+[11:54:37]     obstacle_clearance_penalty: -509.2300
+[11:54:37]     cross_track_error   : -327.4302
+[11:54:37]     static_turn_reward  :  54.7988
+[11:54:37]     decel_reward        :  53.1791
+[11:54:37]   [SCORE BREAKDOWN]
+[11:54:37]     TOTAL SCORE:    498.3
+[11:54:37]     waypoint_bonus      :    375.0
+[11:54:37]     initial_points      :    300.0
+[11:54:37]     time_decay          :   -176.7
+[11:54:37]   Policy loss: -0.0009
+[11:54:37]   Value loss: 1498.9797
+[11:54:37]   Entropy: 4.2770
+[11:54:37]   Approx KL: 0.0021
+[11:54:37]   PPO epochs: 10/10
+[11:54:37] [ITER 66/500] Stage 2/6: Waypoints 10m with 1% coverage
+[12:09:49] 
+[12:09:49] Iteration 66/10000 | Stage 2 completed in 911.97s
+[12:09:49]   Iterations on this stage: 66/500
+[12:09:49]   Episodes this iter: 2
+[12:09:49]   Total episodes: 93
+[12:09:49]   Mean score: 488.0
+[12:09:49]   Mean waypoints captured: 25.0/25
+[12:09:49]   Mean length: 187.0s
+[12:09:49]   Success rate (last 100): 97.8%
+[12:09:49] 
+[12:09:49]   [EPISODE BREAKDOWN]
+[12:09:49]     Ep   92: Score= 499.3  Waypoints=25/25  Time= 175.7s  [✓ SUCCESS]
+[12:09:49]     Ep   93: Score= 476.6  Waypoints=25/25  Time= 198.4s  [✓ SUCCESS]
+[12:09:49]   [FAILURE BREAKDOWN]
+[12:09:49]     SUCCESS     :   2 (100.0%)
+[12:09:49]   [REWARD BREAKDOWN]
+[12:09:49]     TOTAL REWARD: 3510.9280
+[12:09:49]     progress_shaping    : 3631.0656
+[12:09:49]     collision_penalty   : -1457.4500
+[12:09:49]     waypoint_capture    : 1250.0000
+[12:09:49]     efficiency_bonus    : 975.9500
+[12:09:49]     lateral_penalty     : -652.4472
+[12:09:49]     obstacle_clearance_penalty: -561.9273
+[12:09:49]     heading_reward      : 532.0471
+[12:09:49]     cross_track_error   : -337.1803
+[12:09:49]     decel_reward        :  72.4601
+[12:09:49]     static_turn_reward  :  58.4100
+[12:09:49]   [SCORE BREAKDOWN]
+[12:09:49]     TOTAL SCORE:    488.0
+[12:09:49]     waypoint_bonus      :    375.0
+[12:09:49]     initial_points      :    300.0
+[12:09:49]     time_decay          :   -187.0
+[12:09:49]   Policy loss: -0.0013
+[12:09:49]   Value loss: 2684.5608
+[12:09:49]   Entropy: 4.2770
+[12:09:49]   Approx KL: 0.0043
+[12:09:49]   PPO epochs: 10/10
+[12:09:49] [ITER 67/500] Stage 2/6: Waypoints 10m with 1% coverage
+[12:24:44] 
+[12:24:44] Iteration 67/10000 | Stage 2 completed in 895.55s
+[12:24:44]   Iterations on this stage: 67/500
+[12:24:44]   Episodes this iter: 2
+[12:24:44]   Total episodes: 95
+[12:24:44]   Mean score: 485.0
+[12:24:44]   Mean waypoints captured: 25.0/25
+[12:24:44]   Mean length: 190.0s
+[12:24:44]   Success rate (last 100): 97.9%
+[12:24:44] 
+[12:24:44]   [EPISODE BREAKDOWN]
+[12:24:44]     Ep   94: Score= 487.1  Waypoints=25/25  Time= 187.9s  [✓ SUCCESS]
+[12:24:44]     Ep   95: Score= 482.9  Waypoints=25/25  Time= 192.1s  [✓ SUCCESS]
+[12:24:44]   [FAILURE BREAKDOWN]
+[12:24:44]     SUCCESS     :   2 (100.0%)
+[12:24:44]   [REWARD BREAKDOWN]
+[12:24:44]     TOTAL REWARD: 3338.6718
+[12:24:44]     progress_shaping    : 3638.6490
+[12:24:44]     collision_penalty   : -1581.0000
+[12:24:44]     waypoint_capture    : 1250.0000
+[12:24:44]     efficiency_bonus    : 970.1000
+[12:24:44]     lateral_penalty     : -698.0809
+[12:24:44]     obstacle_clearance_penalty: -551.3316
+[12:24:44]     heading_reward      : 547.9705
+[12:24:44]     cross_track_error   : -361.2096
+[12:24:44]     decel_reward        :  63.0558
+[12:24:44]     static_turn_reward  :  60.5185
+[12:24:44]   [SCORE BREAKDOWN]
+[12:24:44]     TOTAL SCORE:    485.0
+[12:24:44]     waypoint_bonus      :    375.0
+[12:24:44]     initial_points      :    300.0
+[12:24:44]     time_decay          :   -190.0
+[12:24:44]   Policy loss: -0.0011
+[12:24:44]   Value loss: 2585.2546
+[12:24:44]   Entropy: 4.2769
+[12:24:44]   Approx KL: 0.0012
+[12:24:44]   PPO epochs: 10/10
+[12:24:44] [ITER 68/500] Stage 2/6: Waypoints 10m with 1% coverage
+[12:39:44] 
+[12:39:44] Iteration 68/10000 | Stage 2 completed in 899.88s
+[12:39:44]   Iterations on this stage: 68/500
+[12:39:44]   Episodes this iter: 1
+[12:39:44]   Total episodes: 96
+[12:39:44]   Mean score: 468.7
+[12:39:44]   Mean waypoints captured: 25.0/25
+[12:39:44]   Mean length: 206.3s
+[12:39:44]   Success rate (last 100): 97.9%
+[12:39:44] 
+[12:39:44]   [EPISODE BREAKDOWN]
+[12:39:44]     Ep   96: Score= 468.7  Waypoints=25/25  Time= 206.3s  [✓ SUCCESS]
+[12:39:44]   [FAILURE BREAKDOWN]
+[12:39:44]     SUCCESS     :   1 (100.0%)
+[12:39:44]   [REWARD BREAKDOWN]
+[12:39:44]     TOTAL REWARD: 3621.5990
+[12:39:44]     progress_shaping    : 3633.5239
+[12:39:44]     waypoint_capture    : 1250.0000
+[12:39:44]     collision_penalty   : -1236.6000
+[12:39:44]     efficiency_bonus    : 937.5000
+[12:39:44]     lateral_penalty     : -740.4703
+[12:39:44]     obstacle_clearance_penalty: -608.7822
+[12:39:44]     heading_reward      : 567.5521
+[12:39:44]     cross_track_error   : -365.4048
+[12:39:44]     decel_reward        : 108.8330
+[12:39:44]     static_turn_reward  :  75.4473
+[12:39:44]   [SCORE BREAKDOWN]
+[12:39:44]     TOTAL SCORE:    468.7
+[12:39:44]     waypoint_bonus      :    375.0
+[12:39:44]     initial_points      :    300.0
+[12:39:44]     time_decay          :   -206.3
+[12:39:44]   Policy loss: -0.0002
+[12:39:44]   Value loss: 1380.7587
+[12:39:44]   Entropy: 4.2768
+[12:39:44]   Approx KL: 0.0002
+[12:39:44]   PPO epochs: 10/10
+[12:39:44] [ITER 69/500] Stage 2/6: Waypoints 10m with 1% coverage
+[12:54:43] 
+[12:54:43] Iteration 69/10000 | Stage 2 completed in 899.12s
+[12:54:43]   Iterations on this stage: 69/500
+[12:54:43]   Episodes this iter: 2
+[12:54:43]   Total episodes: 98
+[12:54:43]   Mean score: 485.6
+[12:54:43]   Mean waypoints captured: 25.0/25
+[12:54:43]   Mean length: 189.4s
+[12:54:43]   Success rate (last 100): 98.0%
+[12:54:43] 
+[12:54:43]   [EPISODE BREAKDOWN]
+[12:54:43]     Ep   97: Score= 488.7  Waypoints=25/25  Time= 186.3s  [✓ SUCCESS]
+[12:54:43]     Ep   98: Score= 482.6  Waypoints=25/25  Time= 192.4s  [✓ SUCCESS]
+[12:54:43]   [FAILURE BREAKDOWN]
+[12:54:43]     SUCCESS     :   2 (100.0%)
+[12:54:43]   [REWARD BREAKDOWN]
+[12:54:43]     TOTAL REWARD: 3649.7269
+[12:54:43]     progress_shaping    : 3644.9581
+[12:54:43]     collision_penalty   : -1355.4500
+[12:54:43]     waypoint_capture    : 1250.0000
+[12:54:43]     efficiency_bonus    : 971.3000
+[12:54:43]     lateral_penalty     : -667.0533
+[12:54:43]     heading_reward      : 550.1580
+[12:54:43]     obstacle_clearance_penalty: -538.4503
+[12:54:43]     cross_track_error   : -345.7903
+[12:54:43]     decel_reward        :  83.7979
+[12:54:43]     static_turn_reward  :  56.2568
+[12:54:43]   [SCORE BREAKDOWN]
+[12:54:43]     TOTAL SCORE:    485.6
+[12:54:43]     waypoint_bonus      :    375.0
+[12:54:43]     initial_points      :    300.0
+[12:54:43]     time_decay          :   -189.4
+[12:54:43]   Policy loss: -0.0002
+[12:54:43]   Value loss: 2571.9472
+[12:54:43]   Entropy: 4.2767
+[12:54:43]   Approx KL: 0.0005
+[12:54:43]   PPO epochs: 10/10
+[12:54:43] [ITER 70/500] Stage 2/6: Waypoints 10m with 1% coverage
+[13:09:35] 
+[13:09:35] Iteration 70/10000 | Stage 2 completed in 891.98s
+[13:09:35]   Iterations on this stage: 70/500
+[13:09:35]   Episodes this iter: 2
+[13:09:35]   Total episodes: 100
+[13:09:35]   Mean score: 397.1
+[13:09:35]   Mean waypoints captured: 13.5/25
+[13:09:35]   Mean length: 105.4s
+[13:09:35]   Success rate (last 100): 97.0%
+[13:09:35] 
+[13:09:35]   [EPISODE BREAKDOWN]
+[13:09:35]     Ep   99: Score= 482.8  Waypoints=25/25  Time= 192.2s  [✓ SUCCESS]
+[13:09:35]     Ep  100: Score= 311.5  Waypoints= 2/25  Time=  18.5s  [✗ FALL]
+[13:09:35]   [FAILURE BREAKDOWN]
+[13:09:35]     FALL        :   1 ( 50.0%)
+[13:09:35]     SUCCESS     :   1 ( 50.0%)
+[13:09:35]   [REWARD BREAKDOWN]
+[13:09:35]     TOTAL REWARD: 1626.3999
+[13:09:35]     progress_shaping    : 1972.5816
+[13:09:35]     collision_penalty   : -734.3000
+[13:09:35]     waypoint_capture    : 675.0000
+[13:09:35]     efficiency_bonus    : 482.8000
+[13:09:35]     lateral_penalty     : -363.4980
+[13:09:35]     obstacle_clearance_penalty: -329.2200
+[13:09:35]     heading_reward      : 307.8011
+[13:09:35]     fall_penalty        : -250.0000
+[13:09:35]     cross_track_error   : -199.0509
+[13:09:35]     static_turn_reward  :  32.1871
+[13:09:35]     decel_reward        :  32.0990
+[13:09:35]   [SCORE BREAKDOWN]
+[13:09:35]     TOTAL SCORE:    147.1
+[13:09:35]     initial_points      :    300.0
+[13:09:35]     fall_penalty        :   -250.0
+[13:09:35]     waypoint_bonus      :    202.5
+[13:09:35]     time_decay          :   -105.4
+[13:09:35]   Policy loss: -0.0002
+[13:09:35]   Value loss: 1897.3415
+[13:09:35]   Entropy: 4.2768
+[13:09:35]   Approx KL: 0.0007
+[13:09:35]   PPO epochs: 10/10
+[13:09:35] 
+[13:09:35] ================================================================================
+[13:09:35] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[13:09:35] Success rate: 97.0% (threshold: 80.0%)
+[13:09:35] Iterations on stage: 70
+[13:09:35]   Stage checkpoint saved: stage_2_complete.pt
+[13:09:35]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[13:09:35] ================================================================================
+[13:09:35] [ITER 71/500] Stage 2/6: Waypoints 10m with 1% coverage
+[13:24:25] 
+[13:24:25] Iteration 71/10000 | Stage 2 completed in 890.06s
+[13:24:25]   Iterations on this stage: 71/500
+[13:24:25]   Episodes this iter: 2
+[13:24:25]   Total episodes: 102
+[13:24:25]   Mean score: 474.7
+[13:24:25]   Mean waypoints captured: 25.0/25
+[13:24:25]   Mean length: 200.3s
+[13:24:25]   Success rate (last 100): 97.0%
+[13:24:25] 
+[13:24:25]   [EPISODE BREAKDOWN]
+[13:24:25]     Ep  101: Score= 470.9  Waypoints=25/25  Time= 204.1s  [✓ SUCCESS]
+[13:24:25]     Ep  102: Score= 478.4  Waypoints=25/25  Time= 196.6s  [✓ SUCCESS]
+[13:24:25]   [FAILURE BREAKDOWN]
+[13:24:25]     SUCCESS     :   2 (100.0%)
+[13:24:25]   [REWARD BREAKDOWN]
+[13:24:25]     TOTAL REWARD: 3491.1844
+[13:24:25]     progress_shaping    : 3643.0777
+[13:24:25]     collision_penalty   : -1440.3000
+[13:24:25]     waypoint_capture    : 1250.0000
+[13:24:25]     efficiency_bonus    : 949.3500
+[13:24:25]     lateral_penalty     : -684.0805
+[13:24:25]     obstacle_clearance_penalty: -555.3478
+[13:24:25]     heading_reward      : 549.9251
+[13:24:25]     cross_track_error   : -377.2511
+[13:24:25]     decel_reward        :  87.5910
+[13:24:25]     static_turn_reward  :  68.2200
+[13:24:25]   [SCORE BREAKDOWN]
+[13:24:25]     TOTAL SCORE:    474.7
+[13:24:25]     waypoint_bonus      :    375.0
+[13:24:25]     initial_points      :    300.0
+[13:24:25]     time_decay          :   -200.3
+[13:24:25]   Policy loss: -0.0002
+[13:24:25]   Value loss: 2532.2186
+[13:24:25]   Entropy: 4.2768
+[13:24:25]   Approx KL: 0.0001
+[13:24:25]   PPO epochs: 10/10
+[13:24:25] 
+[13:24:25] ================================================================================
+[13:24:25] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[13:24:25] Success rate: 97.0% (threshold: 80.0%)
+[13:24:25] Iterations on stage: 71
+[13:24:25]   Stage checkpoint saved: stage_2_complete.pt
+[13:24:25]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[13:24:25] ================================================================================
+[13:24:25] [ITER 72/500] Stage 2/6: Waypoints 10m with 1% coverage
+[13:39:20] 
+[13:39:20] Iteration 72/10000 | Stage 2 completed in 894.79s
+[13:39:20]   Iterations on this stage: 72/500
+[13:39:20]   Episodes this iter: 1
+[13:39:20]   Total episodes: 103
+[13:39:20]   Mean score: 478.5
+[13:39:20]   Mean waypoints captured: 25.0/25
+[13:39:20]   Mean length: 196.5s
+[13:39:20]   Success rate (last 100): 97.0%
+[13:39:20] 
+[13:39:20]   [EPISODE BREAKDOWN]
+[13:39:20]     Ep  103: Score= 478.5  Waypoints=25/25  Time= 196.5s  [✓ SUCCESS]
+[13:39:20]   [FAILURE BREAKDOWN]
+[13:39:20]     SUCCESS     :   1 (100.0%)
+[13:39:20]   [REWARD BREAKDOWN]
+[13:39:20]     TOTAL REWARD: 3478.8322
+[13:39:20]     progress_shaping    : 3644.6179
+[13:39:20]     collision_penalty   : -1314.4000
+[13:39:20]     waypoint_capture    : 1250.0000
+[13:39:20]     efficiency_bonus    : 957.1000
+[13:39:20]     lateral_penalty     : -693.9892
+[13:39:20]     obstacle_clearance_penalty: -680.4939
+[13:39:20]     heading_reward      : 559.2486
+[13:39:20]     cross_track_error   : -379.7709
+[13:39:20]     decel_reward        :  76.1283
+[13:39:20]     static_turn_reward  :  60.3914
+[13:39:20]   [SCORE BREAKDOWN]
+[13:39:20]     TOTAL SCORE:    478.5
+[13:39:20]     waypoint_bonus      :    375.0
+[13:39:20]     initial_points      :    300.0
+[13:39:20]     time_decay          :   -196.5
+[13:39:20]   Policy loss: -0.0008
+[13:39:20]   Value loss: 1347.3396
+[13:39:20]   Entropy: 4.2769
+[13:39:20]   Approx KL: 0.0008
+[13:39:20]   PPO epochs: 10/10
+[13:39:20] 
+[13:39:20] ================================================================================
+[13:39:20] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[13:39:20] Success rate: 97.0% (threshold: 80.0%)
+[13:39:20] Iterations on stage: 72
+[13:39:20]   Stage checkpoint saved: stage_2_complete.pt
+[13:39:20]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[13:39:20] ================================================================================
+[13:39:20] [ITER 73/500] Stage 2/6: Waypoints 10m with 1% coverage
+[13:54:19] 
+[13:54:19] Iteration 73/10000 | Stage 2 completed in 898.55s
+[13:54:19]   Iterations on this stage: 73/500
+[13:54:19]   Episodes this iter: 2
+[13:54:19]   Total episodes: 105
+[13:54:19]   Mean score: 487.0
+[13:54:19]   Mean waypoints captured: 25.0/25
+[13:54:19]   Mean length: 188.0s
+[13:54:19]   Success rate (last 100): 97.0%
+[13:54:19] 
+[13:54:19]   [EPISODE BREAKDOWN]
+[13:54:19]     Ep  104: Score= 488.8  Waypoints=25/25  Time= 186.2s  [✓ SUCCESS]
+[13:54:19]     Ep  105: Score= 485.1  Waypoints=25/25  Time= 189.9s  [✓ SUCCESS]
+[13:54:19]   [FAILURE BREAKDOWN]
+[13:54:19]     SUCCESS     :   2 (100.0%)
+[13:54:19]   [REWARD BREAKDOWN]
+[13:54:19]     TOTAL REWARD: 3534.7962
+[13:54:19]     progress_shaping    : 3642.2821
+[13:54:19]     collision_penalty   : -1400.3500
+[13:54:19]     waypoint_capture    : 1250.0000
+[13:54:19]     efficiency_bonus    : 974.0000
+[13:54:19]     lateral_penalty     : -706.4381
+[13:54:19]     heading_reward      : 545.4331
+[13:54:19]     obstacle_clearance_penalty: -514.8914
+[13:54:19]     cross_track_error   : -375.9949
+[13:54:19]     static_turn_reward  :  61.8386
+[13:54:19]     decel_reward        :  58.9168
+[13:54:19]   [SCORE BREAKDOWN]
+[13:54:19]     TOTAL SCORE:    487.0
+[13:54:19]     waypoint_bonus      :    375.0
+[13:54:19]     initial_points      :    300.0
+[13:54:19]     time_decay          :   -188.0
+[13:54:19]   Policy loss: -0.0003
+[13:54:19]   Value loss: 2585.8845
+[13:54:19]   Entropy: 4.2769
+[13:54:19]   Approx KL: 0.0001
+[13:54:19]   PPO epochs: 10/10
+[13:54:19] 
+[13:54:19] ================================================================================
+[13:54:19] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[13:54:19] Success rate: 97.0% (threshold: 80.0%)
+[13:54:19] Iterations on stage: 73
+[13:54:19]   Stage checkpoint saved: stage_2_complete.pt
+[13:54:19]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[13:54:19] ================================================================================
+[13:54:19] [ITER 74/500] Stage 2/6: Waypoints 10m with 1% coverage
+[14:09:13] 
+[14:09:13] Iteration 74/10000 | Stage 2 completed in 894.56s
+[14:09:13]   Iterations on this stage: 74/500
+[14:09:13]   Episodes this iter: 1
+[14:09:13]   Total episodes: 106
+[14:09:13]   Mean score: 463.1
+[14:09:13]   Mean waypoints captured: 25.0/25
+[14:09:13]   Mean length: 211.9s
+[14:09:13]   Success rate (last 100): 97.0%
+[14:09:13] 
+[14:09:13]   [EPISODE BREAKDOWN]
+[14:09:13]     Ep  106: Score= 463.1  Waypoints=25/25  Time= 211.9s  [✓ SUCCESS]
+[14:09:13]   [FAILURE BREAKDOWN]
+[14:09:13]     SUCCESS     :   1 (100.0%)
+[14:09:13]   [REWARD BREAKDOWN]
+[14:09:13]     TOTAL REWARD: 3207.1272
+[14:09:13]     progress_shaping    : 3633.8299
+[14:09:13]     collision_penalty   : -1595.2000
+[14:09:13]     waypoint_capture    : 1250.0000
+[14:09:13]     efficiency_bonus    : 926.3000
+[14:09:13]     lateral_penalty     : -684.2418
+[14:09:13]     obstacle_clearance_penalty: -639.1169
+[14:09:13]     heading_reward      : 554.4940
+[14:09:13]     cross_track_error   : -409.3035
+[14:09:13]     decel_reward        :  93.9581
+[14:09:13]     static_turn_reward  :  76.4074
+[14:09:13]   [SCORE BREAKDOWN]
+[14:09:13]     TOTAL SCORE:    463.1
+[14:09:13]     waypoint_bonus      :    375.0
+[14:09:13]     initial_points      :    300.0
+[14:09:13]     time_decay          :   -211.9
+[14:09:13]   Policy loss: 0.0002
+[14:09:13]   Value loss: 1299.0279
+[14:09:13]   Entropy: 4.2769
+[14:09:13]   Approx KL: 0.0008
+[14:09:13]   PPO epochs: 10/10
+[14:09:13] 
+[14:09:13] ================================================================================
+[14:09:13] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[14:09:13] Success rate: 97.0% (threshold: 80.0%)
+[14:09:13] Iterations on stage: 74
+[14:09:13]   Stage checkpoint saved: stage_2_complete.pt
+[14:09:13]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[14:09:13] ================================================================================
+[14:09:13] [ITER 75/500] Stage 2/6: Waypoints 10m with 1% coverage
+[14:24:10] 
+[14:24:10] Iteration 75/10000 | Stage 2 completed in 896.99s
+[14:24:10]   Iterations on this stage: 75/500
+[14:24:10]   Episodes this iter: 2
+[14:24:10]   Total episodes: 108
+[14:24:10]   Mean score: 489.9
+[14:24:10]   Mean waypoints captured: 25.0/25
+[14:24:10]   Mean length: 185.1s
+[14:24:10]   Success rate (last 100): 97.0%
+[14:24:10] 
+[14:24:10]   [EPISODE BREAKDOWN]
+[14:24:10]     Ep  107: Score= 482.6  Waypoints=25/25  Time= 192.4s  [✓ SUCCESS]
+[14:24:10]     Ep  108: Score= 497.2  Waypoints=25/25  Time= 177.8s  [✓ SUCCESS]
+[14:24:10]   [FAILURE BREAKDOWN]
+[14:24:10]     SUCCESS     :   2 (100.0%)
+[14:24:10]   [REWARD BREAKDOWN]
+[14:24:10]     TOTAL REWARD: 3729.8917
+[14:24:10]     progress_shaping    : 3635.0003
+[14:24:10]     collision_penalty   : -1262.7500
+[14:24:10]     waypoint_capture    : 1250.0000
+[14:24:10]     efficiency_bonus    : 979.8000
+[14:24:10]     lateral_penalty     : -624.2958
+[14:24:10]     obstacle_clearance_penalty: -552.1573
+[14:24:10]     heading_reward      : 526.2504
+[14:24:10]     cross_track_error   : -349.1798
+[14:24:10]     decel_reward        :  72.9929
+[14:24:10]     static_turn_reward  :  54.2310
+[14:24:10]   [SCORE BREAKDOWN]
+[14:24:10]     TOTAL SCORE:    489.9
+[14:24:10]     waypoint_bonus      :    375.0
+[14:24:10]     initial_points      :    300.0
+[14:24:10]     time_decay          :   -185.1
+[14:24:10]   Policy loss: -0.0010
+[14:24:10]   Value loss: 2712.4175
+[14:24:10]   Entropy: 4.2769
+[14:24:10]   Approx KL: 0.0016
+[14:24:10]   PPO epochs: 10/10
+[14:24:10] 
+[14:24:10] ================================================================================
+[14:24:10] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[14:24:10] Success rate: 97.0% (threshold: 80.0%)
+[14:24:10] Iterations on stage: 75
+[14:24:10]   Stage checkpoint saved: stage_2_complete.pt
+[14:24:10]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[14:24:10] ================================================================================
+[14:24:10]   Checkpoint saved: checkpoint_stage2_iter075.pt
+[14:24:10] [ITER 76/500] Stage 2/6: Waypoints 10m with 1% coverage
+[14:39:07] 
+[14:39:07] Iteration 76/10000 | Stage 2 completed in 896.21s
+[14:39:07]   Iterations on this stage: 76/500
+[14:39:07]   Episodes this iter: 1
+[14:39:07]   Total episodes: 109
+[14:39:07]   Mean score: 492.5
+[14:39:07]   Mean waypoints captured: 25.0/25
+[14:39:07]   Mean length: 182.5s
+[14:39:07]   Success rate (last 100): 97.0%
+[14:39:07] 
+[14:39:07]   [EPISODE BREAKDOWN]
+[14:39:07]     Ep  109: Score= 492.5  Waypoints=25/25  Time= 182.5s  [✓ SUCCESS]
+[14:39:07]   [FAILURE BREAKDOWN]
+[14:39:07]     SUCCESS     :   1 (100.0%)
+[14:39:07]   [REWARD BREAKDOWN]
+[14:39:07]     TOTAL REWARD: 3500.7094
+[14:39:07]     progress_shaping    : 3620.1584
+[14:39:07]     collision_penalty   : -1428.0000
+[14:39:07]     waypoint_capture    : 1250.0000
+[14:39:07]     efficiency_bonus    : 985.1000
+[14:39:07]     lateral_penalty     : -667.5486
+[14:39:07]     heading_reward      : 531.5772
+[14:39:07]     obstacle_clearance_penalty: -528.4376
+[14:39:07]     cross_track_error   : -358.2697
+[14:39:07]     static_turn_reward  :  59.6551
+[14:39:07]     decel_reward        :  36.4746
+[14:39:07]   [SCORE BREAKDOWN]
+[14:39:07]     TOTAL SCORE:    492.5
+[14:39:07]     waypoint_bonus      :    375.0
+[14:39:07]     initial_points      :    300.0
+[14:39:07]     time_decay          :   -182.5
+[14:39:07]   Policy loss: -0.0008
+[14:39:07]   Value loss: 1445.9835
+[14:39:07]   Entropy: 4.2769
+[14:39:07]   Approx KL: 0.0006
+[14:39:07]   PPO epochs: 10/10
+[14:39:07] 
+[14:39:07] ================================================================================
+[14:39:07] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[14:39:07] Success rate: 97.0% (threshold: 80.0%)
+[14:39:07] Iterations on stage: 76
+[14:39:07]   Stage checkpoint saved: stage_2_complete.pt
+[14:39:07]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[14:39:07] ================================================================================
+[14:39:07] [ITER 77/500] Stage 2/6: Waypoints 10m with 1% coverage
+[14:53:59] 
+[14:53:59] Iteration 77/10000 | Stage 2 completed in 892.45s
+[14:53:59]   Iterations on this stage: 77/500
+[14:53:59]   Episodes this iter: 2
+[14:53:59]   Total episodes: 111
+[14:53:59]   Mean score: 487.7
+[14:53:59]   Mean waypoints captured: 25.0/25
+[14:53:59]   Mean length: 187.3s
+[14:53:59]   Success rate (last 100): 97.0%
+[14:53:59] 
+[14:53:59]   [EPISODE BREAKDOWN]
+[14:53:59]     Ep  110: Score= 489.6  Waypoints=25/25  Time= 185.4s  [✓ SUCCESS]
+[14:53:59]     Ep  111: Score= 485.9  Waypoints=25/25  Time= 189.1s  [✓ SUCCESS]
+[14:53:59]   [FAILURE BREAKDOWN]
+[14:53:59]     SUCCESS     :   2 (100.0%)
+[14:53:59]   [REWARD BREAKDOWN]
+[14:53:59]     TOTAL REWARD: 3669.0289
+[14:53:59]     progress_shaping    : 3640.2995
+[14:53:59]     collision_penalty   : -1305.9000
+[14:53:59]     waypoint_capture    : 1250.0000
+[14:53:59]     efficiency_bonus    : 975.5000
+[14:53:59]     lateral_penalty     : -659.4912
+[14:53:59]     obstacle_clearance_penalty: -548.5902
+[14:53:59]     heading_reward      : 545.5838
+[14:53:59]     cross_track_error   : -354.6854
+[14:53:59]     decel_reward        :  71.0755
+[14:53:59]     static_turn_reward  :  55.2369
+[14:53:59]   [SCORE BREAKDOWN]
+[14:53:59]     TOTAL SCORE:    487.7
+[14:53:59]     waypoint_bonus      :    375.0
+[14:53:59]     initial_points      :    300.0
+[14:53:59]     time_decay          :   -187.3
+[14:53:59]   Policy loss: -0.0008
+[14:53:59]   Value loss: 2607.1048
+[14:53:59]   Entropy: 4.2769
+[14:53:59]   Approx KL: 0.0027
+[14:53:59]   PPO epochs: 10/10
+[14:53:59] 
+[14:53:59] ================================================================================
+[14:53:59] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[14:53:59] Success rate: 97.0% (threshold: 80.0%)
+[14:53:59] Iterations on stage: 77
+[14:53:59]   Stage checkpoint saved: stage_2_complete.pt
+[14:53:59]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[14:53:59] ================================================================================
+[14:53:59] [ITER 78/500] Stage 2/6: Waypoints 10m with 1% coverage
+[15:08:47] 
+[15:08:47] Iteration 78/10000 | Stage 2 completed in 888.32s
+[15:08:47]   Iterations on this stage: 78/500
+[15:08:47]   Episodes this iter: 1
+[15:08:47]   Total episodes: 112
+[15:08:47]   Mean score: 448.4
+[15:08:47]   Mean waypoints captured: 25.0/25
+[15:08:47]   Mean length: 226.6s
+[15:08:47]   Success rate (last 100): 97.0%
+[15:08:47] 
+[15:08:47]   [EPISODE BREAKDOWN]
+[15:08:47]     Ep  112: Score= 448.4  Waypoints=25/25  Time= 226.6s  [✓ SUCCESS]
+[15:08:47]   [FAILURE BREAKDOWN]
+[15:08:47]     SUCCESS     :   1 (100.0%)
+[15:08:47]   [REWARD BREAKDOWN]
+[15:08:47]     TOTAL REWARD: 3000.0857
+[15:08:47]     progress_shaping    : 3633.5684
+[15:08:47]     collision_penalty   : -1788.1000
+[15:08:47]     waypoint_capture    : 1250.0000
+[15:08:47]     efficiency_bonus    : 896.8000
+[15:08:47]     lateral_penalty     : -740.1664
+[15:08:47]     obstacle_clearance_penalty: -641.5005
+[15:08:47]     heading_reward      : 584.8070
+[15:08:47]     cross_track_error   : -410.5607
+[15:08:47]     decel_reward        : 127.2505
+[15:08:47]     static_turn_reward  :  87.9874
+[15:08:47]   [SCORE BREAKDOWN]
+[15:08:47]     TOTAL SCORE:    448.4
+[15:08:47]     waypoint_bonus      :    375.0
+[15:08:47]     initial_points      :    300.0
+[15:08:47]     time_decay          :   -226.6
+[15:08:47]   Policy loss: 0.0002
+[15:08:47]   Value loss: 1258.8300
+[15:08:47]   Entropy: 4.2768
+[15:08:47]   Approx KL: 0.0018
+[15:08:47]   PPO epochs: 10/10
+[15:08:47] 
+[15:08:47] ================================================================================
+[15:08:47] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[15:08:47] Success rate: 97.0% (threshold: 80.0%)
+[15:08:47] Iterations on stage: 78
+[15:08:47]   Stage checkpoint saved: stage_2_complete.pt
+[15:08:47]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[15:08:47] ================================================================================
+[15:08:47] [ITER 79/500] Stage 2/6: Waypoints 10m with 1% coverage
+[15:23:35] 
+[15:23:35] Iteration 79/10000 | Stage 2 completed in 887.62s
+[15:23:35]   Iterations on this stage: 79/500
+[15:23:35]   Episodes this iter: 2
+[15:23:35]   Total episodes: 114
+[15:23:35]   Mean score: 474.2
+[15:23:35]   Mean waypoints captured: 25.0/25
+[15:23:35]   Mean length: 200.8s
+[15:23:35]   Success rate (last 100): 97.0%
+[15:23:35] 
+[15:23:35]   [EPISODE BREAKDOWN]
+[15:23:35]     Ep  113: Score= 466.3  Waypoints=25/25  Time= 208.7s  [✓ SUCCESS]
+[15:23:35]     Ep  114: Score= 482.1  Waypoints=25/25  Time= 192.9s  [✓ SUCCESS]
+[15:23:35]   [FAILURE BREAKDOWN]
+[15:23:35]     SUCCESS     :   2 (100.0%)
+[15:23:35]   [REWARD BREAKDOWN]
+[15:23:35]     TOTAL REWARD: 3270.3471
+[15:23:35]     progress_shaping    : 3640.0319
+[15:23:35]     collision_penalty   : -1573.6500
+[15:23:35]     waypoint_capture    : 1250.0000
+[15:23:35]     efficiency_bonus    : 948.5000
+[15:23:35]     lateral_penalty     : -695.8383
+[15:23:35]     obstacle_clearance_penalty: -615.7132
+[15:23:35]     heading_reward      : 564.8956
+[15:23:35]     cross_track_error   : -392.7711
+[15:23:35]     decel_reward        :  78.9640
+[15:23:35]     static_turn_reward  :  65.9282
+[15:23:35]   [SCORE BREAKDOWN]
+[15:23:35]     TOTAL SCORE:    474.2
+[15:23:35]     waypoint_bonus      :    375.0
+[15:23:35]     initial_points      :    300.0
+[15:23:35]     time_decay          :   -200.8
+[15:23:35]   Policy loss: -0.0005
+[15:23:35]   Value loss: 2501.8477
+[15:23:35]   Entropy: 4.2768
+[15:23:35]   Approx KL: 0.0007
+[15:23:35]   PPO epochs: 10/10
+[15:23:35] 
+[15:23:35] ================================================================================
+[15:23:35] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[15:23:35] Success rate: 97.0% (threshold: 80.0%)
+[15:23:35] Iterations on stage: 79
+[15:23:35]   Stage checkpoint saved: stage_2_complete.pt
+[15:23:35]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[15:23:35] ================================================================================
+[15:23:35] [ITER 80/500] Stage 2/6: Waypoints 10m with 1% coverage
+[15:38:18] 
+[15:38:18] Iteration 80/10000 | Stage 2 completed in 882.62s
+[15:38:18]   Iterations on this stage: 80/500
+[15:38:18]   Episodes this iter: 1
+[15:38:18]   Total episodes: 115
+[15:38:18]   Mean score: 481.2
+[15:38:18]   Mean waypoints captured: 25.0/25
+[15:38:18]   Mean length: 193.8s
+[15:38:18]   Success rate (last 100): 97.0%
+[15:38:18] 
+[15:38:18]   [EPISODE BREAKDOWN]
+[15:38:18]     Ep  115: Score= 481.2  Waypoints=25/25  Time= 193.8s  [✓ SUCCESS]
+[15:38:18]   [FAILURE BREAKDOWN]
+[15:38:18]     SUCCESS     :   1 (100.0%)
+[15:38:18]   [REWARD BREAKDOWN]
+[15:38:18]     TOTAL REWARD: 3311.9248
+[15:38:18]     progress_shaping    : 3656.5043
+[15:38:18]     collision_penalty   : -1659.6000
+[15:38:18]     waypoint_capture    : 1250.0000
+[15:38:18]     efficiency_bonus    : 962.5000
+[15:38:18]     lateral_penalty     : -645.2564
+[15:38:18]     obstacle_clearance_penalty: -589.8128
+[15:38:18]     heading_reward      : 553.1985
+[15:38:18]     cross_track_error   : -364.4498
+[15:38:18]     decel_reward        :  98.3600
+[15:38:18]     static_turn_reward  :  50.4809
+[15:38:18]   [SCORE BREAKDOWN]
+[15:38:18]     TOTAL SCORE:    481.2
+[15:38:18]     waypoint_bonus      :    375.0
+[15:38:18]     initial_points      :    300.0
+[15:38:18]     time_decay          :   -193.8
+[15:38:18]   Policy loss: -0.0011
+[15:38:18]   Value loss: 1344.0166
+[15:38:18]   Entropy: 4.2768
+[15:38:18]   Approx KL: 0.0024
+[15:38:18]   PPO epochs: 10/10
+[15:38:18] 
+[15:38:18] ================================================================================
+[15:38:18] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[15:38:18] Success rate: 97.0% (threshold: 80.0%)
+[15:38:18] Iterations on stage: 80
+[15:38:18]   Stage checkpoint saved: stage_2_complete.pt
+[15:38:18]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[15:38:18] ================================================================================
+[15:38:18] [ITER 81/500] Stage 2/6: Waypoints 10m with 1% coverage
+[15:53:00] 
+[15:53:00] Iteration 81/10000 | Stage 2 completed in 882.89s
+[15:53:00]   Iterations on this stage: 81/500
+[15:53:00]   Episodes this iter: 2
+[15:53:00]   Total episodes: 117
+[15:53:00]   Mean score: 487.1
+[15:53:00]   Mean waypoints captured: 25.0/25
+[15:53:00]   Mean length: 187.9s
+[15:53:00]   Success rate (last 100): 97.0%
+[15:53:00] 
+[15:53:00]   [EPISODE BREAKDOWN]
+[15:53:00]     Ep  116: Score= 494.1  Waypoints=25/25  Time= 180.9s  [✓ SUCCESS]
+[15:53:00]     Ep  117: Score= 480.2  Waypoints=25/25  Time= 194.8s  [✓ SUCCESS]
+[15:53:00]   [FAILURE BREAKDOWN]
+[15:53:00]     SUCCESS     :   2 (100.0%)
+[15:53:00]   [REWARD BREAKDOWN]
+[15:53:00]     TOTAL REWARD: 3632.1906
+[15:53:00]     progress_shaping    : 3636.4159
+[15:53:00]     collision_penalty   : -1267.0500
+[15:53:00]     waypoint_capture    : 1250.0000
+[15:53:00]     efficiency_bonus    : 974.3000
+[15:53:00]     lateral_penalty     : -663.8862
+[15:53:00]     obstacle_clearance_penalty: -570.5991
+[15:53:00]     heading_reward      : 538.5362
+[15:53:00]     cross_track_error   : -375.8445
+[15:53:00]     static_turn_reward  :  57.5346
+[15:53:00]     decel_reward        :  52.7836
+[15:53:00]   [SCORE BREAKDOWN]
+[15:53:00]     TOTAL SCORE:    487.1
+[15:53:00]     waypoint_bonus      :    375.0
+[15:53:00]     initial_points      :    300.0
+[15:53:00]     time_decay          :   -187.9
+[15:53:00]   Policy loss: -0.0003
+[15:53:00]   Value loss: 2591.0156
+[15:53:00]   Entropy: 4.2768
+[15:53:00]   Approx KL: 0.0016
+[15:53:00]   PPO epochs: 10/10
+[15:53:00] 
+[15:53:00] ================================================================================
+[15:53:00] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[15:53:00] Success rate: 97.0% (threshold: 80.0%)
+[15:53:00] Iterations on stage: 81
+[15:53:00]   Stage checkpoint saved: stage_2_complete.pt
+[15:53:00]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[15:53:00] ================================================================================
+[15:53:00] [ITER 82/500] Stage 2/6: Waypoints 10m with 1% coverage
+[16:07:46] 
+[16:07:46] Iteration 82/10000 | Stage 2 completed in 885.98s
+[16:07:46]   Iterations on this stage: 82/500
+[16:07:46]   Episodes this iter: 2
+[16:07:46]   Total episodes: 119
+[16:07:46]   Mean score: 406.0
+[16:07:46]   Mean waypoints captured: 16.0/25
+[16:07:46]   Mean length: 134.0s
+[16:07:46]   Success rate (last 100): 96.0%
+[16:07:46] 
+[16:07:46]   [EPISODE BREAKDOWN]
+[16:07:46]     Ep  118: Score= 460.8  Waypoints=25/25  Time= 214.2s  [✓ SUCCESS]
+[16:07:46]     Ep  119: Score= 351.2  Waypoints= 7/25  Time=  53.8s  [✗ FALL]
+[16:07:46]   [FAILURE BREAKDOWN]
+[16:07:46]     FALL        :   1 ( 50.0%)
+[16:07:46]     SUCCESS     :   1 ( 50.0%)
+[16:07:46]   [REWARD BREAKDOWN]
+[16:07:46]     TOTAL REWARD: 1725.9871
+[16:07:46]     progress_shaping    : 2349.2910
+[16:07:46]     collision_penalty   : -1042.6500
+[16:07:46]     waypoint_capture    : 800.0000
+[16:07:46]     efficiency_bonus    : 460.8000
+[16:07:46]     lateral_penalty     : -444.6672
+[16:07:46]     obstacle_clearance_penalty: -367.1042
+[16:07:46]     heading_reward      : 343.9091
+[16:07:46]     fall_penalty        : -250.0000
+[16:07:46]     cross_track_error   : -241.6860
+[16:07:46]     decel_reward        :  69.6242
+[16:07:46]     static_turn_reward  :  48.4702
+[16:07:46]   [SCORE BREAKDOWN]
+[16:07:46]     TOTAL SCORE:    156.0
+[16:07:46]     initial_points      :    300.0
+[16:07:46]     fall_penalty        :   -250.0
+[16:07:46]     waypoint_bonus      :    240.0
+[16:07:46]     time_decay          :   -134.0
+[16:07:46]   Policy loss: -0.0006
+[16:07:46]   Value loss: 1779.6061
+[16:07:46]   Entropy: 4.2767
+[16:07:46]   Approx KL: 0.0008
+[16:07:46]   PPO epochs: 10/10
+[16:07:46] 
+[16:07:46] ================================================================================
+[16:07:46] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[16:07:46] Success rate: 96.0% (threshold: 80.0%)
+[16:07:46] Iterations on stage: 82
+[16:07:46]   Stage checkpoint saved: stage_2_complete.pt
+[16:07:46]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[16:07:46] ================================================================================
+[16:07:46] [ITER 83/500] Stage 2/6: Waypoints 10m with 1% coverage
+[16:22:48] 
+[16:22:48] Iteration 83/10000 | Stage 2 completed in 901.92s
+[16:22:48]   Iterations on this stage: 83/500
+[16:22:48]   Episodes this iter: 2
+[16:22:48]   Total episodes: 121
+[16:22:48]   Mean score: 478.2
+[16:22:48]   Mean waypoints captured: 25.0/25
+[16:22:48]   Mean length: 196.8s
+[16:22:48]   Success rate (last 100): 96.0%
+[16:22:48] 
+[16:22:48]   [EPISODE BREAKDOWN]
+[16:22:48]     Ep  120: Score= 491.6  Waypoints=25/25  Time= 183.4s  [✓ SUCCESS]
+[16:22:48]     Ep  121: Score= 464.8  Waypoints=25/25  Time= 210.2s  [✓ SUCCESS]
+[16:22:48]   [FAILURE BREAKDOWN]
+[16:22:48]     SUCCESS     :   2 (100.0%)
+[16:22:48]   [REWARD BREAKDOWN]
+[16:22:48]     TOTAL REWARD: 3447.7769
+[16:22:48]     progress_shaping    : 3638.3866
+[16:22:48]     collision_penalty   : -1502.9500
+[16:22:48]     waypoint_capture    : 1250.0000
+[16:22:48]     efficiency_bonus    : 956.4500
+[16:22:48]     lateral_penalty     : -659.2679
+[16:22:48]     obstacle_clearance_penalty: -557.7905
+[16:22:48]     heading_reward      : 544.8959
+[16:22:48]     cross_track_error   : -373.9452
+[16:22:48]     decel_reward        :  82.5691
+[16:22:48]     static_turn_reward  :  69.4289
+[16:22:48]   [SCORE BREAKDOWN]
+[16:22:48]     TOTAL SCORE:    478.2
+[16:22:48]     waypoint_bonus      :    375.0
+[16:22:48]     initial_points      :    300.0
+[16:22:48]     time_decay          :   -196.8
+[16:22:48]   Policy loss: -0.0007
+[16:22:48]   Value loss: 2595.9600
+[16:22:48]   Entropy: 4.2768
+[16:22:48]   Approx KL: 0.0012
+[16:22:48]   PPO epochs: 10/10
+[16:22:48] 
+[16:22:48] ================================================================================
+[16:22:48] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[16:22:48] Success rate: 96.0% (threshold: 80.0%)
+[16:22:48] Iterations on stage: 83
+[16:22:48]   Stage checkpoint saved: stage_2_complete.pt
+[16:22:48]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[16:22:48] ================================================================================
+[16:22:48] [ITER 84/500] Stage 2/6: Waypoints 10m with 1% coverage
+[16:37:47] 
+[16:37:47] Iteration 84/10000 | Stage 2 completed in 898.78s
+[16:37:47]   Iterations on this stage: 84/500
+[16:37:47]   Episodes this iter: 1
+[16:37:47]   Total episodes: 122
+[16:37:47]   Mean score: 484.1
+[16:37:47]   Mean waypoints captured: 25.0/25
+[16:37:47]   Mean length: 190.9s
+[16:37:47]   Success rate (last 100): 96.0%
+[16:37:47] 
+[16:37:47]   [EPISODE BREAKDOWN]
+[16:37:47]     Ep  122: Score= 484.1  Waypoints=25/25  Time= 190.9s  [✓ SUCCESS]
+[16:37:47]   [FAILURE BREAKDOWN]
+[16:37:47]     SUCCESS     :   1 (100.0%)
+[16:37:47]   [REWARD BREAKDOWN]
+[16:37:47]     TOTAL REWARD: 3372.8984
+[16:37:47]     progress_shaping    : 3640.6086
+[16:37:47]     collision_penalty   : -1530.0000
+[16:37:47]     waypoint_capture    : 1250.0000
+[16:37:47]     efficiency_bonus    : 968.2000
+[16:37:47]     lateral_penalty     : -655.9428
+[16:37:47]     obstacle_clearance_penalty: -581.5555
+[16:37:47]     heading_reward      : 534.5422
+[16:37:47]     cross_track_error   : -392.4472
+[16:37:47]     decel_reward        :  85.0406
+[16:37:47]     static_turn_reward  :  54.4525
+[16:37:47]   [SCORE BREAKDOWN]
+[16:37:47]     TOTAL SCORE:    484.1
+[16:37:47]     waypoint_bonus      :    375.0
+[16:37:47]     initial_points      :    300.0
+[16:37:47]     time_decay          :   -190.9
+[16:37:47]   Policy loss: -0.0012
+[16:37:47]   Value loss: 1445.1963
+[16:37:47]   Entropy: 4.2768
+[16:37:47]   Approx KL: 0.0028
+[16:37:47]   PPO epochs: 10/10
+[16:37:47] 
+[16:37:47] ================================================================================
+[16:37:47] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[16:37:47] Success rate: 96.0% (threshold: 80.0%)
+[16:37:47] Iterations on stage: 84
+[16:37:47]   Stage checkpoint saved: stage_2_complete.pt
+[16:37:47]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[16:37:47] ================================================================================
+[16:37:47] [ITER 85/500] Stage 2/6: Waypoints 10m with 1% coverage
+[16:52:38] 
+[16:52:38] Iteration 85/10000 | Stage 2 completed in 890.67s
+[16:52:38]   Iterations on this stage: 85/500
+[16:52:38]   Episodes this iter: 2
+[16:52:38]   Total episodes: 124
+[16:52:38]   Mean score: 470.9
+[16:52:38]   Mean waypoints captured: 25.0/25
+[16:52:38]   Mean length: 204.1s
+[16:52:38]   Success rate (last 100): 96.0%
+[16:52:38] 
+[16:52:38]   [EPISODE BREAKDOWN]
+[16:52:38]     Ep  123: Score= 481.7  Waypoints=25/25  Time= 193.3s  [✓ SUCCESS]
+[16:52:38]     Ep  124: Score= 460.1  Waypoints=25/25  Time= 214.9s  [✓ SUCCESS]
+[16:52:38]   [FAILURE BREAKDOWN]
+[16:52:38]     SUCCESS     :   2 (100.0%)
+[16:52:38]   [REWARD BREAKDOWN]
+[16:52:38]     TOTAL REWARD: 3412.3840
+[16:52:38]     progress_shaping    : 3647.3121
+[16:52:38]     collision_penalty   : -1400.2000
+[16:52:38]     waypoint_capture    : 1250.0000
+[16:52:38]     efficiency_bonus    : 941.9000
+[16:52:38]     lateral_penalty     : -676.7525
+[16:52:38]     obstacle_clearance_penalty: -656.4583
+[16:52:38]     heading_reward      : 533.2965
+[16:52:38]     cross_track_error   : -403.3495
+[16:52:38]     decel_reward        : 104.0953
+[16:52:38]     static_turn_reward  :  72.5403
+[16:52:38]   [SCORE BREAKDOWN]
+[16:52:38]     TOTAL SCORE:    470.9
+[16:52:38]     waypoint_bonus      :    375.0
+[16:52:38]     initial_points      :    300.0
+[16:52:38]     time_decay          :   -204.1
+[16:52:38]   Policy loss: -0.0002
+[16:52:38]   Value loss: 2460.7879
+[16:52:38]   Entropy: 4.2769
+[16:52:38]   Approx KL: 0.0023
+[16:52:38]   PPO epochs: 10/10
+[16:52:38] 
+[16:52:38] ================================================================================
+[16:52:38] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[16:52:38] Success rate: 96.0% (threshold: 80.0%)
+[16:52:38] Iterations on stage: 85
+[16:52:38]   Stage checkpoint saved: stage_2_complete.pt
+[16:52:38]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[16:52:38] ================================================================================
+[16:52:38] [ITER 86/500] Stage 2/6: Waypoints 10m with 1% coverage
+[17:07:37] 
+[17:07:37] Iteration 86/10000 | Stage 2 completed in 898.85s
+[17:07:37]   Iterations on this stage: 86/500
+[17:07:37]   Episodes this iter: 1
+[17:07:37]   Total episodes: 125
+[17:07:37]   Mean score: 485.1
+[17:07:37]   Mean waypoints captured: 25.0/25
+[17:07:37]   Mean length: 189.9s
+[17:07:37]   Success rate (last 100): 96.0%
+[17:07:37] 
+[17:07:37]   [EPISODE BREAKDOWN]
+[17:07:37]     Ep  125: Score= 485.1  Waypoints=25/25  Time= 189.9s  [✓ SUCCESS]
+[17:07:37]   [FAILURE BREAKDOWN]
+[17:07:37]     SUCCESS     :   1 (100.0%)
+[17:07:37]   [REWARD BREAKDOWN]
+[17:07:37]     TOTAL REWARD: 3402.6761
+[17:07:37]     progress_shaping    : 3629.9951
+[17:07:37]     collision_penalty   : -1495.7000
+[17:07:37]     waypoint_capture    : 1250.0000
+[17:07:37]     efficiency_bonus    : 970.2000
+[17:07:37]     lateral_penalty     : -633.3745
+[17:07:37]     obstacle_clearance_penalty: -567.2388
+[17:07:37]     heading_reward      : 515.0707
+[17:07:37]     cross_track_error   : -379.4262
+[17:07:37]     static_turn_reward  :  62.3134
+[17:07:37]     decel_reward        :  50.8365
+[17:07:37]   [SCORE BREAKDOWN]
+[17:07:37]     TOTAL SCORE:    485.1
+[17:07:37]     waypoint_bonus      :    375.0
+[17:07:37]     initial_points      :    300.0
+[17:07:37]     time_decay          :   -189.9
+[17:07:37]   Policy loss: -0.0011
+[17:07:37]   Value loss: 1363.0130
+[17:07:37]   Entropy: 4.2770
+[17:07:37]   Approx KL: 0.0022
+[17:07:37]   PPO epochs: 10/10
+[17:07:37] 
+[17:07:37] ================================================================================
+[17:07:37] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[17:07:37] Success rate: 96.0% (threshold: 80.0%)
+[17:07:37] Iterations on stage: 86
+[17:07:37]   Stage checkpoint saved: stage_2_complete.pt
+[17:07:37]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[17:07:37] ================================================================================
+[17:07:37] [ITER 87/500] Stage 2/6: Waypoints 10m with 1% coverage
+[17:22:34] 
+[17:22:34] Iteration 87/10000 | Stage 2 completed in 896.90s
+[17:22:34]   Iterations on this stage: 87/500
+[17:22:34]   Episodes this iter: 2
+[17:22:34]   Total episodes: 127
+[17:22:34]   Mean score: 493.9
+[17:22:34]   Mean waypoints captured: 25.0/25
+[17:22:34]   Mean length: 181.1s
+[17:22:34]   Success rate (last 100): 96.0%
+[17:22:34] 
+[17:22:34]   [EPISODE BREAKDOWN]
+[17:22:34]     Ep  126: Score= 498.3  Waypoints=25/25  Time= 176.7s  [✓ SUCCESS]
+[17:22:34]     Ep  127: Score= 489.4  Waypoints=25/25  Time= 185.6s  [✓ SUCCESS]
+[17:22:34]   [FAILURE BREAKDOWN]
+[17:22:34]     SUCCESS     :   2 (100.0%)
+[17:22:34]   [REWARD BREAKDOWN]
+[17:22:34]     TOTAL REWARD: 3870.4681
+[17:22:34]     progress_shaping    : 3644.9025
+[17:22:34]     waypoint_capture    : 1250.0000
+[17:22:34]     collision_penalty   : -1111.5500
+[17:22:34]     efficiency_bonus    : 987.7500
+[17:22:34]     lateral_penalty     : -655.0515
+[17:22:34]     obstacle_clearance_penalty: -544.6051
+[17:22:34]     heading_reward      : 526.9168
+[17:22:34]     cross_track_error   : -343.0840
+[17:22:34]     decel_reward        :  61.0827
+[17:22:34]     static_turn_reward  :  54.1066
+[17:22:34]   [SCORE BREAKDOWN]
+[17:22:34]     TOTAL SCORE:    493.9
+[17:22:34]     waypoint_bonus      :    375.0
+[17:22:34]     initial_points      :    300.0
+[17:22:34]     time_decay          :   -181.1
+[17:22:34]   Policy loss: -0.0000
+[17:22:34]   Value loss: 2682.5878
+[17:22:34]   Entropy: 4.2771
+[17:22:34]   Approx KL: 0.0023
+[17:22:34]   PPO epochs: 10/10
+[17:22:34] 
+[17:22:34] ================================================================================
+[17:22:34] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[17:22:34] Success rate: 96.0% (threshold: 80.0%)
+[17:22:34] Iterations on stage: 87
+[17:22:34]   Stage checkpoint saved: stage_2_complete.pt
+[17:22:34]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[17:22:34] ================================================================================
+[17:22:34] [ITER 88/500] Stage 2/6: Waypoints 10m with 1% coverage
+[17:37:27] 
+[17:37:27] Iteration 88/10000 | Stage 2 completed in 893.60s
+[17:37:27]   Iterations on this stage: 88/500
+[17:37:27]   Episodes this iter: 2
+[17:37:27]   Total episodes: 129
+[17:37:27]   Mean score: 480.8
+[17:37:27]   Mean waypoints captured: 25.0/25
+[17:37:27]   Mean length: 194.2s
+[17:37:27]   Success rate (last 100): 96.0%
+[17:37:27] 
+[17:37:27]   [EPISODE BREAKDOWN]
+[17:37:27]     Ep  128: Score= 492.7  Waypoints=25/25  Time= 182.3s  [✓ SUCCESS]
+[17:37:27]     Ep  129: Score= 468.9  Waypoints=25/25  Time= 206.1s  [✓ SUCCESS]
+[17:37:27]   [FAILURE BREAKDOWN]
+[17:37:27]     SUCCESS     :   2 (100.0%)
+[17:37:27]   [REWARD BREAKDOWN]
+[17:37:27]     TOTAL REWARD: 3602.8350
+[17:37:27]     progress_shaping    : 3653.7339
+[17:37:27]     collision_penalty   : -1353.7500
+[17:37:27]     waypoint_capture    : 1250.0000
+[17:37:27]     efficiency_bonus    : 961.6500
+[17:37:27]     lateral_penalty     : -680.0521
+[17:37:27]     obstacle_clearance_penalty: -558.7585
+[17:37:27]     heading_reward      : 544.0101
+[17:37:27]     cross_track_error   : -359.2216
+[17:37:27]     decel_reward        :  82.0192
+[17:37:27]     static_turn_reward  :  63.2040
+[17:37:27]   [SCORE BREAKDOWN]
+[17:37:27]     TOTAL SCORE:    480.8
+[17:37:27]     waypoint_bonus      :    375.0
+[17:37:27]     initial_points      :    300.0
+[17:37:27]     time_decay          :   -194.2
+[17:37:27]   Policy loss: -0.0008
+[17:37:27]   Value loss: 2589.7570
+[17:37:27]   Entropy: 4.2772
+[17:37:27]   Approx KL: 0.0009
+[17:37:27]   PPO epochs: 10/10
+[17:37:27] 
+[17:37:27] ================================================================================
+[17:37:27] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[17:37:27] Success rate: 96.0% (threshold: 80.0%)
+[17:37:27] Iterations on stage: 88
+[17:37:27]   Stage checkpoint saved: stage_2_complete.pt
+[17:37:27]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[17:37:27] ================================================================================
+[17:37:27] [ITER 89/500] Stage 2/6: Waypoints 10m with 1% coverage
+[17:52:17] 
+[17:52:17] Iteration 89/10000 | Stage 2 completed in 890.04s
+[17:52:17]   Iterations on this stage: 89/500
+[17:52:17]   Episodes this iter: 1
+[17:52:17]   Total episodes: 130
+[17:52:17]   Mean score: 488.5
+[17:52:17]   Mean waypoints captured: 25.0/25
+[17:52:17]   Mean length: 186.5s
+[17:52:17]   Success rate (last 100): 96.0%
+[17:52:17] 
+[17:52:17]   [EPISODE BREAKDOWN]
+[17:52:17]     Ep  130: Score= 488.5  Waypoints=25/25  Time= 186.5s  [✓ SUCCESS]
+[17:52:17]   [FAILURE BREAKDOWN]
+[17:52:17]     SUCCESS     :   1 (100.0%)
+[17:52:17]   [REWARD BREAKDOWN]
+[17:52:17]     TOTAL REWARD: 3425.8959
+[17:52:17]     progress_shaping    : 3631.5131
+[17:52:17]     collision_penalty   : -1345.8000
+[17:52:17]     waypoint_capture    : 1250.0000
+[17:52:17]     efficiency_bonus    : 977.1000
+[17:52:17]     lateral_penalty     : -701.0287
+[17:52:17]     obstacle_clearance_penalty: -636.6011
+[17:52:17]     heading_reward      : 541.6547
+[17:52:17]     cross_track_error   : -380.2839
+[17:52:17]     static_turn_reward  :  57.2194
+[17:52:17]     decel_reward        :  32.1224
+[17:52:17]   [SCORE BREAKDOWN]
+[17:52:17]     TOTAL SCORE:    488.5
+[17:52:17]     waypoint_bonus      :    375.0
+[17:52:17]     initial_points      :    300.0
+[17:52:17]     time_decay          :   -186.5
+[17:52:17]   Policy loss: -0.0008
+[17:52:17]   Value loss: 1378.5133
+[17:52:17]   Entropy: 4.2773
+[17:52:17]   Approx KL: 0.0023
+[17:52:17]   PPO epochs: 10/10
+[17:52:17] 
+[17:52:17] ================================================================================
+[17:52:17] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[17:52:17] Success rate: 96.0% (threshold: 80.0%)
+[17:52:17] Iterations on stage: 89
+[17:52:17]   Stage checkpoint saved: stage_2_complete.pt
+[17:52:17]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[17:52:17] ================================================================================
+[17:52:17] [ITER 90/500] Stage 2/6: Waypoints 10m with 1% coverage
+[18:07:11] 
+[18:07:11] Iteration 90/10000 | Stage 2 completed in 893.88s
+[18:07:11]   Iterations on this stage: 90/500
+[18:07:11]   Episodes this iter: 2
+[18:07:11]   Total episodes: 132
+[18:07:11]   Mean score: 479.4
+[18:07:11]   Mean waypoints captured: 25.0/25
+[18:07:11]   Mean length: 195.6s
+[18:07:11]   Success rate (last 100): 96.0%
+[18:07:11] 
+[18:07:11]   [EPISODE BREAKDOWN]
+[18:07:11]     Ep  131: Score= 484.7  Waypoints=25/25  Time= 190.3s  [✓ SUCCESS]
+[18:07:11]     Ep  132: Score= 474.0  Waypoints=25/25  Time= 201.0s  [✓ SUCCESS]
+[18:07:11]   [FAILURE BREAKDOWN]
+[18:07:11]     SUCCESS     :   2 (100.0%)
+[18:07:11]   [REWARD BREAKDOWN]
+[18:07:11]     TOTAL REWARD: 3403.0722
+[18:07:11]     progress_shaping    : 3638.1022
+[18:07:11]     collision_penalty   : -1493.3000
+[18:07:11]     waypoint_capture    : 1250.0000
+[18:07:11]     efficiency_bonus    : 958.7500
+[18:07:11]     lateral_penalty     : -686.7720
+[18:07:11]     obstacle_clearance_penalty: -567.2230
+[18:07:11]     heading_reward      : 544.4234
+[18:07:11]     cross_track_error   : -387.2019
+[18:07:11]     decel_reward        :  83.2199
+[18:07:11]     static_turn_reward  :  63.0736
+[18:07:11]   [SCORE BREAKDOWN]
+[18:07:11]     TOTAL SCORE:    479.4
+[18:07:11]     waypoint_bonus      :    375.0
+[18:07:11]     initial_points      :    300.0
+[18:07:11]     time_decay          :   -195.6
+[18:07:11]   Policy loss: -0.0010
+[18:07:11]   Value loss: 2547.5418
+[18:07:11]   Entropy: 4.2775
+[18:07:11]   Approx KL: 0.0014
+[18:07:11]   PPO epochs: 10/10
+[18:07:11] 
+[18:07:11] ================================================================================
+[18:07:11] [MILESTONE] STAGE 2 REACHED TARGET SUCCESS!
+[18:07:11] Success rate: 96.0% (threshold: 80.0%)
+[18:07:11] Iterations on stage: 90
+[18:07:11]   Stage checkpoint saved: stage_2_complete.pt
+[18:07:11]   [MILESTONE REACHED] To advance to next stage, run with: --stage 3
+[18:07:11] ================================================================================
+[18:07:11] [ITER 91/500] Stage 2/6: Waypoints 10m with 1% coverage

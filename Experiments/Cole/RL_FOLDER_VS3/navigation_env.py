@@ -173,13 +173,16 @@ class NavigationEnvironment:
         self.reward_boundary = self.config['reward']['boundary_penalty']
         
         # LiDAR-based obstacle avoidance (Stages with obstacles)
-        self.collision_penalty = self.config['reward'].get('collision_penalty', -100.0)
+        self.collision_penalty = self.config['reward'].get('collision_penalty', -7.5)  # One-time penalty on collision entry
+        self.collision_contact_penalty = self.config['reward'].get('collision_contact_penalty', -1.0)  # Per-step cost while in contact
         self.min_safe_distance = self.config['reward'].get('min_safe_distance', 0.5)
-        self.obstacle_clearance_penalty = self.config['reward'].get('obstacle_clearance_penalty', -1.0)
+        self.obstacle_clearance_penalty = self.config['reward'].get('obstacle_clearance_penalty', -2.0)
+        self.obstacle_avoidance_bonus = self.config['reward'].get('obstacle_avoidance_bonus', 3.0)  # Per-step bonus for maintaining clearance
         self.contact_threshold = 0.1  # meters - distance at which robot is considered in contact with obstacle
         
         # Efficiency bonus - reward for completing waypoints before score expires
         self.efficiency_bonus_weight = self.config['reward'].get('efficiency_bonus_weight', 0.5)
+        self.decel_reward_weight = self.config['reward'].get('decel_reward_weight', 1.0)
         
         # Physics
         self.control_dt = 1.0 / self.config['physics']['control_hz']
@@ -218,7 +221,9 @@ class NavigationEnvironment:
             'timeout_penalty': 0.0,
             'efficiency_bonus': 0.0,
             'collision_penalty': 0.0,
-            'obstacle_clearance_penalty': 0.0
+            'collision_contact_penalty': 0.0,
+            'obstacle_clearance_penalty': 0.0,
+            'obstacle_avoidance_bonus': 0.0
         }
         
         # Episode score breakdown tracking (for logging)
@@ -234,9 +239,11 @@ class NavigationEnvironment:
         self.episode_history = []  # Last N episodes for success calculation
         self.total_episodes = 0
         
-        # Obstacle manager - simplified for now
-        # TODO: Integrate full ObstacleManager from Baseline_Environment
-        self.obstacle_mgr = None
+        # Obstacle positions for raycasting: list of [x, y, radius] per obstacle
+        self.obstacle_positions = []  # populated by _spawn_obstacles() each episode
+        
+        # Collision state tracking (for per-event penalty)
+        self.was_in_collision = False
         
         # Control timing
         self.last_control_time = 0.0
@@ -292,6 +299,7 @@ class NavigationEnvironment:
         self.last_control_time = self.world.current_time
         self.current_command = np.zeros(3, dtype=np.float32)  # Reset command
         self._last_robot_pos_for_speed_reward = self.start_pos.copy()  # Initialize position tracking for speed reward
+        self.was_in_collision = False  # Reset collision state
         
         # Reset reward and score breakdowns
         for key in self.episode_reward_components:
@@ -308,15 +316,13 @@ class NavigationEnvironment:
                 subsequent_dist=stage['waypoint_distance_subsequent']
             )
         
-        # Spawn obstacles (stage 6 only)
-        # Temporarily disabled until obstacle system integrated
-        if self.obstacle_mgr is not None:
-            self.obstacle_mgr.remove_prims()
-            total_coverage = (stage['obstacles_light_coverage'] + 
-                             stage['obstacles_heavy_coverage'] + 
-                             stage['obstacles_small_coverage'])
-            if total_coverage > 0:
-                self._spawn_obstacles(stage)
+        # Spawn obstacles based on stage coverage
+        self.obstacle_positions = []
+        total_coverage = (stage.get('obstacles_light_coverage', 0.0) + 
+                         stage.get('obstacles_heavy_coverage', 0.0) + 
+                         stage.get('obstacles_small_coverage', 0.0))
+        if total_coverage > 0:
+            self._spawn_obstacles(stage)
         
         # Get initial observation
         obs = self._get_observation()
@@ -364,7 +370,7 @@ class NavigationEnvironment:
         """
         # Scale action to velocity command and store for physics callback
         self.current_command = self._scale_action(action)
-        
+
         # Step physics sim until control time elapsed
         # Physics callback will apply self.current_command at each physics step
         target_time = self.last_control_time + self.control_dt
@@ -427,25 +433,34 @@ class NavigationEnvironment:
         yaw = self._quat_to_yaw(ori)
         obstacle_dists = self._raycast_obstacles(robot_x, robot_y, yaw)
         
-        # LiDAR-based obstacle avoidance penalties
-        # Penalize robot for getting too close to obstacles (Stages 2+)
+        # LiDAR-based obstacle avoidance penalties (backstop — hardcoded safety layer
+        # prevents most collisions, but penalties still fire if contact occurs)
         if self.current_stage >= 1:  # Enable from Stage 2 onward (0-indexed: 1+)
             if obstacle_dists:
                 min_obs_dist = min(obstacle_dists)
                 
                 # Check for collision (robot in contact with obstacle)
                 if min_obs_dist < self.contact_threshold:
-                    collision_penalty = self.collision_penalty
-                    reward += collision_penalty
-                    self.episode_reward_components['collision_penalty'] += collision_penalty
+                    if not self.was_in_collision:
+                        # One-time penalty on collision entry
+                        reward += self.collision_penalty
+                        self.episode_reward_components['collision_penalty'] += self.collision_penalty
+                    # Small continuous cost while in contact (pressure to escape)
+                    reward += self.collision_contact_penalty
+                    self.episode_reward_components['collision_contact_penalty'] += self.collision_contact_penalty
+                    self.was_in_collision = True
                 
                 # Check for clearance violation (obstacle too close but not touching)
                 elif min_obs_dist < self.min_safe_distance:
+                    self.was_in_collision = False
                     # Penalty scales with how far below min_safe_distance the robot is
                     clearance_violation = self.min_safe_distance - min_obs_dist
                     clearance_penalty = self.obstacle_clearance_penalty * clearance_violation
                     reward += clearance_penalty
                     self.episode_reward_components['obstacle_clearance_penalty'] += clearance_penalty
+                
+                else:
+                    self.was_in_collision = False
         
         # Speed reward - distance-based tier system (replaces old linear speed_reward)
         # Tier 1: <0.9 m/s (2 mph) = 0 reward
@@ -522,6 +537,11 @@ class NavigationEnvironment:
                 self.episode_reward_components['waypoint_capture'] += self.reward_waypoint
                 self.last_waypoint_distance = None
                 
+                # Force stop on waypoint capture — zero the command so the robot
+                # halts before the next policy step picks a new action toward the
+                # next waypoint.  This prevents forward-drift overshoot.
+                self.current_command = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+                
                 # Check if all waypoints captured
                 if self.current_waypoint_idx >= len(self.waypoints):
                     done = True
@@ -582,15 +602,15 @@ class NavigationEnvironment:
                             self.episode_reward_components['cross_track_error'] -= cross_track_penalty
                     
                     # 4. Proximity deceleration reward - encourage slowing near waypoint
-                    # Reward low speed when within 2.5m of waypoint to enable smooth capture
-                    if dist_to_wp < 2.5:
+                    # Reward low speed when within 5.0m of waypoint to enable smooth capture
+                    if dist_to_wp < 5.0:
                         vel = self.spot.robot.get_linear_velocity()
                         horizontal_speed = np.linalg.norm(vel[:2])
-                        # Ideal speed scales with distance: 0.5 m/s at 2.5m, 0 m/s at capture
+                        # Ideal speed scales with distance: 1.0 m/s at 5.0m, 0 m/s at capture
                         ideal_speed = 0.2 * dist_to_wp  # linear scaling
                         speed_error = abs(horizontal_speed - ideal_speed)
                         # Reward being close to ideal speed (inverse error)
-                        decel_reward = 0.15 * max(0, 1.0 - speed_error)
+                        decel_reward = self.decel_reward_weight * max(0, 1.0 - speed_error)
                         reward += decel_reward
                         self.episode_reward_components['decel_reward'] += decel_reward
                 
@@ -810,7 +830,7 @@ class NavigationEnvironment:
         vy = action[1] * (self.vy_range[1] if action[1] > 0 else -self.vy_range[0])
         omega = action[2] * (self.omega_range[1] if action[2] > 0 else -self.omega_range[0])
         return np.array([vx, vy, omega], dtype=np.float32)
-    
+
     def _generate_waypoints(self, first_dist: float, subsequent_dist: float) -> List[np.ndarray]:
         """
         Generate waypoints with given distances.
@@ -846,14 +866,88 @@ class NavigationEnvironment:
         return waypoints
     
     def _spawn_obstacles(self, stage: Dict):
-        """Spawn obstacles based on stage configuration."""
-        # This would integrate with ObstacleManager from Baseline_Environment.py
-        # For now, simplified version - you'll need to adapt the full logic
-        pass
+        """Spawn obstacles as 2D circles based on stage coverage configuration.
+        
+        Generates random obstacle positions within the arena for raycasting.
+        Obstacles are represented as circles with [x, y, bounding_radius].
+        Obstacle sizes match Baseline_Environment: main obstacles 0.15-0.74m radius,
+        small static obstacles 0.043-0.102m diameter.
+        """
+        arena_r = self.arena_radius
+        cx, cy = self.arena_center[0], self.arena_center[1]
+        boundary_margin = 3.0  # keep obstacles away from arena edge
+        start_clearance = 2.0  # keep obstacles away from spawn point (0,0)
+        min_spacing = 2.0      # minimum distance between obstacle centers
+        
+        self.obstacle_positions = []
+        arena_area = np.pi * arena_r**2
+        
+        # Main obstacles (light + heavy): radius range 0.15m - 0.74m (from OBSTACLE_MIN/MAX_FOOT)
+        main_coverage = stage.get('obstacles_light_coverage', 0.0) + stage.get('obstacles_heavy_coverage', 0.0)
+        if main_coverage > 0:
+            target_area = arena_area * main_coverage
+            placed_area = 0.0
+            attempts = 0
+            while placed_area < target_area and attempts < 500:
+                attempts += 1
+                # Random radius between 0.15m and 0.74m (matching Baseline obstacle footprints)
+                radius = np.random.uniform(0.15, 0.74)
+                # Random position inside arena
+                angle = np.random.uniform(0, 2 * np.pi)
+                dist = np.random.uniform(0, arena_r - boundary_margin)
+                ox = cx + dist * np.cos(angle)
+                oy = cy + dist * np.sin(angle)
+                
+                # Check clearance from start
+                if np.sqrt(ox**2 + oy**2) < start_clearance + radius:
+                    continue
+                # Check clearance from existing obstacles
+                too_close = False
+                for existing in self.obstacle_positions:
+                    d = np.sqrt((ox - existing[0])**2 + (oy - existing[1])**2)
+                    if d < min_spacing:
+                        too_close = True
+                        break
+                if too_close:
+                    continue
+                # Check clearance from waypoints
+                wp_clear = True
+                for wp in self.waypoints:
+                    if np.sqrt((ox - wp[0])**2 + (oy - wp[1])**2) < radius + 1.0:
+                        wp_clear = False
+                        break
+                if not wp_clear:
+                    continue
+                
+                self.obstacle_positions.append([ox, oy, radius])
+                placed_area += np.pi * radius**2
+        
+        # Small static obstacles: radius range 0.022m - 0.051m (golf ball to softball)
+        small_coverage = stage.get('obstacles_small_coverage', 0.0)
+        if small_coverage > 0:
+            target_area = arena_area * small_coverage
+            placed_area = 0.0
+            attempts = 0
+            while placed_area < target_area and attempts < 1000:
+                attempts += 1
+                radius = np.random.uniform(0.022, 0.051)
+                angle = np.random.uniform(0, 2 * np.pi)
+                dist = np.random.uniform(0, arena_r - boundary_margin)
+                ox = cx + dist * np.cos(angle)
+                oy = cy + dist * np.sin(angle)
+                
+                if np.sqrt(ox**2 + oy**2) < start_clearance + radius:
+                    continue
+                
+                self.obstacle_positions.append([ox, oy, radius])
+                placed_area += np.pi * radius**2
     
     def _raycast_obstacles(self, robot_x: float, robot_y: float, yaw: float, height_offset: float = 0.0) -> List[float]:
         """
         Raycast in multiple directions to detect obstacles at specified height.
+        
+        Each ray checks intersection with every obstacle (treated as a circle)
+        and the arena boundary. Returns the nearest hit distance per ray.
         
         Args:
             robot_x, robot_y: robot position
@@ -871,18 +965,42 @@ class NavigationEnvironment:
             # Convert to world frame
             world_angle = yaw + ray_angle
             
-            # Ray endpoint (2D, height handled separately for visualization)
-            ray_x = robot_x + self.ray_length * np.cos(world_angle)
-            ray_y = robot_y + self.ray_length * np.sin(world_angle)
+            cos_a = np.cos(world_angle)
+            sin_a = np.sin(world_angle)
             
-            # Check collision with obstacles
-            # Simplified: check distance to nearest obstacle in this direction
-            # In full implementation, use physx raycasting
-            dist = self.ray_length  # default: no obstacle
+            # Start with arena boundary distance
+            dist = self._ray_to_boundary(robot_x, robot_y, world_angle)
+            dist = min(dist, self.ray_length)
             
-            # Check arena boundary
-            boundary_dist = self._ray_to_boundary(robot_x, robot_y, world_angle)
-            dist = min(dist, boundary_dist)
+            # Check ray-circle intersection with each obstacle
+            for obs in self.obstacle_positions:
+                obs_x, obs_y, obs_r = obs[0], obs[1], obs[2]
+                # Vector from ray origin to obstacle center
+                dx = obs_x - robot_x
+                dy = obs_y - robot_y
+                
+                # Project obstacle center onto ray direction
+                # t = dot(d, ray_dir) where d = (dx, dy), ray_dir = (cos_a, sin_a)
+                t_center = dx * cos_a + dy * sin_a
+                
+                if t_center < 0:
+                    # Obstacle is behind the ray origin
+                    continue
+                
+                # Perpendicular distance from obstacle center to ray line
+                perp_dist_sq = (dx * dx + dy * dy) - t_center * t_center
+                
+                if perp_dist_sq > obs_r * obs_r:
+                    # Ray misses this obstacle
+                    continue
+                
+                # Ray hits obstacle — compute intersection distance
+                # t_hit = t_center - sqrt(r^2 - perp_dist^2)
+                half_chord = np.sqrt(obs_r * obs_r - perp_dist_sq)
+                t_hit = t_center - half_chord
+                
+                if t_hit > 0 and t_hit < dist:
+                    dist = t_hit
             
             # Normalize to [0, 1]
             distances.append(dist / self.ray_length)

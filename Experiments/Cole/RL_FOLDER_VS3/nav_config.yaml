@@ -54,7 +54,7 @@ reward:
   time_penalty: 0.0  # REMOVED - time decay in score is sufficient
   waypoint_capture: 50.0  # Reward for capturing each waypoint (score gets +15, reward gets +50)
   timeout_penalty: -500.0  # Penalty if robot runs out of score points (reaches 0)
-  progress_shaping: 15.0  # alpha for distance-based shaping - increased from 5.0 to dominate over static_turn
+  progress_shaping: 15.0  # alpha for distance-based shaping - restored with hardcoded safety layer
   distance_reward: 0.0  # DISABLED - no reward just for proximity to waypoint
   heading_reward: 0.2  # reward for facing toward waypoint - reduced 80%
   # Distance-based speed reward tiers (replaces old speed_reward: 0.3)
@@ -65,16 +65,19 @@ reward:
   lateral_velocity_penalty: 0.25  # penalty for strafe (left/right) motion to prevent drift
   cross_track_error_weight: 0.4  # penalty for deviating left/right from ideal path to waypoint
   static_turn_reward: 0.1  # reduced from 0.5 to prevent spinning local optimum
-  fall_penalty: -500.0
+  fall_penalty: -1000.0
   boundary_penalty: -5.0  # if leaving arena
   
   # LiDAR-based obstacle avoidance (Stages with obstacles)
-  collision_penalty: -100.0  # Large penalty if LiDAR detects collision (obstacle distance < contact threshold)
+  collision_penalty: -8.0  # One-time penalty on collision entry (per-event, not per-step)
+  collision_contact_penalty: -1.5  # Per-step cost while robot remains in contact with obstacle
   min_safe_distance: 0.5  # Minimum safe distance from obstacles (meters)
-  obstacle_clearance_penalty: -1.0  # Penalty per meter below min_safe_distance when obstacle is detected
+  obstacle_clearance_penalty: -2.0  # Penalty per meter below min_safe_distance when obstacle is detected
+  obstacle_avoidance_bonus: 0.0  # DISABLED - hardcoded safety layer replaces reward-based avoidance
+  decel_reward_weight: 1.0  # Weight for deceleration reward near waypoints (within 5m)
   
   # Efficiency bonus (completing waypoints before score expires)
-  efficiency_bonus_weight: 2.0    # Multiplier on remaining score when waypoint captured (higher = stronger incentive to finish fast)
+  efficiency_bonus_weight: 1.0    # Multiplier on remaining score when waypoint captured (higher = stronger incentive to finish fast)
 
 # Curriculum stages
 curriculum:
