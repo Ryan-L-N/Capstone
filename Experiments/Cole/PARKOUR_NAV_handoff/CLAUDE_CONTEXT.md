@@ -7,6 +7,48 @@ the project's history.*
 
 ---
 
+## The mission (READ FIRST)
+
+**Your job is to reproduce Alex/Gabriel's success on Cole max-density using
+`parkour_phase3_7000.pt`.**
+
+The target result (achieved on the sibling ckpt iter 6800 — iter 7000 is
+strictly better on the 4-env battery and is expected to match or exceed this):
+
+> **Cole TRUE max-density (all three obstacle categories at 1.0, onboard depth
+> sensor + online mapping + A* replan):**
+> **7/25 waypoints reached, 0 falls, 514.1m walked, 6m 45s of continuous
+> navigation. Ended on `SCORE_DEPLETED` (score budget ran out) — NOT a crash.**
+
+Prior project records this beats:
+- stock_flat: 5/25 (on easier arena, no small-static hazards)
+- mason_hybrid: 3/25
+- V6 rough: 0/25
+
+This run used 358 obstacles including 200 small-static trip hazards that no
+prior max-density eval had included. Policy walked through all of them without
+falling.
+
+**Your first move:** run the exact command in the "Launch commands → Cole,
+onboard-realistic" section below on `parkour_phase3_7000.pt` and confirm you
+hit ≥5/25 WPs with 0 falls. If you match or beat 7/25, log the result.
+
+**If you see fewer WPs or any fall on a trip hazard, troubleshoot in this
+order:**
+1. Verify `--depth_sensor` is in the command (it implies `--online_map`; A*
+   replans on discovered obstacles). The reactive-only pipeline FELL at 1/25
+   because APF in dense clutter cancels its own repulsion vectors.
+2. Confirm `--rough_heightscan` is set (height scan obs mode, 187 dims).
+   Without it the policy gets wrong observations.
+3. Confirm `--loco_action_scale 0.3 --loco_decimation 1` — these MUST match
+   the training config. Scale 0.2 produces a different actor distribution.
+4. Check spawn + joint defaults are the type-grouped order (see below). Wrong
+   order spawns the robot deformed and it falls immediately.
+5. Check seed. Our result was seed 42. Different seeds give different
+   obstacle placements and random-push timing.
+
+---
+
 ## What this policy is
 
 `parkour_phase3_7000.pt` is a PPO-trained locomotion policy for Boston Dynamics
@@ -74,9 +116,13 @@ All paths relative to Capstone repo root:
 | Training entrypoint | `Experiments/Alex/PARKOUR_NAV/scripts/train_parkour_nav.py` |
 | Privileged observations (critic-only: true friction, mass, foot forces) | `Experiments/Alex/PARKOUR_NAV/modules/privileged_obs.py` |
 
-**Do not duplicate these into this handoff folder.** They're already in the
-`development` branch and import one another across directories. Copying breaks
-imports.
+**Reference copies of the exact nav-stack files used for the 7/25 result are
+included under `Experiments/Cole/PARKOUR_NAV_handoff/code/`** — see
+`code/CODE_INDEX.md`. Those are for inspection / diff against future changes.
+**Do NOT run from the handoff copies** — they're standalone files and the
+scripts expect the `nav_locomotion` package layout at the canonical paths
+above. Run from the canonical paths; the handoff `.pt` is accessible via
+`--loco_checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt`.
 
 ---
 
