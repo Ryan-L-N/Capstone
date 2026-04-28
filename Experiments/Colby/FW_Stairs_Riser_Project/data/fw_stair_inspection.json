@@ -1,0 +1,166 @@
+{
+  "SM_Staircase_01.usd": {
+    "file": "SM_Staircase_01.usd",
+    "meters_per_unit": 0.009999999776482582,
+    "up_axis": "Z",
+    "bbox_min_m": [
+      -0.022017516597713893,
+      -3.5283318303153237,
+      -4.160038359164332
+    ],
+    "bbox_max_m": [
+      4.568708393975157,
+      1.0008700337811547,
+      1.148437779506196
+    ],
+    "size_m": [
+      4.590725910572871,
+      4.529201864096478,
+      5.308476138670528
+    ],
+    "mesh_count": 1,
+    "height_levels_m": [
+      -1.5058
+    ],
+    "centroid_bottom_xy_m": [
+      2.2733454386887217,
+      -1.2637308982670845
+    ],
+    "centroid_mid_xy_m": [
+      0,
+      0
+    ],
+    "centroid_top_xy_m": [
+      2.2733454386887217,
+      -1.2637308982670845
+    ],
+    "bottom_z_m": -1.5058,
+    "top_z_m": -1.5058,
+    "bot_to_top_xy_span_m": 0.0,
+    "mid_offset_from_line_m": 2.601,
+    "is_switchback": true
+  },
+  "SM_Staircase_02.usd": {
+    "file": "SM_Staircase_02.usd",
+    "meters_per_unit": 0.009999999776482582,
+    "up_axis": "Z",
+    "bbox_min_m": [
+      -0.0005728149286028383,
+      -0.9940403525373256,
+      -4.145191252562597
+    ],
+    "bbox_max_m": [
+      4.568066304145759,
+      0.9940401999494384,
+      1.1778829692777322
+    ],
+    "size_m": [
+      4.568639119074362,
+      1.988080552486764,
+      5.323074221840329
+    ],
+    "mesh_count": 1,
+    "height_levels_m": [
+      -1.4837
+    ],
+    "centroid_bottom_xy_m": [
+      2.283746744608578,
+      -7.629394360719743e-08
+    ],
+    "centroid_mid_xy_m": [
+      0,
+      0
+    ],
+    "centroid_top_xy_m": [
+      2.283746744608578,
+      -7.629394360719743e-08
+    ],
+    "bottom_z_m": -1.4837,
+    "top_z_m": -1.4837,
+    "bot_to_top_xy_span_m": 0.0,
+    "mid_offset_from_line_m": 2.284,
+    "is_switchback": true
+  },
+  "SM_StaircaseHalf_01.usd": {
+    "file": "SM_StaircaseHalf_01.usd",
+    "meters_per_unit": 0.009999999776482582,
+    "up_axis": "Z",
+    "bbox_min_m": [
+      -8.712768359941947e-05,
+      -2.5550683022647718,
+      -1.9200013303756407
+    ],
+    "bbox_max_m": [
+      2.3232819610100535,
+      2.5550683022647718,
+      1.1576606491730956
+    ],
+    "size_m": [
+      2.323369088693653,
+      5.1101366045295435,
+      3.0776619795487363
+    ],
+    "mesh_count": 1,
+    "height_levels_m": [
+      -0.3812
+    ],
+    "centroid_bottom_xy_m": [
+      1.161597416663227,
+      0.0
+    ],
+    "centroid_mid_xy_m": [
+      0,
+      0
+    ],
+    "centroid_top_xy_m": [
+      1.161597416663227,
+      0.0
+    ],
+    "bottom_z_m": -0.3812,
+    "top_z_m": -0.3812,
+    "bot_to_top_xy_span_m": 0.0,
+    "mid_offset_from_line_m": 1.162,
+    "is_switchback": true
+  },
+  "SM_StaircaseHalf_02.usd": {
+    "file": "SM_StaircaseHalf_02.usd",
+    "meters_per_unit": 0.009999999776482582,
+    "up_axis": "Z",
+    "bbox_min_m": [
+      -0.0002949523859854253,
+      -0.9940380637190174,
+      -1.9210102414859023
+    ],
+    "bbox_max_m": [
+      2.309865823614615,
+      0.9940380637190174,
+      1.1656104780969656
+    ],
+    "size_m": [
+      2.3101607760006004,
+      1.9880761274380347,
+      3.086620719582868
+    ],
+    "mesh_count": 1,
+    "height_levels_m": [
+      -0.3777
+    ],
+    "centroid_bottom_xy_m": [
+      1.1547854356143148,
+      0.0
+    ],
+    "centroid_mid_xy_m": [
+      0,
+      0
+    ],
+    "centroid_top_xy_m": [
+      1.1547854356143148,
+      0.0
+    ],
+    "bottom_z_m": -0.3777,
+    "top_z_m": -0.3777,
+    "bot_to_top_xy_span_m": 0.0,
+    "mid_offset_from_line_m": 1.155,
+    "is_switchback": true
+  }
+}

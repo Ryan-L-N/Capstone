@@ -1,0 +1,5 @@
+stair,topology,phases,fell,pass,final_x,final_y,final_z
+SM_Staircase_01.usd,switchback_full,stabilize=ok;ascend_flight1=timeout;turn_180=timeout;ascend_flight2=fell,True,False,0.299,-2.021,0.325
+SM_Staircase_02.usd,straight,stabilize=ok;ascend=timeout,False,False,0.072,-3.031,0.509
+SM_StaircaseHalf_01.usd,straight_on_platform,stabilize=ok;ascend=timeout,False,False,1.988,0.441,0.396
+SM_StaircaseHalf_02.usd,straight,stabilize=ok;ascend=timeout,False,False,2.202,-0.281,0.434
