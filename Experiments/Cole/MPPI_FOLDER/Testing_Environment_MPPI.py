@@ -53,6 +53,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mppi_navigator import MPPINavigator  # noqa: E402
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'PARKOUR_NAV_handoff', 'code'))
+from spot_rough_terrain_policy import SpotRoughTerrainPolicy  # noqa: E402
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ENVIRONMENT CONSTANTS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -742,14 +745,43 @@ class ObstacleManager:
 # WAYPOINTS
 # ─────────────────────────────────────────────────────────────────────────────
 
-def generate_waypoints(rng: np.random.Generator) -> list:
+WAYPOINT_OBS_CLEARANCE = 0.25  # metres from obstacle edge
+
+
+def _waypoint_clear_of_obstacles(wx: float, wy: float, all_obstacles: list) -> bool:
+    """Return True if (wx, wy) is at least WAYPOINT_OBS_CLEARANCE from every obstacle edge."""
+    for obs in all_obstacles:
+        ox, oy = obs["pos"][0], obs["pos"][1]
+        if "dims" in obs:
+            obs_radius = math.sqrt(obs["dims"][0] ** 2 + obs["dims"][1] ** 2) / 2.0
+        else:
+            obs_radius = obs.get("size", 0.3) / 2.0
+        dist = math.sqrt((wx - ox) ** 2 + (wy - oy) ** 2)
+        if dist < obs_radius + WAYPOINT_OBS_CLEARANCE:
+            return False
+    return True
+
+
+def generate_waypoints(rng: np.random.Generator, all_obstacles: list = None) -> list:
     waypoints = []
     prev_x, prev_y = SPOT_START_X, SPOT_START_Y
+    obs = all_obstacles or []
 
     for i, label in enumerate(WAYPOINT_LABELS):
-        if i == 0:
-            target_dist = WAYPOINT_DIST_A
-            max_attempts = 100
+        target_dist = WAYPOINT_DIST_A if i == 0 else WAYPOINT_SPACING_BZ
+        max_attempts = 200
+        placed = False
+        for _ in range(max_attempts):
+            theta = rng.uniform(0, 2 * math.pi)
+            wx = prev_x + target_dist * math.cos(theta)
+            wy = prev_y + target_dist * math.sin(theta)
+            if inside_arena(wx, wy, ARENA_RADIUS, margin=0.5) and _waypoint_clear_of_obstacles(wx, wy, obs):
+                waypoints.append({"label": label, "pos": np.array([wx, wy])})
+                prev_x, prev_y = wx, wy
+                placed = True
+                break
+        if not placed:
+            print(f"[WARN] Could not place waypoint {label} with clearance — using best effort")
             for _ in range(max_attempts):
                 theta = rng.uniform(0, 2 * math.pi)
                 wx = prev_x + target_dist * math.cos(theta)
@@ -759,24 +791,9 @@ def generate_waypoints(rng: np.random.Generator) -> list:
                     prev_x, prev_y = wx, wy
                     break
             else:
-                print(f"[WARN] Could not place waypoint {label}")
-                waypoints.append({"label": label, "pos": np.array([prev_x, prev_y])})
-        else:
-            target_dist = WAYPOINT_SPACING_BZ
-            max_attempts = 100
-            for _ in range(max_attempts):
-                theta = rng.uniform(0, 2 * math.pi)
-                wx = prev_x + target_dist * math.cos(theta)
-                wy = prev_y + target_dist * math.sin(theta)
-                if inside_arena(wx, wy, ARENA_RADIUS, margin=0.5):
-                    waypoints.append({"label": label, "pos": np.array([wx, wy])})
-                    prev_x, prev_y = wx, wy
-                    break
-            else:
-                print(f"[WARN] Could not place waypoint {label}")
                 waypoints.append({"label": label, "pos": np.array([prev_x, prev_y])})
 
-    print(f"[OK] Generated {len(waypoints)} waypoints (A={WAYPOINT_DIST_A}m, rest≥{WAYPOINT_SPACING_BZ}m)")
+    print(f"[OK] Generated {len(waypoints)} waypoints (A={WAYPOINT_DIST_A}m, rest≥{WAYPOINT_SPACING_BZ}m, clearance={WAYPOINT_OBS_CLEARANCE}m)")
     return waypoints
 
 
@@ -886,6 +903,7 @@ class CircularWaypointEnv:
         self.waypoints_reached = 0
         self.episode_start_time = 0.0
         self.episode_num = 0
+        self.total_episodes = 1
 
         self.csv_file = None
         self.csv_writer = None
@@ -936,8 +954,14 @@ class CircularWaypointEnv:
         remove_waypoint_markers(self.stage, self.current_marker_paths)
         self.current_marker_paths.clear()
 
-        # Generate new waypoints
-        self.waypoints = generate_waypoints(self.rng)
+        # Large + small static obstacles spawned FIRST so waypoints can avoid them
+        self.obstacle_mgr.populate(moveable_coverage_pct=10.0, non_moveable_coverage_pct=10.0,
+                                   min_spawn_clearance=2.0)
+        self.obstacle_mgr.spawn_small_static(target_coverage_pct=10.0)
+
+        # Generate new waypoints with obstacle clearance
+        all_obs = list(self.obstacle_mgr.obstacles) + list(self.obstacle_mgr.small_obstacles)
+        self.waypoints = generate_waypoints(self.rng, all_obstacles=all_obs)
 
         # Spawn only the first waypoint marker (sequential spawning)
         if self.waypoints:
@@ -945,11 +969,6 @@ class CircularWaypointEnv:
             paths = spawn_waypoint_marker(self.stage, wp["label"], wp["pos"])
             self.current_marker_paths.extend(paths)
             print(f"[INFO] Current target: Waypoint {wp['label']} at ({wp['pos'][0]:.1f}, {wp['pos'][1]:.1f})")
-
-        # Large + small static obstacles (10% fill each)
-        self.obstacle_mgr.populate(moveable_coverage_pct=10.0, non_moveable_coverage_pct=10.0,
-                                   min_spawn_clearance=2.0)
-        self.obstacle_mgr.spawn_small_static(target_coverage_pct=10.0)
         print(f"[DEBUG] obstacle_mgr: {len(self.obstacle_mgr.obstacles)} large, {len(self.obstacle_mgr.small_obstacles)} small")
 
         # Reset Spot position
@@ -959,6 +978,7 @@ class CircularWaypointEnv:
                 orientation=np.array([1.0, 0.0, 0.0, 0.0])
             )
             self.spot.robot.set_joints_default_state(self.spot.default_pos)
+            self.spot.post_reset()
             print(f"[OK] Spot reset to start ({SPOT_START_X}, {SPOT_START_Y}, {SPOT_START_Z})")
         else:
             print("[WARN] Spot not initialized yet")
@@ -975,6 +995,8 @@ class CircularWaypointEnv:
         if not self.physics_ready:
             self.episode_start_time = self.world.current_time
             self.physics_ready = True
+            # Still apply joint control so PD holds the robot standing
+            self.spot.forward(step_size, self._cached_command)
             return True
 
         # Get Spot position
@@ -987,6 +1009,7 @@ class CircularWaypointEnv:
                 print(f"[FALL] Spot fell (z={spot_z:.3f} < {FALL_HEIGHT_THRESHOLD})")
                 self._log_to_csv(FAILURE_FELL_OVER)
                 self.episode_logged = True
+            self.score = 0.0
             return False
 
         # Waypoint reached check
@@ -1016,6 +1039,7 @@ class CircularWaypointEnv:
                         print(f"[COMPLETE] All waypoints reached!")
                         self._log_to_csv(FAILURE_COMPLETED)
                         self.episode_logged = True
+                    self.waypoints_reached = WAYPOINT_COUNT  # ensure main loop breaks
                     return False
 
                 self.spot.forward(step_size, np.array([0.0, 0.0, 0.0]))
@@ -1156,10 +1180,14 @@ class CircularWaypointEnv:
         self.all_episodes.append(episode_data)
         self._write_csv_with_stats()
 
-        print(f"[CSV] Episode {self.episode_num} logged: {self.waypoints_reached} waypoints, score {self.score:.1f}, reason: {reason}")
+        print(f"[CSV] Episode {self.episode_num}/{self.total_episodes} logged: {self.waypoints_reached} waypoints, score {self.score:.1f}, reason: {reason}")
 
         stats = self._calculate_aggregate_stats()
-        print(f"[STATS] Avg Waypoints: {stats['avg_waypoints']:.2f} | Completion: {stats['completion_rate']:.1f}% | Fell: {stats['fell_rate']:.1f}% | Ran Out: {stats['ran_out_rate']:.1f}%")
+        total_done = len(self.all_episodes)
+        bar_filled = int((total_done / self.total_episodes) * 40) if self.total_episodes else 0
+        bar = '█' * bar_filled + '░' * (40 - bar_filled)
+        print(f"[PROGRESS] [{bar}] {total_done}/{self.total_episodes} eps")
+        print(f"[STATS] Avg WP: {stats['avg_waypoints']:.2f} | Completion: {stats['completion_rate']:.1f}% | Fell: {stats['fell_rate']:.1f}% | RanOut: {stats['ran_out_rate']:.1f}%")
 
     def close(self) -> None:
         print(f"[OK] CSV log finalized: {CSV_LOG_PATH}")
@@ -1292,6 +1320,7 @@ def main():
     setup_spot_sensors(spot_prim_path)
 
     env = CircularWaypointEnv(world, stage, rng)
+    env.total_episodes = args.episodes
     env.spot = spot
 
     def on_physics_step(step_size: float):
