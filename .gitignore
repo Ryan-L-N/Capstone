@@ -6,6 +6,7 @@ __pycache__/
 # Training artifacts (checkpoints and logs)
 checkpoints/
 *.pt
+*.onnx
 # Exceptions: best models for version control
 !Experiments/Cole/RL_Folder_VS2/checkpoints/*/best_model.pt
 !Experiments/Cole/RL_FOLDER_VS3/CS3_checkpoints/*/best_model.pt
@@ -13,8 +14,15 @@ checkpoints/
 !Experiments/Alex/4_env_test/policies/*.pt
 # Exception: Colby's nav policy checkpoints
 !Experiments/Colby/CombinedPolicyTraining/logs/**/*.pt
+# Keep README files inside checkpoints/ directories (so each policy can document where its checkpoints live)
+!**/checkpoints/README.md
 *training_log*.txt
 *.log
+
+# Training run artifacts (cleaned for main-branch capstone deliverable)
+**/logs/
+**/results/
+**/tfevents*
 
 # Virtual environments
 isaacSim_env/
