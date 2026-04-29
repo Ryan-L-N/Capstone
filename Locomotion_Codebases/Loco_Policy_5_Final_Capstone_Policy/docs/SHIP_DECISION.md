@@ -129,7 +129,7 @@ and not part of the deliverable.
 
 ## Open follow-up work (post-ship)
 
-0. **TODO: Push friction speed to 2.5 m/s.** Local rendered eval
+0. **TODO (a): Push friction speed to 2.5 m/s.** Local rendered eval
    (Apr 29) showed 22100 hitting 5/5 COMPLETE on friction zone 5 with
    times 117–174s (best 117.2s = ~0.42 m/s average). Project record
    was 99.5s = ~0.50 m/s. Target: 49.5m / ~20s = **2.5 m/s sustained.**
@@ -144,6 +144,27 @@ and not part of the deliverable.
      `--zone_slowdown_cap` flag for cross-validation runs.
    - Re-eval 4-env battery + Cole quarter to confirm the speed bump
      doesn't regress stair-zone-5 alive depth or Cole performance.
+
+0b. **TODO (b): Push boulder to 2.0 m/s through zone 2 + 1m past zone 3.**
+   Boulder zones are 10m each (zone 1: 0-10m, zone 2: 10-20m, zone 3:
+   20-30m, zone 4: 30-40m). Project record (Phase-9 22100 with
+   `--zone_slowdown_cap 0.67`): FELL 31.5m zone 4 / 111s. Target:
+   **2.0 m/s sustained through zones 1-2** (faster traversal of the
+   easy boulder densities) and **reach ≥31m (1m past zone 3)** in zone
+   4 reliably (not just intermittently).
+   To get there:
+   - Implement tiered velocity capping in `run_capstone_eval.py`: full
+     command in zones 1-2, cap at 0.67-0.8 m/s in zones 3-4. Currently
+     `--zone_slowdown_cap` is one global cap applied at x≥20m; needs
+     splitting into `--zone3_cap` / `--zone4_cap` or similar.
+   - Fine-tune from 22100 with boulder-zone-aware reward shaping: bonus
+     for reaching ≥31m on boulder, mild penalty for falling in zones
+     1-2 (which currently don't see falls but the reward shouldn't
+     reward standing still in easy zones either).
+   - Or: add a boulder-specific terrain variant that has zone-2
+     densities at the start (skip zone 1) to force speed-up training.
+   - Re-eval to confirm zones 1-2 hit 2.0 m/s avg + zone-3-to-31m
+     traversal rate ≥80% across 100-ep battery.
 
 1. **Diagnostic: why is Apr 29 stuck at level 0?** Compare commits
    on `final_capstone_policy_terrain_cfg.py` and
