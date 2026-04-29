@@ -1,0 +1,164 @@
+{
+  "_doc": "Per-USD eval config. Coords are in meters AFTER scale=0.01 + lift_z translation. The holder Xform is placed at world (0,0,lift_z) so the USD's bottom-most surface sits at z=0. All other coords inherit. Spawn is offset 1.5m back along the initial heading from the bottom_xy (in world frame after lift). Headings are degrees, CCW from +X axis. Phases run sequentially. Each phase ends on success (waypoint reached) or fall (z below fall_z) or timeout. Each USD has both 'phases' (ascend) and 'phases_descend' (start at top, walk down).",
+
+  "SM_Staircase_01.usd": {
+    "topology": "switchback_full",
+    "scale": 0.01,
+    "lift_z": 4.149,
+    "spawn": {
+      "comment": "Spawn 1.5m back from (0.1, -2.5, 0) along heading 24deg (toward landing). World yaw=24deg.",
+      "world_xy": [-1.27, -3.11],
+      "world_z": 0.55,
+      "yaw_deg": 24
+    },
+    "spawn_descend": {
+      "comment": "Spawn at top platform (0.05, 0.0, top_z+0.55), facing back toward landing (180+24 = 204 deg).",
+      "world_xy": [0.05, 0.0],
+      "world_z": 5.8,
+      "yaw_deg": 204
+    },
+    "phases_descend": [
+      {"name": "stabilize", "duration_steps": 400, "vx": 0.0, "vy": 0.0, "wz": 0.0},
+      {"name": "descend_flight2", "vx": 0.6, "target_xy": [2.95, -1.24], "arrive_radius_m": 0.6, "target_z_min_m": 0.0, "target_z_max_m": 3.5, "fall_z_m": -0.3, "max_time_s": 30},
+      {"name": "turn_180_back", "vx": 0.1, "wz": 1.5, "yaw_target_deg": 24, "yaw_tol_deg": 15, "max_time_s": 5},
+      {"name": "descend_flight1", "vx": 0.6, "target_xy": [0.1, -2.5], "arrive_radius_m": 0.7, "target_z_min_m": 0.0, "target_z_max_m": 1.5, "fall_z_m": -0.3, "max_time_s": 30}
+    ],
+    "phases": [
+      {
+        "name": "stabilize",
+        "duration_steps": 400,
+        "vx": 0.0,
+        "vy": 0.0,
+        "wz": 0.0
+      },
+      {
+        "name": "ascend_flight1",
+        "vx": 0.8,
+        "target_xy": [2.95, -1.24],
+        "arrive_radius_m": 0.6,
+        "target_z_min_m": 2.4,
+        "fall_z_m": -0.3,
+        "max_time_s": 30
+      },
+      {
+        "name": "turn_180",
+        "vx": 0.1,
+        "wz": 1.5,
+        "yaw_target_deg": 204,
+        "yaw_tol_deg": 15,
+        "max_time_s": 5
+      },
+      {
+        "name": "ascend_flight2",
+        "vx": 0.8,
+        "target_xy": [0.05, 0.0],
+        "arrive_radius_m": 0.6,
+        "target_z_min_m": 5.0,
+        "fall_z_m": 1.5,
+        "max_time_s": 30
+      }
+    ]
+  },
+
+  "SM_Staircase_02.usd": {
+    "topology": "straight",
+    "scale": 0.01,
+    "lift_z": 4.134,
+    "spawn": {
+      "comment": "Single flight (4.4, 0, -4.13) -> (0.06, 0, 1.10). Heading is -X. Spawn at (4.4 + 1.5, 0).",
+      "world_xy": [5.92, 0.0],
+      "world_z": 0.55,
+      "yaw_deg": 180
+    },
+    "spawn_descend": {
+      "comment": "Spawn at top (0.06, 0, top_z+0.55), facing +X (back toward bottom).",
+      "world_xy": [0.06, 0.0],
+      "world_z": 5.8,
+      "yaw_deg": 0
+    },
+    "phases_descend": [
+      {"name": "stabilize", "duration_steps": 400, "vx": 0.0, "vy": 0.0, "wz": 0.0},
+      {"name": "descend", "vx": 0.6, "target_xy": [4.42, 0.0], "arrive_radius_m": 0.7, "target_z_min_m": 0.0, "target_z_max_m": 1.5, "fall_z_m": -0.3, "max_time_s": 40}
+    ],
+    "phases": [
+      {"name": "stabilize", "duration_steps": 400, "vx": 0.0, "vy": 0.0, "wz": 0.0},
+      {
+        "name": "ascend",
+        "vx": 0.8,
+        "target_xy": [0.06, 0.0],
+        "arrive_radius_m": 0.6,
+        "target_z_min_m": 5.0,
+        "fall_z_m": -0.3,
+        "max_time_s": 40
+      }
+    ]
+  },
+
+  "SM_StaircaseHalf_01.usd": {
+    "topology": "straight_on_platform",
+    "scale": 0.01,
+    "lift_z": 1.909,
+    "spawn": {
+      "comment": "Half-height stair on wide Y platform. Bot (2.16, 0), Top (0.07, 0). Heading -X. Spawn at (2.16+1.5, 0).",
+      "world_xy": [3.66, 0.0],
+      "world_z": 0.55,
+      "yaw_deg": 180
+    },
+    "spawn_descend": {
+      "comment": "Spawn at top (0.07, 0, top_z+0.55), facing +X.",
+      "world_xy": [0.07, 0.0],
+      "world_z": 3.55,
+      "yaw_deg": 0
+    },
+    "phases_descend": [
+      {"name": "stabilize", "duration_steps": 400, "vx": 0.0, "vy": 0.0, "wz": 0.0},
+      {"name": "descend", "vx": 0.6, "target_xy": [2.16, 0.0], "arrive_radius_m": 0.7, "target_z_min_m": 0.0, "target_z_max_m": 1.5, "fall_z_m": -0.3, "max_time_s": 25}
+    ],
+    "phases": [
+      {"name": "stabilize", "duration_steps": 400, "vx": 0.0, "vy": 0.0, "wz": 0.0},
+      {
+        "name": "ascend",
+        "vx": 0.8,
+        "target_xy": [0.07, 0.0],
+        "arrive_radius_m": 0.6,
+        "target_z_min_m": 2.8,
+        "fall_z_m": -0.3,
+        "max_time_s": 25
+      }
+    ]
+  },
+
+  "SM_StaircaseHalf_02.usd": {
+    "topology": "straight",
+    "scale": 0.01,
+    "lift_z": 1.877,
+    "spawn": {
+      "comment": "Short straight stair. Bot (2.14, 0), Top (0.07, 0). Heading -X. Spawn at (2.14+1.5, 0).",
+      "world_xy": [3.64, 0.0],
+      "world_z": 0.55,
+      "yaw_deg": 180
+    },
+    "spawn_descend": {
+      "comment": "Spawn at top (0.07, 0, top_z+0.55), facing +X.",
+      "world_xy": [0.07, 0.0],
+      "world_z": 3.55,
+      "yaw_deg": 0
+    },
+    "phases_descend": [
+      {"name": "stabilize", "duration_steps": 400, "vx": 0.0, "vy": 0.0, "wz": 0.0},
+      {"name": "descend", "vx": 0.6, "target_xy": [2.14, 0.0], "arrive_radius_m": 0.7, "target_z_min_m": 0.0, "target_z_max_m": 1.5, "fall_z_m": -0.3, "max_time_s": 25}
+    ],
+    "phases": [
+      {"name": "stabilize", "duration_steps": 400, "vx": 0.0, "vy": 0.0, "wz": 0.0},
+      {
+        "name": "ascend",
+        "vx": 0.8,
+        "target_xy": [0.07, 0.0],
+        "arrive_radius_m": 0.6,
+        "target_z_min_m": 2.8,
+        "fall_z_m": -0.3,
+        "max_time_s": 25
+      }
+    ]
+  }
+}

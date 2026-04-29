@@ -1,0 +1,1 @@
+/home/t2user/stress_test.sh: line 36: mpstat: command not found

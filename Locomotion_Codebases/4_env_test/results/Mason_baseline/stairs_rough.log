@@ -1,0 +1,1935 @@
+[3gH    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H   [INFO] Using python from: /home/t2user/miniconda3/envs/env_isaaclab/bin/python
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: /home/t2user/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/t2user/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/t2user/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260317_080617.log
+2026-03-17T12:06:17Z [187ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-03-17T12:06:17Z [685ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-03-17T12:06:18Z [953ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-03-17T12:06:18Z [968ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-03-17T12:06:22Z [5,263ms] [Error] [carb.graphics-vulkan.plugin] VkResult: ERROR_INCOMPATIBLE_DRIVER
+2026-03-17T12:06:22Z [5,263ms] [Error] [carb.graphics-vulkan.plugin] vkCreateInstance failed. Vulkan 1.1 is not supported, or your driver requires an update.
+2026-03-17T12:06:22Z [5,263ms] [Error] [gpu.foundation.plugin] carb::graphics::createInstance failed.
+2026-03-17T12:06:22Z [5,397ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.
+2026-03-17T12:06:22Z [5,397ms] [Warning] [omni.physx.foundation.plugin] PhysXFoundation: Couldn't get driver version, failed to getDeviceInfo
+2026-03-17T12:06:22Z [5,397ms] [Warning] [omni.physx.foundation.plugin] PhysXFoundation: Unable to get IGpuFoundation, GpuDevices or Graphics!
+2026-03-17T12:06:22Z [5,442ms] [Warning] [omni.kvdb.plugin] Disabling key-value database because another kit process is locking it
+2026-03-17T12:06:23Z [6,510ms] [Error] [omni.ext.plugin] Failed to resolve extension dependencies. Failure hints:
+	Can't find extension with name: isaacsim.core
+ Available versions:
+	 (none found)
+ Synced registries:
+	 - kit/default         : found 1664 packages 
+	 - kit/sdk             : found 472 packages 
+	 - kit/community       : found 527 packages 
+
+2026-03-17T12:06:23Z [6,693ms] [Error] [omni.ext.plugin] Failed to resolve extension dependencies. Failure hints:
+	Can't find extension with name: isaacsim.robot.quadruped
+ Available versions:
+	 (none found)
+ Synced registries:
+	 - kit/default         : found 1664 packages 
+	 - kit/sdk             : found 472 packages 
+	 - kit/community       : found 527 packages 
+
+2026-03-17T12:06:23Z [6,739ms] [Warning] [omni.isaac.core.physics_context.physics_context] omni.isaac.core.physics_context.physics_context has been deprecated in favor of isaacsim.core.api.physics_context.physics_context. Please update your code accordingly.
+2026-03-17T12:06:23Z [6,739ms] [Warning] [omni.isaac.core.simulation_context.simulation_context] omni.isaac.core.simulation_context.simulation_context has been deprecated in favor of isaacsim.core.api.simulation_context.simulation_context. Please update your code accordingly.
+2026-03-17T12:06:23Z [6,740ms] [Warning] [omni.isaac.core.world.world] omni.isaac.core.world.world has been deprecated in favor of isaacsim.core.api.world.world. Please update your code accordingly.
+2026-03-17T12:06:23Z [6,740ms] [Warning] [omni.isaac.core] omni.isaac.core has been deprecated in favor of isaacsim.core.api. Please update your code accordingly.
+2026-03-17T12:06:24Z [6,793ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:06:24Z [6,793ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:06:24Z [6,837ms] [Error] [carb.graphics-vulkan.plugin] VkResult: ERROR_INCOMPATIBLE_DRIVER
+2026-03-17T12:06:24Z [6,838ms] [Error] [carb.graphics-vulkan.plugin] vkCreateInstance failed. Vulkan 1.1 is not supported, or your driver requires an update.
+2026-03-17T12:06:24Z [6,838ms] [Error] [gpu.foundation.plugin] carb::graphics::createInstance failed.
+2026-03-17T12:06:24Z [7,067ms] [Error] [carb.graphics-vulkan.plugin] VkResult: ERROR_INCOMPATIBLE_DRIVER
+2026-03-17T12:06:24Z [7,067ms] [Error] [carb.graphics-vulkan.plugin] vkCreateInstance failed. Vulkan 1.1 is not supported, or your driver requires an update.
+2026-03-17T12:06:24Z [7,067ms] [Error] [gpu.foundation.plugin] carb::graphics::createInstance failed.
+2026-03-17T12:06:24Z [7,234ms] [Error] [omni.gpu_foundation_factory.plugin] Failed to create any GPU devices, including an attempt with compatibility mode.
+sh: 1: zenity: not found
+2026-03-17T12:06:24Z [7,608ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:06:24Z [7,608ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:06:24Z [7,614ms] [Error] [omni.kit.renderer.plugin] GPU Foundation is not initialized!
+2026-03-17T12:06:24Z [7,622ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:06:24Z [7,622ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:06:24Z [7,639ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-03-17T12:06:24Z [7,639ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.5]) (impl: carb.windowing-glfw.plugin)
+2026-03-17T12:06:24Z [7,641ms] [Error] [omni.kit.imgui_renderer.plugin] _prepareDefaultWindow: invalid device attached to the default window!
+2026-03-17T12:06:25Z [8,268ms] [Warning] [omni.log] Source: omni.hydra was already registered.
+2026-03-17T12:06:25Z [8,357ms] [Warning] [omni.usd] UsdManager::createHydraEngineWithDefaultConfigImpl - no valid foundation interface found
+2026-03-17T12:06:25Z [8,632ms] [Warning] [pxr.Semantics] pxr.Semantics is deprecated - please use Semantics instead
+2026-03-17T12:06:26Z [8,911ms] [Warning] [omni.graph.core.plugin] Found duplicate of category 'Replicator' - was 'Annotators', adding 'Fabric Reader'
+2026-03-17T12:06:26Z [8,911ms] [Warning] [omni.graph.core.plugin] Category 'Replicator' not accepted on node type 'omni.replicator.core.FabricReader' in extension 'omni.replicator.core'
+2026-03-17T12:06:26Z [8,912ms] [Warning] [omni.replicator.core.scripts.extension] No material configuration file, adding configuration to material settings directly.
+2026-03-17T12:06:26Z [8,981ms] [Warning] [omni.isaac.quadruped] omni.isaac.quadruped has been deprecated in favor of isaacsim.robot.policy.examples. Please update your code accordingly.
+
+============================================================
+  Capstone Evaluation
+  Robot:       SPOT
+  Environment: stairs
+  Policy:      rough
+  Episodes:    100
+  Headless:    True
+  Output:      /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44
+============================================================
+
+2026-03-17T12:06:26Z [9,163ms] [Warning] [omni.graph.core.plugin] OmniGraphSettings::getCudaDeviceOrdinal: unable to get a valid CUDA device id from the renderer. Defaulting to GPU0.
+Building stairs environment...
+  Stairs environment: 5 zones
+    Zone 1: 0.03m steps × 33 = 0.99m rise — Access ramp
+    Zone 2: 0.08m steps × 33 = 2.64m rise — Low residential
+    Zone 3: 0.13m steps × 33 = 4.29m rise — Standard residential
+    Zone 4: 0.18m steps × 33 = 5.94m rise — Steep commercial
+    Zone 5: 0.23m steps × 33 = 7.59m rise — Maximum challenge
+    Total elevation gain: 20.95m
+Loading rough policy for SPOT...
+Warp DeprecationWarning: The `warp.sim` module is deprecated and will be removed in v1.10. Please transition to using the forthcoming Newton library instead.
+[ROUGH] Auto-detected architecture: 235 -> [512, 256, 128] -> 12
+[ROUGH] Loaded actor from /home/t2user/4_env_test/checkpoints/mason_baseline_final_19999.pt
+[ROUGH]   obs=235  act=12  scale=0.2  dec=10
+[ROUGH] Default pos mapped by name (12/12 joints)
+[ROUGH] DOF order: ['fl_hx', 'fr_hx', 'hl_hx', 'hr_hx', 'fl_hy', 'fr_hy', 'hl_hy', 'hr_hy', 'fl_kn', 'fr_kn', 'hl_kn', 'hr_kn']
+[ROUGH] default_pos: [ 0.1 -0.1  0.1 -0.1  0.9  0.9  1.1  1.1 -1.5 -1.5 -1.5 -1.5]
+[ROUGH] Hip DOFs: [0, 1, 2, 3, 4, 5, 6, 7]  Knee DOFs: [8, 9, 10, 11]
+[ROUGH] Height scan: PHYSX RAYCAST (187 dims, real terrain geometry via scene queries)
+[ROUGH] Solver iters BEFORE: pos=[4], vel=[0]
+[ROUGH] Solver iters AFTER:  pos=[4], vel=[1]
+[ROUGH] Gains BEFORE: Kp=[[60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60.]], Kd=[[1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5]]
+[ROUGH] Gains AFTER:  Kp=[[60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60. 60.]], Kd=[[1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5]]
+2026-03-17T12:06:28Z [11,690ms] [Warning] [omni.physx.tensors.plugin] DEPRECATED: Please use getDofFrictionProperties instead.
+2026-03-17T12:06:28Z [11,690ms] [Warning] [omni.physx.tensors.plugin] DEPRECATED: Please use setDofFrictionProperties instead.
+[ROUGH] PhysX PD: Kp=60.0, Kd=1.5, solver=4/0
+[ROUGH] Effort limits: hips=45.0 N·m, knees=110 N·m
+SPOT loaded and initialized.
+Stabilizing robot...
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.14092684 -0.01999585 -0.734539  ]
+  gravity_b = [ 0.0012432  -0.00392015 -0.99999154]
+  joint_pos_rel range = [-0.003, 0.001]
+  height_scan range = [0.020, 0.110]
+  height_scan mean  = 0.079
+  body_z = 0.610
+  [ROUGH act] eval=0 norm=6.078 range=[-2.897, 3.426] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.209 range=[-3.342, 5.098] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.524 range=[-3.373, 5.282] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.556 range=[-3.323, 5.291] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.376 range=[-3.320, 5.095] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.197 range=[-3.376, 4.900] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.192 range=[-3.499, 4.848] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.174 range=[-3.546, 4.854] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.231 range=[-3.521, 4.944] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.345 range=[-3.482, 5.063] cmd=[0.00,0.00,0.00]
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.45902193 -0.16432947  0.12992188]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.580, 0.520]
+  height_scan range = [0.000, 0.100]
+  height_scan mean  = 0.056
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.986 range=[-2.253, 1.510] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.152 range=[-3.274, 2.705] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.093 range=[-3.515, 3.479] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.242 range=[-3.465, 3.790] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.177 range=[-3.309, 3.967] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.131 range=[-3.179, 4.051] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.139 range=[-3.069, 4.125] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.174 range=[-2.986, 4.171] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.226 range=[-2.923, 4.202] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.289 range=[-2.873, 4.219] cmd=[0.00,0.00,0.00]
+  [   1/100] stairs_rough_ep0000  TIMEOUT   progress= 11.0m  zone=2  time=577.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.89815426  0.05868365  0.13048512]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.245, 0.801]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.469 range=[-1.984, 3.510] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.743 range=[-2.427, 3.772] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.245 range=[-2.234, 3.532] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.721 range=[-1.922, 3.224] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.688 range=[-1.893, 3.233] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.741 range=[-1.945, 3.254] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.778 range=[-1.982, 3.237] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.813 range=[-2.015, 3.191] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.931 range=[-2.099, 3.172] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.071 range=[-2.200, 3.133] cmd=[0.00,0.00,0.00]
+  [   2/100] stairs_rough_ep0001  TIMEOUT   progress= 10.9m  zone=2  time=515.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-1.03946531  0.23540546 -0.23180354]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.271, 0.862]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.241 range=[-1.505, 2.973] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.555 range=[-1.886, 3.380] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.630 range=[-1.925, 3.118] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.420 range=[-1.795, 2.424] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.908 range=[-1.656, 2.462] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.398 range=[-1.484, 2.129] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.102 range=[-1.388, 2.390] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.960 range=[-1.359, 2.723] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.932 range=[-1.268, 2.908] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.031 range=[-1.191, 3.010] cmd=[0.00,0.00,0.00]
+  [   3/100] stairs_rough_ep0002  TIMEOUT   progress= 11.2m  zone=2  time=502.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03589646 -0.27314013  0.05947663]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.168, 0.794]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.967 range=[-2.961, 3.923] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.895 range=[-3.737, 4.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.831 range=[-4.217, 4.084] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.126 range=[-4.263, 3.939] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.067 range=[-4.037, 3.938] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.948 range=[-3.815, 4.190] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.881 range=[-3.646, 4.379] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.832 range=[-3.497, 4.567] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.795 range=[-3.371, 4.745] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.860 range=[-3.313, 4.956] cmd=[0.00,0.00,0.00]
+  [   4/100] stairs_rough_ep0003  TIMEOUT   progress= 11.2m  zone=2  time=512.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.03509334 -0.05928302  0.06499756]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 1.089]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.064 range=[-1.936, 3.646] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.626 range=[-2.609, 4.263] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.779 range=[-3.151, 4.268] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.861 range=[-3.190, 4.057] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.885 range=[-3.135, 3.852] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.896 range=[-3.089, 3.665] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.909 range=[-3.047, 3.499] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.944 range=[-3.025, 3.427] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.985 range=[-3.030, 3.739] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.023 range=[-3.052, 4.014] cmd=[0.00,0.00,0.00]
+  [   5/100] stairs_rough_ep0004  FELL      progress= 11.1m  zone=2  time=465.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05971055 -0.01184275 -0.07637889]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.971, 0.738]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.449 range=[-2.127, 3.143] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.356 range=[-3.518, 3.546] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.047 range=[-4.105, 4.051] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.791 range=[-3.617, 4.488] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.934 range=[-2.544, 4.563] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.793 range=[-1.992, 4.057] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.779 range=[-1.794, 2.547] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.579 range=[-1.919, 2.883] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.695 range=[-1.834, 2.774] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.793 range=[-2.158, 2.603] cmd=[0.00,0.00,0.00]
+  [   6/100] stairs_rough_ep0005  TIMEOUT   progress= 11.1m  zone=2  time=502.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.86614704  0.0676288  -0.3212617 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.941]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.721 range=[-1.361, 3.420] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.830 range=[-1.858, 3.605] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.124 range=[-1.851, 3.430] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.996 range=[-2.195, 4.229] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.598 range=[-3.523, 4.879] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.002 range=[-3.849, 4.881] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.954 range=[-3.789, 4.815] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.848 range=[-3.664, 4.783] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.817 range=[-3.567, 4.791] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.825 range=[-3.509, 4.763] cmd=[0.00,0.00,0.00]
+  [   7/100] stairs_rough_ep0006  TIMEOUT   progress= 10.9m  zone=2  time=499.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.72180301  0.23943482 -0.00748092]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.253, 0.837]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.744 range=[-1.885, 3.761] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.929 range=[-2.173, 4.358] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.863 range=[-3.014, 4.580] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.757 range=[-3.167, 4.496] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.743 range=[-3.082, 4.443] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.807 range=[-3.024, 4.460] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.915 range=[-3.028, 4.469] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.994 range=[-3.059, 4.382] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.041 range=[-3.109, 4.219] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.057 range=[-3.158, 4.011] cmd=[0.00,0.00,0.00]
+  [   8/100] stairs_rough_ep0007  TIMEOUT   progress= 10.9m  zone=2  time=498.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.83475327 -0.11769507  0.00754722]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.395, 0.603]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=2.848 range=[-0.901, 1.871] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.203 range=[-1.847, 2.760] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.951 range=[-1.789, 2.937] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.324 range=[-2.011, 3.431] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.567 range=[-2.122, 3.788] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.662 range=[-2.113, 3.995] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.270 range=[-2.362, 3.100] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.400 range=[-2.414, 3.130] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.487 range=[-2.533, 3.139] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.584 range=[-2.638, 3.149] cmd=[0.00,0.00,0.00]
+  [   9/100] stairs_rough_ep0008  TIMEOUT   progress= 11.4m  zone=2  time=513.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.95636982  0.16940407 -0.15517858]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.265, 0.909]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.127 range=[-1.766, 3.137] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.706 range=[-2.010, 2.887] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.031 range=[-1.924, 2.590] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.730 range=[-1.816, 2.732] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.625 range=[-1.696, 3.110] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.834 range=[-1.490, 3.568] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.174 range=[-1.590, 3.822] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.288 range=[-1.810, 3.840] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.386 range=[-1.933, 3.863] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.629 range=[-2.112, 3.958] cmd=[0.00,0.00,0.00]
+  [  10/100] stairs_rough_ep0009  TIMEOUT   progress= 11.2m  zone=2  time=516.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.2228727  0.41249287 0.15806852]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.453, 0.639]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.391 range=[-1.234, 2.001] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.444 range=[-1.922, 3.384] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.059 range=[-1.779, 3.577] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.393 range=[-2.124, 3.635] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.518 range=[-2.154, 3.606] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.583 range=[-2.160, 3.575] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.647 range=[-2.157, 3.552] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.707 range=[-2.152, 3.521] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.762 range=[-2.147, 3.477] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.812 range=[-2.141, 3.419] cmd=[0.00,0.00,0.00]
+  [  11/100] stairs_rough_ep0010  FELL      progress= 11.0m  zone=2  time=296.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.08923857  0.06628448 -0.02893717]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.886, 0.817]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.388 range=[-1.976, 3.761] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.577 range=[-2.274, 4.819] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.693 range=[-3.201, 5.156] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.612 range=[-3.781, 4.918] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.369 range=[-3.697, 4.556] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.085 range=[-3.532, 4.209] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.883 range=[-3.434, 3.922] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.642 range=[-3.331, 3.564] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.386 range=[-3.203, 3.190] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.164 range=[-3.089, 3.334] cmd=[0.00,0.00,0.00]
+  [  12/100] stairs_rough_ep0011  TIMEOUT   progress= 10.4m  zone=2  time=508.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.93249738 -0.31161794 -0.06367099]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.527, 0.290]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.367 range=[-2.802, 1.589] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.210 range=[-2.988, 2.935] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.842 range=[-2.872, 3.435] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.085 range=[-2.807, 3.599] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.202 range=[-2.778, 3.649] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.277 range=[-2.792, 3.647] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.347 range=[-2.815, 3.631] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.340 range=[-3.223, 3.503] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.475 range=[-3.363, 3.494] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.574 range=[-3.459, 3.480] cmd=[0.00,0.00,0.00]
+  [  13/100] stairs_rough_ep0012  TIMEOUT   progress= 11.0m  zone=2  time=508.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.28879464  0.37936768  0.50661194]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.730, 0.619]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.133 range=[-1.632, 3.298] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.886 range=[-2.261, 3.996] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.252 range=[-2.768, 4.393] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.299 range=[-2.803, 4.464] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.247 range=[-2.711, 4.416] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.190 range=[-2.627, 4.355] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.135 range=[-2.562, 4.298] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.083 range=[-2.507, 4.237] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.034 range=[-2.456, 4.168] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.984 range=[-2.401, 4.086] cmd=[0.00,0.00,0.00]
+  [  14/100] stairs_rough_ep0013  FELL      progress= 10.9m  zone=2  time=205.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05045487 -0.01518129 -0.09032208]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.960, 0.742]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.380 range=[-1.761, 2.742] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.433 range=[-2.305, 3.185] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.488 range=[-2.306, 3.613] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.855 range=[-2.089, 3.721] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.844 range=[-1.758, 2.897] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.228 range=[-1.539, 2.576] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.810 range=[-1.227, 2.528] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.871 range=[-1.144, 2.425] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.165 range=[-1.600, 2.367] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.597 range=[-1.992, 2.622] cmd=[0.00,0.00,0.00]
+  [  15/100] stairs_rough_ep0014  TIMEOUT   progress= 11.3m  zone=2  time=504.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.76558739  0.34598657  0.09626152]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.278, 0.906]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.174 range=[-1.985, 3.706] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.482 range=[-2.641, 4.129] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.295 range=[-2.721, 4.155] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.195 range=[-2.722, 4.184] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.464 range=[-2.923, 4.378] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.723 range=[-3.147, 4.503] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.806 range=[-3.272, 4.442] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.792 range=[-3.323, 4.278] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.764 range=[-3.342, 4.085] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.767 range=[-3.364, 3.906] cmd=[0.00,0.00,0.00]
+  [  16/100] stairs_rough_ep0015  TIMEOUT   progress= 10.9m  zone=2  time=490.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.84728354 -0.33161244  0.17925239]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.246, 0.897]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.789 range=[-2.694, 3.572] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.405 range=[-3.140, 4.040] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.338 range=[-3.123, 4.057] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.146 range=[-3.014, 3.971] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.996 range=[-2.938, 3.869] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.997 range=[-2.930, 3.869] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.009 range=[-2.934, 3.839] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.060 range=[-2.965, 3.802] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.216 range=[-3.066, 3.793] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.321 range=[-3.144, 3.687] cmd=[0.00,0.00,0.00]
+  [  17/100] stairs_rough_ep0016  TIMEOUT   progress= 11.2m  zone=2  time=509.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.82054365  0.19444439 -0.02174276]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.278, 0.936]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.583 range=[-2.778, 3.879] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.427 range=[-3.670, 4.505] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.425 range=[-3.744, 4.595] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.388 range=[-3.660, 4.676] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.424 range=[-3.608, 4.763] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.519 range=[-3.636, 4.829] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.613 range=[-3.692, 4.839] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.638 range=[-3.737, 4.730] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.617 range=[-3.780, 4.528] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.601 range=[-3.821, 4.299] cmd=[0.00,0.00,0.00]
+  [  18/100] stairs_rough_ep0017  FELL      progress= 10.8m  zone=2  time=134.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.31406927 -0.03990208 -0.05977303]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.904, 0.703]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.375 range=[-2.165, 3.564] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.576 range=[-2.464, 3.954] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.026 range=[-2.268, 4.018] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.418 range=[-1.976, 3.749] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.804 range=[-1.825, 3.266] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.250 range=[-1.702, 2.751] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.960 range=[-1.739, 2.419] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.004 range=[-1.716, 2.354] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.272 range=[-1.636, 2.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.613 range=[-1.831, 2.812] cmd=[0.00,0.00,0.00]
+  [  19/100] stairs_rough_ep0018  TIMEOUT   progress= 11.2m  zone=2  time=511.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.01733302 -0.04839296  0.03463821]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.290, 1.101]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.478 range=[-1.895, 3.187] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.999 range=[-2.114, 3.783] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.407 range=[-2.901, 3.811] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.530 range=[-3.056, 3.596] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.579 range=[-3.042, 3.436] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.633 range=[-3.014, 3.310] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.734 range=[-3.012, 3.260] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.868 range=[-3.039, 3.552] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.993 range=[-3.073, 3.832] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.086 range=[-3.117, 4.107] cmd=[0.00,0.00,0.00]
+  [  20/100] stairs_rough_ep0019  FELL      progress= 10.8m  zone=2  time=150.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01097583  0.00011035 -0.06201815]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.938, 0.735]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.687 range=[-2.082, 2.843] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.232 range=[-2.522, 3.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.150 range=[-2.513, 3.505] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.964 range=[-2.333, 3.479] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.786 range=[-2.092, 3.391] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.606 range=[-1.892, 3.131] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.522 range=[-2.103, 2.977] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.589 range=[-2.270, 3.292] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.752 range=[-2.423, 3.584] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.976 range=[-2.562, 3.882] cmd=[0.00,0.00,0.00]
+  [  21/100] stairs_rough_ep0020  TIMEOUT   progress= 11.5m  zone=2  time=495.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.58628404  0.39018133 -0.25099447]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.282, 0.629]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.409 range=[-1.800, 3.577] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.161 range=[-2.023, 3.351] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.126 range=[-2.033, 2.645] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.739 range=[-2.005, 2.648] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.608 range=[-1.821, 2.971] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.997 range=[-1.559, 3.591] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.724 range=[-1.914, 4.154] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.057 range=[-2.331, 4.285] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.070 range=[-2.450, 4.210] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.057 range=[-2.452, 4.126] cmd=[0.00,0.00,0.00]
+  [  22/100] stairs_rough_ep0021  FELL      progress= 11.1m  zone=2  time=412.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06096028  0.08730391 -0.0745758 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.926, 0.780]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.213 range=[-2.235, 3.420] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.569 range=[-2.287, 4.052] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.370 range=[-2.362, 3.947] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.188 range=[-2.576, 3.724] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.038 range=[-2.645, 3.480] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.013 range=[-2.669, 3.305] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.081 range=[-2.727, 3.164] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.170 range=[-2.795, 3.170] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.330 range=[-2.888, 3.406] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.569 range=[-3.023, 3.654] cmd=[0.00,0.00,0.00]
+  [  23/100] stairs_rough_ep0022  TIMEOUT   progress= 10.9m  zone=2  time=508.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.60753614  0.28839642  0.46356562]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.040, 0.645]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.357 range=[-2.088, 3.232] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.793 range=[-2.506, 3.664] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.791 range=[-2.644, 3.706] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.687 range=[-2.623, 3.680] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.532 range=[-2.540, 3.609] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.333 range=[-2.432, 3.505] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.164 range=[-2.328, 3.407] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.046 range=[-2.248, 3.327] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.956 range=[-2.180, 3.244] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.863 range=[-2.122, 3.130] cmd=[0.00,0.00,0.00]
+  [  24/100] stairs_rough_ep0023  TIMEOUT   progress= 11.2m  zone=2  time=513.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.92938167  0.11033306 -0.07839594]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.286, 0.959]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.354 range=[-1.638, 3.444] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.098 range=[-1.953, 3.162] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.178 range=[-1.933, 2.836] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.680 range=[-1.866, 2.392] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.324 range=[-1.710, 2.525] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.079 range=[-1.532, 2.839] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.128 range=[-1.346, 3.135] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.275 range=[-1.213, 3.241] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.375 range=[-1.274, 3.237] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.468 range=[-1.366, 3.251] cmd=[0.00,0.00,0.00]
+  [  25/100] stairs_rough_ep0024  TIMEOUT   progress= 11.2m  zone=2  time=505.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.82089281  0.08672269 -0.15888003]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.286, 0.930]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.273 range=[-1.817, 3.643] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.483 range=[-1.990, 4.016] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.143 range=[-2.028, 4.251] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.823 range=[-2.840, 4.841] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.526 range=[-3.435, 5.085] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.772 range=[-3.555, 5.078] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.814 range=[-3.516, 5.060] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.868 range=[-3.472, 5.061] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.927 range=[-3.461, 5.022] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.956 range=[-3.477, 4.906] cmd=[0.00,0.00,0.00]
+  [  26/100] stairs_rough_ep0025  TIMEOUT   progress= 11.3m  zone=2  time=500.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.76431948  0.04302213  0.00554318]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.262, 0.946]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.407 range=[-2.907, 4.473] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.621 range=[-4.059, 5.493] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.828 range=[-4.532, 5.697] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.856 range=[-4.602, 5.627] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.781 range=[-4.463, 5.478] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.590 range=[-4.281, 5.343] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.417 range=[-4.142, 5.246] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.303 range=[-4.020, 5.158] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.214 range=[-3.919, 5.057] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.121 range=[-3.844, 4.927] cmd=[0.00,0.00,0.00]
+  [  27/100] stairs_rough_ep0026  TIMEOUT   progress= 11.2m  zone=2  time=487.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.89720941  0.1868705  -0.05809861]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.270, 0.972]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.080 range=[-2.166, 3.535] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.323 range=[-2.756, 3.809] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.974 range=[-2.659, 3.723] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.669 range=[-2.425, 3.652] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.925 range=[-2.548, 3.902] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.299 range=[-2.786, 4.146] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.541 range=[-2.947, 4.259] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.659 range=[-3.026, 4.255] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.699 range=[-3.072, 4.156] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.712 range=[-3.117, 3.997] cmd=[0.00,0.00,0.00]
+  [  28/100] stairs_rough_ep0027  TIMEOUT   progress= 11.2m  zone=2  time=496.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.93753934 -0.06972139 -0.07793419]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.266, 1.014]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.667 range=[-1.876, 3.361] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.691 range=[-2.615, 4.166] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.335 range=[-3.556, 3.978] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.597 range=[-3.905, 3.487] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.843 range=[-4.104, 3.104] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.045 range=[-4.213, 3.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.182 range=[-4.246, 3.394] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.258 range=[-4.217, 3.592] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.279 range=[-4.140, 3.732] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.269 range=[-4.046, 3.829] cmd=[0.00,0.00,0.00]
+  [  29/100] stairs_rough_ep0028  TIMEOUT   progress= 10.9m  zone=2  time=501.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.7858305   0.15099548  0.06961979]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.245, 0.918]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.254 range=[-2.508, 4.783] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.429 range=[-4.034, 5.538] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.432 range=[-4.313, 5.384] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.325 range=[-4.180, 5.294] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.261 range=[-4.107, 5.168] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.162 range=[-4.105, 4.903] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.034 range=[-4.098, 4.582] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.916 range=[-4.075, 4.281] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.879 range=[-4.071, 4.069] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.862 range=[-4.041, 3.913] cmd=[0.00,0.00,0.00]
+  [  30/100] stairs_rough_ep0029  TIMEOUT   progress= 11.2m  zone=2  time=496.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.0322388  -0.08034363  0.04811398]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.291, 1.094]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.137 range=[-1.953, 3.662] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.745 range=[-2.712, 4.311] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.874 range=[-3.246, 4.300] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.922 range=[-3.257, 4.068] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.910 range=[-3.186, 3.859] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.884 range=[-3.124, 3.662] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.872 range=[-3.082, 3.484] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.879 range=[-3.052, 3.324] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.899 range=[-3.042, 3.551] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.924 range=[-3.058, 3.813] cmd=[0.00,0.00,0.00]
+  [  31/100] stairs_rough_ep0030  FELL      progress= 10.8m  zone=2  time=181.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.04111392 -0.04880533 -0.05443277]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.978, 0.681]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.498 range=[-1.869, 2.902] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.821 range=[-2.639, 3.331] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.169 range=[-2.866, 3.910] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.865 range=[-2.569, 4.313] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.063 range=[-1.914, 4.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.839 range=[-1.642, 2.934] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.282 range=[-1.726, 2.678] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.122 range=[-1.274, 2.606] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.285 range=[-1.722, 2.414] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.645 range=[-2.029, 2.636] cmd=[0.00,0.00,0.00]
+  [  32/100] stairs_rough_ep0031  TIMEOUT   progress= 11.2m  zone=2  time=494.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.85602051 -0.16398047 -0.15689871]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.198, 0.915]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.253 range=[-1.774, 3.719] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.526 range=[-1.838, 4.022] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.159 range=[-1.955, 4.285] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.548 range=[-2.591, 4.640] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.166 range=[-3.086, 4.756] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.299 range=[-3.170, 4.713] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.214 range=[-3.102, 4.623] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.129 range=[-3.003, 4.562] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.097 range=[-2.921, 4.524] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.090 range=[-2.855, 4.481] cmd=[0.00,0.00,0.00]
+  [  33/100] stairs_rough_ep0032  TIMEOUT   progress= 10.9m  zone=2  time=500.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.50317562  0.35581529  0.29370183]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.754, 0.530]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.951 range=[-1.580, 3.435] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.815 range=[-2.196, 3.910] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.015 range=[-2.393, 3.945] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.027 range=[-2.389, 3.919] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.988 range=[-2.311, 3.884] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.943 range=[-2.226, 3.841] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.894 range=[-2.134, 3.773] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.848 range=[-2.050, 3.687] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.796 range=[-1.966, 3.564] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.732 range=[-1.892, 3.382] cmd=[0.00,0.00,0.00]
+  [  34/100] stairs_rough_ep0033  TIMEOUT   progress= 10.9m  zone=2  time=505.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.95333874 -0.02559461 -0.03470963]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.683, 0.409]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.310 range=[-1.718, 1.040] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.301 range=[-2.437, 2.180] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.557 range=[-2.800, 3.051] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.179 range=[-2.852, 3.576] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.454 range=[-2.740, 3.785] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.587 range=[-2.696, 3.997] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.673 range=[-2.681, 4.116] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.727 range=[-2.689, 4.176] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.765 range=[-2.707, 4.197] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.792 range=[-2.733, 4.192] cmd=[0.00,0.00,0.00]
+  [  35/100] stairs_rough_ep0034  FELL      progress= 11.1m  zone=2  time=161.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.13539466  0.02029146 -0.08277148]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.958, 0.740]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.313 range=[-1.727, 2.523] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.910 range=[-2.014, 3.312] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.655 range=[-2.068, 2.926] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.286 range=[-2.085, 2.655] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.686 range=[-1.767, 2.800] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.092 range=[-1.581, 2.637] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.804 range=[-1.414, 2.486] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.775 range=[-1.359, 2.373] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.981 range=[-1.358, 2.261] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.270 range=[-1.581, 2.527] cmd=[0.00,0.00,0.00]
+  [  36/100] stairs_rough_ep0035  TIMEOUT   progress= 10.9m  zone=2  time=494.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.75685352  0.35902506 -0.01663544]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.251, 0.875]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.452 range=[-1.870, 3.360] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.180 range=[-1.849, 3.332] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.557 range=[-1.710, 3.231] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.422 range=[-1.817, 3.430] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.581 range=[-2.155, 3.744] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.902 range=[-2.456, 4.053] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.139 range=[-2.644, 4.225] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.252 range=[-2.743, 4.267] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.306 range=[-2.807, 4.221] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.341 range=[-2.862, 4.114] cmd=[0.00,0.00,0.00]
+  [  37/100] stairs_rough_ep0036  TIMEOUT   progress= 10.7m  zone=2  time=502.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.33304003 0.34093645 0.14320628]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.449, 0.715]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.604 range=[-1.167, 2.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.481 range=[-1.916, 3.481] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.968 range=[-1.765, 3.491] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.278 range=[-2.032, 3.465] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.425 range=[-2.068, 3.443] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.488 range=[-2.076, 3.421] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.546 range=[-2.080, 3.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.595 range=[-2.087, 3.381] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.635 range=[-2.098, 3.332] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.665 range=[-2.114, 3.263] cmd=[0.00,0.00,0.00]
+  [  38/100] stairs_rough_ep0037  TIMEOUT   progress= 10.9m  zone=2  time=499.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.80284476 -0.01514147  0.07911765]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.254, 0.849]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.102 range=[-1.894, 4.130] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.585 range=[-2.541, 4.795] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.528 range=[-3.283, 5.046] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.509 range=[-3.566, 4.985] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.416 range=[-3.518, 4.785] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.253 range=[-3.388, 4.610] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.108 range=[-3.264, 4.477] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.027 range=[-3.177, 4.402] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.951 range=[-3.112, 4.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.856 range=[-3.064, 4.107] cmd=[0.00,0.00,0.00]
+  [  39/100] stairs_rough_ep0038  TIMEOUT   progress= 10.9m  zone=2  time=501.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-1.00680244  0.02916826 -0.04015077]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.270, 0.799]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.279 range=[-1.448, 3.143] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.535 range=[-1.868, 3.741] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.493 range=[-1.915, 3.578] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.286 range=[-1.874, 2.972] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.736 range=[-1.759, 2.191] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.128 range=[-1.572, 1.934] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.699 range=[-1.403, 2.206] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.581 range=[-1.282, 2.572] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.694 range=[-1.147, 2.808] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.819 range=[-1.133, 2.891] cmd=[0.00,0.00,0.00]
+  [  40/100] stairs_rough_ep0039  TIMEOUT   progress= 11.1m  zone=2  time=497.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.85131294 -0.06917647  0.03909856]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.188, 0.870]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.077 range=[-2.471, 3.780] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.618 range=[-3.233, 4.183] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.453 range=[-3.208, 4.104] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.138 range=[-2.971, 3.939] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.945 range=[-2.808, 3.872] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.845 range=[-2.724, 3.863] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.815 range=[-2.675, 3.891] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.817 range=[-2.638, 3.904] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.819 range=[-2.598, 3.870] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.816 range=[-2.548, 3.795] cmd=[0.00,0.00,0.00]
+  [  41/100] stairs_rough_ep0040  TIMEOUT   progress= 11.2m  zone=2  time=502.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.88104033  0.27180395 -0.11785509]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.286, 0.930]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.217 range=[-1.756, 3.547] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.771 range=[-2.746, 4.071] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.720 range=[-3.055, 4.115] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.631 range=[-2.986, 4.182] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.804 range=[-3.024, 4.378] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.012 range=[-3.137, 4.498] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.167 range=[-3.256, 4.491] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.236 range=[-3.351, 4.344] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.253 range=[-3.407, 4.134] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.253 range=[-3.424, 3.923] cmd=[0.00,0.00,0.00]
+  [  42/100] stairs_rough_ep0041  TIMEOUT   progress= 11.0m  zone=2  time=492.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.99833769  0.04370213 -0.10205288]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.283, 0.882]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.996 range=[-1.597, 3.295] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.745 range=[-1.822, 3.034] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.991 range=[-1.764, 2.978] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.703 range=[-1.686, 2.437] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.337 range=[-1.528, 1.999] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.926 range=[-1.385, 2.287] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.768 range=[-1.243, 2.679] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.864 range=[-1.095, 2.921] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.026 range=[-1.083, 3.005] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.138 range=[-1.260, 3.041] cmd=[0.00,0.00,0.00]
+  [  43/100] stairs_rough_ep0042  TIMEOUT   progress= 11.3m  zone=2  time=513.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.87572032  0.18785746 -0.02368991]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.271, 0.924]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.754 range=[-2.070, 3.888] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.101 range=[-2.042, 4.298] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.899 range=[-2.705, 4.485] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.988 range=[-3.236, 4.651] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.125 range=[-3.404, 4.711] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.167 range=[-3.436, 4.752] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.148 range=[-3.404, 4.789] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.133 range=[-3.367, 4.815] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.116 range=[-3.327, 4.809] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.086 range=[-3.281, 4.739] cmd=[0.00,0.00,0.00]
+  [  44/100] stairs_rough_ep0043  TIMEOUT   progress= 11.2m  zone=2  time=489.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01035326 -0.2367107  -0.02142551]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.171, 0.754]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.913 range=[-1.745, 3.064] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.928 range=[-2.153, 3.543] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.538 range=[-3.068, 3.247] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.426 range=[-4.115, 3.260] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.746 range=[-4.264, 3.987] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.421 range=[-3.764, 4.274] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.769 range=[-2.950, 4.283] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.867 range=[-2.197, 3.985] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.934 range=[-1.960, 3.153] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.251 range=[-1.842, 2.262] cmd=[0.00,0.00,0.00]
+  [  45/100] stairs_rough_ep0044  FELL      progress= 11.1m  zone=2  time=461.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.00470514 -0.01561992 -0.05086086]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.961, 0.735]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.716 range=[-2.150, 2.838] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.159 range=[-2.442, 3.360] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.994 range=[-2.409, 3.450] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.776 range=[-2.225, 3.447] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.544 range=[-1.992, 3.348] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.284 range=[-1.738, 3.037] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.200 range=[-1.890, 2.729] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.286 range=[-2.115, 3.062] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.462 range=[-2.293, 3.371] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.702 range=[-2.451, 3.684] cmd=[0.00,0.00,0.00]
+  [  46/100] stairs_rough_ep0045  TIMEOUT   progress= 10.9m  zone=2  time=496.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.81881303  0.17711647 -0.13330066]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.276, 0.967]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.201 range=[-1.839, 3.708] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.205 range=[-1.804, 3.924] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.507 range=[-1.829, 3.780] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.884 range=[-2.038, 4.241] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.940 range=[-3.031, 4.768] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.345 range=[-3.388, 4.819] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.358 range=[-3.392, 4.759] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.324 range=[-3.321, 4.725] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.341 range=[-3.259, 4.717] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.403 range=[-3.228, 4.691] cmd=[0.00,0.00,0.00]
+  [  47/100] stairs_rough_ep0046  TIMEOUT   progress= 11.3m  zone=2  time=495.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.72536433  0.23794624 -0.13366053]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.265, 0.852]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.652 range=[-1.927, 3.756] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.872 range=[-2.157, 4.150] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.980 range=[-2.521, 4.813] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.648 range=[-3.331, 5.280] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.959 range=[-3.575, 5.324] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.977 range=[-3.496, 5.243] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.932 range=[-3.393, 5.182] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.896 range=[-3.306, 5.128] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.858 range=[-3.248, 5.040] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.807 range=[-3.243, 4.880] cmd=[0.00,0.00,0.00]
+  [  48/100] stairs_rough_ep0047  TIMEOUT   progress= 11.3m  zone=2  time=495.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.94109213  0.14844194 -0.02181482]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.227, 0.972]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.072 range=[-2.461, 3.782] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.497 range=[-3.055, 4.085] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.261 range=[-2.954, 4.007] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.993 range=[-2.765, 3.873] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.103 range=[-2.821, 3.983] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.319 range=[-2.956, 4.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.470 range=[-3.059, 4.158] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.512 range=[-3.112, 4.052] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.557 range=[-3.173, 3.914] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.631 range=[-3.249, 3.771] cmd=[0.00,0.00,0.00]
+  [  49/100] stairs_rough_ep0048  TIMEOUT   progress= 11.3m  zone=2  time=487.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.7386272   0.22263677 -0.21008283]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.281, 0.909]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.385 range=[-2.047, 3.763] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.225 range=[-2.381, 4.631] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.606 range=[-3.340, 5.105] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.740 range=[-3.770, 5.135] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.847 range=[-3.747, 5.116] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.871 range=[-3.601, 5.101] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.911 range=[-3.493, 5.121] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.970 range=[-3.454, 5.103] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.043 range=[-3.468, 5.031] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.086 range=[-3.514, 4.869] cmd=[0.00,0.00,0.00]
+  [  50/100] stairs_rough_ep0049  TIMEOUT   progress= 11.3m  zone=2  time=482.6s
+Saved 50 episodes to /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44/stairs_rough_episodes.jsonl
+  >> Saved checkpoint at episode 50
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.80072582  0.2296928   0.13348471]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.254, 0.920]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.471 range=[-2.242, 4.010] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.255 range=[-3.290, 4.644] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.194 range=[-3.516, 4.646] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.083 range=[-3.458, 4.615] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.035 range=[-3.439, 4.550] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.092 range=[-3.514, 4.477] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.101 range=[-3.584, 4.318] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.063 range=[-3.607, 4.110] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.101 range=[-3.647, 3.953] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.169 range=[-3.672, 3.817] cmd=[0.00,0.00,0.00]
+  [  51/100] stairs_rough_ep0050  TIMEOUT   progress= 11.0m  zone=2  time=492.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.63462126  0.22833666  0.21757337]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.803, 0.566]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.301 range=[-1.263, 3.088] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.514 range=[-1.603, 3.162] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.903 range=[-1.628, 2.744] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.034 range=[-1.639, 2.004] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=3.553 range=[-1.594, 1.577] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.420 range=[-1.512, 1.579] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.476 range=[-1.457, 1.789] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.615 range=[-1.423, 2.020] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.694 range=[-1.398, 2.150] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.709 range=[-1.375, 2.189] cmd=[0.00,0.00,0.00]
+  [  52/100] stairs_rough_ep0051  TIMEOUT   progress= 11.3m  zone=2  time=500.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.8168838   0.25580767 -0.03121055]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.266, 0.927]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.795 range=[-1.981, 3.790] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.678 range=[-1.986, 3.725] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.709 range=[-1.944, 3.377] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.969 range=[-1.846, 3.241] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.722 range=[-1.719, 3.399] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.914 range=[-1.510, 3.683] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.445 range=[-1.932, 3.994] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.735 range=[-2.315, 4.087] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.816 range=[-2.409, 4.070] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.867 range=[-2.438, 4.031] cmd=[0.00,0.00,0.00]
+  [  53/100] stairs_rough_ep0052  FELL      progress= 11.0m  zone=2  time=191.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.0390458   0.00575764 -0.07419527]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.943, 0.741]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.685 range=[-2.170, 2.862] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.838 range=[-2.365, 3.103] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.556 range=[-2.312, 3.055] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.167 range=[-2.118, 2.949] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.841 range=[-1.857, 2.879] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.700 range=[-1.610, 2.804] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.696 range=[-1.531, 2.616] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.810 range=[-1.841, 2.809] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.047 range=[-2.072, 3.170] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.388 range=[-2.289, 3.523] cmd=[0.00,0.00,0.00]
+  [  54/100] stairs_rough_ep0053  TIMEOUT   progress= 10.9m  zone=2  time=499.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.22292973  0.46687204  0.62416053]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.695, 0.404]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=4.211 range=[-0.882, 2.967] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.543 range=[-1.223, 3.320] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.223 range=[-1.473, 2.847] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=3.818 range=[-1.571, 2.082] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=3.506 range=[-1.465, 1.396] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.534 range=[-1.317, 1.423] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.797 range=[-1.601, 1.662] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.127 range=[-1.763, 1.959] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.396 range=[-1.838, 2.163] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.629 range=[-1.881, 2.331] cmd=[0.00,0.00,0.00]
+  [  55/100] stairs_rough_ep0054  TIMEOUT   progress= 11.0m  zone=2  time=504.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.87997615  0.25480688  0.07642031]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.286, 1.015]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.635 range=[-2.773, 4.052] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.329 range=[-3.633, 4.581] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.293 range=[-3.721, 4.627] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.251 range=[-3.636, 4.670] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.245 range=[-3.577, 4.695] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.301 range=[-3.577, 4.710] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.378 range=[-3.606, 4.691] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.391 range=[-3.642, 4.560] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.360 range=[-3.666, 4.351] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.376 range=[-3.712, 4.150] cmd=[0.00,0.00,0.00]
+  [  56/100] stairs_rough_ep0055  TIMEOUT   progress= 11.1m  zone=2  time=490.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.81353837  0.07142759 -0.0446687 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.283, 0.976]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.574 range=[-2.019, 3.956] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.346 range=[-2.559, 4.760] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.734 range=[-3.451, 5.239] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.935 range=[-3.866, 5.304] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.957 range=[-3.933, 5.220] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.870 range=[-3.827, 5.102] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.786 range=[-3.733, 5.070] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.761 range=[-3.659, 5.080] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.777 range=[-3.607, 5.085] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.789 range=[-3.578, 5.024] cmd=[0.00,0.00,0.00]
+  [  57/100] stairs_rough_ep0056  TIMEOUT   progress= 11.4m  zone=2  time=500.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.9428696   0.12508975 -0.19023278]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.255, 0.829]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.178 range=[-1.541, 3.088] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.531 range=[-1.783, 3.481] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.492 range=[-1.870, 2.964] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.947 range=[-1.752, 2.056] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.214 range=[-1.557, 2.145] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.944 range=[-1.422, 2.599] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.291 range=[-1.266, 3.129] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.807 range=[-1.490, 3.446] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.022 range=[-1.815, 3.548] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.196 range=[-1.926, 3.649] cmd=[0.00,0.00,0.00]
+  [  58/100] stairs_rough_ep0057  TIMEOUT   progress= 11.3m  zone=2  time=501.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.02344958 -0.34700927 -0.02276625]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.129, 0.810]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.592 range=[-1.685, 3.241] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.570 range=[-2.237, 3.119] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.229 range=[-2.298, 2.854] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.940 range=[-2.107, 2.667] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.912 range=[-2.046, 2.710] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.003 range=[-2.070, 2.808] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.157 range=[-2.134, 2.904] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.358 range=[-2.230, 2.991] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.609 range=[-2.345, 3.073] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.873 range=[-2.452, 3.126] cmd=[0.00,0.00,0.00]
+  [  59/100] stairs_rough_ep0058  TIMEOUT   progress= 11.3m  zone=2  time=486.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.94841462  0.07253268 -0.14450257]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.257, 0.772]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.412 range=[-2.031, 3.429] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.331 range=[-2.487, 3.820] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.585 range=[-2.557, 3.267] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.020 range=[-2.579, 2.898] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.924 range=[-2.205, 3.527] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.405 range=[-2.384, 4.524] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.074 range=[-3.065, 4.740] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.164 range=[-3.163, 4.589] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.235 range=[-3.142, 4.502] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.294 range=[-3.151, 4.378] cmd=[0.00,0.00,0.00]
+  [  60/100] stairs_rough_ep0059  TIMEOUT   progress= 11.1m  zone=2  time=488.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.96350014  0.08502613 -0.07800617]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.239, 0.929]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.677 range=[-1.740, 3.607] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.147 range=[-2.435, 3.993] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.792 range=[-2.372, 3.862] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.434 range=[-2.221, 3.659] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.499 range=[-2.283, 3.719] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.646 range=[-2.421, 3.786] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.784 range=[-2.565, 3.801] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.965 range=[-2.739, 3.785] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.146 range=[-2.897, 3.710] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.288 range=[-2.989, 3.603] cmd=[0.00,0.00,0.00]
+  [  61/100] stairs_rough_ep0060  FELL      progress= 11.0m  zone=2  time=239.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.17258525  0.04464839 -0.04909879]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.900, 0.745]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.926 range=[-2.426, 3.811] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.387 range=[-2.529, 4.453] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.973 range=[-2.627, 4.380] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.485 range=[-2.793, 4.042] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.970 range=[-2.608, 3.675] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.517 range=[-2.380, 3.331] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.218 range=[-2.258, 3.009] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.090 range=[-2.262, 2.707] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.141 range=[-2.383, 2.788] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.325 range=[-2.571, 3.085] cmd=[0.00,0.00,0.00]
+  [  62/100] stairs_rough_ep0061  TIMEOUT   progress= 11.4m  zone=2  time=499.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.81958312  0.24011751  0.06346326]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.267, 0.916]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.837 range=[-2.611, 4.050] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.909 range=[-3.540, 4.808] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.059 range=[-3.810, 4.951] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.090 range=[-3.881, 5.017] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.100 range=[-3.961, 4.996] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.085 range=[-4.047, 4.868] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.072 range=[-4.127, 4.684] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.057 range=[-4.180, 4.480] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.056 range=[-4.217, 4.269] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.133 range=[-4.288, 4.131] cmd=[0.00,0.00,0.00]
+  [  63/100] stairs_rough_ep0062  TIMEOUT   progress= 11.0m  zone=2  time=494.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.38954383  0.28748253  0.46435541]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.726, 0.579]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.590 range=[-1.713, 3.570] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.420 range=[-2.497, 4.302] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.729 range=[-2.939, 4.648] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.720 range=[-2.926, 4.694] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.667 range=[-2.847, 4.666] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.595 range=[-2.777, 4.614] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.521 range=[-2.717, 4.556] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.455 range=[-2.666, 4.498] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.396 range=[-2.619, 4.436] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.340 range=[-2.572, 4.361] cmd=[0.00,0.00,0.00]
+  [  64/100] stairs_rough_ep0063  TIMEOUT   progress= 11.4m  zone=2  time=495.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.81975633 -0.02408139 -0.10472447]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.269, 0.946]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.994 range=[-2.471, 4.212] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.009 range=[-3.565, 5.200] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.247 range=[-4.131, 5.398] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.235 range=[-4.221, 5.266] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.125 range=[-4.058, 5.107] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.998 range=[-3.893, 5.007] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.955 range=[-3.763, 4.970] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.940 range=[-3.693, 4.905] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.904 range=[-3.654, 4.783] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.850 range=[-3.656, 4.595] cmd=[0.00,0.00,0.00]
+  [  65/100] stairs_rough_ep0064  TIMEOUT   progress= 11.5m  zone=2  time=500.1s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.72261691  0.24149238 -0.06337123]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.258, 0.781]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.583 range=[-2.170, 4.286] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.807 range=[-3.314, 5.216] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.038 range=[-3.643, 5.228] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.025 range=[-3.577, 5.027] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.936 range=[-3.523, 4.785] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.787 range=[-3.537, 4.448] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.640 range=[-3.540, 4.113] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.516 range=[-3.513, 3.959] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.399 range=[-3.461, 4.084] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.299 range=[-3.401, 4.194] cmd=[0.00,0.00,0.00]
+  [  66/100] stairs_rough_ep0065  TIMEOUT   progress= 11.3m  zone=2  time=503.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.80905527  0.09874699 -0.23133713]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.274, 0.805]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.114 range=[-1.758, 3.633] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.597 range=[-2.151, 4.184] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.007 range=[-2.966, 4.804] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.754 range=[-3.681, 5.125] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.093 range=[-3.862, 5.137] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.057 range=[-3.802, 5.079] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.952 range=[-3.670, 5.051] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.909 range=[-3.551, 5.067] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.901 range=[-3.473, 5.059] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.876 range=[-3.418, 4.995] cmd=[0.00,0.00,0.00]
+  [  67/100] stairs_rough_ep0066  TIMEOUT   progress= 10.9m  zone=2  time=496.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.82584339 -0.05754593  0.01653484]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.201, 0.799]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.028 range=[-1.724, 3.528] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.221 range=[-1.680, 3.694] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.384 range=[-1.799, 3.479] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.886 range=[-1.703, 3.510] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.210 range=[-1.745, 3.819] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.876 range=[-2.281, 4.187] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.167 range=[-2.523, 4.348] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.191 range=[-2.565, 4.355] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.154 range=[-2.536, 4.323] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.118 range=[-2.496, 4.268] cmd=[0.00,0.00,0.00]
+  [  68/100] stairs_rough_ep0067  TIMEOUT   progress= 10.9m  zone=2  time=495.2s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.88135594 -0.00628545 -0.05851221]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.253, 0.988]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.270 range=[-1.651, 3.602] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.335 range=[-1.875, 3.672] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.511 range=[-2.008, 3.221] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.931 range=[-2.084, 3.025] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.707 range=[-1.905, 3.535] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.906 range=[-2.148, 4.447] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.911 range=[-2.819, 4.879] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.063 range=[-3.069, 4.811] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.014 range=[-3.032, 4.711] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.000 range=[-2.975, 4.651] cmd=[0.00,0.00,0.00]
+  [  69/100] stairs_rough_ep0068  TIMEOUT   progress= 10.9m  zone=2  time=501.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [0.49939695 0.11546022 0.13910453]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.484, 0.582]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=3.152 range=[-1.456, 1.843] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=4.612 range=[-1.535, 2.224] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.103 range=[-1.861, 2.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.469 range=[-1.846, 2.611] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.648 range=[-1.938, 2.830] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.729 range=[-1.982, 2.975] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.805 range=[-2.021, 3.113] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.882 range=[-2.065, 3.247] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.949 range=[-2.107, 3.364] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.993 range=[-2.148, 3.457] cmd=[0.00,0.00,0.00]
+  [  70/100] stairs_rough_ep0069  TIMEOUT   progress= 11.3m  zone=2  time=485.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.8591491   0.11459895 -0.09316997]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.261, 0.950]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.151 range=[-1.726, 3.652] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.007 range=[-1.784, 3.795] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.310 range=[-1.798, 3.660] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.937 range=[-1.977, 4.360] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.215 range=[-3.162, 5.009] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.637 range=[-3.572, 5.018] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.618 range=[-3.568, 4.931] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.550 range=[-3.486, 4.875] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.508 range=[-3.412, 4.820] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.518 range=[-3.366, 4.766] cmd=[0.00,0.00,0.00]
+  [  71/100] stairs_rough_ep0070  TIMEOUT   progress= 11.1m  zone=2  time=495.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.92499888  0.00517802  0.00479254]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.257, 0.776]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.208 range=[-1.371, 3.117] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.321 range=[-1.807, 3.542] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.042 range=[-1.826, 3.239] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.654 range=[-1.720, 2.582] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.155 range=[-1.571, 1.834] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.643 range=[-1.393, 2.105] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.571 range=[-1.228, 2.536] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.914 range=[-1.108, 2.891] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.136 range=[-1.322, 3.025] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.254 range=[-1.425, 3.108] cmd=[0.00,0.00,0.00]
+  [  72/100] stairs_rough_ep0071  FELL      progress= 11.3m  zone=2  time=189.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.49841782 -0.08870487 -0.10445222]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.964, 0.695]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.155 range=[-1.884, 2.642] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.594 range=[-2.121, 2.638] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.585 range=[-2.282, 2.973] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.346 range=[-2.091, 3.232] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.099 range=[-2.006, 3.208] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.907 range=[-1.833, 3.062] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.851 range=[-1.730, 2.909] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.954 range=[-1.921, 2.793] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.153 range=[-2.092, 2.927] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.410 range=[-2.270, 3.225] cmd=[0.00,0.00,0.00]
+  [  73/100] stairs_rough_ep0072  TIMEOUT   progress= 11.3m  zone=2  time=507.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.78857207  0.19581608 -0.0731727 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.274, 0.906]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.868 range=[-2.209, 4.081] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.604 range=[-2.576, 4.664] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.506 range=[-3.359, 4.769] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.326 range=[-3.582, 4.764] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.223 range=[-3.559, 4.680] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.155 range=[-3.476, 4.623] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.143 range=[-3.441, 4.651] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.147 range=[-3.403, 4.689] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.147 range=[-3.359, 4.689] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.152 range=[-3.315, 4.647] cmd=[0.00,0.00,0.00]
+  [  74/100] stairs_rough_ep0073  TIMEOUT   progress= 10.9m  zone=2  time=497.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.88526833 -0.07290296 -0.00968145]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.256, 0.829]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.799 range=[-1.521, 3.242] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.852 range=[-1.844, 3.821] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.958 range=[-2.068, 3.724] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.251 range=[-2.729, 3.241] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.258 range=[-2.876, 2.541] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.817 range=[-2.624, 2.205] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.864 range=[-1.901, 2.046] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.739 range=[-1.438, 2.401] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.433 range=[-1.220, 3.293] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.451 range=[-2.194, 3.841] cmd=[0.00,0.00,0.00]
+  [  75/100] stairs_rough_ep0074  FELL      progress= 11.3m  zone=2  time=253.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05607038 -0.01260712 -0.09628098]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.949, 0.743]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.350 range=[-2.034, 2.979] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.032 range=[-3.266, 3.277] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.631 range=[-3.762, 4.027] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.417 range=[-3.297, 4.521] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.718 range=[-2.440, 4.653] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.623 range=[-1.833, 3.967] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.787 range=[-1.870, 2.755] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.643 range=[-1.632, 2.971] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.740 range=[-1.990, 2.698] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.953 range=[-2.247, 2.694] cmd=[0.00,0.00,0.00]
+  [  76/100] stairs_rough_ep0075  TIMEOUT   progress= 11.0m  zone=2  time=510.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-1.034513   -0.2215685  -0.07847024]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.271, 0.988]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.106 range=[-1.589, 3.234] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.710 range=[-1.925, 2.987] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=4.969 range=[-1.822, 2.791] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.805 range=[-1.701, 2.177] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.408 range=[-1.517, 2.014] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=3.955 range=[-1.351, 2.269] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.727 range=[-1.242, 2.619] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.676 range=[-1.137, 2.767] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.802 range=[-1.081, 2.829] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.007 range=[-1.065, 2.890] cmd=[0.00,0.00,0.00]
+  [  77/100] stairs_rough_ep0076  FELL      progress= 11.3m  zone=2  time=447.8s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.01792979 -0.00175116 -0.03225267]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.937, 0.740]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.118 range=[-2.346, 3.252] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.722 range=[-2.622, 3.777] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.756 range=[-2.651, 3.745] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.609 range=[-2.726, 3.622] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.389 range=[-2.739, 3.466] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.222 range=[-2.706, 3.321] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.137 range=[-2.703, 3.150] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.098 range=[-2.720, 3.352] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.123 range=[-2.762, 3.562] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.220 range=[-2.833, 3.781] cmd=[0.00,0.00,0.00]
+  [  78/100] stairs_rough_ep0077  TIMEOUT   progress= 10.8m  zone=2  time=498.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.83330464  0.26242933  0.02928359]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.286, 0.945]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.088 range=[-1.860, 3.546] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.395 range=[-2.183, 4.186] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.435 range=[-2.971, 4.241] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.402 range=[-3.092, 4.174] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.426 range=[-3.050, 4.203] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.587 range=[-3.088, 4.307] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.726 range=[-3.138, 4.336] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.816 range=[-3.180, 4.279] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.864 range=[-3.233, 4.136] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.905 range=[-3.280, 3.953] cmd=[0.00,0.00,0.00]
+  [  79/100] stairs_rough_ep0078  TIMEOUT   progress= 10.9m  zone=2  time=508.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.89577436  0.06332728 -0.11145014]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.242, 0.950]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.518 range=[-2.124, 4.276] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.490 range=[-3.453, 4.900] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.420 range=[-3.578, 4.762] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.321 range=[-3.436, 4.663] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.150 range=[-3.315, 4.442] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.992 range=[-3.237, 4.177] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.946 range=[-3.211, 3.974] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.966 range=[-3.217, 3.804] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.056 range=[-3.255, 3.960] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.157 range=[-3.282, 4.192] cmd=[0.00,0.00,0.00]
+  [  80/100] stairs_rough_ep0079  TIMEOUT   progress= 11.1m  zone=2  time=498.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.87520802  0.18283097 -0.01534653]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.290, 0.916]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.295 range=[-1.911, 3.747] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.757 range=[-2.639, 4.492] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.759 range=[-3.265, 4.473] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.641 range=[-3.260, 4.354] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.598 range=[-3.161, 4.345] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.705 range=[-3.172, 4.402] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.806 range=[-3.212, 4.381] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.872 range=[-3.253, 4.268] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.925 range=[-3.306, 4.098] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.001 range=[-3.369, 3.922] cmd=[0.00,0.00,0.00]
+  [  81/100] stairs_rough_ep0080  FELL      progress= 11.0m  zone=2  time=209.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.03186216 -0.03625402 -0.06946667]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.969, 0.737]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.166 range=[-1.763, 2.524] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.837 range=[-2.072, 2.965] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.572 range=[-2.057, 2.902] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.187 range=[-2.088, 2.564] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.871 range=[-1.923, 3.021] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.680 range=[-1.572, 3.041] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.634 range=[-1.400, 2.787] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.720 range=[-1.740, 2.533] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.953 range=[-1.982, 2.886] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.290 range=[-2.223, 3.274] cmd=[0.00,0.00,0.00]
+  [  82/100] stairs_rough_ep0081  TIMEOUT   progress= 10.9m  zone=2  time=493.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.84478587  0.0452878   0.22840467]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.201, 0.745]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.593 range=[-2.241, 3.702] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.147 range=[-2.885, 4.035] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.974 range=[-2.862, 3.911] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.759 range=[-2.718, 3.744] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.520 range=[-2.576, 3.526] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.488 range=[-2.535, 3.471] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.497 range=[-2.546, 3.399] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.557 range=[-2.596, 3.328] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.634 range=[-2.648, 3.236] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.710 range=[-2.683, 3.137] cmd=[0.00,0.00,0.00]
+  [  83/100] stairs_rough_ep0082  FELL      progress= 11.0m  zone=2  time=216.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.06817173  0.0847464  -0.08092618]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.883, 0.739]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.830 range=[-2.611, 3.747] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.136 range=[-2.689, 4.317] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.653 range=[-2.368, 4.220] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.141 range=[-2.262, 3.890] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.608 range=[-2.061, 3.469] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.169 range=[-1.810, 3.042] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.892 range=[-1.777, 2.629] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.829 range=[-1.919, 2.612] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.942 range=[-2.139, 2.965] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.142 range=[-2.342, 3.292] cmd=[0.00,0.00,0.00]
+  [  84/100] stairs_rough_ep0083  TIMEOUT   progress= 11.0m  zone=2  time=491.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.87971419 -0.05986892 -0.03951015]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.246, 0.752]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.699 range=[-1.920, 3.711] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.769 range=[-2.318, 3.878] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.313 range=[-2.259, 4.131] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.697 range=[-2.757, 4.634] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.096 range=[-3.252, 4.763] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.130 range=[-3.282, 4.685] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.096 range=[-3.206, 4.639] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.094 range=[-3.142, 4.613] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.099 range=[-3.089, 4.561] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.086 range=[-3.038, 4.467] cmd=[0.00,0.00,0.00]
+  [  85/100] stairs_rough_ep0084  TIMEOUT   progress= 11.0m  zone=2  time=313.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.71953791 -0.06942586  0.29428419]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.179, 0.717]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.346 range=[-1.638, 3.660] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.622 range=[-2.301, 4.109] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.480 range=[-2.801, 4.235] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.404 range=[-2.970, 4.209] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=6.323 range=[-2.940, 4.116] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.204 range=[-2.861, 4.001] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.088 range=[-2.781, 3.887] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.011 range=[-2.728, 3.780] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.955 range=[-2.693, 3.660] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.894 range=[-2.655, 3.515] cmd=[0.00,0.00,0.00]
+  [  86/100] stairs_rough_ep0085  TIMEOUT   progress= 11.1m  zone=2  time=162.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.8199591   0.16643557 -0.12914789]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 0.771]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.287 range=[-1.643, 3.304] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.867 range=[-1.967, 3.923] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=6.125 range=[-2.339, 3.634] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=6.108 range=[-2.424, 2.999] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.566 range=[-2.068, 2.329] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.684 range=[-1.884, 2.233] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.054 range=[-1.679, 2.239] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.850 range=[-1.508, 2.574] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=3.804 range=[-1.350, 2.775] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.778 range=[-1.226, 2.836] cmd=[0.00,0.00,0.00]
+  [  87/100] stairs_rough_ep0086  TIMEOUT   progress= 11.1m  zone=2  time=142.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.88603073  0.05768925 -0.26332757]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.247, 0.988]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.357 range=[-1.627, 3.369] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.802 range=[-2.839, 4.169] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.522 range=[-3.723, 3.726] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.925 range=[-4.050, 3.300] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.197 range=[-4.179, 3.831] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.323 range=[-4.153, 4.179] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.335 range=[-4.027, 4.408] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.277 range=[-3.860, 4.559] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.117 range=[-3.616, 4.656] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.794 range=[-3.240, 4.690] cmd=[0.00,0.00,0.00]
+  [  88/100] stairs_rough_ep0087  FELL      progress= 11.2m  zone=2  time=136.5s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.68961018  0.67017448 -0.24261202]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.974, 0.697]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.911 range=[-2.288, 3.520] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.386 range=[-3.280, 4.664] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.131 range=[-3.350, 4.346] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.575 range=[-3.075, 4.096] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.259 range=[-2.750, 4.029] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.890 range=[-2.511, 3.868] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.512 range=[-2.514, 3.634] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.303 range=[-2.566, 3.417] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.311 range=[-2.673, 3.277] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.421 range=[-2.792, 3.156] cmd=[0.00,0.00,0.00]
+  [  89/100] stairs_rough_ep0088  FELL      progress=  0.0m  zone=1  time=3.6s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [ 0.15745391  0.3667717  -0.30107802]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.889, 0.943]
+  height_scan range = [0.000, 0.100]
+  height_scan mean  = 0.067
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.601 range=[-2.001, 2.747] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.595 range=[-2.699, 3.440] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.966 range=[-3.401, 4.350] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=9.332 range=[-4.472, 5.644] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=9.581 range=[-4.114, 6.531] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.654 range=[-2.914, 6.777] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.698 range=[-2.443, 4.912] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.126 range=[-1.868, 2.602] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.081 range=[-1.531, 2.399] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=3.745 range=[-1.520, 2.048] cmd=[0.00,0.00,0.00]
+  [  90/100] stairs_rough_ep0089  TIMEOUT   progress=  0.0m  zone=1  time=143.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.04426279  0.1445874   0.01024272]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.293, 1.079]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=7.254 range=[-2.611, 4.405] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=8.002 range=[-3.532, 4.970] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.002 range=[-3.952, 5.084] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.998 range=[-3.994, 5.064] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.976 range=[-3.919, 4.942] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=7.839 range=[-3.774, 4.758] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=7.706 range=[-3.637, 4.606] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=7.614 range=[-3.536, 4.480] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=7.560 range=[-3.464, 4.376] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=7.530 range=[-3.423, 4.266] cmd=[0.00,0.00,0.00]
+  [  91/100] stairs_rough_ep0090  TIMEOUT   progress= 11.2m  zone=2  time=140.7s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.05286068  0.01923507  0.02923906]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.954, 0.685]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.706 range=[-2.405, 3.524] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=6.656 range=[-2.626, 3.773] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.955 range=[-2.403, 3.646] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.187 range=[-2.103, 3.268] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.513 range=[-1.910, 2.777] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.073 range=[-1.839, 2.344] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=3.875 range=[-1.801, 2.092] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=3.850 range=[-1.750, 1.966] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.012 range=[-1.681, 2.175] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.353 range=[-1.561, 2.781] cmd=[0.00,0.00,0.00]
+  [  92/100] stairs_rough_ep0091  TIMEOUT   progress= 11.2m  zone=2  time=147.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.96519804 -0.01904346 -0.02535933]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.206, 0.972]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.948 range=[-1.742, 3.521] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.828 range=[-2.218, 3.636] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.148 range=[-2.072, 3.316] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.646 range=[-1.702, 3.045] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.501 range=[-1.574, 3.023] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.464 range=[-1.540, 3.052] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.482 range=[-1.531, 3.079] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.520 range=[-1.508, 3.082] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=4.586 range=[-1.473, 3.068] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=4.688 range=[-1.448, 3.050] cmd=[0.00,0.00,0.00]
+  [  93/100] stairs_rough_ep0092  TIMEOUT   progress= 11.4m  zone=2  time=140.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.86251348  0.11693888 -0.12999013]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.239, 0.973]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.627 range=[-2.122, 3.918] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.627 range=[-3.055, 4.994] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.146 range=[-3.898, 5.399] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.393 range=[-4.208, 5.334] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.406 range=[-4.135, 5.173] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.326 range=[-3.972, 5.082] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.296 range=[-3.847, 5.048] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.278 range=[-3.762, 5.012] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.224 range=[-3.703, 4.905] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.122 range=[-3.694, 4.700] cmd=[0.00,0.00,0.00]
+  [  94/100] stairs_rough_ep0093  TIMEOUT   progress= 11.4m  zone=2  time=145.3s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.78478843  0.23001349 -0.27824393]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.240, 0.865]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.331 range=[-1.941, 3.718] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.496 range=[-2.877, 4.773] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=8.095 range=[-3.853, 5.245] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=8.221 range=[-4.124, 5.229] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=8.225 range=[-4.013, 5.172] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=8.209 range=[-3.868, 5.182] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=8.230 range=[-3.788, 5.194] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=8.273 range=[-3.785, 5.171] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=8.285 range=[-3.816, 5.064] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=8.255 range=[-3.882, 4.840] cmd=[0.00,0.00,0.00]
+  [  95/100] stairs_rough_ep0094  TIMEOUT   progress= 10.9m  zone=2  time=141.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.84067112  0.22618577  0.00677997]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.187, 0.893]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.823 range=[-1.627, 3.370] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.738 range=[-2.044, 3.425] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.078 range=[-1.794, 3.246] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.759 range=[-1.629, 3.254] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.997 range=[-1.872, 3.511] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.321 range=[-2.133, 3.730] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.555 range=[-2.292, 3.845] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.716 range=[-2.368, 3.877] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.852 range=[-2.426, 3.844] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.987 range=[-2.480, 3.778] cmd=[0.00,0.00,0.00]
+  [  96/100] stairs_rough_ep0095  TIMEOUT   progress= 11.3m  zone=2  time=139.0s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.57624978  0.25069329  0.41561961]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.979, 0.595]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=6.159 range=[-2.015, 3.895] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=7.088 range=[-2.939, 4.427] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=7.180 range=[-3.140, 4.413] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=7.114 range=[-3.096, 4.328] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=7.045 range=[-3.051, 4.191] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=6.935 range=[-3.038, 4.014] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=6.804 range=[-3.018, 3.812] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=6.681 range=[-2.981, 3.647] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=6.567 range=[-2.937, 3.497] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.443 range=[-2.879, 3.343] cmd=[0.00,0.00,0.00]
+  [  97/100] stairs_rough_ep0096  TIMEOUT   progress= 11.7m  zone=2  time=143.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.86223108  0.28108796  0.00482059]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-1.224, 0.841]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.542 range=[-1.509, 3.241] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.497 range=[-1.882, 3.575] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.158 range=[-2.158, 3.463] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=5.127 range=[-2.254, 3.453] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=5.251 range=[-2.331, 3.572] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=5.465 range=[-2.448, 3.735] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=5.693 range=[-2.570, 3.879] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=5.875 range=[-2.667, 3.953] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.973 range=[-2.725, 3.919] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=6.084 range=[-2.799, 3.848] cmd=[0.00,0.00,0.00]
+  [  98/100] stairs_rough_ep0097  FELL      progress= 11.2m  zone=2  time=127.4s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-1.00508308  0.1292102  -0.51209915]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.919, 0.957]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=8.084 range=[-3.745, 4.829] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=10.953 range=[-4.925, 6.149] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=11.306 range=[-5.017, 6.079] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=11.098 range=[-4.894, 5.879] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=10.912 range=[-4.818, 5.689] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=10.770 range=[-4.750, 5.463] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=10.549 range=[-4.648, 5.092] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=10.321 range=[-4.553, 5.227] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=10.146 range=[-4.509, 5.348] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=10.024 range=[-4.499, 5.455] cmd=[0.00,0.00,0.00]
+  [  99/100] stairs_rough_ep0098  FELL      progress= 11.5m  zone=2  time=147.9s
+[ROUGH] OBS DIAG (step 0):
+  lin_vel_b = [-0.12612469 -0.02743286 -0.1296356 ]
+  gravity_b = [ 0.  0. -1.]
+  joint_pos_rel range = [-0.967, 0.742]
+  height_scan range = [0.010, 0.100]
+  height_scan mean  = 0.068
+  body_z = 0.600
+  [ROUGH act] eval=0 norm=5.017 range=[-1.617, 2.712] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=1 norm=5.834 range=[-2.009, 3.077] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=2 norm=5.560 range=[-1.994, 3.290] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=3 norm=4.655 range=[-1.758, 2.679] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=4 norm=4.231 range=[-1.630, 2.695] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=5 norm=4.319 range=[-1.425, 2.744] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=6 norm=4.528 range=[-1.807, 2.572] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=7 norm=4.694 range=[-1.977, 2.656] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=8 norm=5.037 range=[-2.173, 3.028] cmd=[0.00,0.00,0.00]
+  [ROUGH act] eval=9 norm=5.514 range=[-2.441, 3.430] cmd=[0.00,0.00,0.00]
+  [ 100/100] stairs_rough_ep0099  TIMEOUT   progress= 11.3m  zone=2  time=142.5s
+Saved 50 episodes to /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44/stairs_rough_episodes.jsonl
+  >> Saved checkpoint at episode 100
+Saved 0 episodes to /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44/stairs_rough_episodes.jsonl
+
+============================================================
+  Evaluation complete!
+  Total episodes: 100
+  Total time:     40597.6s (676.6min)
+  Avg per episode: 406.0s
+  Results saved to: /home/t2user/4_env_test/results/mason_baseline_parallel_2026-03-17_08-04-44
+============================================================
+
+Exiting (skipping SimulationApp.close to avoid GPU hang).

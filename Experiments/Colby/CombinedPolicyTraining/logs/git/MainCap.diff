@@ -1,0 +1,515 @@
+--- git commit ---
+561c8523a061404d5c4341bc0e1abd9384c2e110
+
+
+--- git status ---
+On branch development
+Your branch is up to date with 'origin/development'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   Experiments/Alex/4_env_test/policies/distilled_6899.pt
+	modified:   Experiments/Alex/4_env_test/policies/hybrid_nocoach_19999.pt
+	modified:   Experiments/Alex/4_env_test/policies/mason_baseline_final_19999.pt
+	modified:   Experiments/Alex/4_env_test/policies/mason_hybrid_best_33200.pt
+	modified:   Experiments/Alex/4_env_test/policies/obstacle_best_44400.pt
+	modified:   Experiments/Alex/4_env_test/src/checkpoints/model_29999.pt
+	modified:   Experiments/Alex/TrainingResults/anymal_c_rough_1024envs/model_99.pt
+	modified:   Experiments/Alex/TrainingResults/anymal_c_rough_1hour/model_1399.pt
+	modified:   Experiments/Alex/multi_robot_training/checkpoints/model_5000.pt
+	modified:   Experiments/Alex/multi_robot_training/checkpoints/spot_phase_b_easy_model_2000.pt
+	modified:   Experiments/Colby/ClaudeDocs/CombinedPolicy_HowTo.md
+	modified:   Experiments/Colby/ClaudeDocs/Plan.md
+	modified:   Experiments/Colby/ClaudeDocs/PolicyArchitecture.md
+	modified:   Experiments/Colby/CombinedPolicyTraining/CombinedPolicy_HowTo.md
+	modified:   Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh
+	modified:   Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh
+	modified:   Experiments/Colby/CombinedPolicyTraining/train_combined.py
+	modified:   Experiments/Ryan/checkpoints/distilled_6899.pt
+	modified:   Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt
+	modified:   Experiments/Ryan/checkpoints/s2r_boulder_master_1500.pt
+	modified:   Experiments/Ryan/checkpoints/s2r_flat_master_3700.pt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.claude/
+	Experiments/Alex/NAV_ALEX/source/nav_locomotion/nav_locomotion.egg-info/
+	Experiments/Colby/CombinedPolicyTraining/cnn_compat.py
+	Experiments/Colby/CombinedPolicyTraining/logs/
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/Experiments/Alex/4_env_test/policies/distilled_6899.pt b/Experiments/Alex/4_env_test/policies/distilled_6899.pt
+index 1a0a291..0048707 100644
+Binary files a/Experiments/Alex/4_env_test/policies/distilled_6899.pt and b/Experiments/Alex/4_env_test/policies/distilled_6899.pt differ
+diff --git a/Experiments/Alex/4_env_test/policies/hybrid_nocoach_19999.pt b/Experiments/Alex/4_env_test/policies/hybrid_nocoach_19999.pt
+index 7eb66e7..5383920 100644
+Binary files a/Experiments/Alex/4_env_test/policies/hybrid_nocoach_19999.pt and b/Experiments/Alex/4_env_test/policies/hybrid_nocoach_19999.pt differ
+diff --git a/Experiments/Alex/4_env_test/policies/mason_baseline_final_19999.pt b/Experiments/Alex/4_env_test/policies/mason_baseline_final_19999.pt
+index 9b6ec6b..b1a4d01 100644
+Binary files a/Experiments/Alex/4_env_test/policies/mason_baseline_final_19999.pt and b/Experiments/Alex/4_env_test/policies/mason_baseline_final_19999.pt differ
+diff --git a/Experiments/Alex/4_env_test/policies/mason_hybrid_best_33200.pt b/Experiments/Alex/4_env_test/policies/mason_hybrid_best_33200.pt
+index 52ac88f..1b1049a 100644
+Binary files a/Experiments/Alex/4_env_test/policies/mason_hybrid_best_33200.pt and b/Experiments/Alex/4_env_test/policies/mason_hybrid_best_33200.pt differ
+diff --git a/Experiments/Alex/4_env_test/policies/obstacle_best_44400.pt b/Experiments/Alex/4_env_test/policies/obstacle_best_44400.pt
+index ad2d7a9..c3e92d7 100644
+Binary files a/Experiments/Alex/4_env_test/policies/obstacle_best_44400.pt and b/Experiments/Alex/4_env_test/policies/obstacle_best_44400.pt differ
+diff --git a/Experiments/Alex/4_env_test/src/checkpoints/model_29999.pt b/Experiments/Alex/4_env_test/src/checkpoints/model_29999.pt
+index 2a6a395..4c5e2c7 100644
+Binary files a/Experiments/Alex/4_env_test/src/checkpoints/model_29999.pt and b/Experiments/Alex/4_env_test/src/checkpoints/model_29999.pt differ
+diff --git a/Experiments/Alex/TrainingResults/anymal_c_rough_1024envs/model_99.pt b/Experiments/Alex/TrainingResults/anymal_c_rough_1024envs/model_99.pt
+index 8d53de5..85097bc 100644
+Binary files a/Experiments/Alex/TrainingResults/anymal_c_rough_1024envs/model_99.pt and b/Experiments/Alex/TrainingResults/anymal_c_rough_1024envs/model_99.pt differ
+diff --git a/Experiments/Alex/TrainingResults/anymal_c_rough_1hour/model_1399.pt b/Experiments/Alex/TrainingResults/anymal_c_rough_1hour/model_1399.pt
+index 203d6e2..35e0d6e 100644
+Binary files a/Experiments/Alex/TrainingResults/anymal_c_rough_1hour/model_1399.pt and b/Experiments/Alex/TrainingResults/anymal_c_rough_1hour/model_1399.pt differ
+diff --git a/Experiments/Alex/multi_robot_training/checkpoints/model_5000.pt b/Experiments/Alex/multi_robot_training/checkpoints/model_5000.pt
+index 46e3525..c20fbef 100644
+Binary files a/Experiments/Alex/multi_robot_training/checkpoints/model_5000.pt and b/Experiments/Alex/multi_robot_training/checkpoints/model_5000.pt differ
+diff --git a/Experiments/Alex/multi_robot_training/checkpoints/spot_phase_b_easy_model_2000.pt b/Experiments/Alex/multi_robot_training/checkpoints/spot_phase_b_easy_model_2000.pt
+index 4986854..f65f3ef 100644
+Binary files a/Experiments/Alex/multi_robot_training/checkpoints/spot_phase_b_easy_model_2000.pt and b/Experiments/Alex/multi_robot_training/checkpoints/spot_phase_b_easy_model_2000.pt differ
+diff --git a/Experiments/Colby/ClaudeDocs/CombinedPolicy_HowTo.md b/Experiments/Colby/ClaudeDocs/CombinedPolicy_HowTo.md
+index be6f9e8..b2e2a89 100644
+--- a/Experiments/Colby/ClaudeDocs/CombinedPolicy_HowTo.md
++++ b/Experiments/Colby/ClaudeDocs/CombinedPolicy_HowTo.md
+@@ -32,9 +32,19 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100
+ 
+ The install script sets up (all inside the venv):
+ - `nav_locomotion` — Alex's nav package (editable install, no files modified in his dir)
++- `isaaclab` — installed from `isaacSim_env/isaaclab_src/source/isaaclab` (editable)
++- `isaaclab_rl` — Isaac Lab's RSL-RL wrapper, installed from `isaacSim_env/isaaclab_src/source/isaaclab_rl` (editable). Required by `SpotNavPPORunnerCfg`.
+ - `tensorboard` — training metrics viewer
+-- `gymnasium` — RL environment interface used by `train_combined.py`
+-- `rsl-rl` — PPO runner used by `train_combined.py`
++- `gymnasium` — RL environment interface
++- `rsl-rl` — PPO runner (GitHub source)
++- `h5py` — required by isaaclab's dataset utilities
++- `torch (cu128)` — CUDA-enabled torch. Isaac Sim ships CPU-only by default; the script installs the CUDA build automatically if CUDA is not available.
++
++**Known gotchas handled automatically by the install script:**
++- `h5py` — isaaclab fails to import without it (`ModuleNotFoundError: No module named 'h5py'`)
++- `isaaclab_rl` — `SpotNavPPORunnerCfg` falls back to raw rsl_rl without it, causing `KeyError: 'class_name'` at runner init
++- `torch CUDA` — Isaac Sim installs CPU-only torch; training requires the CUDA build
++- **DLL load order (Windows)** — `train_combined.py` imports torch before `AppLauncher` to prevent Isaac Sim's CUDA 11 extscache DLLs from conflicting with torch's CUDA 12 DLLs (`WinError 1114 / c10.dll`). Do not move this import.
+ 
+ Currently missing from the venv (handled by install script above):
+ `rsl-rl`, `gymnasium`, `tensorboard`
+diff --git a/Experiments/Colby/ClaudeDocs/Plan.md b/Experiments/Colby/ClaudeDocs/Plan.md
+index 3a2f139..ad73530 100644
+--- a/Experiments/Colby/ClaudeDocs/Plan.md
++++ b/Experiments/Colby/ClaudeDocs/Plan.md
+@@ -286,6 +286,11 @@ python train.py --headless --num_envs 4096 --max_iterations 10
+ | Isaac Sim hangs on startup (H100) | Previous zombie holds GPU memory | Physical reboot |
+ | D-state zombie after run ends | Called `simulation_app.close()` | Use `os._exit(0)` only |
+ | value_loss explodes to millions | LR too high for phase | Use lr_max=5e-5 for Phase B+ |
++| `ModuleNotFoundError: No module named 'h5py'` | h5py not installed | `python -m pip install h5py` |
++| `KeyError: 'class_name'` at OnPolicyRunner init (first pass) | `isaaclab_rl` not installed | `python -m pip install -e isaacSim_env\isaaclab_src\source\isaaclab_rl` |
++| `KeyError: 'class_name'` even with `isaaclab_rl` installed | rsl_rl 5.0.1 broke the old `policy` config format — now expects separate `actor`/`critic` dicts AND new `MLPModel` class interface; `ActorCriticCNN` uses old combined API | Fixed in `train_combined.py`: manual config dict + `cnn_compat.py` adapter classes (`ActorCNNWrapper`, `CriticCNNWrapper`) that wrap `ActorCriticCNN` to the new interface. No teammate files changed. |
++| `AssertionError: Torch not compiled with CUDA enabled` | Isaac Sim installs CPU-only torch | `python -m pip install torch --index-url https://download.pytorch.org/whl/cu128 --force-reinstall` |
++| `WinError 1114` / `c10.dll` crash on startup | Isaac Sim's CUDA 11 extscache DLLs load before torch's CUDA 12 DLLs | `import torch` must appear before `AppLauncher` in train script (already done in `train_combined.py`) |
+ | action_smoothness → -infinity / NaN | Unbounded L2 penalty | Cap at 10.0 |
+ | Terrain plateaus at level ~4.8 | Too many reward terms or network too large | ≤12 terms, [512,256,128] network |
+ | Gait destroyed mid-training | Velocity reward weight too high | Keep velocity reward weight ≤ 7.0 |
+diff --git a/Experiments/Colby/ClaudeDocs/PolicyArchitecture.md b/Experiments/Colby/ClaudeDocs/PolicyArchitecture.md
+index 28d1624..c3c717e 100644
+--- a/Experiments/Colby/ClaudeDocs/PolicyArchitecture.md
++++ b/Experiments/Colby/ClaudeDocs/PolicyArchitecture.md
+@@ -103,9 +103,20 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100
+ 
+ Installs into the active venv only:
+ - `nav_locomotion` (Alex's package, editable install — his files unchanged)
++- `isaaclab` (editable, from `isaacSim_env/isaaclab_src/source/isaaclab`)
++- `isaaclab_rl` (editable, from `isaacSim_env/isaaclab_src/source/isaaclab_rl` — required by `SpotNavPPORunnerCfg`)
+ - `tensorboard` (metrics)
+ - `gymnasium` (RL env interface)
+-- `rsl-rl` (PPO runner)
++- `rsl-rl` (PPO runner, GitHub source)
++- `h5py` (required by isaaclab internals)
++- `torch cu128` (CUDA build — installed automatically if CPU-only torch is detected)
++
++**Windows-specific gotchas (all handled automatically):**
++- `h5py` missing → `ModuleNotFoundError` on isaaclab import
++- `isaaclab_rl` missing → `KeyError: 'class_name'` at RSL-RL runner init (first pass)
++- CPU torch → `AssertionError: Torch not compiled with CUDA enabled`
++- DLL conflict → `WinError 1114 / c10.dll` crash. Fixed by importing torch before `AppLauncher` in `train_combined.py` — do not change this order.
++- `KeyError: 'class_name'` even with `isaaclab_rl` installed → rsl_rl 5.0.1 broke the old combined `ActorCritic` API. `train_combined.py` now uses a manual config dict + `cnn_compat.py` adapter classes instead of `class_to_dict(SpotNavPPORunnerCfg)`. No Alex files touched.
+ 
+ ### Step 2 — Train
+ ```bash
+diff --git a/Experiments/Colby/CombinedPolicyTraining/CombinedPolicy_HowTo.md b/Experiments/Colby/CombinedPolicyTraining/CombinedPolicy_HowTo.md
+index 958ee86..97a078f 100644
+--- a/Experiments/Colby/CombinedPolicyTraining/CombinedPolicy_HowTo.md
++++ b/Experiments/Colby/CombinedPolicyTraining/CombinedPolicy_HowTo.md
+@@ -32,12 +32,19 @@ bash Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh --h100
+ 
+ The install script sets up (all inside the venv):
+ - `nav_locomotion` — Alex's nav package (editable install, no files modified in his dir)
++- `isaaclab` — installed from `isaacSim_env/isaaclab_src/source/isaaclab` (editable)
++- `isaaclab_rl` — Isaac Lab's RSL-RL wrapper, installed from `isaacSim_env/isaaclab_src/source/isaaclab_rl` (editable). Required by `SpotNavPPORunnerCfg`.
+ - `tensorboard` — training metrics viewer
+-- `gymnasium` — RL environment interface used by `train_combined.py`
+-- `rsl-rl` — PPO runner used by `train_combined.py`
+-
+-Currently missing from the venv (handled by install script above):
+-`rsl-rl`, `gymnasium`, `tensorboard`
++- `gymnasium` — RL environment interface
++- `rsl-rl` — PPO runner (GitHub source)
++- `h5py` — required by isaaclab's dataset utilities
++- `torch (cu128)` — CUDA-enabled torch. Isaac Sim ships CPU-only by default; the script installs the CUDA build automatically if CUDA is not available.
++
++**Known gotchas handled automatically by the install script:**
++- `h5py` — isaaclab fails to import without it (`ModuleNotFoundError: No module named 'h5py'`)
++- `isaaclab_rl` — `SpotNavPPORunnerCfg` falls back to raw rsl_rl without it, causing `KeyError: 'class_name'` at runner init
++- `torch CUDA` — Isaac Sim installs CPU-only torch; training requires the CUDA build
++- **DLL load order (Windows)** — `train_combined.py` imports torch before `AppLauncher` to prevent Isaac Sim's CUDA 11 extscache DLLs from conflicting with torch's CUDA 12 DLLs (`WinError 1114 / c10.dll`). Do not move this import.
+ 
+ ---
+ 
+diff --git a/Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh b/Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh
+index 55d0130..bf86fd3 100644
+--- a/Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh
++++ b/Experiments/Colby/CombinedPolicyTraining/install_prerequisites.sh
+@@ -139,6 +139,23 @@ else
+     fi
+ fi
+ 
++# Install isaaclab_rl (Isaac Lab's RSL-RL wrapper — required by SpotNavPPORunnerCfg)
++ISAACLAB_RL_SRC="$REPO_ROOT/isaacSim_env/isaaclab_src/source/isaaclab_rl"
++if _has_pkg isaaclab_rl; then
++    echo "      OK: isaaclab_rl already installed."
++elif [ -d "$ISAACLAB_RL_SRC" ]; then
++    ISAACLAB_RL_WIN="$(wslpath -w "$ISAACLAB_RL_SRC")"
++    if "$PYTHON" -m pip install -e "$ISAACLAB_RL_WIN" --quiet; then
++        echo "      OK: isaaclab_rl installed from source."
++    else
++        echo "  ERROR: isaaclab_rl install failed. Manually run:"
++        echo "    python -m pip install -e isaacSim_env\\isaaclab_src\\source\\isaaclab_rl"
++    fi
++else
++    echo "  WARNING: isaaclab_rl source not found at $ISAACLAB_RL_SRC"
++    echo "  Ensure IsaacLab is cloned to isaacSim_env/isaaclab_src first."
++fi
++
+ # ---------------------------------------------------------------------------
+ # Step 3: Install nav_locomotion package
+ # ---------------------------------------------------------------------------
+@@ -157,7 +174,24 @@ echo "[4/6] Installing dependencies..."
+ "$PYTHON" -m pip install tensorboard --quiet
+ "$PYTHON" -m pip install gymnasium --quiet
+ "$PYTHON" -m pip install git+https://github.com/leggedrobotics/rsl_rl.git --quiet
+-echo "      OK: anthropic, tensorboard, gymnasium, rsl-rl installed."
++"$PYTHON" -m pip install h5py --quiet
++echo "      OK: anthropic, tensorboard, gymnasium, rsl-rl, h5py installed."
++
++# CUDA torch — must be installed AFTER Isaac Sim but BEFORE first training run.
++# Isaac Sim ships CPU torch by default. The CUDA build is required for training.
++# NOTE: torch must also be imported BEFORE AppLauncher in train_combined.py
++#       (already done) to prevent Isaac Sim's CUDA 11 extscache DLLs from
++#       conflicting with torch's CUDA 12 DLLs (WinError 1114 / c10.dll crash).
++if "$PYTHON" -c "import torch; exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null; then
++    echo "      OK: torch CUDA already available."
++else
++    echo "      torch CUDA not available — installing cu128 build..."
++    "$PYTHON" -m pip install torch \
++        --index-url https://download.pytorch.org/whl/cu128 \
++        --force-reinstall --quiet \
++        && echo "      OK: torch cu128 installed." \
++        || echo "  WARNING: torch CUDA install failed. Training will run on CPU."
++fi
+ 
+ # ---------------------------------------------------------------------------
+ # Step 5: Create Colby's log directory
+@@ -186,8 +220,8 @@ try:
+     if not cuda_ok:
+         print(f"  NOTE: CUDA not available. Training will run on CPU (slow).")
+         print(f"        To enable GPU, reinstall torch with CUDA support:")
+-        print(f"          python -m pip install torch --index-url https://download.pytorch.org/whl/cu121")
+-        print(f"        Replace cu121 with your CUDA version (check with: nvidia-smi)")
++        print(f"          python -m pip install torch --index-url https://download.pytorch.org/whl/cu128")
++        print(f"        Replace cu128 with your CUDA version (check with: nvidia-smi)")
+ except ImportError as e:
+     failures.append(f"torch: {e}")
+ 
+@@ -238,6 +272,12 @@ try:
+ except Exception as e:
+     print(f"  isaaclab    : check failed: {e}")
+ 
++try:
++    import isaaclab_rl
++    print(f"  isaaclab_rl : found")
++except ImportError as e:
++    failures.append(f"isaaclab_rl: {e} — required by SpotNavPPORunnerCfg")
++
+ if failures:
+     print("\n  FAILED IMPORTS:")
+     for f in failures:
+diff --git a/Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh b/Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh
+index 47918e3..be502d9 100644
+--- a/Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh
++++ b/Experiments/Colby/CombinedPolicyTraining/run_combined_nav_loco.sh
+@@ -29,12 +29,31 @@ TRAIN_SCRIPT="$SCRIPT_DIR/train_combined.py"
+ source "$SCRIPT_DIR/../ExitKillScript/isaac_cleanup.sh"
+ 
+ # ---------------------------------------------------------------------------
+-# Validate loco checkpoint
++# Resolve Python and validate loco checkpoint
+ # ---------------------------------------------------------------------------
++MODE="${1:---local}"
++
++if [ "$MODE" = "--local" ]; then
++    VENV_SCRIPTS="$REPO_ROOT/isaacSim_env/Scripts"
++    if [ ! -f "$VENV_SCRIPTS/python.exe" ]; then
++        echo "ERROR: isaacSim_env not found at: $VENV_SCRIPTS"
++        exit 1
++    fi
++    PYTHON="$VENV_SCRIPTS/python.exe"
++elif [ "$MODE" = "--h100" ]; then
++    eval "$(/home/t2user/miniconda3/bin/conda shell.bash hook)"
++    conda activate env_isaaclab
++    PYTHON=python
++else
++    echo "ERROR: Unknown mode '$MODE'. Use --local or --h100."
++    exit 1
++fi
++
+ echo "=== Combined Nav + Loco Training ==="
+ echo "Train script      : $TRAIN_SCRIPT"
+ echo "Loco checkpoint   : $LOCO_CHECKPOINT"
+ echo "Checkpoint output : $SCRIPT_DIR/logs/"
++echo "Python            : $PYTHON"
+ echo ""
+ 
+ if [ ! -f "$LOCO_CHECKPOINT" ]; then
+@@ -46,21 +65,22 @@ fi
+ # Install Alex's NAV_ALEX package (idempotent — no files modified in his dir)
+ # ---------------------------------------------------------------------------
+ echo "Installing nav_locomotion package (pip install -e)..."
+-pip install -e "$NAV_ALEX_DIR/source/nav_locomotion/" --quiet
++NAV_LOCO_WIN="$(wslpath -w "$NAV_ALEX_DIR/source/nav_locomotion")"
++"$PYTHON" -m pip install -e "$NAV_LOCO_WIN" --quiet
+ echo "Package installed."
+ echo ""
+ 
+ # ---------------------------------------------------------------------------
+-# Determine run mode and launch
++# Launch training
+ # ---------------------------------------------------------------------------
+-MODE="${1:---local}"
+-
+ if [ "$MODE" = "--local" ]; then
+     echo "Mode: LOCAL smoke test (16 envs, 100 iterations)"
+     echo ""
+-    launch_training python "$TRAIN_SCRIPT" \
++    TRAIN_SCRIPT_WIN="$(wslpath -w "$TRAIN_SCRIPT")"
++    LOCO_CHECKPOINT_WIN="$(wslpath -w "$LOCO_CHECKPOINT")"
++    launch_training "$PYTHON" "$TRAIN_SCRIPT_WIN" \
+         --headless \
+-        --loco_checkpoint "$LOCO_CHECKPOINT" \
++        --loco_checkpoint "$LOCO_CHECKPOINT_WIN" \
+         --num_envs 16 \
+         --max_iterations 100 \
+         --save_interval 50
+@@ -68,18 +88,10 @@ if [ "$MODE" = "--local" ]; then
+ elif [ "$MODE" = "--h100" ]; then
+     echo "Mode: H100 full training run (2048 envs, 30000 iterations)"
+     echo ""
+-    # Activate conda env on H100 (bashrc not sourced in non-interactive SSH)
+-    eval "$(/home/t2user/miniconda3/bin/conda shell.bash hook)"
+-    conda activate env_isaaclab
+-
+-    launch_training python "$TRAIN_SCRIPT" \
++    launch_training "$PYTHON" "$TRAIN_SCRIPT" \
+         --headless \
+         --loco_checkpoint "$LOCO_CHECKPOINT" \
+         --num_envs 2048 \
+         --max_iterations 30000 \
+         --save_interval 100
+-
+-else
+-    echo "ERROR: Unknown mode '$MODE'. Use --local or --h100."
+-    exit 1
+ fi
+diff --git a/Experiments/Colby/CombinedPolicyTraining/train_combined.py b/Experiments/Colby/CombinedPolicyTraining/train_combined.py
+index 9c50b12..7431c5e 100644
+--- a/Experiments/Colby/CombinedPolicyTraining/train_combined.py
++++ b/Experiments/Colby/CombinedPolicyTraining/train_combined.py
+@@ -86,6 +86,15 @@ def parse_args() -> argparse.Namespace:
+ 
+ args = parse_args()
+ 
++# ---------------------------------------------------------------------------
++# Pre-load torch before Isaac Sim starts.
++# Isaac Sim's extension loader imports torch internally during AppLauncher
++# init. If its older CUDA 11 extscache DLLs load first, torch's c10.dll
++# crashes (WinError 1114). Importing torch here first puts it in sys.modules
++# in a clean state so Isaac Sim's extensions reuse the already-loaded DLLs.
++# ---------------------------------------------------------------------------
++import torch  # noqa: E402 — must be before AppLauncher
++
+ # ---------------------------------------------------------------------------
+ # Isaac Lab boot — must happen before any omni/isaaclab imports
+ # ---------------------------------------------------------------------------
+@@ -99,7 +108,6 @@ simulation_app = app_launcher.app
+ # Remaining imports (safe after AppLauncher)
+ # ---------------------------------------------------------------------------
+ 
+-import torch
+ import gymnasium as gym
+ 
+ from rsl_rl.runners import OnPolicyRunner
+@@ -110,8 +118,15 @@ from nav_locomotion.modules.depth_cnn import ActorCriticCNN, TOTAL_OBS_DIMS
+ from nav_locomotion.modules.loco_wrapper import FrozenLocoPolicy
+ from nav_locomotion.modules.nav_env_wrapper import NavEnvWrapper
+ from nav_locomotion.tasks.navigation.config.spot.nav_env_cfg import SpotNavExploreCfg
+-from nav_locomotion.tasks.navigation.config.spot.agents.rsl_rl_ppo_cfg import SpotNavPPORunnerCfg
+-from isaaclab.utils import class_to_dict
++
++# cnn_compat: adapter classes that bridge ActorCriticCNN (old rsl_rl < 4.0 API) to
++# rsl_rl 5.0.1's separate actor/critic MLPModel interface.
++# CombinedPolicyTraining/ is on sys.path when running as "python train_combined.py",
++# so "cnn_compat:ActorCNNWrapper" resolves correctly via resolve_callable().
++import cnn_compat  # noqa: F401 — must be imported so resolve_callable can find it
++import rsl_rl.models as _rsl_models
++_rsl_models.ActorCNNWrapper = cnn_compat.ActorCNNWrapper
++_rsl_models.CriticCNNWrapper = cnn_compat.CriticCNNWrapper
+ 
+ 
+ # ---------------------------------------------------------------------------
+@@ -156,26 +171,83 @@ def main() -> None:
+     nav_env = NavEnvWrapper(env, loco_policy)
+ 
+     # ------------------------------------------------------------------
+-    # RSL-RL runner
++    # RSL-RL runner  (rsl_rl 5.0.1 compatible config dict)
+     # ------------------------------------------------------------------
+-    runner_cfg = SpotNavPPORunnerCfg()
+-    runner_cfg.max_iterations = args.max_iterations
+-    runner_cfg.save_interval  = args.save_interval
+-    runner_cfg.logger = "tensorboard"
+-
+-    # Inject our custom policy class into RSL-RL's namespace so it can
+-    # find it when instantiating via class_name="ActorCriticCNN"
+-    import rsl_rl.runners.on_policy_runner as _runner_module
+-    _runner_module.ActorCriticCNN = ActorCriticCNN
++    # rsl_rl 5.0.1 broke the old "policy" config format — it now expects separate
++    # "actor" and "critic" dicts with class_name pointing to MLPModel subclasses.
++    # We bypass class_to_dict(SpotNavPPORunnerCfg) and build the dict manually,
++    # pointing class_name at our ActorCNNWrapper / CriticCNNWrapper adapters.
++    # obs_groups tells rsl_rl which observation group to feed to each model.
++    # NavEnvWrapper returns {"policy": tensor(N, 4108)} so both use ["policy"].
++
++    # NavEnvWrapper has no .cfg attribute; Logger stores it but only uses it for
++    # wandb/neptune (we use tensorboard), so an empty dict is safe.
++    nav_env.cfg = {}
++
++    runner_cfg_dict = {
++        # --- Runner bookkeeping ---
++        "seed": 42,
++        "num_steps_per_env": 128,
++        "max_iterations": args.max_iterations,
++        "save_interval": args.save_interval,
++        "logger": "tensorboard",
++        "experiment_name": "spot_nav_explore_ppo",
++        "run_name": "",
++        "device": device,
++        "check_for_nan": False,   # disable NaN check (slow + we handle NaN in cnn)
++        "resume": False,
++        "load_run": ".*",
++        "load_checkpoint": "model_.*.pt",
++        "clip_actions": None,
++        "multi_gpu": None,        # overwritten by OnPolicyRunner._configure_multi_gpu
++
++        # --- Observation routing ---
++        # NavEnvWrapper.get_observations() returns {"policy": tensor(N, 4108)}
++        "obs_groups": {"actor": ["policy"], "critic": ["policy"]},
++
++        # --- Actor model (CNN adapter) ---
++        "actor": {
++            "class_name": "rsl_rl.models:ActorCNNWrapper",
++            # No other fields — ActorCNNWrapper absorbs extras via **kwargs
++        },
++
++        # --- Critic model (CNN adapter) ---
++        "critic": {
++            "class_name": "rsl_rl.models:CriticCNNWrapper",
++        },
++
++        # --- PPO algorithm ---
++        "algorithm": {
++            "class_name": "PPO",
++            "value_loss_coef": 1.0,
++            "use_clipped_value_loss": True,
++            "clip_param": 0.2,
++            "entropy_coef": 0.01,
++            "num_learning_epochs": 8,
++            "num_mini_batches": 8,
++            "learning_rate": args.lr,
++            "schedule": "fixed",
++            "gamma": 0.99,
++            "lam": 0.95,
++            "desired_kl": 0.01,
++            "max_grad_norm": 1.0,
++            "optimizer": "adam",
++            "normalize_advantage_per_mini_batch": False,
++            "share_cnn_encoders": False,
++            "rnd_cfg": None,
++            "symmetry_cfg": None,
++        },
++    }
+ 
+     runner = OnPolicyRunner(
+         nav_env,
+-        class_to_dict(runner_cfg),
++        runner_cfg_dict,
+         log_dir=str(LOG_DIR),
+         device=device,
+     )
+ 
+-    nav_policy = runner.alg.policy
++    # runner.alg.actor is our ActorCNNWrapper; ._net is the actual ActorCriticCNN
++    nav_policy = runner.alg.actor._net
+     print(f"[TRAIN] ActorCriticCNN: "
+           f"{sum(p.numel() for p in nav_policy.parameters()):,} params")
+ 
+@@ -199,12 +271,14 @@ def main() -> None:
+                             getattr(runner, "it", 0))
+ 
+         # Log terrain curriculum level every 10 iterations
+-        if runner.writer is not None and iteration % 10 == 0:
++        # rsl_rl 5.0.1 uses runner.logger.writer (not runner.writer directly)
++        writer = getattr(getattr(runner, "logger", None), "writer", None)
++        if writer is not None and iteration % 10 == 0:
+             try:
+                 terrain = nav_env._unwrapped.scene.terrain
+                 if hasattr(terrain, "terrain_levels"):
+                     mean_level = terrain.terrain_levels.float().mean().item()
+-                    runner.writer.add_scalar(
++                    writer.add_scalar(
+                         "Curriculum/terrain_level", mean_level, iteration
+                     )
+             except Exception:
+@@ -235,7 +309,7 @@ def main() -> None:
+     # ------------------------------------------------------------------
+     # Save final checkpoint to our directory
+     # ------------------------------------------------------------------
+-    final_path = LOG_DIR / runner_cfg.experiment_name / "model_final.pt"
++    final_path = LOG_DIR / "spot_nav_explore_ppo" / "model_final.pt"
+     final_path.parent.mkdir(parents=True, exist_ok=True)
+     torch.save({"model_state_dict": nav_policy.state_dict()}, final_path)
+     print(f"[TRAIN] Final checkpoint saved: {final_path}")
+diff --git a/Experiments/Ryan/checkpoints/distilled_6899.pt b/Experiments/Ryan/checkpoints/distilled_6899.pt
+index 1a0a291..0048707 100644
+Binary files a/Experiments/Ryan/checkpoints/distilled_6899.pt and b/Experiments/Ryan/checkpoints/distilled_6899.pt differ
+diff --git a/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt b/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt
+index 52ac88f..1b1049a 100644
+Binary files a/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt and b/Experiments/Ryan/checkpoints/mason_hybrid_best_33200.pt differ
+diff --git a/Experiments/Ryan/checkpoints/s2r_boulder_master_1500.pt b/Experiments/Ryan/checkpoints/s2r_boulder_master_1500.pt
+index ed3b3a2..c36b633 100644
+Binary files a/Experiments/Ryan/checkpoints/s2r_boulder_master_1500.pt and b/Experiments/Ryan/checkpoints/s2r_boulder_master_1500.pt differ
+diff --git a/Experiments/Ryan/checkpoints/s2r_flat_master_3700.pt b/Experiments/Ryan/checkpoints/s2r_flat_master_3700.pt
+index 0816d4d..d8f7dd6 100644
+Binary files a/Experiments/Ryan/checkpoints/s2r_flat_master_3700.pt and b/Experiments/Ryan/checkpoints/s2r_flat_master_3700.pt differ

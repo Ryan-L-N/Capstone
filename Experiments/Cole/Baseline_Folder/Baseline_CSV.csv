@@ -1,0 +1,11 @@
+# AGGREGATE STATISTICS (Updated after each episode)
+Metric,Value
+Average_Waypoints_Reached,3.00
+Max_Waypoints_Reached,6
+Failure_Rate_Fell_Over,100.00%
+Failure_Rate_Ran_Out_of_Points,0.00%
+Completion_Rate,0.00%
+
+Episode,Waypoints_Reached,Failure_Reason,Final_Score
+1,6,Fell Over,0.00
+2,0,Fell Over,0.00

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quadruped_locomotion"
+version = "0.1.0"
+description = "RL locomotion training for Spot and Vision60 quadrupeds — Isaac Lab extension"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+ai = ["anthropic>=0.20"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["quadruped_locomotion*"]
+
+[tool.isort]
+profile = "black"
+known_third_party = ["isaaclab", "isaaclab_tasks", "isaaclab_rl", "isaaclab_assets", "rsl_rl", "torch"]
+
+[tool.pyright]
+include = ["quadruped_locomotion"]

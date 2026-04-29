@@ -1,0 +1,14 @@
+--- Baseline ---
+ 22:17:11 up  7:41,  0 users,  load average: 5.08, 4.79, 4.07
+               total        used        free      shared  buff/cache   available
+Mem:         1031732        3038     1001317           2       27376     1023338
+Swap:           2047           0        2047
+memory.used [MiB], temperature.gpu, power.draw [W], clocks.current.sm [MHz], utilization.gpu [%], utilization.memory [%]
+0 MiB, 42, 63.09 W, 345 MHz, 0 %, 0 %
+--- Final ---
+ 22:18:44 up  7:42,  0 users,  load average: 6.45, 5.59, 4.43
+               total        used        free      shared  buff/cache   available
+Mem:         1031732        3037     1001305           1       27388     1023339
+Swap:           2047           0        2047
+memory.used [MiB], temperature.gpu, power.draw [W], clocks.current.sm [MHz], utilization.gpu [%], utilization.memory [%]
+0 MiB, 47, 95.23 W, 1785 MHz, 0 %, 0 %

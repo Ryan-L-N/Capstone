@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Spirit 40 URDF - Modified for Isaac Sim
+Based on CMU quad-sdk / Ghost Robotics Spirit 40
+- Fixed joint names (USD compatible)
+- Relative mesh paths (resolved by Isaac Sim)
+
+Leg naming convention:
+  FR = Front Right (hip0, upper0, lower0, toe0)
+  RR = Rear Right  (hip1, upper1, lower1, toe1)  
+  FL = Front Left  (hip2, upper2, lower2, toe2)
+  RL = Rear Left   (hip3, upper3, lower3, toe3)
+
+Joint naming:
+  hip_abduction_XX - abduction joint (roll)
+  hip_XX - hip flexion joint (pitch)
+  knee_XX - knee joint (pitch)
+-->
+<robot name="spirit40">
+  
+  <!-- Define materials -->
+  <material name="gray">
+    <color rgba="0.3 0.3 0.3 1.0"/>
+  </material>
+  <material name="darkgray">
+    <color rgba="0.15 0.15 0.15 1.0"/>
+  </material>
+  <material name="silver">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+  <material name="orange">
+    <color rgba="1.0 0.5 0.0 1.0"/>
+  </material>
+
+  <!-- ==================== BODY ==================== -->
+  <link name="body">
+    <visual>
+      <origin rpy="0 0 0" xyz="0.03 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Body_Mesh_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.335 0.24 0.104"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="5.75"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.05" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== FRONT RIGHT LEG (FR) ==================== -->
+  
+  <!-- Hip Module FR -->
+  <link name="hip_fr">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Hip_Module_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963268 0 0" xyz="0 0.028 0"/>
+      <geometry>
+        <cylinder length="0.08" radius="0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.575"/>
+      <origin rpy="0 0 0" xyz="0 0.028 0"/>
+      <inertia ixx="0.00066963541" ixy="0" ixz="0" iyy="0.00066963541" iyz="0" izz="0.0008696875"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Abduction Joint FR -->
+  <joint name="hip_abduction_fr" type="revolute">
+    <parent link="body"/>
+    <child link="hip_fr"/>
+    <axis xyz="1 0 0"/>
+    <origin xyz="0.2263 0.07 0"/>
+    <limit effort="21" lower="-0.707" upper="0.707" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Upper Leg FR -->
+  <link name="upper_fr">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 -0.02 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Upper_leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="darkgray"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.103 -0.022 0"/>
+      <geometry>
+        <box size="0.206 0.022 0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.775"/>
+      <origin rpy="0 0 0" xyz="-0.103 0 0"/>
+      <inertia ixx="5e-05" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Flexion Joint FR -->
+  <joint name="hip_fr" type="revolute">
+    <parent link="hip_fr"/>
+    <child link="upper_fr"/>
+    <axis xyz="0 -1 0"/>
+    <origin xyz="0 0.10098 0"/>
+    <limit effort="21" lower="-1.57" upper="3.14" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Lower Leg FR -->
+  <link name="lower_fr">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Lower_Leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin rpy="0 1.5707963268 0" xyz="0.103 0 0"/>
+      <geometry>
+        <cylinder length="0.206" radius="0.013"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.075"/>
+      <origin rpy="0 0 0" xyz="0.103 0 0"/>
+      <inertia ixx="5e-06" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Knee Joint FR -->
+  <joint name="knee_fr" type="revolute">
+    <parent link="upper_fr"/>
+    <child link="lower_fr"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="-0.206 0 0"/>
+    <limit effort="32" lower="-6.28" upper="6.28" velocity="25.1"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Toe FR -->
+  <link name="toe_fr">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.015"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.000025" ixy="0" ixz="0" iyy="0.000025" iyz="0" izz="0.000025"/>
+    </inertial>
+  </link>
+
+  <joint name="toe_joint_fr" type="fixed">
+    <parent link="lower_fr"/>
+    <child link="toe_fr"/>
+    <origin xyz="0.206 0 0"/>
+  </joint>
+
+  <!-- ==================== REAR RIGHT LEG (RR) ==================== -->
+  
+  <!-- Hip Module RR -->
+  <link name="hip_rr">
+    <visual>
+      <origin rpy="0 3.14159265359 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Hip_Module_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963268 0 0" xyz="0 0.028 0"/>
+      <geometry>
+        <cylinder length="0.08" radius="0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.575"/>
+      <origin rpy="0 0 0" xyz="0 0.028 0"/>
+      <inertia ixx="0.00066963541" ixy="0" ixz="0" iyy="0.00066963541" iyz="0" izz="0.0008696875"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Abduction Joint RR -->
+  <joint name="hip_abduction_rr" type="revolute">
+    <parent link="body"/>
+    <child link="hip_rr"/>
+    <axis xyz="1 0 0"/>
+    <origin xyz="-0.2263 0.07 0"/>
+    <limit effort="21" lower="-0.707" upper="0.707" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Upper Leg RR -->
+  <link name="upper_rr">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 -0.02 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Upper_leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="darkgray"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.103 -0.022 0"/>
+      <geometry>
+        <box size="0.206 0.022 0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.775"/>
+      <origin rpy="0 0 0" xyz="-0.103 0 0"/>
+      <inertia ixx="5e-05" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Flexion Joint RR -->
+  <joint name="hip_rr" type="revolute">
+    <parent link="hip_rr"/>
+    <child link="upper_rr"/>
+    <axis xyz="0 -1 0"/>
+    <origin xyz="0 0.10098 0"/>
+    <limit effort="21" lower="-1.57" upper="3.14" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Lower Leg RR -->
+  <link name="lower_rr">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Lower_Leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin rpy="0 1.5707963268 0" xyz="0.103 0 0"/>
+      <geometry>
+        <cylinder length="0.206" radius="0.013"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.075"/>
+      <origin rpy="0 0 0" xyz="0.103 0 0"/>
+      <inertia ixx="5e-06" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Knee Joint RR -->
+  <joint name="knee_rr" type="revolute">
+    <parent link="upper_rr"/>
+    <child link="lower_rr"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="-0.206 0 0"/>
+    <limit effort="32" lower="-6.28" upper="6.28" velocity="25.1"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Toe RR -->
+  <link name="toe_rr">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.015"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.000025" ixy="0" ixz="0" iyy="0.000025" iyz="0" izz="0.000025"/>
+    </inertial>
+  </link>
+
+  <joint name="toe_joint_rr" type="fixed">
+    <parent link="lower_rr"/>
+    <child link="toe_rr"/>
+    <origin xyz="0.206 0 0"/>
+  </joint>
+
+  <!-- ==================== FRONT LEFT LEG (FL) ==================== -->
+  
+  <!-- Hip Module FL -->
+  <link name="hip_fl">
+    <visual>
+      <origin rpy="3.14159265359 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Hip_Module_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963268 0 0" xyz="0 -0.028 0"/>
+      <geometry>
+        <cylinder length="0.08" radius="0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.575"/>
+      <origin rpy="0 0 0" xyz="0 -0.028 0"/>
+      <inertia ixx="0.00066963541" ixy="0" ixz="0" iyy="0.00066963541" iyz="0" izz="0.0008696875"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Abduction Joint FL -->
+  <joint name="hip_abduction_fl" type="revolute">
+    <parent link="body"/>
+    <child link="hip_fl"/>
+    <axis xyz="1 0 0"/>
+    <origin xyz="0.2263 -0.07 0"/>
+    <limit effort="21" lower="-0.707" upper="0.707" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Upper Leg FL -->
+  <link name="upper_fl">
+    <visual>
+      <origin rpy="3.14159265359 0 0" xyz="0 0.02 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Upper_leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="darkgray"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.103 0.022 0"/>
+      <geometry>
+        <box size="0.206 0.022 0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.775"/>
+      <origin rpy="0 0 0" xyz="-0.103 0 0"/>
+      <inertia ixx="5e-05" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Flexion Joint FL -->
+  <joint name="hip_fl" type="revolute">
+    <parent link="hip_fl"/>
+    <child link="upper_fl"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="0 -0.10098 0"/>
+    <limit effort="21" lower="-1.57" upper="3.14" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Lower Leg FL -->
+  <link name="lower_fl">
+    <visual>
+      <origin rpy="3.14159265359 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Lower_Leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin rpy="0 1.5707963268 0" xyz="0.103 0 0"/>
+      <geometry>
+        <cylinder length="0.206" radius="0.013"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.075"/>
+      <origin rpy="0 0 0" xyz="0.103 0 0"/>
+      <inertia ixx="5e-06" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Knee Joint FL -->
+  <joint name="knee_fl" type="revolute">
+    <parent link="upper_fl"/>
+    <child link="lower_fl"/>
+    <axis xyz="0 -1 0"/>
+    <origin xyz="-0.206 0 0"/>
+    <limit effort="32" lower="-6.28" upper="6.28" velocity="25.1"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Toe FL -->
+  <link name="toe_fl">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.015"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.000025" ixy="0" ixz="0" iyy="0.000025" iyz="0" izz="0.000025"/>
+    </inertial>
+  </link>
+
+  <joint name="toe_joint_fl" type="fixed">
+    <parent link="lower_fl"/>
+    <child link="toe_fl"/>
+    <origin xyz="0.206 0 0"/>
+  </joint>
+
+  <!-- ==================== REAR LEFT LEG (RL) ==================== -->
+  
+  <!-- Hip Module RL -->
+  <link name="hip_rl">
+    <visual>
+      <origin rpy="3.14159265359 3.14159265359 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Hip_Module_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963268 0 0" xyz="0 -0.028 0"/>
+      <geometry>
+        <cylinder length="0.08" radius="0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.575"/>
+      <origin rpy="0 0 0" xyz="0 -0.028 0"/>
+      <inertia ixx="0.00066963541" ixy="0" ixz="0" iyy="0.00066963541" iyz="0" izz="0.0008696875"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Abduction Joint RL -->
+  <joint name="hip_abduction_rl" type="revolute">
+    <parent link="body"/>
+    <child link="hip_rl"/>
+    <axis xyz="1 0 0"/>
+    <origin xyz="-0.2263 -0.07 0"/>
+    <limit effort="21" lower="-0.707" upper="0.707" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Upper Leg RL -->
+  <link name="upper_rl">
+    <visual>
+      <origin rpy="3.14159265359 0 0" xyz="0 0.02 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Upper_leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="darkgray"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.103 0.022 0"/>
+      <geometry>
+        <box size="0.206 0.022 0.055"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.775"/>
+      <origin rpy="0 0 0" xyz="-0.103 0 0"/>
+      <inertia ixx="5e-05" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Hip Flexion Joint RL -->
+  <joint name="hip_rl" type="revolute">
+    <parent link="hip_rl"/>
+    <child link="upper_rl"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="0 -0.10098 0"/>
+    <limit effort="21" lower="-1.57" upper="3.14" velocity="37.7"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Lower Leg RL -->
+  <link name="lower_rl">
+    <visual>
+      <origin rpy="3.14159265359 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="C:/Users/Gabriel Santiago/OneDrive/Desktop/Nvidia Omniverse/AI2C_Tech_Capstone_MS_for_Autonomy/MS_for_autonomy/robots/spirit40_description/meshes/Spirit40_Lower_Leg_transformed.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin rpy="0 1.5707963268 0" xyz="0.103 0 0"/>
+      <geometry>
+        <cylinder length="0.206" radius="0.013"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.075"/>
+      <origin rpy="0 0 0" xyz="0.103 0 0"/>
+      <inertia ixx="5e-06" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Knee Joint RL -->
+  <joint name="knee_rl" type="revolute">
+    <parent link="upper_rl"/>
+    <child link="lower_rl"/>
+    <axis xyz="0 -1 0"/>
+    <origin xyz="-0.206 0 0"/>
+    <limit effort="32" lower="-6.28" upper="6.28" velocity="25.1"/>
+    <dynamics damping="0.01" friction="0.01"/>
+  </joint>
+
+  <!-- Toe RL -->
+  <link name="toe_rl">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.015"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.000025" ixy="0" ixz="0" iyy="0.000025" iyz="0" izz="0.000025"/>
+    </inertial>
+  </link>
+
+  <joint name="toe_joint_rl" type="fixed">
+    <parent link="lower_rl"/>
+    <child link="toe_rl"/>
+    <origin xyz="0.206 0 0"/>
+  </joint>
+
+</robot>

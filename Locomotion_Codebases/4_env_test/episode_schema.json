@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Capstone Episode Record",
+  "description": "Per-episode evaluation metrics for the 4-environment Spot locomotion comparative test.",
+  "type": "object",
+  "required": [
+    "episode_id", "policy", "environment", "completion", "progress",
+    "zone_reached", "stability_score", "mean_roll", "mean_pitch",
+    "height_variance", "mean_ang_vel", "fall_detected", "mean_velocity",
+    "total_energy", "episode_length"
+  ],
+  "properties": {
+    "episode_id": {
+      "type": "string",
+      "pattern": "^(friction|grass|boulder|stairs)_(flat|rough)_ep[0-9]{4}$",
+      "description": "Unique identifier: {env}_{policy}_ep{NNNN}"
+    },
+    "policy": {
+      "type": "string",
+      "enum": ["flat", "rough"],
+      "description": "Locomotion policy type"
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["friction", "grass", "boulder", "stairs"],
+      "description": "Test environment name"
+    },
+    "completion": {
+      "type": "boolean",
+      "description": "Whether robot reached x >= 49.0m"
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 55.0,
+      "description": "Maximum x-position achieved (meters)"
+    },
+    "zone_reached": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Highest difficulty zone entered"
+    },
+    "time_to_complete": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 120.0,
+      "description": "Sim seconds to reach x=49m, or null if incomplete"
+    },
+    "stability_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Composite stability metric (lower = more stable)"
+    },
+    "mean_roll": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Mean absolute roll angle (radians)"
+    },
+    "mean_pitch": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Mean absolute pitch angle (radians)"
+    },
+    "height_variance": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Variance of body height above ground (m^2)"
+    },
+    "mean_ang_vel": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Mean angular velocity magnitude (rad/s)"
+    },
+    "fall_detected": {
+      "type": "boolean",
+      "description": "Whether body dropped below 0.15m above ground"
+    },
+    "fall_location": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 50.0,
+      "description": "X-position of fall, or null if no fall"
+    },
+    "fall_zone": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Zone where fall occurred, or null if no fall"
+    },
+    "mean_velocity": {
+      "type": "number",
+      "description": "Mean forward velocity (m/s)"
+    },
+    "total_energy": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Cumulative |torque * joint_vel| energy (Nm*rad/s)"
+    },
+    "episode_length": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 125.0,
+      "description": "Episode duration in simulation seconds"
+    }
+  },
+  "additionalProperties": false
+}

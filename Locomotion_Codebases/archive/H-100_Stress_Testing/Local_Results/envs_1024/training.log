@@ -1,0 +1,526 @@
+[INFO] Using python from: C:\miniconda3\envs\isaaclab311\python.exe
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: C:\IsaacLab\apps\isaaclab.python.headless.kit
+Loading user config located at: 'c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: c:/miniconda3/envs/isaaclab311/lib/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260212_224424.log
+2026-02-13T03:44:24Z [99ms] [Warning] [omni.ext.plugin] [ext: extensions] Extensions config 'extension.toml' doesn't exist 'c:/isaaclab/source/extensions' or 'c:/isaaclab/source/extensions/config'
+2026-02-13T03:44:25Z [1,043ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-02-13T03:44:26Z [2,525ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-02-13T03:44:26Z [2,541ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-02-13T03:44:42Z [18,534ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+2026-02-13T03:44:42Z [18,535ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Graphics
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 573.44        | Graphics API: D3D12
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA RTX 2000 Ada Generation.. | Yes: 0 |     | 7960    MB | 10de      | de0e0100.. |
+|     |                                  |        |     |            | 28b8      | 0          |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Graphics                |        |     | 128     MB | 8086      | 7c0a0100.. |
+|     |                                  |        |     |            | 7dd5      | 0          |
+|     |                                  |        |     |            | N/A       |            |
+|=============================================================================================|
+| OS: Windows 11 Pro, Version: 10.0 (25H2), Build: 26200, Kernel: 10.0.26100.7623
+| Processor: Intel(R) Core(TM) Ultra 9 185H
+| Cores: 16 | Logical Cores: 22
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 32212 | Free Memory: 13647
+| Total Page/Swap (MB): 58836 | Free Page/Swap: 26976
+|---------------------------------------------------------------------------------------------|
+2026-02-13T03:44:43Z [18,977ms] [Warning] [gpu.foundation.plugin] PCIe link generation current (3) and maximum (4) for device 0 don't match.
+[INFO]: Parsing configuration from: isaaclab_tasks.manager_based.locomotion.velocity.config.anymal_c.rough_env_cfg:AnymalCRoughEnvCfg
+[INFO]: Parsing configuration from: isaaclab_tasks.manager_based.locomotion.velocity.config.anymal_c.agents.rsl_rl_ppo_cfg:AnymalCRoughPPORunnerCfg
+[INFO] Logging experiment in directory: C:\IsaacLab\logs\rsl_rl\anymal_c_rough
+Exact experiment name requested from command line: 2026-02-12_22-44-47
+
+[36m======================================================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: C:\Users\GABRIE~1\AppData\Local\Temp\isaaclab\logs\isaaclab_2026-02-12_22-44-47.log[0m
+[36m======================================================================================================================[0m
+
+[33m22:44:47 [simulation_context.py] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.[0m
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 42
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+[INFO] Generating terrains based on curriculum took : 1.766675 seconds
+[INFO]: Time taken for scene creation : 4.385420 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 1024
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 2.543723 seconds
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
++-------+---------------+------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 3 active terms.
++--------------------------------------+
+| Active Event Terms in Mode: 'startup' |
++----------+---------------------------+
+|  Index   | Name                      |
++----------+---------------------------+
+|    0     | physics_material          |
+|    1     | add_base_mass             |
+|    2     | base_com                  |
++----------+---------------------------+
++---------------------------------------+
+|  Active Event Terms in Mode: 'reset'  |
++--------+------------------------------+
+| Index  | Name                         |
++--------+------------------------------+
+|   0    | base_external_force_torque   |
+|   1    | reset_base                   |
+|   2    | reset_robot_joints           |
++--------+------------------------------+
++----------------------------------------------+
+|    Active Event Terms in Mode: 'interval'    |
++-------+------------+-------------------------+
+| Index | Name       | Interval time range (s) |
++-------+------------+-------------------------+
+|   0   | push_robot |       (10.0, 15.0)      |
++-------+------------+-------------------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 1 groups.
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (235,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_lin_vel                   |     (3,)    |
+|     1     | base_ang_vel                   |     (3,)    |
+|     2     | projected_gravity              |     (3,)    |
+|     3     | velocity_commands              |     (3,)    |
+|     4     | joint_pos                      |    (12,)    |
+|     5     | joint_vel                      |    (12,)    |
+|     6     | actions                        |    (12,)    |
+|     7     | height_scan                    |    (187,)   |
++-----------+--------------------------------+-------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 2 active terms.
++---------------------------------+
+|     Active Termination Terms    |
++-------+--------------+----------+
+| Index | Name         | Time Out |
++-------+--------------+----------+
+|   0   | time_out     |   True   |
+|   1   | base_contact |  False   |
++-------+--------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 11 active terms.
++-----------------------------------------+
+|           Active Reward Terms           |
++-------+----------------------+----------+
+| Index | Name                 |   Weight |
++-------+----------------------+----------+
+|   0   | track_lin_vel_xy_exp |      1.0 |
+|   1   | track_ang_vel_z_exp  |      0.5 |
+|   2   | lin_vel_z_l2         |     -2.0 |
+|   3   | ang_vel_xy_l2        |    -0.05 |
+|   4   | dof_torques_l2       |   -1e-05 |
+|   5   | dof_acc_l2           | -2.5e-07 |
+|   6   | action_rate_l2       |    -0.01 |
+|   7   | feet_air_time        |    0.125 |
+|   8   | undesired_contacts   |     -1.0 |
+|   9   | flat_orientation_l2  |      0.0 |
+|   10  | dof_pos_limits       |      0.0 |
++-------+----------------------+----------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 1 active terms.
++---------------------------+
+|  Active Curriculum Terms  |
++--------+------------------+
+| Index  | Name             |
++--------+------------------+
+|   0    | terrain_levels   |
++--------+------------------+
+
+[INFO]: Completed setting up the environment...
+C:\miniconda3\envs\isaaclab311\Lib\site-packages\torch\nn\modules\module.py:1762: UserWarning: RNN module weights are not part of single contiguous chunk of memory. This means they need to be compacted at every call, possibly greatly increasing memory usage. To compact weights again call flatten_parameters(). (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\native\cudnn\RNN.cpp:1481.)
+  return forward_call(*args, **kwargs)
+2026-02-13T03:44:56Z [31,724ms] [Warning] [omni.physx.fabric.plugin] FabricManager::initializePointInstancer mismatched prototypes on point instancer: /Visuals/Command/velocity_goal.
+2026-02-13T03:44:56Z [31,724ms] [Warning] [omni.physx.fabric.plugin] FabricManager::initializePointInstancer mismatched prototypes on point instancer: /Visuals/Command/velocity_current.
+C:\miniconda3\envs\isaaclab311\Lib\site-packages\rsl_rl\utils\utils.py:244: UserWarning: The observation configuration dictionary 'obs_groups' must contain the 'policy' key. As an observation group with the name 'policy' was found, this is assumed to be the observation set. Consider adding the 'policy' key to the 'obs_groups' dictionary for clarity. This behavior will be removed in a future version.
+  warnings.warn(
+C:\miniconda3\envs\isaaclab311\Lib\site-packages\rsl_rl\utils\utils.py:290: UserWarning: The observation configuration dictionary 'obs_groups' must contain the 'critic' key. As the configuration for 'critic' is missing, the observations from the 'policy' set are used. Consider adding the 'critic' key to the 'obs_groups' dictionary for clarity. This behavior will be removed in a future version.
+  warnings.warn(
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 policy :  ['policy']
+	 critic :  ['policy']
+--------------------------------------------------------------------------------
+ActorCritic.__init__ got unexpected arguments, which will be ignored: ['state_dependent_std']
+Actor MLP: MLP(
+  (0): Linear(in_features=235, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=12, bias=True)
+)
+Critic MLP: MLP(
+  (0): Linear(in_features=235, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=1, bias=True)
+)
+C:\miniconda3\envs\isaaclab311\Lib\site-packages\torch\nn\modules\module.py:1762: UserWarning: RNN module weights are not part of single contiguous chunk of memory. This means they need to be compacted at every call, possibly greatly increasing memory usage. To compact weights again call flatten_parameters(). (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\native\cudnn\RNN.cpp:1481.)
+  return forward_call(*args, **kwargs)
+################################################################################
+                       [1m Learning iteration 0/10 [0m                        
+
+                       Computation: 6228 steps/s (collection: 3.692s, learning 0.253s)
+             Mean action noise std: 1.00
+          Mean value_function loss: 0.0504
+               Mean surrogate loss: 0.0220
+                 Mean entropy loss: 17.0131
+                       Mean reward: -0.39
+               Mean episode length: 11.48
+Episode_Reward/track_lin_vel_xy_exp: 0.0019
+Episode_Reward/track_ang_vel_z_exp: 0.0021
+       Episode_Reward/lin_vel_z_l2: -0.0077
+      Episode_Reward/ang_vel_xy_l2: -0.0028
+     Episode_Reward/dof_torques_l2: -0.0013
+         Episode_Reward/dof_acc_l2: -0.0095
+     Episode_Reward/action_rate_l2: -0.0028
+      Episode_Reward/feet_air_time: -0.0003
+ Episode_Reward/undesired_contacts: -0.0000
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.5375
+Metrics/base_velocity/error_vel_xy: 0.0203
+Metrics/base_velocity/error_vel_yaw: 0.0159
+      Episode_Termination/time_out: 0.0181
+  Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 24576
+                    Iteration time: 3.95s
+                      Time elapsed: 00:00:03
+                               ETA: 00:00:39
+
+Could not find git repository in C:\miniconda3\envs\isaaclab311\Lib\site-packages\rsl_rl\__init__.py. Skipping.
+Storing git diff for 'IsaacLab' in: C:\IsaacLab\logs\rsl_rl\anymal_c_rough\2026-02-12_22-44-47\git\IsaacLab.diff
+################################################################################
+                       [1m Learning iteration 1/10 [0m                        
+
+                       Computation: 9071 steps/s (collection: 2.533s, learning 0.176s)
+             Mean action noise std: 1.00
+          Mean value_function loss: 0.0286
+               Mean surrogate loss: -0.0041
+                 Mean entropy loss: 16.9984
+                       Mean reward: -0.83
+               Mean episode length: 26.41
+Episode_Reward/track_lin_vel_xy_exp: 0.0074
+Episode_Reward/track_ang_vel_z_exp: 0.0058
+       Episode_Reward/lin_vel_z_l2: -0.0212
+      Episode_Reward/ang_vel_xy_l2: -0.0094
+     Episode_Reward/dof_torques_l2: -0.0047
+         Episode_Reward/dof_acc_l2: -0.0204
+     Episode_Reward/action_rate_l2: -0.0086
+      Episode_Reward/feet_air_time: -0.0009
+ Episode_Reward/undesired_contacts: -0.0050
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.5031
+Metrics/base_velocity/error_vel_xy: 0.0635
+Metrics/base_velocity/error_vel_yaw: 0.0539
+      Episode_Termination/time_out: 0.0454
+  Episode_Termination/base_contact: 0.0081
+--------------------------------------------------------------------------------
+                   Total timesteps: 49152
+                    Iteration time: 2.71s
+                      Time elapsed: 00:00:06
+                               ETA: 00:00:29
+
+################################################################################
+                       [1m Learning iteration 2/10 [0m                        
+
+                       Computation: 8581 steps/s (collection: 2.679s, learning 0.185s)
+             Mean action noise std: 0.98
+          Mean value_function loss: 0.0223
+               Mean surrogate loss: -0.0098
+                 Mean entropy loss: 16.9050
+                       Mean reward: -1.32
+               Mean episode length: 43.96
+Episode_Reward/track_lin_vel_xy_exp: 0.0127
+Episode_Reward/track_ang_vel_z_exp: 0.0088
+       Episode_Reward/lin_vel_z_l2: -0.0236
+      Episode_Reward/ang_vel_xy_l2: -0.0150
+     Episode_Reward/dof_torques_l2: -0.0078
+         Episode_Reward/dof_acc_l2: -0.0303
+     Episode_Reward/action_rate_l2: -0.0140
+      Episode_Reward/feet_air_time: -0.0015
+ Episode_Reward/undesired_contacts: -0.0119
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.4589
+Metrics/base_velocity/error_vel_xy: 0.0909
+Metrics/base_velocity/error_vel_yaw: 0.0932
+      Episode_Termination/time_out: 0.0708
+  Episode_Termination/base_contact: 0.0267
+--------------------------------------------------------------------------------
+                   Total timesteps: 73728
+                    Iteration time: 2.86s
+                      Time elapsed: 00:00:09
+                               ETA: 00:00:25
+
+################################################################################
+                       [1m Learning iteration 3/10 [0m                        
+
+                       Computation: 8523 steps/s (collection: 2.700s, learning 0.183s)
+             Mean action noise std: 0.97
+          Mean value_function loss: 0.0168
+               Mean surrogate loss: -0.0101
+                 Mean entropy loss: 16.7714
+                       Mean reward: -1.75
+               Mean episode length: 62.03
+Episode_Reward/track_lin_vel_xy_exp: 0.0141
+Episode_Reward/track_ang_vel_z_exp: 0.0151
+       Episode_Reward/lin_vel_z_l2: -0.0240
+      Episode_Reward/ang_vel_xy_l2: -0.0198
+     Episode_Reward/dof_torques_l2: -0.0114
+         Episode_Reward/dof_acc_l2: -0.0356
+     Episode_Reward/action_rate_l2: -0.0201
+      Episode_Reward/feet_air_time: -0.0020
+ Episode_Reward/undesired_contacts: -0.0212
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.4228
+Metrics/base_velocity/error_vel_xy: 0.1383
+Metrics/base_velocity/error_vel_yaw: 0.1236
+      Episode_Termination/time_out: 0.0884
+  Episode_Termination/base_contact: 0.0437
+--------------------------------------------------------------------------------
+                   Total timesteps: 98304
+                    Iteration time: 2.88s
+                      Time elapsed: 00:00:12
+                               ETA: 00:00:21
+
+################################################################################
+                       [1m Learning iteration 4/10 [0m                        
+
+                       Computation: 8458 steps/s (collection: 2.726s, learning 0.179s)
+             Mean action noise std: 0.96
+          Mean value_function loss: 0.0144
+               Mean surrogate loss: -0.0124
+                 Mean entropy loss: 16.6478
+                       Mean reward: -2.15
+               Mean episode length: 80.42
+Episode_Reward/track_lin_vel_xy_exp: 0.0273
+Episode_Reward/track_ang_vel_z_exp: 0.0147
+       Episode_Reward/lin_vel_z_l2: -0.0239
+      Episode_Reward/ang_vel_xy_l2: -0.0242
+     Episode_Reward/dof_torques_l2: -0.0143
+         Episode_Reward/dof_acc_l2: -0.0423
+     Episode_Reward/action_rate_l2: -0.0253
+      Episode_Reward/feet_air_time: -0.0026
+ Episode_Reward/undesired_contacts: -0.0367
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.3960
+Metrics/base_velocity/error_vel_xy: 0.1494
+Metrics/base_velocity/error_vel_yaw: 0.1800
+      Episode_Termination/time_out: 0.1055
+  Episode_Termination/base_contact: 0.0547
+--------------------------------------------------------------------------------
+                   Total timesteps: 122880
+                    Iteration time: 2.91s
+                      Time elapsed: 00:00:15
+                               ETA: 00:00:18
+
+################################################################################
+                       [1m Learning iteration 5/10 [0m                        
+
+                       Computation: 8260 steps/s (collection: 2.789s, learning 0.187s)
+             Mean action noise std: 0.95
+          Mean value_function loss: 0.0122
+               Mean surrogate loss: -0.0131
+                 Mean entropy loss: 16.5188
+                       Mean reward: -2.43
+               Mean episode length: 95.88
+Episode_Reward/track_lin_vel_xy_exp: 0.0209
+Episode_Reward/track_ang_vel_z_exp: 0.0187
+       Episode_Reward/lin_vel_z_l2: -0.0261
+      Episode_Reward/ang_vel_xy_l2: -0.0277
+     Episode_Reward/dof_torques_l2: -0.0169
+         Episode_Reward/dof_acc_l2: -0.0473
+     Episode_Reward/action_rate_l2: -0.0297
+      Episode_Reward/feet_air_time: -0.0034
+ Episode_Reward/undesired_contacts: -0.0396
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.3732
+Metrics/base_velocity/error_vel_xy: 0.2040
+Metrics/base_velocity/error_vel_yaw: 0.2060
+      Episode_Termination/time_out: 0.1252
+  Episode_Termination/base_contact: 0.0584
+--------------------------------------------------------------------------------
+                   Total timesteps: 147456
+                    Iteration time: 2.98s
+                      Time elapsed: 00:00:18
+                               ETA: 00:00:15
+
+################################################################################
+                       [1m Learning iteration 6/10 [0m                        
+
+                       Computation: 7799 steps/s (collection: 2.948s, learning 0.203s)
+             Mean action noise std: 0.95
+          Mean value_function loss: 0.0109
+               Mean surrogate loss: -0.0142
+                 Mean entropy loss: 16.3935
+                       Mean reward: -2.99
+               Mean episode length: 124.35
+Episode_Reward/track_lin_vel_xy_exp: 0.0245
+Episode_Reward/track_ang_vel_z_exp: 0.0252
+       Episode_Reward/lin_vel_z_l2: -0.0288
+      Episode_Reward/ang_vel_xy_l2: -0.0290
+     Episode_Reward/dof_torques_l2: -0.0205
+         Episode_Reward/dof_acc_l2: -0.0517
+     Episode_Reward/action_rate_l2: -0.0345
+      Episode_Reward/feet_air_time: -0.0033
+ Episode_Reward/undesired_contacts: -0.0567
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.3469
+Metrics/base_velocity/error_vel_xy: 0.2615
+Metrics/base_velocity/error_vel_yaw: 0.2132
+      Episode_Termination/time_out: 0.1439
+  Episode_Termination/base_contact: 0.0642
+--------------------------------------------------------------------------------
+                   Total timesteps: 172032
+                    Iteration time: 3.15s
+                      Time elapsed: 00:00:21
+                               ETA: 00:00:12
+
+################################################################################
+                       [1m Learning iteration 7/10 [0m                        
+
+                       Computation: 8173 steps/s (collection: 2.835s, learning 0.172s)
+             Mean action noise std: 0.93
+          Mean value_function loss: 0.0094
+               Mean surrogate loss: -0.0137
+                 Mean entropy loss: 16.2717
+                       Mean reward: -3.42
+               Mean episode length: 152.20
+Episode_Reward/track_lin_vel_xy_exp: 0.0428
+Episode_Reward/track_ang_vel_z_exp: 0.0281
+       Episode_Reward/lin_vel_z_l2: -0.0268
+      Episode_Reward/ang_vel_xy_l2: -0.0339
+     Episode_Reward/dof_torques_l2: -0.0241
+         Episode_Reward/dof_acc_l2: -0.0577
+     Episode_Reward/action_rate_l2: -0.0393
+      Episode_Reward/feet_air_time: -0.0040
+ Episode_Reward/undesired_contacts: -0.0655
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.3087
+Metrics/base_velocity/error_vel_xy: 0.2550
+Metrics/base_velocity/error_vel_yaw: 0.2568
+      Episode_Termination/time_out: 0.1700
+  Episode_Termination/base_contact: 0.0729
+--------------------------------------------------------------------------------
+                   Total timesteps: 196608
+                    Iteration time: 3.01s
+                      Time elapsed: 00:00:24
+                               ETA: 00:00:09
+
+################################################################################
+                       [1m Learning iteration 8/10 [0m                        
+
+                       Computation: 8376 steps/s (collection: 2.780s, learning 0.154s)
+             Mean action noise std: 0.93
+          Mean value_function loss: 0.0079
+               Mean surrogate loss: -0.0134
+                 Mean entropy loss: 16.1394
+                       Mean reward: -3.66
+               Mean episode length: 177.11
+Episode_Reward/track_lin_vel_xy_exp: 0.0500
+Episode_Reward/track_ang_vel_z_exp: 0.0273
+       Episode_Reward/lin_vel_z_l2: -0.0289
+      Episode_Reward/ang_vel_xy_l2: -0.0412
+     Episode_Reward/dof_torques_l2: -0.0270
+         Episode_Reward/dof_acc_l2: -0.0636
+     Episode_Reward/action_rate_l2: -0.0450
+      Episode_Reward/feet_air_time: -0.0046
+ Episode_Reward/undesired_contacts: -0.0595
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.2712
+Metrics/base_velocity/error_vel_xy: 0.2755
+Metrics/base_velocity/error_vel_yaw: 0.3169
+      Episode_Termination/time_out: 0.1931
+  Episode_Termination/base_contact: 0.0846
+--------------------------------------------------------------------------------
+                   Total timesteps: 221184
+                    Iteration time: 2.93s
+                      Time elapsed: 00:00:27
+                               ETA: 00:00:06
+
+################################################################################
+                       [1m Learning iteration 9/10 [0m                        
+
+                       Computation: 8463 steps/s (collection: 2.747s, learning 0.157s)
+             Mean action noise std: 0.92
+          Mean value_function loss: 0.0077
+               Mean surrogate loss: -0.0121
+                 Mean entropy loss: 16.0255
+                       Mean reward: -4.12
+               Mean episode length: 200.60
+Episode_Reward/track_lin_vel_xy_exp: 0.0296
+Episode_Reward/track_ang_vel_z_exp: 0.0291
+       Episode_Reward/lin_vel_z_l2: -0.0308
+      Episode_Reward/ang_vel_xy_l2: -0.0427
+     Episode_Reward/dof_torques_l2: -0.0295
+         Episode_Reward/dof_acc_l2: -0.0743
+     Episode_Reward/action_rate_l2: -0.0494
+      Episode_Reward/feet_air_time: -0.0050
+ Episode_Reward/undesired_contacts: -0.0602
+Episode_Reward/flat_orientation_l2: 0.0000
+     Episode_Reward/dof_pos_limits: 0.0000
+         Curriculum/terrain_levels: 3.2310
+Metrics/base_velocity/error_vel_xy: 0.3616
+Metrics/base_velocity/error_vel_yaw: 0.3626
+      Episode_Termination/time_out: 0.2224
+  Episode_Termination/base_contact: 0.0926
+--------------------------------------------------------------------------------
+                   Total timesteps: 245760
+                    Iteration time: 2.90s
+                      Time elapsed: 00:00:30
+                               ETA: 00:00:03
+
+Training time: 31.72 seconds

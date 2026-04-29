@@ -1,0 +1,8 @@
+envs=1024
+exit_code=0
+wall_time=64.95s
+Training time: 31.72 seconds
+peak_gpu_util=68.0%
+peak_vram=3643.0MiB
+peak_temp=58.0C
+peak_power=29.51W

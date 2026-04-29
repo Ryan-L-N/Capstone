@@ -1,0 +1,6 @@
+# Training artifacts for Loco_Policy_5_Final_Capstone_Policy — do not commit
+logs/
+checkpoints/
+*.pt
+__pycache__/
+*.pyc
