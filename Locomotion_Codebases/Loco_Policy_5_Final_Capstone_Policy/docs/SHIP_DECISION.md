@@ -163,16 +163,19 @@ and not part of the deliverable.
    ≥31m is an open question — needs the local rendered smoke result
    that's still running.
    Target: **sustained 2.0 m/s through zones 1-2** (3-10cm baby risers
-   should be fast) and **reach ≥31m at the boundary into zone 4.**
+   should be fast), **slow to 1.5 m/s past zone 2** (zones 3+ where
+   risers ramp 17cm → 23cm), and **reach ≥31m at the boundary into
+   zone 4.**
    To get there:
    - Same recipe as friction/boulder: widen `lin_vel_x` cmd range
      1.5 → 3.0 m/s, fine-tune from 22100 with Bug #25/#29 stack at
      `lr_max=3e-5`.
-   - **Critical:** retain `--zone_slowdown_cap` for zones 3+ (17cm+
-     risers). Speed-induced flips on tall risers are the dominant
-     failure mode here — Phase-9 lock was 0.67 m/s past x≥20m for
-     boulder, and stairs likely needs an even tighter cap (0.5 m/s)
-     past x≥20m to avoid the 17cm-riser tip-over.
+   - Use the `--zone_slowdown_cap 1.5` flag for the runtime config:
+     full 2.0 m/s in zones 1-2, capped to 1.5 m/s past x≥20m for
+     zones 3-5 (handles the 17-23cm risers without tipping). Memory's
+     Phase-9 boulder lock was 0.67 m/s — stairs is faster than boulder
+     because the geometry is more predictable (steady riser cadence
+     vs. random rocks), so 1.5 should be sustainable.
    - Add stair-zone-aware reward shaping during the fine-tune: bonus
      for landing both forefeet on a tread surface (anti-foot-drop
      into riser-gap), preserve the existing terrain_relative_height
