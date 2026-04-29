@@ -20,16 +20,16 @@ from isaaclab.utils import configclass
 
 
 @configclass
-class ParkourNavPPORunnerCfg(SpotS2RExpertPPORunnerCfg):
+class FinalCapstonePolicyPPORunnerCfg(SpotS2RExpertPPORunnerCfg):
     """PPO config for the unified teacher policy.
 
     Key deltas vs SIM_TO_REAL expert:
-      - experiment_name -> spot_parkour_nav
+      - experiment_name -> spot_final_capstone_policy
       - num_steps_per_env 24 -> 32 (longer horizons due to nav waypoints)
       - obs_groups wires `critic` ObsGroup into the RSL-RL critic network
     """
 
-    experiment_name: str = "spot_parkour_nav"
+    experiment_name: str = "spot_final_capstone_policy"
     run_name: str = "parkour_nav_v1"
 
     num_steps_per_env: int = 32

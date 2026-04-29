@@ -1,6 +1,6 @@
-"""Unified eval launcher for PARKOUR_NAV teacher/student policies.
+"""Unified eval launcher for Final Capstone Policy teacher/student policies.
 
-Wraps the two existing eval entry points with the PARKOUR_NAV-specific flags:
+Wraps the two existing eval entry points with the Loco_Policy_5_Final_Capstone_Policy-specific flags:
   - 4_env_test (friction/grass/boulder/stairs):
         run_capstone_eval.py --mason --action_scale 0.3 [--env {...}]
   - Cole skill-nav-lite:
@@ -12,15 +12,15 @@ Wraps the two existing eval entry points with the PARKOUR_NAV-specific flags:
 The wrapper runs one suite at a time (shared Isaac Sim GPU lock).
 
 Usage (teacher quick smoke after Phase 2, rendered — user can watch):
-    python scripts/eval_parkour_nav.py --checkpoint logs/.../model_8000.pt \
+    python scripts/eval.py --checkpoint logs/.../model_8000.pt \
         --target 4_env --envs friction,stairs
 
 Usage (full battery on H100 post-training, headless):
-    python scripts/eval_parkour_nav.py --checkpoint logs/.../model_8000.pt \
+    python scripts/eval.py --checkpoint logs/.../model_8000.pt \
         --target both --headless --num_episodes 3
 
 Usage (Cole quarter density only, 3-seed):
-    python scripts/eval_parkour_nav.py --checkpoint logs/.../model_8000.pt \
+    python scripts/eval.py --checkpoint logs/.../model_8000.pt \
         --target cole --cole_density quarter --seeds 42,123,7
 """
 
@@ -40,7 +40,7 @@ _COLE_EVAL = os.path.join(
 )
 _PYTHON = sys.executable  # same conda env as caller
 
-PARKOUR_NAV_ACTION_SCALE = 0.3
+FINAL_CAPSTONE_POLICY_ACTION_SCALE = 0.3
 DEFAULT_ENVS = ["friction", "grass", "boulder", "stairs"]
 
 # Cole recipes cribbed from memory/skill_nav_lite_integration.md
@@ -78,7 +78,7 @@ def run_4env(args) -> int:
         cmd = [
             _PYTHON, _CAPSTONE_EVAL,
             "--robot", "spot", "--policy", "rough", "--env", env,
-            "--mason", "--action_scale", str(PARKOUR_NAV_ACTION_SCALE),
+            "--mason", "--action_scale", str(FINAL_CAPSTONE_POLICY_ACTION_SCALE),
             "--num_episodes", str(args.num_episodes),
             "--checkpoint", os.path.abspath(args.checkpoint),
             "--output_dir", out_dir,
@@ -104,7 +104,7 @@ def run_cole(args) -> int:
         cmd = [
             _PYTHON, _COLE_EVAL,
             "--loco_checkpoint", os.path.abspath(args.checkpoint),
-            "--loco_action_scale", str(PARKOUR_NAV_ACTION_SCALE),
+            "--loco_action_scale", str(FINAL_CAPSTONE_POLICY_ACTION_SCALE),
             "--loco_decimation", str(args.cole_decimation),
             "--cole_arena", "--rough_heightscan",
             "--episodes", str(args.num_episodes),
@@ -132,9 +132,9 @@ def run_cole(args) -> int:
 
 
 def main():
-    p = argparse.ArgumentParser(description="PARKOUR_NAV eval launcher")
+    p = argparse.ArgumentParser(description="Loco_Policy_5_Final_Capstone_Policy eval launcher")
     p.add_argument("--checkpoint", required=True,
-                   help="Path to PARKOUR_NAV teacher or student .pt")
+                   help="Path to Final Capstone Policy teacher or student .pt")
     p.add_argument("--target", choices=["4_env", "cole", "both"], default="both")
     p.add_argument("--envs", type=str, default=None,
                    help="Comma-list of 4_env arenas (default: all 4). "
@@ -145,7 +145,7 @@ def main():
                    help="Comma-list of seeds for Cole. 4_env uses the first.")
     p.add_argument("--cole_density", choices=["quarter", "max"], default="quarter")
     p.add_argument("--cole_decimation", type=int, default=1,
-                   help="Decimation for Cole arena locomotion. PARKOUR_NAV teacher "
+                   help="Decimation for Cole arena locomotion. Final Capstone Policy teacher "
                         "trains @ 50Hz — dec=1 with world.step()=10 substeps keeps "
                         "policy at 50Hz (matches rough-policy Cole integration).")
     p.add_argument("--headless", action="store_true",

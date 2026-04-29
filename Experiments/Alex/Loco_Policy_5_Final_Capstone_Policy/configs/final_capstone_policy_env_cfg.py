@@ -36,9 +36,9 @@ _SIM2REAL_ROOT = os.path.abspath(
 if _SIM2REAL_ROOT not in sys.path:
     sys.path.insert(0, _SIM2REAL_ROOT)
 
-_PARKOUR_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if _PARKOUR_ROOT not in sys.path:
-    sys.path.insert(0, _PARKOUR_ROOT)
+_LOCO5_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _LOCO5_ROOT not in sys.path:
+    sys.path.insert(0, _LOCO5_ROOT)
 
 from configs.base_s2r_env_cfg import (
     SpotS2RBaseEnvCfg,
@@ -55,7 +55,7 @@ from modules import privileged_obs
 # =============================================================================
 
 @configclass
-class ParkourNavObservationsCfg(S2RObservationsCfg):
+class FinalCapstonePolicyObservationsCfg(S2RObservationsCfg):
     """Extends base obs with a privileged critic group.
 
     policy group = Mason-235 (187-ray scan + proprio + actions) with noise
@@ -130,7 +130,7 @@ class ParkourNavObservationsCfg(S2RObservationsCfg):
 # =============================================================================
 
 @configclass
-class ParkourNavEventCfg(S2REventCfg):
+class FinalCapstonePolicyEventCfg(S2REventCfg):
     """Overrides base DR with parkour-paper ranges."""
 
     def __post_init__(self):
@@ -146,7 +146,7 @@ class ParkourNavEventCfg(S2REventCfg):
         self.add_base_mass.params["mass_distribution_params"] = (0.0, 3.0)
 
         self.push_robot.interval_range_s = (6.0, 10.0)
-        # Hail Mary revert: action_scale back to 0.3 so push range returns to
+        # Final Capstone Policy revert: action_scale back to 0.3 so push range returns to
         # Phase-FW-Plus baseline (±0.6 m/s). Phase-Final's ±0.8 was tuned for
         # action_scale=0.5; mismatched here.
         self.push_robot.params["velocity_range"] = {
@@ -175,7 +175,7 @@ class ParkourNavEventCfg(S2REventCfg):
 # =============================================================================
 
 @configclass
-class ParkourNavRewardsCfg(S2RRewardsCfg):
+class FinalCapstonePolicyRewardsCfg(S2RRewardsCfg):
     """Stripped-down reward stack cribbed from legged_gym + extreme_parkour.
 
     The V19 post-mortem proved that altitude-style rewards destabilize
@@ -188,13 +188,13 @@ class ParkourNavRewardsCfg(S2RRewardsCfg):
         if hasattr(self, "directional_progress"):
             self.directional_progress.weight = 0.0
 
-        # Hail Mary revert: action_scale 0.5 → 0.3, so action_smoothness
+        # Final Capstone Policy revert: action_scale 0.5 → 0.3, so action_smoothness
         # weight returns to the Phase-9/FW-Plus value (-1.5). Phase-Final's
         # -2.0 was a compensation for the bigger 0.5 action delta; not needed
         # at 0.3.
         self.action_smoothness.weight = -1.5
 
-        # Hail Mary revert: joint_torques weight back to S2R baseline (-1e-3).
+        # Final Capstone Policy revert: joint_torques weight back to S2R baseline (-1e-3).
         # Phase-Final tightened to -1.5e-3 to compensate for action_scale=0.5
         # + cmd_vx 4.0 — both reverted, so penalty returns to baseline.
         self.joint_torques.weight = -1.0e-3
@@ -220,7 +220,7 @@ class ParkourNavRewardsCfg(S2RRewardsCfg):
 
 # Base Mason HybridCommandsCfg already provides vx/vy/ωz resampling.
 # We override ranges; command curriculum to be added via a custom curriculum term.
-# TODO: implement ParkourCommandCurriculumTerm that widens ranges as
+# TODO: implement FinalCapstoneCommandCurriculumTerm that widens ranges as
 #       mean terrain_level crosses thresholds:
 #         level < 2:  vx [0.2, 0.8],  vy [-0.3, 0.3],  ωz [-0.5, 0.5]
 #         level 2-5:  vx [0.3, 1.2],  vy [-0.6, 0.6],  ωz [-1.0, 1.0]
@@ -232,21 +232,21 @@ class ParkourNavRewardsCfg(S2RRewardsCfg):
 # =============================================================================
 
 @configclass
-class ParkourNavEnvCfg(SpotS2RBaseEnvCfg):
+class FinalCapstonePolicyEnvCfg(SpotS2RBaseEnvCfg):
     """Unified parkour + nav environment.
 
     Inherits SIM_TO_REAL base (hardened DR, Mason obs, soft termination).
     Overrides: wider DR, asymmetric critic, parkour rewards, obstacle scatter.
     """
 
-    observations: ParkourNavObservationsCfg = ParkourNavObservationsCfg()
-    events: ParkourNavEventCfg = ParkourNavEventCfg()
-    rewards: ParkourNavRewardsCfg = ParkourNavRewardsCfg()
+    observations: FinalCapstonePolicyObservationsCfg = FinalCapstonePolicyObservationsCfg()
+    events: FinalCapstonePolicyEventCfg = FinalCapstonePolicyEventCfg()
+    rewards: FinalCapstonePolicyRewardsCfg = FinalCapstonePolicyRewardsCfg()
 
     def __post_init__(self):
         super().__post_init__()
 
-        # --- Hail Mary: action_scale = 0.3 (Phase-9/FW-Plus baseline) ---
+        # --- Final Capstone Policy: action_scale = 0.3 (Phase-9/FW-Plus baseline) ---
         # Phase-Final tried 0.5 (Cheng 2024 default for ANYmal); the from-
         # scratch run collapsed under Bug #25 slow bleed. The 22100 ckpt
         # (project speed record + zone-5 stair survival) was trained at 0.3,
@@ -256,8 +256,8 @@ class ParkourNavEnvCfg(SpotS2RBaseEnvCfg):
             self.actions.joint_pos.scale = 0.3
 
         # --- Swap terrain to unified parkour curriculum ---
-        from pn_cfg.parkour_nav_terrain_cfg import PARKOUR_NAV_TERRAINS_CFG
-        self.scene.terrain.terrain_generator = PARKOUR_NAV_TERRAINS_CFG
+        from configs.final_capstone_policy_terrain_cfg import FINAL_CAPSTONE_POLICY_TERRAINS_CFG
+        self.scene.terrain.terrain_generator = FINAL_CAPSTONE_POLICY_TERRAINS_CFG
 
         # --- Tighten command ranges to parkour-realistic values ---
         # Mason defaults (-2 to 3 m/s vx, ±1.5 m/s vy, ±2 rad/s ωz) are fine
@@ -279,7 +279,7 @@ class ParkourNavEnvCfg(SpotS2RBaseEnvCfg):
         # flat ground (made worse by harder-terrain gait drift). Widening to
         # 2.0 covers that edge case with margin.
         # Phase-6 backward (-1.0 vx floor) and lateral (0.8 vy) kept.
-        # Hail Mary revert: lin_vel_x max 4.0 → 1.5 m/s. Phase-Final's 4.0
+        # Final Capstone Policy revert: lin_vel_x max 4.0 → 1.5 m/s. Phase-Final's 4.0
         # was the Cheng 2024 ceiling, and combined with action_scale=0.5 +
         # the 50% stair-relevant terrain mix produced the slow-bleed
         # collapse. Phase-9 / FW-Plus's max-1.5 m/s produced the project-

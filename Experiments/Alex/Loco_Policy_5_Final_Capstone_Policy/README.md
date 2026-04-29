@@ -1,4 +1,4 @@
-# PARKOUR_NAV
+# Loco_Policy_5_Final_Capstone_Policy
 
 Unified locomotion + navigation policy for Boston Dynamics Spot.
 
@@ -15,13 +15,13 @@ curriculum, legged_gym DR ranges. Sim2real baked in from iteration 0.
 ## Directory
 
 ```
-PARKOUR_NAV/
+Loco_Policy_5_Final_Capstone_Policy/
 ├── scripts/
-│   └── train_parkour_nav.py          # entry point (not yet wired to H100)
+│   └── train.py          # entry point (not yet wired to H100)
 ├── configs/
-│   ├── parkour_nav_env_cfg.py        # env: obs groups, DR, commands, rewards
-│   ├── parkour_nav_terrain_cfg.py    # unified curriculum (flat→parkour)
-│   └── parkour_nav_agent_cfg.py      # PPO: arch, lr, observation history
+│   ├── final_capstone_policy_env_cfg.py        # env: obs groups, DR, commands, rewards
+│   ├── final_capstone_policy_terrain_cfg.py    # unified curriculum (flat→parkour)
+│   └── final_capstone_policy_agent_cfg.py      # PPO: arch, lr, observation history
 ├── rewards/                           # (symlink / reuse SIM_TO_REAL/rewards/)
 ├── envs/                              # (arena blending, obstacle scatter)
 ├── modules/                           # (reuse NAV_ALEX/modules/skill_nav_lite)

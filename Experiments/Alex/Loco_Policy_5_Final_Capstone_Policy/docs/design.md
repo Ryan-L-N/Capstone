@@ -1,4 +1,4 @@
-# PARKOUR_NAV — Unified Spot Policy Design Doc
+# Loco_Policy_5_Final_Capstone_Policy — Unified Spot Policy Design Doc
 
 **Goal:** One RL policy that passes **both** the 4-environment terrain test
 (friction / grass / boulder / stairs ≤23cm risers) **and** Cole's dense
@@ -75,7 +75,7 @@ Locked by design decision in `README.md` — do not re-litigate.
 ## 4. Three-week plan
 
 **Week 1 — infra + teacher baseline**
-- Wire ParkourNavEnvCfg into gym registry (remaining TODOs in scaffold).
+- Wire FinalCapstonePolicyEnvCfg into gym registry (remaining TODOs in scaffold).
 - Implement asymmetric critic obs group routing verification.
 - Implement obstacle scatter module (reuse NAV_ALEX/online_obstacle_tracker).
 - Launch teacher training, 2048 envs × 3000 iters as smoke test.

@@ -1,4 +1,4 @@
-"""Open-side SWITCHBACK stair sub-terrain — Hail Mary build.
+"""Open-side SWITCHBACK stair sub-terrain — Final Capstone Policy build.
 
 Two stair flights connected by a flat landing, second flight rotated 180°
 from first. Models the SM_Staircase_01 topology AFTER Colby's riser-baking

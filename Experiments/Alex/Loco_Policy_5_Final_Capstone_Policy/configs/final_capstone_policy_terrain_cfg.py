@@ -21,11 +21,11 @@ import sys
 import isaaclab.terrains as terrain_gen
 from isaaclab.terrains.terrain_generator_cfg import TerrainGeneratorCfg
 
-# Phase-10: register PARKOUR_NAV custom sub-terrains
-_PARKOUR_NAV_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if _PARKOUR_NAV_ROOT not in sys.path:
-    sys.path.insert(0, _PARKOUR_NAV_ROOT)
-from pn_terrains import MeshOpenRiserStairsTerrainCfg  # noqa: E402, F401  # historical, retained for compatibility
+# Phase-10: register Loco_Policy_5_Final_Capstone_Policy custom sub-terrains
+_LOCO5_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _LOCO5_ROOT not in sys.path:
+    sys.path.insert(0, _LOCO5_ROOT)
+from terrains import MeshOpenRiserStairsTerrainCfg  # noqa: E402, F401  # historical, retained for compatibility
 
 
 _COMMON = dict(
@@ -59,7 +59,7 @@ _OPEN_RISER_SWITCHBACK_RANGE = (0.15, 0.18)  # Phase-Final-B: 0.20 → 0.18
 _BOULDER_RANGE = (0.03, 0.60)             # KEEP — Phase-8 calmed range
 
 
-PARKOUR_NAV_TERRAINS_CFG = TerrainGeneratorCfg(
+FINAL_CAPSTONE_POLICY_TERRAINS_CFG = TerrainGeneratorCfg(
     **_COMMON,
     sub_terrains={
         # =====================================================================

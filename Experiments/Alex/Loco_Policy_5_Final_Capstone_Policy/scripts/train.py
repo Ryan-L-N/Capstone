@@ -6,17 +6,17 @@ Mirrors SIM_TO_REAL/scripts/train_expert.py structure but with:
   - asymmetric critic routing auto-enabled when cfg has a `critic` ObsGroup
 
 Usage (H100 teacher, Phase 1):
-    python scripts/train_parkour_nav.py --phase teacher --headless \
+    python scripts/train.py --phase teacher --headless \
         --num_envs 4096 --max_iterations 8000 --save_interval 100 \
         --max_noise_std 0.5
 
 Usage (H100 student distill, Phase 2):
-    python scripts/train_parkour_nav.py --phase student \
-        --teacher_ckpt ~/PARKOUR_NAV/logs/rsl_rl/spot_parkour_nav/.../model_8000.pt \
+    python scripts/train.py --phase student \
+        --teacher_ckpt ~/Loco_Policy_5_Final_Capstone_Policy/logs/rsl_rl/spot_final_capstone_policy/.../model_8000.pt \
         --headless --num_envs 4096 --max_iterations 6000
 
 Usage (local 32-env smoke):
-    python scripts/train_parkour_nav.py --phase teacher --num_envs 32 \
+    python scripts/train.py --phase teacher --num_envs 32 \
         --max_iterations 5 --no_wandb --headless
 """
 
@@ -93,28 +93,23 @@ from rsl_rl.runners import OnPolicyRunner
 from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 import isaaclab_tasks  # noqa: F401
 
-# Add multi_robot_training + SIM_TO_REAL to path so progressive_s2r wrapper
-# and quadruped_locomotion utils import cleanly.
-_ALEX_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-for _p in [
-    os.path.join(_ALEX_ROOT, "multi_robot_training", "source", "quadruped_locomotion"),
-    os.path.join(_ALEX_ROOT, "multi_robot_training", "multi_robot_training",
-                 "source", "quadruped_locomotion"),
-    os.path.expanduser("~/multi_robot_training_new/source/quadruped_locomotion"),
-]:
-    _p = os.path.abspath(_p)
+# Path setup for the reorganized layout: this Loco_Policy_5 root +
+# Loco_Policy_3_Student_Teacher_Training (parent of S2RBase + the
+# progressive_s2r wrapper) + Loco_Policy_2_ARL_Hybrid/configs (the
+# SpotARLHybridEnvCfg the S2R base inherits from) + Loco_Shared (the
+# quadruped_locomotion shared package).
+_LOCO5_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO5_ROOT, ".."))
+for _p in (
+    _LOCO5_ROOT,
+    os.path.join(_ALEX_ROOT, "Loco_Policy_3_Student_Teacher_Training"),
+    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
+    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+):
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)
 
 import quadruped_locomotion  # noqa: F401
-
-_S2R_ROOT = os.path.abspath(os.path.join(_ALEX_ROOT, "SIM_TO_REAL"))
-if _S2R_ROOT not in sys.path:
-    sys.path.insert(0, _S2R_ROOT)
-
-_PARKOUR_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if _PARKOUR_ROOT not in sys.path:
-    sys.path.insert(0, _PARKOUR_ROOT)
 
 from quadruped_locomotion.utils.training_utils import (
     clamp_noise_std,
@@ -127,44 +122,44 @@ from quadruped_locomotion.utils.lr_schedule import (
 )
 from wrappers.progressive_s2r import ProgressiveS2RWrapper
 
-from pn_cfg.parkour_nav_env_cfg import ParkourNavEnvCfg
-from pn_cfg.parkour_nav_agent_cfg import ParkourNavPPORunnerCfg
+from configs.final_capstone_policy_env_cfg import FinalCapstonePolicyEnvCfg
+from configs.final_capstone_policy_agent_cfg import FinalCapstonePolicyPPORunnerCfg
 
 
 # -- 2. Env factory ---------------------------------------------------------
 
-PARKOUR_NAV_ENV_ID = "Isaac-Velocity-ParkourNav-Spot-v0"
+FINAL_CAPSTONE_POLICY_ENV_ID = "Isaac-Velocity-FinalCapstonePolicy-Spot-v0"
 
 
 def build_env(args):
     """Construct the parkour-nav env, wrap for RSL-RL + Progressive S2R.
 
     Mirrors SIM_TO_REAL/scripts/train_expert.py::main env construction:
-      1. Instantiate ParkourNavEnvCfg and set num_envs.
+      1. Instantiate FinalCapstonePolicyEnvCfg and set num_envs.
       2. gym.register a unique env id (idempotent — re-registration is fine).
       3. gym.make -> ManagerBasedRLEnv.
       4. Wrap in RslRlVecEnvWrapper (handles policy/critic obs group routing).
       5. Wrap in ProgressiveS2RWrapper (action+obs delay, sensor noise,
          history stacking via the obs_delay ring buffer).
     """
-    env_cfg = ParkourNavEnvCfg()
+    env_cfg = FinalCapstonePolicyEnvCfg()
     env_cfg.scene.num_envs = args.num_envs
 
     print(
-        f"[ENV] Creating {PARKOUR_NAV_ENV_ID} with {env_cfg.scene.num_envs} envs "
+        f"[ENV] Creating {FINAL_CAPSTONE_POLICY_ENV_ID} with {env_cfg.scene.num_envs} envs "
         f"(phase={args.phase})...",
         flush=True,
     )
 
-    if PARKOUR_NAV_ENV_ID not in gym.registry:
+    if FINAL_CAPSTONE_POLICY_ENV_ID not in gym.registry:
         gym.register(
-            id=PARKOUR_NAV_ENV_ID,
+            id=FINAL_CAPSTONE_POLICY_ENV_ID,
             entry_point="isaaclab.envs:ManagerBasedRLEnv",
             kwargs={"cfg": env_cfg},
             disable_env_checker=True,
         )
 
-    env = gym.make(PARKOUR_NAV_ENV_ID, cfg=env_cfg)
+    env = gym.make(FINAL_CAPSTONE_POLICY_ENV_ID, cfg=env_cfg)
 
     try:
         env = RslRlVecEnvWrapper(env, clip_actions=True)
@@ -202,7 +197,7 @@ def run_teacher_phase(args):
     configure_tf32()
     env = build_env(args)
 
-    agent_cfg = ParkourNavPPORunnerCfg()
+    agent_cfg = FinalCapstonePolicyPPORunnerCfg()
     agent_cfg.max_iterations = args.max_iterations
     agent_cfg.save_interval = args.save_interval
     agent_cfg.seed = args.seed
@@ -218,7 +213,7 @@ def run_teacher_phase(args):
         print(f"[SCHED] Forced agent_cfg.algorithm.schedule = 'fixed'", flush=True)
 
     log_root = os.path.abspath(os.path.join(
-        _PARKOUR_ROOT, "logs", "rsl_rl", agent_cfg.experiment_name,
+        _LOCO5_ROOT, "logs", "rsl_rl", agent_cfg.experiment_name,
     ))
     os.makedirs(log_root, exist_ok=True)
 
@@ -351,7 +346,7 @@ def run_teacher_phase(args):
           f"lr_min={args.lr_min:.1e} over {_max_iters_total} iters "
           f"(warmup {args.warmup_iters} iters)", flush=True)
 
-    # Actor-only resume from hybrid_nocoach_19999.pt (H-100 Hail Mary plan)
+    # Actor-only resume from hybrid_nocoach_19999.pt (H-100 Final Capstone Policy plan)
     if args.actor_only_resume is not None:
         ckpt_path = os.path.expanduser(args.actor_only_resume)
         print(f"[RESUME] actor-only load from {ckpt_path}", flush=True)
@@ -433,7 +428,7 @@ def run_student_phase(args):
 
 def main():
     print(f"\n{'='*70}", flush=True)
-    print(f"  PARKOUR_NAV TRAINING — phase={args_cli.phase}", flush=True)
+    print(f"  Loco_Policy_5_Final_Capstone_Policy TRAINING — phase={args_cli.phase}", flush=True)
     print(f"{'='*70}\n", flush=True)
 
     if args_cli.phase == "teacher":

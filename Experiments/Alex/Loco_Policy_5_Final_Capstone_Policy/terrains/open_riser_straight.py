@@ -1,4 +1,4 @@
-"""Open-side STRAIGHT-FLIGHT stair sub-terrain — Hail Mary build.
+"""Open-side STRAIGHT-FLIGHT stair sub-terrain — Final Capstone Policy build.
 
 Single-direction stair flight with NO side walls but WITH solid riser faces
 between treads. Matches the geometry Colby's modified SM_Staircase_*.usd
@@ -157,17 +157,17 @@ class MeshOpenRiserStraightFlightCfg(SubTerrainBaseCfg):
     Colby's riser-baking — solid tread + solid riser per step, but no
     side walls. The lateral-drift failure mode is preserved (open sides);
     the foot-in-gap and body-wedge failure modes are eliminated by the
-    solid riser faces. Hail Mary from-scratch trains the policy on this
+    solid riser faces. Final Capstone Policy from-scratch trains the policy on this
     geometry from iter 0.
     """
 
     function = open_riser_straight_terrain
 
     step_height_range: tuple[float, float] = MISSING
-    """[min, max] riser height (m). Hail Mary uses (0.15, 0.20) — FW-realistic."""
+    """[min, max] riser height (m). Final Capstone Policy uses (0.15, 0.20) — FW-realistic."""
 
     step_width: float = MISSING
-    """Run depth per tread (m). Hail Mary uses 0.25-0.30 m to match FW industrial dim."""
+    """Run depth per tread (m). Final Capstone Policy uses 0.25-0.30 m to match FW industrial dim."""
 
     approach_apron_len_m: float = 1.5
     """Length of the flat approach patch at the -X end (m). Spot spawns here."""

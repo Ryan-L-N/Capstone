@@ -1,6 +1,0 @@
-# Training artifacts for PARKOUR_NAV — do not commit
-logs/
-checkpoints/
-*.pt
-__pycache__/
-*.pyc
