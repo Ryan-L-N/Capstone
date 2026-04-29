@@ -170,7 +170,7 @@ After modifying USDs, run this check sequence:
        --action_scale 0.3 --mason \
        --stairs all --direction ascend --rendered
    ```
-   The Phase-9 ckpt is in `Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase9_18500.pt`
+   The Phase-9 ckpt is in `Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase9_18500.pt`
    (already shipped). Run with `--direction ascend` first; if that passes,
    try `--direction both`.
 
@@ -186,14 +186,14 @@ Alex/Gabriel — this unblocks the entire FW deployment story.
 
 ## Useful background context
 
-- **The policies we have** (see `Experiments/Cole/PARKOUR_NAV_handoff/`):
+- **The policies we have** (see `Experiments/Cole/Final_Capstone_Policy_handoff/`):
   - `parkour_phase5_11000.pt` — Cole record holder (21/25 max-density)
   - `parkour_phase8_16497.pt` — zero-fall 4-env baseline
   - `parkour_phase9_18500.pt` — stair zone-5 alive specialist (test
     against this one first; if it can't walk modified USDs, none can)
 
 - **Action scale + observation spec** for these policies: see
-  `Experiments/Ryan/PARKOUR_NAV_phasefwplus_22100/POLICY_DETAILS.md` —
+  `Experiments/Ryan/Final_Capstone_Policy_22100/POLICY_DETAILS.md` —
   full spec sheet. TL;DR: action_scale=0.3, type-grouped DOF order,
   235-dim obs, 50 Hz control.
 

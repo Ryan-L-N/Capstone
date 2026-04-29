@@ -1,4 +1,4 @@
-# Claude Context — PARKOUR_NAV Handoff
+# Claude Context — Final Capstone Policy Handoff
 
 *Paste this into your Claude Code session or add it to a CLAUDE.md so the AI has
 full context on what this policy is, where the code lives, and how to run it.
@@ -53,7 +53,7 @@ order:**
 
 `parkour_phase3_7000.pt` is a PPO-trained locomotion policy for Boston Dynamics
 Spot (12 joints, type-grouped DOF order `[hx×4, hy×4, kn×4]`). It was built in
-April 2026 as "Project Hail Mary" — a 5.5-day compressed build of what was
+April 2026 as "Final Capstone Policy" — a 5.5-day compressed build of what was
 originally a 3-week unified-policy design. It replaces the prior per-arena
 policies (V14–V19 for stairs; stock_flat / stock_rough for flat; mason family
 for navigation).
@@ -109,20 +109,20 @@ All paths relative to Capstone repo root:
 |---|---|
 | Policy wrapper (loads ckpt, runs forward pass, handles height scan) | `Experiments/Alex/4_env_test/src/spot_rough_terrain_policy.py` |
 | 4-env eval driver (spawn, stabilize, run N eps, collect metrics) | `Experiments/Alex/4_env_test/src/run_capstone_eval.py` |
-| Unified eval launcher (calls 4-env or Cole suites with PARKOUR_NAV-correct flags) | `Experiments/Alex/PARKOUR_NAV/scripts/eval_parkour_nav.py` |
+| Unified eval launcher (calls 4-env or Cole suites with Final-Capstone-Policy-correct flags) | `Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/scripts/eval.py` |
 | Cole arena + navigator (APF + online map + A* + depth sensor) | `Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py` |
 | Navigator modules (skill_nav_lite, online_obstacle_tracker, grid_astar_planner, depth_raycast_detector) | `Experiments/Alex/NAV_ALEX/source/nav_locomotion/nav_locomotion/modules/` |
-| Training configs (env, agent, terrain DR) | `Experiments/Alex/PARKOUR_NAV/pn_cfg/` |
-| Training entrypoint | `Experiments/Alex/PARKOUR_NAV/scripts/train_parkour_nav.py` |
-| Privileged observations (critic-only: true friction, mass, foot forces) | `Experiments/Alex/PARKOUR_NAV/modules/privileged_obs.py` |
+| Training configs (env, agent, terrain DR) | `Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/pn_cfg/` |
+| Training entrypoint | `Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/scripts/train.py` |
+| Privileged observations (critic-only: true friction, mass, foot forces) | `Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/modules/privileged_obs.py` |
 
 **Reference copies of the exact nav-stack files used for the 7/25 result are
-included under `Experiments/Cole/PARKOUR_NAV_handoff/code/`** — see
+included under `Experiments/Cole/Final_Capstone_Policy_handoff/code/`** — see
 `code/CODE_INDEX.md`. Those are for inspection / diff against future changes.
 **Do NOT run from the handoff copies** — they're standalone files and the
 scripts expect the `nav_locomotion` package layout at the canonical paths
 above. Run from the canonical paths; the handoff `.pt` is accessible via
-`--loco_checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt`.
+`--loco_checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt`.
 
 ---
 
@@ -135,8 +135,8 @@ conda activate isaaclab311   # has Isaac Sim 5.1.0, Isaac Lab, RSL-RL, PyTorch-C
 
 ### 4-env eval (friction / grass / boulder / stairs)
 ```bash
-python Experiments/Alex/PARKOUR_NAV/scripts/eval_parkour_nav.py \
-    --checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt \
+python Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/scripts/eval.py \
+    --checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt \
     --target 4_env \
     --envs friction,grass,boulder,stairs \
     --num_episodes 1
@@ -148,7 +148,7 @@ Add `--headless` to skip rendering. Results land in
 ### Cole eval, onboard-realistic (recommended)
 ```bash
 python Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py \
-    --loco_checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt \
+    --loco_checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt \
     --loco_action_scale 0.3 --loco_decimation 1 \
     --cole_arena --rough_heightscan --episodes 1 --seed 42 \
     --moveable_pct 1.0 --nonmoveable_pct 1.0 --small_static_pct 1.0 \
@@ -163,7 +163,7 @@ obstacles, A* replans on growing map every 2s.
 ### Cole eval, quarter density (skill-nav-lite proven recipe)
 ```bash
 python Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py \
-    --loco_checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt \
+    --loco_checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt \
     --loco_action_scale 0.3 --loco_decimation 1 \
     --cole_arena --rough_heightscan --episodes 1 --seed 42 \
     --moveable_pct 0.25 --nonmoveable_pct 0.25 --small_static_pct 0.0 \
@@ -174,11 +174,11 @@ python Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py \
 
 ### Continue training (Phase-3 fine-tune pattern)
 ```bash
-python Experiments/Alex/PARKOUR_NAV/scripts/train_parkour_nav.py \
+python Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/scripts/train.py \
     --phase teacher --headless \
     --num_envs 4096 --max_iterations 2000 --save_interval 100 \
     --seed 42 --max_noise_std 0.5 --lr_max 3e-4 --no_wandb \
-    --resume_path Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt
+    --resume_path Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt
 ```
 **IMPORTANT:** `--max_iterations` in RSL-RL is the *increment* to run, NOT the
 target iter. `--max_iterations 2000` on a resume from iter 7000 ends at iter
@@ -286,7 +286,7 @@ budget. Current iter 7000 plateaus at level 5.4 (mean across envs).
 - **Cole quarter-density gate**: not yet evaluated on iter 7000 (only on
   iter 6800, 7/25 at TRUE max density). Expected 20+/25 at quarter based
   on iter 6800's trajectory.
-- **Student distillation**: the original Hail Mary plan included a
+- **Student distillation**: the original Final Capstone Policy plan included a
   proprio-only student distilled from the privileged teacher. We shipped
   teacher-only. Whether the student preserves max-density Cole performance
   is unknown.
@@ -303,5 +303,5 @@ budget. Current iter 7000 plateaus at level 5.4 (mean across envs).
 - Isaac Sim / Isaac Lab internals, USD weirdness: Alex
 - Code review, pipeline review: whoever's on the capstone team rotation
 
-See `PROJECT_HAIL_MARY_EXPLAINED.md` (same folder) for the full 1,600-word
+See `FINAL_CAPSTONE_POLICY_EXPLAINED.md` (same folder) for the full 1,600-word
 plain-language story of how this policy got built, including the bugs.

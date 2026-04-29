@@ -1,4 +1,4 @@
-# Mason Hybrid Training: The Best of Both Worlds
+# ARL Hybrid Training: The Best of Both Worlds
 
 > **TL;DR:** We took Mason's proven reward weights and smaller neural network, put them on our harder terrain, and added the AI Coach as a safety net. The goal: break through the terrain 4.83 ceiling that our custom config couldn't crack.
 >
@@ -16,7 +16,7 @@ After 11 trials and ~30 sub-iterations of tuning our custom reward config, we hi
 
 Meanwhile, Mason's team independently reached terrain ~6 with a *simpler* setup: 11 reward terms, an 800K-parameter network, and adaptive learning rate. Sometimes less is more.
 
-The Mason Hybrid takes the best of both:
+The ARL Hybrid takes the best of both:
 - **Mason's rewards** — 11 clean, proven terms with weights that work
 - **Our terrain** — 12 types with friction randomization, boulders, and 10 difficulty rows
 - **Our safety features** — clamped penalties (Bug #29), terrain-relative height (Bug #27), frozen broken weights (Bugs #22, #28b)
@@ -88,7 +88,7 @@ Stage 3: ACTIVE (after first passive intervention)
 
 ## Configuration Comparison
 
-| Parameter | Trial 11l (our config) | MH-1 (Mason Hybrid) |
+| Parameter | Trial 11l (our config) | MH-1 (ARL Hybrid) |
 |-----------|----------------------|---------------------|
 | **Network** | [1024, 512, 256] — 2.4M params | [512, 256, 128] — 800K params |
 | **Reward terms** | 22 | 14 (Mason's 11 + 3 additions) |
@@ -202,7 +202,7 @@ MH-1 reached terrain 4.83 but the AI Coach repeated the same mistake as Trial 11
 2. **Terrain-scaled height target** — `terrain_scaled=True` let the height target drop on rough terrain, so the robot learned to crawl
 3. **No penalty-loosening guardrails** — coach could loosen penalties at any terrain level
 
-## Mason Hybrid v2 (MH-2): The Fix
+## ARL Hybrid v2 (MH-2): The Fix
 
 Three changes to prevent MH-1's failure mode:
 
@@ -262,7 +262,7 @@ grep -E 'terrain_levels|Mean reward|flip_over' ~/mason_hybrid_nocoach_train.log 
 
 ### 4-Environment Eval Results (2026-03-12 — 2026-03-13)
 
-#### Mason Hybrid No-Coach (model_13000.pt) — Single Episode
+#### ARL Hybrid No-Coach (model_13000.pt) — Single Episode
 
 | Environment | Status | Progress | Zones | Time | Notes |
 |-------------|--------|----------|-------|------|-------|
@@ -280,7 +280,7 @@ grep -E 'terrain_levels|Mean reward|flip_over' ~/mason_hybrid_nocoach_train.log 
 | Boulder | FELL | 23.0m | 3/5 | 34.8s | Similar zones to hybrid but less progress |
 | Stairs | FELL | 12.7m | 2/5 | 37.1s | Same zones as hybrid |
 
-#### Mason Baseline (model_19999.pt) — 100-Episode Sweep (Partial)
+#### ARL Baseline (model_19999.pt) — 100-Episode Sweep (Partial)
 
 | Environment | Episodes | Mean Progress | Std | Fall Rate | Notes |
 |-------------|----------|---------------|-----|-----------|-------|

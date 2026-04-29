@@ -161,7 +161,7 @@ class SpotRoughTerrainPolicy:
     # Construction
     # ------------------------------------------------------------------
     def __init__(self, flat_policy, checkpoint_path=None, ground_height_fn=None,
-                 mason_baseline=False, action_scale=None, stiffness=None, damping=None,
+                 arl_baseline=False, action_scale=None, stiffness=None, damping=None,
                  robot_prim_path="/World/Spot", heightscan_ignore_obstacles=True,
                  heightscan_clip=(-0.2, 0.3)):
         """
@@ -174,12 +174,12 @@ class SpotRoughTerrainPolicy:
                                When provided, enables analytical height scanning
                                so the policy can "see" terrain (e.g. stairs).
                                When None, height scan is filled with 0.0 (flat).
-            mason_baseline:    If True, use Mason's obs order (height_scan first)
+            arl_baseline:    If True, use Mason's obs order (height_scan first)
                                and action_scale=0.2.
             action_scale:      Override action scale (e.g., 0.4 for stair v5 policy).
                                If None, uses the default for mason/standard.
         """
-        self._mason_baseline = mason_baseline
+        self._arl_baseline = arl_baseline
 
         # Share the existing robot — no new articulation
         self.robot = flat_policy.robot
@@ -192,7 +192,7 @@ class SpotRoughTerrainPolicy:
         if action_scale is not None:
             self._action_scale = action_scale
         else:
-            self._action_scale = ACTION_SCALE_MASON if mason_baseline else ACTION_SCALE
+            self._action_scale = ACTION_SCALE_MASON if arl_baseline else ACTION_SCALE
 
         # Store PD gain overrides for initialize()
         self._stiffness_override = stiffness
@@ -408,7 +408,7 @@ class SpotRoughTerrainPolicy:
 
         obs = np.zeros(OBS_DIM, dtype=np.float32)
 
-        if self._mason_baseline:
+        if self._arl_baseline:
             # Mason: height_scan(187) first, then proprioception(48)
             obs[0:SCAN_N]          = self._height_scan
             o = SCAN_N  # 187

@@ -1,11 +1,11 @@
-# PARKOUR_NAV Handoff — Unified Parkour/Nav Policy for Cole
+# Final Capstone Policy Handoff — Unified Parkour/Nav Policy for Cole
 
 **From:** Alex / Gabriel
 **Date:** 2026-04-24
 **Branch:** `development`
 
 This folder contains the latest version of the unified Spot locomotion policy
-(`parkour_phase3_7000.pt`) built as "Project Hail Mary" plus instructions for
+(`parkour_phase3_7000.pt`) built as "Final Capstone Policy" plus instructions for
 running it through the Cole navigation arena. The policy replaces the prior
 mason-family / FM V3 locomotion layers in your nav stack.
 
@@ -18,7 +18,7 @@ mason-family / FM V3 locomotion layers in your nav stack.
 | `parkour_phase3_7000.pt` | **The policy.** Locomotion checkpoint trained on parkour DR + 4-arena terrain curriculum + Phase-3 widened DR + harder terrain. Iter 7000 of 8100. |
 | `README.md` | This file. Human-readable handoff. |
 | `CLAUDE_CONTEXT.md` | Context brief for Claude Code / any LLM you give this to. Copy-paste it as project instructions so your AI knows what the policy is and how to run it. |
-| `PROJECT_HAIL_MARY_EXPLAINED.md` | Plain-language writeup of how this policy was built — the 6-option NaN hunt, reward hacking, fresh restart, Phase-3 DR widening. Useful context but not required to run. |
+| `FINAL_CAPSTONE_POLICY_EXPLAINED.md` | Plain-language writeup of how this policy was built — the 6-option NaN hunt, reward hacking, fresh restart, Phase-3 DR widening. Useful context but not required to run. |
 
 ---
 
@@ -32,9 +32,9 @@ already in this repo — you don't need a separate install.
 | Locomotion policy wrapper + height-scan raycast + gain setup | `Experiments/Alex/4_env_test/src/spot_rough_terrain_policy.py` |
 | 4-env arena eval (friction/grass/boulder/stairs) | `Experiments/Alex/4_env_test/src/run_capstone_eval.py` |
 | Cole arena builder + skill-nav-lite navigator + A* planner + depth sensor | `Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py` |
-| Unified eval launcher (both 4-env and Cole) | `Experiments/Alex/PARKOUR_NAV/scripts/eval_parkour_nav.py` |
-| Training config (env, agent, terrain DR) | `Experiments/Alex/PARKOUR_NAV/pn_cfg/` |
-| Training script (if you want to fine-tune further) | `Experiments/Alex/PARKOUR_NAV/scripts/train_parkour_nav.py` |
+| Unified eval launcher (both 4-env and Cole) | `Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/scripts/eval.py` |
+| Training config (env, agent, terrain DR) | `Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/pn_cfg/` |
+| Training script (if you want to fine-tune further) | `Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/scripts/train.py` |
 
 Your Cole-arena navigator modules (APF, online map, A* planner, depth
 raycast) live under `Experiments/Alex/NAV_ALEX/source/nav_locomotion/` —
@@ -49,8 +49,8 @@ unchanged from the current main-line stack.
 ### 4-env arena (friction / grass / boulder / stairs)
 From the Capstone repo root:
 ```bash
-python Experiments/Alex/PARKOUR_NAV/scripts/eval_parkour_nav.py \
-    --checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt \
+python Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/scripts/eval.py \
+    --checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt \
     --target 4_env \
     --envs friction,grass,boulder,stairs \
     --num_episodes 1
@@ -61,7 +61,7 @@ Add `--headless` for no-render. The launcher already bakes in
 ### Cole arena — onboard-realistic (RECOMMENDED for real-robot claims)
 ```bash
 python Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py \
-    --loco_checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt \
+    --loco_checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt \
     --loco_action_scale 0.3 --loco_decimation 1 \
     --cole_arena --rough_heightscan --episodes 1 --seed 42 \
     --moveable_pct 1.0 --nonmoveable_pct 1.0 --small_static_pct 1.0 \
@@ -77,7 +77,7 @@ no ground-truth obstacle cheat.
 Drop the density params for the skill-nav-lite proven recipe:
 ```bash
 python Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py \
-    --loco_checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt \
+    --loco_checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt \
     --loco_action_scale 0.3 --loco_decimation 1 \
     --cole_arena --rough_heightscan --episodes 1 --seed 42 \
     --moveable_pct 0.25 --nonmoveable_pct 0.25 --small_static_pct 0.0 \

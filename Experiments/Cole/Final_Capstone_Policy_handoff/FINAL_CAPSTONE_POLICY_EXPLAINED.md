@@ -1,6 +1,6 @@
-# Project Hail Mary — Plain-Language Story
+# Final Capstone Policy — Plain-Language Story
 
-*A plain-English walkthrough of the PARKOUR_NAV training arc: what we were trying
+*A plain-English walkthrough of the Final Capstone Policy training arc: what we were trying
 to do, the bugs that nearly killed it, and how we ended up with a walking policy.*
 
 ---
@@ -19,7 +19,7 @@ each only knew one arena isn't a real product.
 
 ---
 
-## Why it was called "Hail Mary"
+## Why it was called "Final Capstone Policy"
 
 The original design for this unified policy was a 3-week build. We had 5.5
 calendar days. Team7 was sharing the H100 GPU server and took it over Tuesday
@@ -27,13 +27,13 @@ calendar days. Team7 was sharing the H100 GPU server and took it over Tuesday
 That left about 72 hours of actual training time to ship something good.
 
 So: ambitious design, compressed into a window so tight that any single big bug
-would blow the whole project. Hence "Hail Mary."
+would blow the whole project. Hence "Final Capstone Policy."
 
 ---
 
 ## The starting point: V18, V19, and the 21m wall
 
-Before Hail Mary, we had a stairs policy called V18. It could walk up to stair
+Before Final Capstone Policy, we had a stairs policy called V18. It could walk up to stair
 zone 3 (about 21m), then flip. V19 tried to fix it by adding an "altitude
 reward" — give the policy credit for climbing higher. V19 learned to climb…
 but it also destabilized on flat ground. Fine-tune pressure on a new reward
@@ -188,7 +188,7 @@ found a zero-effort way to farm positive reward and the negative terms
 weren't strong enough to override it.
 
 **The real root cause** (identified after the memory diff):
-`action_scale` was 0.3 in PARKOUR_NAV but the resumed actor was trained with
+`action_scale` was 0.3 in Loco_Policy_5_Final_Capstone_Policy but the resumed actor was trained with
 0.2. The same actor output commanded joint positions 1.5× larger, so every
 step overshot. PPO gradients at the 0.3-scale context pulled the actor into
 a *worse* local minimum (jiggle) because the original learned manifold was

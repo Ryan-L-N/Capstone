@@ -72,7 +72,7 @@ clean pose between episodes. If this is wrong, the robot spawns deformed.
 
 ```bash
 python Experiments/Alex/NAV_ALEX/scripts/cole_arena_skillnav_lite.py \
-    --loco_checkpoint Experiments/Cole/PARKOUR_NAV_handoff/parkour_phase3_7000.pt \
+    --loco_checkpoint Experiments/Cole/Final_Capstone_Policy_handoff/parkour_phase3_7000.pt \
     --loco_action_scale 0.3 --loco_decimation 1 \
     --cole_arena --rough_heightscan --episodes 1 --seed 42 \
     --moveable_pct 1.0 --nonmoveable_pct 1.0 --small_static_pct 1.0 \

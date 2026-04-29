@@ -160,7 +160,7 @@ training run (from-scratch with open-riser baked in from iter 0) is in
 progress. If Phase-FW-Plus 22100 evaluates poorly in your setup, please
 report — we'll send the from-scratch ckpt when it lands.
 
-For comparison: `Experiments/Cole/PARKOUR_NAV_handoff/` has Phase-5 / 8 /
+For comparison: `Experiments/Cole/Final_Capstone_Policy_handoff/` has Phase-5 / 8 /
 9 ckpts with the same docs format if you want to A/B against earlier
 phases.
 

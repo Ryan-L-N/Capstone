@@ -2699,11 +2699,11 @@ v8 ran 6,700 coach iterations (absolute iterations 4000-10636) over ~6 hours. Th
 2. **Too many competing rewards:** 22 reward terms created a reward landscape too complex for the policy to navigate — and too complex for the AI coach to tune without cascading side effects
 3. **Velocity reward drift:** The coach's repeated velocity boosting (5→14.26) was a positive feedback loop — each boost temporarily improved tracking error but distorted the reward balance, requiring more boosts
 
-**The lesson:** More tuning couldn't fix this. The problem was architectural — we needed a simpler foundation. Enter the Mason Hybrid.
+**The lesson:** More tuning couldn't fix this. The problem was architectural — we needed a simpler foundation. Enter the ARL Hybrid.
 
 ---
 
-### Trial MH-1: The Mason Hybrid (FAILED — coach destroyed gait)
+### Trial MH-1: The ARL Hybrid (FAILED — coach destroyed gait)
 
 After 11 trials and ~30 sub-iterations of our custom config, we acknowledged that complexity was the enemy. Mason's team had independently reached terrain level ~6 with a simpler setup: 11 reward terms (vs our 22), [512,256,128] network (vs [1024,512,256]), adaptive KL-based LR (vs cosine annealing), and lighter domain randomization. Rather than continue fighting our overengineered reward landscape, we built a hybrid: Mason's proven reward weights and network architecture, our 12-type robust terrain (with friction randomization and boulders), and the AI Coach as a safety net — not the primary driver.
 
@@ -2711,7 +2711,7 @@ After 11 trials and ~30 sub-iterations of our custom config, we acknowledged tha
 
 **What's different from Trial 11l:**
 
-| Component | Trial 11l (our config) | MH-1 (Mason Hybrid) |
+| Component | Trial 11l (our config) | MH-1 (ARL Hybrid) |
 |-----------|----------------------|---------------------|
 | Network | [1024, 512, 256] (2.4M params) | [512, 256, 128] (800K params) |
 | Reward terms | 22 (many competing) | 14 (Mason's 11 + 3 surgical additions) |
@@ -2773,7 +2773,7 @@ python /home/t2user/multi_robot_training_new/scripts/rsl_rl/train_ai.py \
 
 ---
 
-### Trial MH-2: Mason Hybrid v2 — VLM + Gait Quality First (IN PROGRESS)
+### Trial MH-2: ARL Hybrid v2 — VLM + Gait Quality First (IN PROGRESS)
 
 Three fixes to prevent MH-1's failure mode:
 

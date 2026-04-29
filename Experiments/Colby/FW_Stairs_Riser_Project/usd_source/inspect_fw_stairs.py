@@ -1,7 +1,7 @@
 """Inspect Final World staircase USDs for dimensions.
 
 Prints bounding box, mesh count, and inferred riser height + run depth.
-Use these numbers to configure MeshPyramidStairsTerrainCfg in PARKOUR_NAV
+Use these numbers to configure MeshPyramidStairsTerrainCfg in Loco_Policy_5_Final_Capstone_Policy
 for Phase-7 training.
 
 Run with isaaclab311 conda env:

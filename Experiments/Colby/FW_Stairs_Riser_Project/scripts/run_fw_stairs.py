@@ -14,7 +14,7 @@ CollisionAPI (run bake_stair_collision.py once before this).
 
 Usage:
     python run_fw_stairs.py \\
-        --checkpoint Experiments/Alex/PARKOUR_NAV/checkpoints/parkour_phase7_15000.pt \\
+        --checkpoint Experiments/Alex/Loco_Policy_5_Final_Capstone_Policy/checkpoints/parkour_phase7_15000.pt \\
         --stairs all
 """
 
@@ -28,7 +28,7 @@ import time
 
 parser = argparse.ArgumentParser(description="Final World stair test")
 parser.add_argument("--checkpoint", type=str, required=True,
-                    help="Path to PARKOUR_NAV rough-policy .pt")
+                    help="Path to Loco_Policy_5_Final_Capstone_Policy rough-policy .pt")
 parser.add_argument("--stairs", type=str, default="all",
                     help="Which stair USD(s) — '01', '02', 'half_01', 'half_02', "
                          "or 'all'")
@@ -309,7 +309,7 @@ def run_stair_test(world, stage, stair_key, usd_filename, results_log):
     policy = SpotRoughTerrainPolicy(
         flat_policy=flat_policy,
         checkpoint_path=os.path.abspath(args.checkpoint),
-        mason_baseline=True,
+        arl_baseline=True,
         action_scale=args.action_scale,
     )
     policy.initialize()

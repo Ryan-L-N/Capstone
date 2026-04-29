@@ -1,6 +1,6 @@
-# Mason Hybrid Technical Manual
+# ARL Hybrid Technical Manual
 
-> Reference documentation for the Mason Hybrid training configuration. Covers architecture decisions, config internals, AI Coach integration, and operational procedures.
+> Reference documentation for the ARL Hybrid training configuration. Covers architecture decisions, config internals, AI Coach integration, and operational procedures.
 >
 > **Companion doc:** `Mason_Hybrid_Training.md` (overview and rationale)
 > **Parent docs:** `AI_Training_Tech_Manual.md`, `TRAINING_CURRICULUM.md`
@@ -107,7 +107,7 @@ These were in our 22-term config but not in Mason's and not needed:
 
 ### 2.4 Domain Randomization
 
-| Parameter | Mason Hybrid | Our Config | Impact |
+| Parameter | ARL Hybrid | Our Config | Impact |
 |-----------|-------------|------------|--------|
 | Mass | ±2.5 kg | ±5.0 kg | Less sim-to-real gap noise |
 | Static friction | 0.3-1.0 | 0.15-1.0 | Less extreme low-friction |
@@ -212,7 +212,7 @@ PhaseConfig(
 
 ### 4.3 Tighter Weight Bounds (`mason_hybrid_bounds`)
 
-| Term | General Bounds | Mason Hybrid Bounds | Rationale |
+| Term | General Bounds | ARL Hybrid Bounds | Rationale |
 |------|---------------|---------------------|-----------|
 | base_linear_velocity | 1.0-15.0 | **3.0-7.0** | Prevent velocity drift (11l lesson: 5→14.26) |
 | base_angular_velocity | 1.0-15.0 | **3.0-7.0** | Same |
@@ -353,12 +353,12 @@ python -c "import quadruped_locomotion; import gymnasium; print(gymnasium.spec('
 
 ### 7.3 GPU Resource Usage
 
-With both Mason's original training and Mason Hybrid running concurrently:
+With both Mason's original training and ARL Hybrid running concurrently:
 
 | Process | VRAM | Notes |
 |---------|------|-------|
 | Mason's training (5000 envs, simpler terrain) | ~5.6 GB | PID 11398 |
-| Mason Hybrid (4096 envs, 400-patch terrain) | ~16.6 GB | PID 20370 |
+| ARL Hybrid (4096 envs, 400-patch terrain) | ~16.6 GB | PID 20370 |
 | **Total** | **~22.2 GB / 95.8 GB** | 23% utilization |
 
 Temperature: 48°C (safe range). Throughput: ~11,500 steps/s at 8.5s/iter.
@@ -468,7 +468,7 @@ with open('ai_coach_decisions.jsonl') as f:
 
 ### 4-Environment Eval Comparison (Single Episode)
 
-| Environment | AI-Coached v8 | Hybrid No-Coach (13K) | Mason Baseline (100-ep mean) |
+| Environment | AI-Coached v8 | Hybrid No-Coach (13K) | ARL Baseline (100-ep mean) |
 |-------------|--------------|----------------------|------------------------------|
 | Friction | **49.5m** COMPLETE (50s) | **49.5m** COMPLETE (274s) | 33.5m ± 10.0 (83% fall) |
 | Grass | **41.2m** 5/5 zones (121s) | — | 28.9m ± 6.7 (22% fall) |
@@ -481,7 +481,7 @@ with open('ai_coach_decisions.jsonl') as f:
 
 ### 11.1 Overview
 
-The trained Mason Hybrid checkpoint can be evaluated in the 4-environment standalone system (`4_env_test/`), which uses Isaac Sim's World API (not Isaac Lab's ManagerBasedRLEnv). This requires special handling because the standalone loop runs at a different rate than the physics callback approach used in lava arenas.
+The trained ARL Hybrid checkpoint can be evaluated in the 4-environment standalone system (`4_env_test/`), which uses Isaac Sim's World API (not Isaac Lab's ManagerBasedRLEnv). This requires special handling because the standalone loop runs at a different rate than the physics callback approach used in lava arenas.
 
 ### 11.2 Key Differences From Isaac Lab
 

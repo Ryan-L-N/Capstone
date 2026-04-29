@@ -423,7 +423,7 @@ A human pulled `model_2900.pt` into the lava arena and observed legs crossing, i
 
 No restart. No config edit. No kill-and-relaunch. The training continued seamlessly with the human's visual insight integrated into the AI's decision-making.
 
-### VLM Visual Feedback (Mason Hybrid v2)
+### VLM Visual Feedback (ARL Hybrid v2)
 
 After Trial MH-1 showed that the coach destroyed gait quality by optimizing for terrain numbers it couldn't visually verify, we added VLM (Vision Language Model) support. When `--enable_vision` is passed, the coach receives a rendered simulation frame alongside its metrics at every consultation.
 

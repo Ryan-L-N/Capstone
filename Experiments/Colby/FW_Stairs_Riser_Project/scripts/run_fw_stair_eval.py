@@ -22,7 +22,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--checkpoint", type=str, required=True,
-                    help="PARKOUR_NAV ckpt (e.g., parkour_phase9_18500.pt)")
+                    help="Final Capstone Policy ckpt (e.g., parkour_phase9_18500.pt)")
 parser.add_argument("--action_scale", type=float, default=0.3)
 parser.add_argument("--stairs", type=str, default="all",
                     help="all, or comma-separated USD names without .usd")
@@ -288,7 +288,7 @@ flat_policy.post_reset()
 robot_policy = SpotRoughTerrainPolicy(
     flat_policy=flat_policy,
     checkpoint_path=os.path.abspath(args.checkpoint),
-    mason_baseline=args.mason,
+    arl_baseline=args.mason,
     action_scale=args.action_scale,
 )
 robot_policy.initialize()

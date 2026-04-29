@@ -152,7 +152,7 @@ class Coach:
         # Return (CoachDecision, latency_ms)
 ```
 
-### VLM Mode (Mason Hybrid v2)
+### VLM Mode (ARL Hybrid v2)
 
 When `--enable_vision` is passed to `train_ai.py`, the coach receives rendered simulation frames alongside metrics. This was added after Trial MH-1 where the coach destroyed gait quality by optimizing for terrain numbers it couldn't visually verify.
 
@@ -446,7 +446,7 @@ def go_no_go(self, phase_cfg):
 
 The system prompt is rebuilt whenever the phase changes or vision mode changes. It contains:
 
-1. **Core philosophy** — "Gait quality is PRIMARY. Terrain advancement is secondary." (Mason Hybrid v2)
+1. **Core philosophy** — "Gait quality is PRIMARY. Terrain advancement is secondary." (ARL Hybrid v2)
 2. **Visual analysis instructions** (VLM mode only) — 6-point gait checklist, visual override rule
 3. **Hard constraints** — Priority-ordered: gait quality protection > stability > safety
 4. **Terrain-gated penalty loosening** — Penalties locked until terrain >= 4.0
@@ -843,7 +843,7 @@ if self.terrain_aware:
 
 2. **Automatic phase transitions.** Instead of stopping on go/no-go failure, let the coach adjust parameters (especially noise ceiling) to help the policy meet advancement criteria.
 
-3. ~~**Multi-modal input.**~~ **DONE (Mason Hybrid v2).** The coach now receives rendered simulation frames via `--enable_vision`. Uses Claude Sonnet's multimodal API with base64-encoded PNG frames. The system prompt includes a 6-point visual gait checklist and a "visual override rule" that prevents terrain advancement when gait quality is visually poor.
+3. ~~**Multi-modal input.**~~ **DONE (ARL Hybrid v2).** The coach now receives rendered simulation frames via `--enable_vision`. Uses Claude Sonnet's multimodal API with base64-encoded PNG frames. The system prompt includes a 6-point visual gait checklist and a "visual override rule" that prevents terrain advancement when gait quality is visually poor.
 
 4. **Ensemble decisions.** Call multiple Claude instances and take the majority vote. Reduces variance of individual LLM responses.
 

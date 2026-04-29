@@ -69,8 +69,8 @@ parser.add_argument("--loco_decimation", type=int, default=10,
                          "integration; dec=10 runs V6 at 5Hz and it collapses).")
 parser.add_argument("--loco_action_scale", type=float, default=None,
                     help="Override policy action_scale. None = SpotRoughTerrainPolicy default "
-                         "(0.2 for Mason). PARKOUR_NAV teacher/student train at 0.3 — pass 0.3 "
-                         "when loading a PARKOUR_NAV checkpoint.")
+                         "(0.2 for Mason). Final Capstone Policy teacher/student train at 0.3 — pass 0.3 "
+                         "when loading a Final Capstone Policy checkpoint.")
 parser.add_argument("--fall_height", type=float, default=0.25,
                     help="Fall threshold (m). FM V3 stands ~0.54. Boulder V6 crouches ~0.24 at zero cmd.")
 parser.add_argument("--stab_vx", type=float, default=0.0,
@@ -664,7 +664,7 @@ def main():
         rough_policy_kwargs = dict(
             flat_policy=flat_policy,
             checkpoint_path=args.loco_checkpoint,
-            mason_baseline=True,
+            arl_baseline=True,
         )
         if args.loco_action_scale is not None:
             rough_policy_kwargs["action_scale"] = args.loco_action_scale
