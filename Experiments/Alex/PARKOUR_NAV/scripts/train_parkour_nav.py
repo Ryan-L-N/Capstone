@@ -117,8 +117,13 @@ if _PARKOUR_ROOT not in sys.path:
     sys.path.insert(0, _PARKOUR_ROOT)
 
 from quadruped_locomotion.utils.training_utils import (
+    clamp_noise_std,
     configure_tf32,
     register_std_safety_clamp,
+)
+from quadruped_locomotion.utils.lr_schedule import (
+    cosine_annealing_lr,
+    set_learning_rate,
 )
 from wrappers.progressive_s2r import ProgressiveS2RWrapper
 
@@ -204,6 +209,14 @@ def run_teacher_phase(args):
     if args.no_wandb:
         agent_cfg.logger = "tensorboard"
 
+    # Bug #25 (RAWDOG §1028) defense: disable RSL-RL's adaptive LR scheduler
+    # so it doesn't fight our explicit cosine_annealing_lr + value-loss
+    # watchdog. Phase-FW-Plus / phase_final_b ran with adaptive AND no
+    # watchdog → vf_loss oscillation → NaN cascade.
+    if hasattr(agent_cfg, "algorithm") and hasattr(agent_cfg.algorithm, "schedule"):
+        agent_cfg.algorithm.schedule = "fixed"
+        print(f"[SCHED] Forced agent_cfg.algorithm.schedule = 'fixed'", flush=True)
+
     log_root = os.path.abspath(os.path.join(
         _PARKOUR_ROOT, "logs", "rsl_rl", agent_cfg.experiment_name,
     ))
@@ -254,6 +267,89 @@ def run_teacher_phase(args):
             _post_hooked += 1
     print(f"[GUARD] registered nan_to_num pre-hooks on {_pre_hooked} modules, "
           f"post-hooks on {_post_hooked} modules", flush=True)
+
+    # ---------------------------------------------------------------------
+    # Value-loss watchdog (Bug #25 fix from
+    # `multi_robot_training/docs/HOW_TO_TRAIN_YOUR_RAWDOG.md` §1028).
+    #
+    # Phase-FW-Plus + phase_final_b both died on the slow-bleed pattern:
+    # value loss oscillates (10 → 56 → 973 → 28 → ... ) during what looks
+    # like a healthy run, accumulates damage over ~1000 iters, then explodes
+    # to 1e20+ → NaN. This wrapper layers two defenses on top of
+    # runner.alg.update():
+    #   1. Explicit cosine LR annealing (we forced schedule="fixed" above
+    #      so RSL-RL doesn't fight us).
+    #   2. Reactive watchdog — if value_function_loss > 100 for any iter,
+    #      halve the LR for 50 subsequent iters. Breaks the spike →
+    #      amplification → NaN cascade.
+    # Plus per-iter clamp_noise_std so the std param can never escape the
+    # [min_noise_std, max_noise_std] bounds between mini-batches.
+    # ---------------------------------------------------------------------
+    _VL_THRESHOLD = 100.0       # vf_loss above this triggers the guard
+    _VL_COOLDOWN_ITERS = 50     # iters to keep the reduced LR
+    _vl_penalty = [1.0]         # current LR multiplier (1.0 = normal)
+    _vl_cooldown = [0]          # remaining cooldown iters
+    _vl_spike_count = [0]       # total spike count for telemetry
+    _iteration_counter = [0]    # absolute iter (across warmup + main learn)
+
+    _original_update = runner.alg.update
+    _max_iters_total = args.max_iterations
+
+    def _update_with_schedule(*update_args, **update_kwargs):
+        it = _iteration_counter[0]
+
+        lr = cosine_annealing_lr(
+            it, _max_iters_total,
+            args.lr_max, args.lr_min, args.warmup_iters,
+        )
+        if _vl_cooldown[0] > 0:
+            lr *= _vl_penalty[0]
+            _vl_cooldown[0] -= 1
+            if _vl_cooldown[0] == 0:
+                _vl_penalty[0] = 1.0
+                print(f"[GUARD] Value-loss cooldown expired at iter {it}; "
+                      f"restoring scheduled LR.", flush=True)
+        set_learning_rate(runner, lr)
+
+        result = _original_update(*update_args, **update_kwargs)
+
+        vl = result.get("value_function", 0.0) if isinstance(result, dict) else 0.0
+        if vl > _VL_THRESHOLD:
+            # COMPOUND the penalty on consecutive spikes — fixes runaway
+            # explosion case (parkour_hailmary2 iter 101-105 saw vf_loss go
+            # 5e5 → 1e14 → 4e22 → 6e30 with the original "set to 0.5" logic
+            # because halving once doesn't keep up with 10^8/iter growth).
+            # Floor at 0.001 = LR×1e-3 of nominal, enough to fully stop
+            # divergent updates without bottoming out forever.
+            _vl_penalty[0] = max(_vl_penalty[0] * 0.5, 0.001)
+            _vl_cooldown[0] = _VL_COOLDOWN_ITERS
+            _vl_spike_count[0] += 1
+            print(
+                f"[GUARD] Value-loss spike: {vl:.1f} > {_VL_THRESHOLD} at iter {it} "
+                f"(spike #{_vl_spike_count[0]}). LR multiplier now ×{_vl_penalty[0]:.4f}, "
+                f"cooldown reset to {_VL_COOLDOWN_ITERS} iters.",
+                flush=True,
+            )
+
+        clamp_noise_std(runner.alg.policy, args.min_noise_std, args.max_noise_std)
+
+        if it % 100 == 0:
+            guard_str = ""
+            if _vl_cooldown[0] > 0:
+                guard_str = f"  [GUARD active: LR×{_vl_penalty[0]}, {_vl_cooldown[0]} iters left]"
+            print(f"[TRAIN] iter={it:5d}/{_max_iters_total}  lr={lr:.2e}"
+                  f"  vf_loss={vl:.3f}  spikes={_vl_spike_count[0]}{guard_str}",
+                  flush=True)
+
+        _iteration_counter[0] += 1
+        return result
+
+    runner.alg.update = _update_with_schedule
+    print(f"[GUARD] Value-loss watchdog armed (threshold={_VL_THRESHOLD}, "
+          f"cooldown={_VL_COOLDOWN_ITERS} iters, LR×0.5)", flush=True)
+    print(f"[SCHED] Cosine LR: lr_max={args.lr_max:.1e} → "
+          f"lr_min={args.lr_min:.1e} over {_max_iters_total} iters "
+          f"(warmup {args.warmup_iters} iters)", flush=True)
 
     # Actor-only resume from hybrid_nocoach_19999.pt (H-100 Hail Mary plan)
     if args.actor_only_resume is not None:

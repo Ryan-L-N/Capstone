@@ -134,18 +134,21 @@ class ParkourNavEventCfg(S2REventCfg):
     """Overrides base DR with parkour-paper ranges."""
 
     def __post_init__(self):
-        # Phase-3 DR GRADUATION (Apr 24): widened back to parkour-paper spec
-        # after from-scratch training converged. `parkour_scratch_6000.pt` had
-        # a clean gait but FLIPPED on eval friction (arena floor coef < 0.8
-        # training floor) — distribution gap, not skill deficit. Fine-tune
-        # resumes from 6000 with original ranges now that exploration isn't
-        # fragile.
-        self.physics_material.params["static_friction_range"] = (0.6, 2.0)
-        self.physics_material.params["dynamic_friction_range"] = (0.4, 1.8)
+        # Phase-4 (Apr 24 PM): friction floor dropped further to close the
+        # zone-5 gap. Phase-3 widened to (0.6, 2.0) static / (0.4, 1.8) dynamic
+        # but iter 7400 still FLIP/FELL at friction zone 5 (~46-48m, 1.9m
+        # short of COMPLETE). Eval zone 5 friction must be below 0.6 — drop
+        # static floor to 0.3, dynamic to 0.2. Matches parkour-paper "ice"
+        # regime. Mass / push ranges kept at Phase-3 values.
+        self.physics_material.params["static_friction_range"] = (0.3, 2.0)
+        self.physics_material.params["dynamic_friction_range"] = (0.2, 1.8)
 
         self.add_base_mass.params["mass_distribution_params"] = (0.0, 3.0)
 
         self.push_robot.interval_range_s = (6.0, 10.0)
+        # Hail Mary revert: action_scale back to 0.3 so push range returns to
+        # Phase-FW-Plus baseline (±0.6 m/s). Phase-Final's ±0.8 was tuned for
+        # action_scale=0.5; mismatched here.
         self.push_robot.params["velocity_range"] = {
             "x": (-0.6, 0.6), "y": (-0.6, 0.6),
         }
@@ -185,9 +188,16 @@ class ParkourNavRewardsCfg(S2RRewardsCfg):
         if hasattr(self, "directional_progress"):
             self.directional_progress.weight = 0.0
 
-        # Slightly tighten action_rate to dampen jitter introduced by
-        # bigger action_scale 0.3 (see agent_cfg).
+        # Hail Mary revert: action_scale 0.5 → 0.3, so action_smoothness
+        # weight returns to the Phase-9/FW-Plus value (-1.5). Phase-Final's
+        # -2.0 was a compensation for the bigger 0.5 action delta; not needed
+        # at 0.3.
         self.action_smoothness.weight = -1.5
+
+        # Hail Mary revert: joint_torques weight back to S2R baseline (-1e-3).
+        # Phase-Final tightened to -1.5e-3 to compensate for action_scale=0.5
+        # + cmd_vx 4.0 — both reverted, so penalty returns to baseline.
+        self.joint_torques.weight = -1.0e-3
 
         # Keep orientation penalty mild — stairs require body pitch.
         self.base_pitch.weight = -0.25
@@ -236,9 +246,12 @@ class ParkourNavEnvCfg(SpotS2RBaseEnvCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        # --- Bump action_scale from 0.2 -> 0.3 ---
-        # Mason HybridActionsCfg sets this on the joint position term.
-        # Extreme Parkour uses 0.5; 0.3 is the Spot-sized compromise.
+        # --- Hail Mary: action_scale = 0.3 (Phase-9/FW-Plus baseline) ---
+        # Phase-Final tried 0.5 (Cheng 2024 default for ANYmal); the from-
+        # scratch run collapsed under Bug #25 slow bleed. The 22100 ckpt
+        # (project speed record + zone-5 stair survival) was trained at 0.3,
+        # and 0.3 is also the eval-script default + Cole-compatible setting.
+        # Drop-in compatible with the 22100 / Phase-9 spec sheet.
         if hasattr(self.actions, "joint_pos") and hasattr(self.actions.joint_pos, "scale"):
             self.actions.joint_pos.scale = 0.3
 
@@ -259,10 +272,23 @@ class ParkourNavEnvCfg(SpotS2RBaseEnvCfg):
         # curriculum stalls at level 0 (observed in Option 6). Tight ranges
         # cut the bar to ~6m/ep. Widen in fine-tune resume once curriculum
         # is climbing.
+        # Phase-8 (Apr 26): widen ang_vel_z further (1.5→2.0) to cover Cole
+        # APF's spawn-time turn commands. Phase-7 Cole eval crashed at t=2.8s
+        # because navigator commanded wz=1.91 rad/s on spawn — out of Phase-7
+        # training range (1.5 max), and combined with high vx = unstable on
+        # flat ground (made worse by harder-terrain gait drift). Widening to
+        # 2.0 covers that edge case with margin.
+        # Phase-6 backward (-1.0 vx floor) and lateral (0.8 vy) kept.
+        # Hail Mary revert: lin_vel_x max 4.0 → 1.5 m/s. Phase-Final's 4.0
+        # was the Cheng 2024 ceiling, and combined with action_scale=0.5 +
+        # the 50% stair-relevant terrain mix produced the slow-bleed
+        # collapse. Phase-9 / FW-Plus's max-1.5 m/s produced the project-
+        # record 22100 policy. terrain_levels_vel still self-regulates the
+        # promote bar at the operating range.
         if hasattr(self.commands, "base_velocity"):
-            self.commands.base_velocity.ranges.lin_vel_x = (0.3, 0.8)
-            self.commands.base_velocity.ranges.lin_vel_y = (-0.3, 0.3)
-            self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+            self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.5)
+            self.commands.base_velocity.ranges.lin_vel_y = (-0.8, 0.8)
+            self.commands.base_velocity.ranges.ang_vel_z = (-2.0, 2.0)
             self.commands.base_velocity.resampling_time_range = (4.0, 6.0)
 
         # --- Scene env spacing (num_envs set by train script) ---
