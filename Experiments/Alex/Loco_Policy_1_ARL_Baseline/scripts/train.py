@@ -77,8 +77,20 @@ simulation_app = app_launcher.app
 
 # ── 1. Imports (AFTER SimulationApp) ────────────────────────────────────
 import os
+import sys
 import time
 from datetime import datetime
+
+# Path setup so `from configs...` (this Loco_Policy_1) and `from quadruped_locomotion...`
+# (Loco_Shared) both resolve cleanly.
+_LOCO1_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO1_ROOT, ".."))
+for _p in (
+    _LOCO1_ROOT,
+    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import gymnasium as gym
 import torch
@@ -90,7 +102,7 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 # Trigger standard gym registrations
 import isaaclab_tasks  # noqa: F401
-import quadruped_locomotion  # noqa: F401  — registers our gym envs
+import configs  # noqa: F401  — registers Loco_Policy_1 (ARL Baseline) gym envs
 from isaaclab_tasks.utils import get_checkpoint_path
 
 from quadruped_locomotion.utils.lr_schedule import cosine_annealing_lr, set_learning_rate
@@ -112,8 +124,8 @@ def load_robot_configs(robot: str):
         (env_cfg, agent_cfg, env_id) tuple.
     """
     if robot == "spot":
-        from quadruped_locomotion.tasks.locomotion.config.spot.env_cfg import SpotLocomotionEnvCfg
-        from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_ppo_cfg import SpotPPORunnerCfg
+        from configs.env_cfg import SpotLocomotionEnvCfg
+        from configs.agents.rsl_rl_ppo_cfg import SpotPPORunnerCfg
         return SpotLocomotionEnvCfg(), SpotPPORunnerCfg(), "Locomotion-Robust-Spot-v0"
     else:
         from quadruped_locomotion.tasks.locomotion.config.vision60.env_cfg import Vision60LocomotionEnvCfg

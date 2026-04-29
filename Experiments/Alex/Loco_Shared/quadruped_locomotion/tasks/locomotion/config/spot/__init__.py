@@ -1,74 +1,14 @@
-"""Spot locomotion task — gym environment registration."""
+"""Spot locomotion task — historical gym registrations were here.
 
-import gymnasium as gym
+After the Loco_Policy reorganization, the env_cfg + Locomotion-{Flat,
+Robust,Play,Teacher,Distill}-Spot-v0 registrations live in
+``Loco_Policy_1_ARL_Baseline/configs/__init__.py``, and the
+mason_hybrid_env_cfg + Locomotion-ARLHybrid-Spot-v0 registrations live in
+``Loco_Policy_2_ARL_Hybrid/configs/__init__.py``.
 
-from . import agents  # noqa: F401
+This package retains shared utilities (utils/, tasks/locomotion/mdp/,
+robots/) consumed by all five Loco_Policy_N projects.
+"""
 
-##
-# Register Gym environments.
-##
-
-gym.register(
-    id="Locomotion-Flat-Spot-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": f"{__name__}.env_cfg:SpotLocomotionEnvCfg",
-    },
-)
-
-gym.register(
-    id="Locomotion-Robust-Spot-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": f"{__name__}.env_cfg:SpotLocomotionEnvCfg",
-    },
-)
-
-gym.register(
-    id="Locomotion-Play-Spot-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": f"{__name__}.env_cfg:SpotLocomotionEnvCfg_PLAY",
-    },
-)
-
-gym.register(
-    id="Locomotion-Teacher-Spot-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": f"{__name__}.env_cfg:SpotTeacherEnvCfg",
-    },
-)
-
-gym.register(
-    id="Locomotion-Distill-Spot-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": f"{__name__}.env_cfg:SpotLocomotionEnvCfg",
-    },
-)
-
-gym.register(
-    id="Locomotion-MasonHybrid-Spot-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": f"{__name__}.mason_hybrid_env_cfg:SpotMasonHybridEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{__name__}.agents.rsl_rl_mason_hybrid_cfg:SpotMasonHybridPPORunnerCfg",
-    },
-)
-
-gym.register(
-    id="Locomotion-MasonHybrid-Spot-Play-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": f"{__name__}.mason_hybrid_env_cfg:SpotMasonHybridEnvCfg_PLAY",
-        "rsl_rl_cfg_entry_point": f"{__name__}.agents.rsl_rl_mason_hybrid_cfg:SpotMasonHybridPPORunnerCfg",
-    },
-)
+# `from . import agents` was removed — each Loco_Policy_N now imports
+# its own agent cfg from its own configs/agents/ directory.
