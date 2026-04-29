@@ -129,6 +129,22 @@ and not part of the deliverable.
 
 ## Open follow-up work (post-ship)
 
+0. **TODO: Push friction speed to 2.5 m/s.** Local rendered eval
+   (Apr 29) showed 22100 hitting 5/5 COMPLETE on friction zone 5 with
+   times 117–174s (best 117.2s = ~0.42 m/s average). Project record
+   was 99.5s = ~0.50 m/s. Target: 49.5m / ~20s = **2.5 m/s sustained.**
+   To get there:
+   - Widen the training command range: `lin_vel_x` max 1.5 → 3.0 m/s
+     in `final_capstone_policy_env_cfg.py` `__post_init__`.
+   - Fine-tune from 22100 (actor-only resume + critic warmup 200) at
+     the wider range, with the Bug #25/#29 defense stack engaged.
+     `lr_max=3e-5`, 1000-iter cap, kill if vf_loss > 100 sustained.
+   - Verify the policy can sustain 2.5 m/s on flat ground without
+     flipping at zones 4-5 (low friction). May need to retain the
+     `--zone_slowdown_cap` flag for cross-validation runs.
+   - Re-eval 4-env battery + Cole quarter to confirm the speed bump
+     doesn't regress stair-zone-5 alive depth or Cole performance.
+
 1. **Diagnostic: why is Apr 29 stuck at level 0?** Compare commits
    on `final_capstone_policy_terrain_cfg.py` and
    `final_capstone_policy_env_cfg.py` between
