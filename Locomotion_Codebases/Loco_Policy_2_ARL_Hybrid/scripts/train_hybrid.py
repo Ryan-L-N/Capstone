@@ -77,10 +77,10 @@ from datetime import datetime
 # Path setup so `from configs...` (this Loco_Policy_2) and
 # `from quadruped_locomotion...` (Loco_Shared) both resolve cleanly.
 _LOCO2_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO2_ROOT, ".."))
+_LOCO_CODEBASES_ROOT = os.path.abspath(os.path.join(_LOCO2_ROOT, ".."))
 for _p in (
     _LOCO2_ROOT,
-    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Shared"),
 ):
     if _p not in sys.path:
         sys.path.insert(0, _p)

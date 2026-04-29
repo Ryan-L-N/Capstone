@@ -31,12 +31,16 @@ import os
 import subprocess
 import sys
 
-_ALEX_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_LOCO_CODEBASES_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_REPO_ROOT = os.path.abspath(os.path.join(_LOCO_CODEBASES_ROOT, ".."))
 _CAPSTONE_EVAL = os.path.join(
-    _ALEX_ROOT, "4_env_test", "src", "run_capstone_eval.py",
+    _LOCO_CODEBASES_ROOT, "4_env_test", "src", "run_capstone_eval.py",
 )
+# NAV_ALEX/ stays under Experiments/Alex/ (it's a navigation codebase, not a
+# locomotion one — outside the Locomotion_Codebases/ wrapper). Walk up one
+# more level + into the original location.
 _COLE_EVAL = os.path.join(
-    _ALEX_ROOT, "NAV_ALEX", "scripts", "cole_arena_skillnav_lite.py",
+    _REPO_ROOT, "Experiments", "Alex", "NAV_ALEX", "scripts", "cole_arena_skillnav_lite.py",
 )
 _PYTHON = sys.executable  # same conda env as caller
 

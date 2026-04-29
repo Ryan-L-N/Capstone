@@ -35,10 +35,10 @@ import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 # Experiments/Alex/, so the relative-path computation is robust to either a
 # local checkout or an H100 deployment that mirrors the same layout.
 _LOCO3_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO3_ROOT, ".."))
+_LOCO_CODEBASES_ROOT = os.path.abspath(os.path.join(_LOCO3_ROOT, ".."))
 _PATHS = [
-    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
-    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Shared"),
 ]
 for _p in _PATHS:
     if os.path.isdir(_p) and _p not in sys.path:

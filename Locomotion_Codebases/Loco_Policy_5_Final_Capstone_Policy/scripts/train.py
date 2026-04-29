@@ -99,12 +99,12 @@ import isaaclab_tasks  # noqa: F401
 # SpotARLHybridEnvCfg the S2R base inherits from) + Loco_Shared (the
 # quadruped_locomotion shared package).
 _LOCO5_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO5_ROOT, ".."))
+_LOCO_CODEBASES_ROOT = os.path.abspath(os.path.join(_LOCO5_ROOT, ".."))
 for _p in (
     _LOCO5_ROOT,
-    os.path.join(_ALEX_ROOT, "Loco_Policy_3_Student_Teacher_Training"),
-    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
-    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Policy_3_Student_Teacher_Training"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Shared"),
 ):
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)

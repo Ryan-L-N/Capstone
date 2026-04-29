@@ -109,12 +109,12 @@ import isaaclab_tasks  # noqa: F401
 # package) + Loco_Policy_2_ARL_Hybrid/configs (parent SpotARLHybridEnvCfg)
 # + this Loco_Policy_4 root (for expert_router + distillation_loss).
 _LOCO4_ROOT = os.path.dirname(os.path.abspath(__file__))
-_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO4_ROOT, ".."))
+_LOCO_CODEBASES_ROOT = os.path.abspath(os.path.join(_LOCO4_ROOT, ".."))
 for _p in (
     _LOCO4_ROOT,
-    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
-    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs", "agents"),
-    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs", "agents"),
+    os.path.join(_LOCO_CODEBASES_ROOT, "Loco_Shared"),
 ):
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)
