@@ -295,6 +295,55 @@ $env:OMNI_KIT_ACCEPT_EULA = "YES"
 
 ---
 
+## Canonical per-env eval invocation
+
+After the Apr 29 rendered-smoke battery (22100 ckpt, 2-iter rendered),
+these are the verified-working `--target_vx` + `--zone_slowdown_cap`
+combinations for each environment. All 4 envs hit the "+1m past
+zone 3" depth target on 2/2 episodes.
+
+| Env | `--target_vx` | `--zone_slowdown_cap` | Verified result (2-iter, 22100) |
+|---|---|---|---|
+| **friction** | **3.0** | **1.0** | 1/2 COMPLETE 49.5m / 85.6s (best 48.6s in 3-iter) — project speed record |
+| **grass** | **3.0** | **3.0** | 2/2 COMPLETE 49.5m / 74.5-76.1s |
+| **boulder** | **2.0** | **0.67** | 2/2 reach zone 4 at 31.3m (TIMEOUT) |
+| **stairs** | **2.0** | **1.0** | 2/2 reach zone 4 at 31.8-33.0m (FELL) |
+
+### One-liner per-env command (Windows / Git Bash)
+
+```bash
+CKPT="Experiments/Ryan/Final_Capstone_Policy_22100/parkour_phasefwplus_22100.pt"
+PYTHON="/c/miniconda3/envs/isaaclab311/python.exe"
+COMMON="--policy rough --rendered --num_episodes 5 --max_episode_time 180 --checkpoint $CKPT --mason --action_scale 0.3 --output_dir results/canonical_eval"
+
+OMNI_KIT_ACCEPT_EULA=YES $PYTHON src/run_capstone_eval.py --env friction $COMMON --target_vx 3.0 --zone_slowdown_cap 1.0
+OMNI_KIT_ACCEPT_EULA=YES $PYTHON src/run_capstone_eval.py --env grass    $COMMON --target_vx 3.0 --zone_slowdown_cap 3.0
+OMNI_KIT_ACCEPT_EULA=YES $PYTHON src/run_capstone_eval.py --env boulder  $COMMON --target_vx 2.0 --zone_slowdown_cap 0.67
+OMNI_KIT_ACCEPT_EULA=YES $PYTHON src/run_capstone_eval.py --env stairs   $COMMON --target_vx 2.0 --zone_slowdown_cap 1.0
+```
+
+### Or use the canonical battery script
+
+```bash
+bash scripts/run_canonical_eval.sh                      # default 5 eps, rendered, 22100 ckpt
+bash scripts/run_canonical_eval.sh 100 --headless       # production: 100 eps headless
+```
+
+Why these specific values:
+- **friction tgt=3.0, cap=1.0** — push speed in zones 1-3 (sandpaper, dry rubber, wet
+  concrete); cap to 1.0 in zones 4-5 to avoid slip-induced flips on wet ice + oil.
+- **grass tgt=3.0, cap=3.0** — grass drag does the natural slowdown organically. No
+  artificial cap needed; let the policy push.
+- **boulder tgt=2.0, cap=0.67** — 3.0 m/s in zones 1-2 caused zone-2 flips at high
+  speed on rocks. Toned to 2.0 to enter cleanly. Phase-9-locked 0.67 m/s past x≥20m
+  for the dense-boulder zones 3+.
+- **stairs tgt=2.0, cap=1.0** — 3.0 + cap=2.0 had 0/3 pass rate (all flipped at
+  ~28-29m). Toned to 2.0 + cap=1.0 → 2/2 reach 31.8-33.0m. Tall risers (17-23cm)
+  don't tolerate >1.0 m/s commands in zones 3+.
+
+22100's training cmd_vel range was (-1.0, 1.5). Targets above 1.5 are
+extrapolation — the cap is the safety net.
+
 ## Common Issues
 
 ### Issue 1 — "isaaclab.sh: command not found" on Windows
