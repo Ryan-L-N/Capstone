@@ -129,19 +129,27 @@ and not part of the deliverable.
 
 ## Open follow-up work (post-ship)
 
-0. **TODO (a): Push friction speed to 2.5 m/s.** Local rendered eval
-   (Apr 29) showed 22100 hitting 5/5 COMPLETE on friction zone 5 with
-   times 117–174s (best 117.2s = ~0.42 m/s average). Project record
-   was 99.5s = ~0.50 m/s. Target: 49.5m / ~20s = **2.5 m/s sustained.**
+0. **TODO (a): Push friction speed — 2.0 m/s through zone 2 + reach
+   ≥31m (1m past zone 3).** Friction zones are 10m each (zone 1: 0-10m
+   = 60-grit sandpaper, zone 2: 10-20m = dry rubber, zone 3: 20-30m =
+   wet concrete, zone 4: 30-40m = wet ice, zone 5: 40-50m = oil on
+   steel). Local rendered eval (Apr 29) showed 22100 hitting 5/5
+   COMPLETE on friction zone 5 with times 117–174s (best 117.2s =
+   ~0.42 m/s average across the full 49.5m). The completion is great
+   but the early zones are slow.
+   Target: **sustained 2.0 m/s through zones 1-2 (0-20m)** and
+   **reach ≥31m at the boundary into zone 4** (1m past zone 3) —
+   stretch goal is sustained 2.5 m/s for the full 49.5m.
    To get there:
    - Widen the training command range: `lin_vel_x` max 1.5 → 3.0 m/s
      in `final_capstone_policy_env_cfg.py` `__post_init__`.
    - Fine-tune from 22100 (actor-only resume + critic warmup 200) at
      the wider range, with the Bug #25/#29 defense stack engaged.
      `lr_max=3e-5`, 1000-iter cap, kill if vf_loss > 100 sustained.
-   - Verify the policy can sustain 2.5 m/s on flat ground without
+   - Verify the policy can sustain 2.0 m/s on zones 1-2 without
      flipping at zones 4-5 (low friction). May need to retain the
-     `--zone_slowdown_cap` flag for cross-validation runs.
+     `--zone_slowdown_cap` flag for the icy zones (capped at 0.8-1.0
+     m/s on x≥30m to prevent slip-induced flips on wet ice / oil).
    - Re-eval 4-env battery + Cole quarter to confirm the speed bump
      doesn't regress stair-zone-5 alive depth or Cole performance.
 
