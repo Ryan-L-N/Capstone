@@ -19,7 +19,7 @@ FALL_THRESHOLD = 0.15           # meters — base height below this = fall
 COMPLETION_X = 49.0             # meters — x >= this = completed
 
 # --- Arena ---
-SPAWN_POSITION = (0.0, 15.0, 0.6)  # center of Y-axis, 0.6m above ground
+SPAWN_POSITION = (0.0, 15.0, 0.55)  # center of Y-axis, 0.55m = Spot's natural standing height (no drop)
 
 # =============================================================================
 # Spot PD gains (default — from LESSONS_LEARNED.md deployment checklist)

@@ -87,6 +87,13 @@ parser.add_argument("--seed", type=int, default=42,
                     help="Random seed for reproducibility")
 parser.add_argument("--max_episode_time", type=float, default=0,
                     help="Max seconds per episode (0 = no limit)")
+parser.add_argument("--zone_slowdown_cap", type=float, default=1.0,
+                    help="Cap forward velocity (m/s) when robot enters zone 3+. "
+                         "Phase-9 boulder operating point: 0.67. Default 1.0 = no cap. "
+                         "Used to prevent gait-specific failures on harder terrain "
+                         "(e.g. mason_hybrid + parkour_phase9 boulder zone 3 wall).")
+parser.add_argument("--no_zone_slowdown", action="store_true", default=False,
+                    help="Disable zone-aware velocity capping entirely (overrides --zone_slowdown_cap).")
 parser.add_argument("--mason", action="store_true", default=False,
                     help="Use Mason obs order (height_scan first) + action_scale=0.2")
 
@@ -367,8 +374,15 @@ def main():
         waypoint_follower.reset()
         metrics_collector.start_episode(ep_id)
 
-        # Brief stabilization after reset
-        stabilize_steps = 50 if args.env in ("stairs", "stairs_approach", "simple_stairs") else 10
+        # Brief stabilization after reset.
+        # Bumped from 10 → 50 (non-stairs) and 50 → 100 (stairs) on Apr 29
+        # after local rendered smoke showed every episode falling in <0.5s.
+        # Root cause: with --rendered, world.step's render pipeline added
+        # enough wall-clock jitter that 10 physics steps (0.02s sim time)
+        # wasn't enough for the robot to settle from the spawn drop before
+        # the policy took over. Headless H100 was fine at the old values.
+        # 50/100 steps adds 0.08-0.18s sim — negligible cost, large reliability win.
+        stabilize_steps = 100 if args.env in ("stairs", "stairs_approach", "simple_stairs") else 50
         for _ in range(stabilize_steps):
             spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
             world.step(render=not headless)
@@ -434,6 +448,18 @@ def main():
             if args.env == "grass":
                 vscale = get_velocity_scale(float(pos_np[0]))
                 cmd[0] *= vscale
+
+            # Zone-aware velocity slowdown (Phase-9 boulder fix).
+            # Some policy + terrain combinations have gait-specific failure modes
+            # at certain zones (e.g. mason_hybrid + parkour_phase9 hits a zone-3
+            # wall on boulder at full speed). Capping forward velocity past x=20m
+            # (zone 3 onwards) lets these gaits clear deeper without flipping.
+            #   --zone_slowdown_cap 1.0 (default) = no effective cap
+            #   --zone_slowdown_cap 0.67          = Phase-9 boulder operating point
+            #   --no_zone_slowdown                = disabled (full eval rigor)
+            if not args.no_zone_slowdown and args.zone_slowdown_cap < 1.0 and pos_np[0] >= 20.0:
+                if cmd[0] > args.zone_slowdown_cap:
+                    cmd[0] = args.zone_slowdown_cap
 
             # Step policy and simulation
             spot.forward(PHYSICS_DT, cmd)
