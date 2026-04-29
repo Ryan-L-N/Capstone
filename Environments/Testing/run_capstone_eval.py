@@ -1,0 +1,492 @@
+"""Main entry point for headless and rendered capstone evaluation.
+
+Runs N episodes per (robot, environment, policy) combination, collecting
+per-episode metrics and optionally capturing video.
+Supports both Spot and Vision60 robots via --robot flag.
+
+Usage (Spot — headless on H100):
+    ./isaaclab.sh -p src/run_capstone_eval.py --headless \
+        --robot spot --num_episodes 1000 --policy flat --env friction \
+        --output_dir results/
+
+Usage (Vision60 — rough policy):
+    ./isaaclab.sh -p src/run_capstone_eval.py --headless \
+        --robot vision60 --policy rough --env stairs \
+        --checkpoint /path/to/vision60_best.pt \
+        --num_episodes 100 --output_dir results/v60/
+
+Usage (Spot — rendered with video):
+    ./isaaclab.sh -p src/run_capstone_eval.py \
+        --num_episodes 10 --policy rough --env stairs \
+        --rendered --capture_video --output_dir results/rendered/
+
+Reuses patterns from:
+- ARL_DELIVERY/05_Training_Package/spot_rough_48h_cfg.py (AppLauncher, headless)
+- ARL_DELIVERY/02_Obstacle_Course/spot_obstacle_course.py (standalone World API)
+- ARL_DELIVERY/03_Rough_Terrain_Policy/spot_rough_terrain_policy.py (policy loading)
+"""
+
+# ── 0. Parse args BEFORE any Isaac imports ──────────────────────────────
+import argparse
+import signal
+import sys
+import os
+import time
+
+
+# ── Signal handler for graceful Ctrl-C shutdown ─────────────────────────
+# Isaac Sim's SimulationApp.close() can hang in GPU driver cleanup,
+# leaving unkillable D-state zombie processes.  This handler saves any
+# pending metrics and exits immediately via os._exit() to avoid that.
+_metrics_collector_ref = None  # set in main() so handler can save data
+
+
+def _graceful_shutdown(signum, frame):
+    """Handle SIGINT/SIGTERM: save data and force-exit."""
+    sig_name = signal.Signals(signum).name
+    print(f"\n[SHUTDOWN] Caught {sig_name} — saving data and exiting...",
+          flush=True)
+    if _metrics_collector_ref is not None:
+        try:
+            _metrics_collector_ref.save()
+            print("[SHUTDOWN] Metrics saved.", flush=True)
+        except Exception as e:
+            print(f"[SHUTDOWN] Warning: could not save metrics: {e}",
+                  flush=True)
+    print("[SHUTDOWN] Force-exiting (skipping SimulationApp.close).",
+          flush=True)
+    os._exit(0)
+
+
+signal.signal(signal.SIGINT, _graceful_shutdown)
+signal.signal(signal.SIGTERM, _graceful_shutdown)
+
+parser = argparse.ArgumentParser(description="Capstone 4-environment evaluation")
+parser.add_argument("--robot", type=str, default="spot",
+                    choices=["spot", "vision60"],
+                    help="Robot to evaluate (default: spot)")
+parser.add_argument("--env", type=str, required=True,
+                    choices=["friction", "friction_v2", "grass", "boulder", "stairs", "stairs_approach", "simple_stairs"],
+                    help="Environment to evaluate")
+parser.add_argument("--policy", type=str, required=True,
+                    choices=["flat", "rough"],
+                    help="Policy type to evaluate")
+parser.add_argument("--num_episodes", type=int, default=1000,
+                    help="Number of episodes to run (default: 1000)")
+parser.add_argument("--headless", action="store_true", default=False,
+                    help="Run without GUI rendering")
+parser.add_argument("--rendered", action="store_true", default=False,
+                    help="Force rendered mode (overrides --headless)")
+parser.add_argument("--capture_video", action="store_true", default=False,
+                    help="Capture video of episodes (requires rendered)")
+parser.add_argument("--checkpoint", type=str, default=None,
+                    help="Path to rough policy checkpoint (.pt)")
+parser.add_argument("--output_dir", type=str, default="results/",
+                    help="Output directory for JSONL and video files")
+parser.add_argument("--seed", type=int, default=42,
+                    help="Random seed for reproducibility")
+parser.add_argument("--max_episode_time", type=float, default=0,
+                    help="Max seconds per episode (0 = no limit)")
+parser.add_argument("--mason", action="store_true", default=False,
+                    help="Use Mason obs order (height_scan first) + action_scale=0.2")
+
+args, remaining = parser.parse_known_args()
+
+# Determine headless mode
+headless = args.headless and not args.rendered
+
+# ── 1. Create SimulationApp BEFORE any omni imports ─────────────────────
+from isaacsim import SimulationApp
+
+app_config = {
+    "headless": headless,
+    "width": 1920,
+    "height": 1080,
+}
+simulation_app = SimulationApp(app_config)
+
+# ── 2. Now safe to import Isaac and project modules ─────────────────────
+import numpy as np
+import omni
+from omni.isaac.core import World
+from pxr import UsdGeom, Gf, UsdPhysics, UsdLux
+
+# Add src/ to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# ── 1c. Headless GPU Foundation fix ─────────────────────────────────────
+# On compute-only drivers (nvidia-headless-575), World.step() hangs because
+# GPU Foundation can't initialize without Vulkan. We monkey-patch World.step()
+# to use simulation_app.update() + direct physics stepping instead.
+# Note: World.step(render=False) works on machines with full GPU drivers.
+# On compute-only drivers (nvidia-headless-575), it hangs because GPU
+# Foundation can't initialize. For H100 headless evals after BMC reboot,
+# use the gym-based training environment or run evals locally instead.
+
+from configs.eval_cfg import (
+    PHYSICS_DT, RENDERING_DT, CONTROL_DT, DECIMATION,
+    MAX_CONTROL_STEPS, FALL_THRESHOLD, COMPLETION_X,
+    SPAWN_POSITION, STIFFNESS, DAMPING, ACTION_SCALE,
+    ROBOT_CONFIGS,
+)
+from configs.zone_params import ZONE_PARAMS
+from envs import build_environment
+from envs.base_arena import quat_to_yaw
+from navigation.waypoint_follower import WaypointFollower
+from metrics.collector import MetricsCollector
+
+# Grass-specific drag scaling
+if args.env == "grass":
+    from envs.grass_env import get_velocity_scale
+
+# Stairs-specific ground elevation function
+if args.env in ("stairs", "stairs_approach"):
+    from configs.zone_params import get_stair_elevation
+
+
+# ── Constants ───────────────────────────────────────────────────────────
+STABILIZE_STEPS = 100  # 2 seconds at 50 Hz
+SPAWN_QUAT = np.array([1.0, 0.0, 0.0, 0.0])  # identity — facing +X
+
+
+def main():
+    robot = args.robot
+    robot_cfg = ROBOT_CONFIGS[robot]
+    spawn_pos = list(robot_cfg["spawn_position"])
+    # Raise spawn height for stairs to prevent foot clipping on first frame
+    if args.env == "stairs":
+        spawn_pos[2] = max(spawn_pos[2], 1.0)  # 1.0m clears initial step geometry
+    # Approach env: spawn 10m before the stairs on flat ground
+    if args.env == "stairs_approach":
+        spawn_pos[0] = -10.0
+        spawn_pos[2] = 0.52  # standing body height — no drop on spawn
+
+    print(f"\n{'='*60}")
+    print(f"  Capstone Evaluation")
+    print(f"  Robot:       {robot.upper()}")
+    print(f"  Environment: {args.env}")
+    print(f"  Policy:      {args.policy}")
+    print(f"  Episodes:    {args.num_episodes}")
+    print(f"  Headless:    {headless}")
+    print(f"  Output:      {args.output_dir}")
+    print(f"{'='*60}\n")
+
+    # ── 3. Create World ─────────────────────────────────────────────────
+    world = World(
+        physics_dt=PHYSICS_DT,
+        rendering_dt=RENDERING_DT,
+        stage_units_in_meters=1.0,
+    )
+    stage = omni.usd.get_context().get_stage()
+
+    # ── 4. Build base ground (raw USD cube for GPU PhysX compatibility) ─
+    ground = UsdGeom.Cube.Define(stage, "/World/GroundPlane")
+    ground.GetSizeAttr().Set(1.0)
+    ground.AddTranslateOp().Set(Gf.Vec3d(25.0, 15.0, -0.005))
+    ground.AddScaleOp().Set(Gf.Vec3d(200.0, 200.0, 0.01))
+    ground.GetDisplayColorAttr().Set([(0.5, 0.5, 0.5)])
+    UsdPhysics.CollisionAPI.Apply(ground.GetPrim())
+
+    # ── 4b. Scene lighting ────────────────────────────────────────────
+    light_path = "/World/Lights"
+    UsdGeom.Xform.Define(stage, light_path)
+
+    # Dome light (ambient sky)
+    dome = UsdLux.DomeLight.Define(stage, f"{light_path}/dome")
+    dome.CreateIntensityAttr(500.0)
+    dome.CreateColorAttr(Gf.Vec3f(0.85, 0.90, 1.0))
+
+    # Distant light (sun)
+    sun = UsdLux.DistantLight.Define(stage, f"{light_path}/sun")
+    sun.CreateIntensityAttr(3000.0)
+    sun.CreateAngleAttr(1.0)
+    sun.CreateColorAttr(Gf.Vec3f(1.0, 0.95, 0.85))
+    sun_prim = stage.GetPrimAtPath(f"{light_path}/sun")
+    UsdGeom.Xformable(sun_prim).AddRotateXYZOp().Set(Gf.Vec3d(-45, 30, 0))
+
+    # ── 5. Build environment ────────────────────────────────────────────
+    print(f"Building {args.env} environment...")
+    build_environment(args.env, stage, None)
+
+    # ── 6. Load policy and spawn robot ──────────────────────────────────
+    print(f"Loading {args.policy} policy for {robot.upper()}...", flush=True)
+
+    # Ground height function for stairs
+    # - Metrics: uses analytical fn for correct fall detection on elevated terrain
+    # - Height scanner: uses PhysX raycasting for ALL environments (sees real geometry)
+    ground_fn_metrics = get_stair_elevation if args.env in ("stairs", "stairs_approach") else None
+    ground_fn_scanner = None  # PhysX raycasting for all envs
+
+    if robot == "spot":
+        from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
+
+        flat_policy = SpotFlatTerrainPolicy(
+            prim_path="/World/Robot",
+            name="Robot",
+            position=np.array(spawn_pos),
+        )
+
+        world.reset()
+        world.step(render=not headless)
+        flat_policy.initialize()
+        flat_policy.post_reset()
+
+        if args.policy == "rough":
+            from spot_rough_terrain_policy import SpotRoughTerrainPolicy
+            robot_policy = SpotRoughTerrainPolicy(
+                flat_policy=flat_policy,
+                checkpoint_path=args.checkpoint,
+                ground_height_fn=ground_fn_scanner,
+                mason_baseline=args.mason,
+            )
+            robot_policy.initialize()
+            robot_policy.apply_gains()
+            # world.step() advances rendering_dt/physics_dt = 10 physics substeps,
+            # so each world.step() = 10 physics steps. Decimation=1 means policy
+            # evaluates every world.step() = every 10 physics steps = 50Hz control.
+            robot_policy._decimation = 1
+        else:
+            robot_policy = flat_policy
+
+    else:  # vision60
+        # Vision60 uses the same flat policy spawner pattern
+        # but with a different URDF and PD gains
+        from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
+
+        # Vision60 doesn't have an official Isaac Sim flat policy,
+        # so we need the rough policy with a trained checkpoint
+        if args.policy == "rough":
+            if args.checkpoint is None:
+                print("[ERROR] --checkpoint is required for Vision60 rough policy", flush=True)
+                os._exit(1)
+
+            # Spawn a flat policy as the articulation base
+            flat_policy = SpotFlatTerrainPolicy(
+                prim_path="/World/Robot",
+                name="Robot",
+                position=np.array(spawn_pos),
+            )
+
+            world.reset()
+            world.step(render=not headless)
+            flat_policy.initialize()
+            flat_policy.post_reset()
+
+            # Import Vision60 rough terrain policy from multi_robot_training
+            multi_robot_dir = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "..", "..", "multi_robot_training", "eval"
+            )
+            if multi_robot_dir not in sys.path:
+                sys.path.insert(0, multi_robot_dir)
+
+            from vision60_rough_terrain_policy import Vision60RoughTerrainPolicy
+            robot_policy = Vision60RoughTerrainPolicy(
+                flat_policy=flat_policy,
+                checkpoint_path=args.checkpoint,
+                ground_height_fn=ground_fn_scanner,
+            )
+            robot_policy.initialize()
+            robot_policy.apply_gains()
+            robot_policy._decimation = 1  # loop is already at 50 Hz
+        else:
+            print("[ERROR] Vision60 flat policy not available — use --policy rough", flush=True)
+            os._exit(1)
+
+    # Alias for backward compatibility with rest of script
+    spot = robot_policy
+
+    print(f"{robot.upper()} loaded and initialized.", flush=True)
+
+    # ── 7. Create navigation and metrics ────────────────────────────────
+    waypoint_follower = WaypointFollower()
+    metrics_collector = MetricsCollector(
+        args.output_dir, args.env, args.policy,
+        ground_height_fn=ground_fn_metrics,
+    )
+    os.makedirs(args.output_dir, exist_ok=True)
+
+    # Wire up signal handler so Ctrl-C / kill can save pending data
+    global _metrics_collector_ref
+    _metrics_collector_ref = metrics_collector
+
+    # ── 8. Stabilization period ─────────────────────────────────────────
+    print("Stabilizing robot...", flush=True)
+    for i in range(STABILIZE_STEPS):
+        # Use flat policy for stabilization (like teleop) to avoid
+        # locking the rough policy into standing mode via adaptive_standing
+        if robot == "spot" and args.policy == "rough":
+            flat_policy.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        else:
+            spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+        world.step(render=not headless)
+        if (i + 1) % 25 == 0:
+            print(f"  Stabilize step {i+1}/{STABILIZE_STEPS}", flush=True)
+    print("Stabilization complete.", flush=True)
+
+    # ── 9. Episode loop ─────────────────────────────────────────────────
+    total_start = time.time()
+
+    for ep_idx in range(args.num_episodes):
+        ep_id = f"{args.env}_{args.policy}_ep{ep_idx:04d}"
+        ep_start = time.time()
+
+        # Reset robot to spawn
+        spot.robot.set_world_pose(
+            position=np.array(spawn_pos),
+            orientation=SPAWN_QUAT,
+        )
+
+        # Reset joints to standing pose so the robot isn't spawned in a crumpled
+        # post-fall configuration. Without this, the body teleports to spawn_pos
+        # but joints remain in the fallen state, causing immediate collapse.
+        from spot_rough_terrain_policy import _FALLBACK_DEFAULT_POS
+        n_joints = _FALLBACK_DEFAULT_POS.shape[0]
+        spot.robot.set_joint_positions(
+            positions=_FALLBACK_DEFAULT_POS,
+            joint_indices=np.arange(n_joints),
+        )
+        spot.robot.set_joint_velocities(
+            velocities=np.zeros(n_joints),
+            joint_indices=np.arange(n_joints),
+        )
+        # Zero out root body linear and angular velocity. set_world_pose moves
+        # the body but preserves momentum — a robot that fell fast will continue
+        # falling at the new spawn position unless these are explicitly cleared.
+        spot.robot.set_linear_velocity(np.zeros(3))
+        spot.robot.set_angular_velocity(np.zeros(3))
+        # Step once so Isaac Sim flushes all state writes before the
+        # stabilization loop runs.
+        world.step(render=False)
+
+        # Reset policy state
+        if hasattr(spot, 'post_reset'):
+            spot.post_reset()
+
+        # Reset navigation and metrics
+        waypoint_follower.reset()
+        metrics_collector.start_episode(ep_id)
+
+        # Brief stabilization after reset
+        stabilize_steps = 50 if args.env in ("stairs", "stairs_approach", "simple_stairs") else 10
+        for _ in range(stabilize_steps):
+            spot.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+            world.step(render=not headless)
+
+        # Step loop
+        for step in range(MAX_CONTROL_STEPS):
+            # Get robot state
+            pos, quat = spot.robot.get_world_pose()
+            lin_vel = spot.robot.get_linear_velocity()
+            ang_vel = spot.robot.get_angular_velocity()
+
+            pos_np = np.array(pos, dtype=np.float64)
+            quat_np = np.array(quat, dtype=np.float64)
+            lin_vel_np = np.array(lin_vel, dtype=np.float64)
+            ang_vel_np = np.array(ang_vel, dtype=np.float64)
+
+            yaw = quat_to_yaw(quat_np)
+            sim_time = step * CONTROL_DT
+
+            # Record metrics
+            joint_pos_np = np.array(spot.robot.get_joint_positions(),
+                                    dtype=np.float64)
+            joint_vel_np = np.array(spot.robot.get_joint_velocities(),
+                                    dtype=np.float64)
+
+            # Estimate PD torques: τ = Kp*(target - pos) - Kd*vel
+            # Both flat and rough policies use position drives with the same gains.
+            try:
+                raw_targets = spot.robot._articulation_view \
+                    .get_joint_position_targets()
+                # Handle CUDA tensors or numpy arrays
+                if hasattr(raw_targets, 'cpu'):
+                    targets_np = raw_targets.cpu().numpy().flatten() \
+                        .astype(np.float64)
+                else:
+                    targets_np = np.array(raw_targets,
+                                          dtype=np.float64).flatten()
+                joint_torques_np = (STIFFNESS * (targets_np - joint_pos_np)
+                                    - DAMPING * joint_vel_np)
+            except Exception:
+                joint_torques_np = None
+
+            metrics_collector.step(
+                root_pos=pos_np,
+                root_quat=quat_np,
+                root_lin_vel=lin_vel_np,
+                root_ang_vel=ang_vel_np,
+                joint_torques=joint_torques_np,
+                joint_vel=joint_vel_np,
+                sim_time=sim_time,
+            )
+
+            # Check termination (fall or time limit)
+            if metrics_collector.episode_done():
+                break
+            if args.max_episode_time > 0 and (time.time() - ep_start) > args.max_episode_time:
+                break
+
+            # Compute navigation commands
+            cmd = waypoint_follower.compute_commands(pos_np, yaw)
+
+            # Apply grass drag if applicable
+            if args.env == "grass":
+                vscale = get_velocity_scale(float(pos_np[0]))
+                cmd[0] *= vscale
+
+            # Step policy and simulation
+            spot.forward(PHYSICS_DT, cmd)
+            world.step(render=not headless)
+
+            # Progress heartbeat (prevents render pipeline stall on Windows)
+            if step % 500 == 0:
+                print(f"    step {step}/{MAX_CONTROL_STEPS}  x={pos_np[0]:.1f}m  cmd=[{cmd[0]:.2f},{cmd[1]:.2f},{cmd[2]:.2f}]", flush=True)
+
+            # Check waypoint completion
+            if waypoint_follower.is_done:
+                break
+
+        # End episode
+        result = metrics_collector.end_episode()
+        ep_time = time.time() - ep_start
+
+        # Progress log
+        status = "COMPLETE" if result.get("completion") else "FLIP" if result.get("flip_detected") else "FELL" if result.get("fall_detected") else "TIMEOUT"
+        progress = result.get("progress", 0)
+        zone = result.get("zone_reached", 0)
+        print(f"  [{ep_idx+1:4d}/{args.num_episodes}] {ep_id}  "
+              f"{status:8s}  progress={progress:5.1f}m  zone={zone}  "
+              f"time={ep_time:.1f}s")
+
+        # Save periodically (every 50 episodes)
+        if (ep_idx + 1) % 50 == 0:
+            metrics_collector.save()
+            print(f"  >> Saved checkpoint at episode {ep_idx+1}")
+
+    # ── 10. Final save and summary ──────────────────────────────────────
+    metrics_collector.save()
+
+    total_time = time.time() - total_start
+    print(f"\n{'='*60}")
+    print(f"  Evaluation complete!")
+    print(f"  Total episodes: {args.num_episodes}")
+    print(f"  Total time:     {total_time:.1f}s ({total_time/60:.1f}min)")
+    print(f"  Avg per episode: {total_time/args.num_episodes:.1f}s")
+    print(f"  Results saved to: {args.output_dir}")
+    print(f"{'='*60}\n")
+
+    # ── 11. Cleanup ─────────────────────────────────────────────────────
+    # NOTE: simulation_app.close() is intentionally skipped.
+    # It triggers GPU driver cleanup that can hang indefinitely in a
+    # kernel-level D-state, creating unkillable zombie processes that
+    # block subsequent runs and may require a physical server reboot.
+    # All data is already saved above, so os._exit(0) is safe.
+    # See LESSONS_LEARNED.md "Never Kill Isaac Sim Mid-Run" for details.
+    print("Exiting (skipping SimulationApp.close to avoid GPU hang).",
+          flush=True)
+    os._exit(0)
+
+
+if __name__ == "__main__":
+    main()
