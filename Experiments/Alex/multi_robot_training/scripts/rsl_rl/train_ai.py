@@ -282,21 +282,21 @@ def _average_frames_to_png(frame_buffer) -> bytes | None:
 def load_robot_configs(robot: str, phase: str = "robust"):
     """Load env and PPO configs for the specified robot and phase."""
     if robot == "spot" and phase == "mason_hybrid_obstacle":
-        from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
-        from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import SpotMasonHybridPPORunnerCfg
+        from configs.arl_hybrid_env_cfg import SpotARLHybridEnvCfg
+        from configs.agents.rsl_rl_arl_hybrid_cfg import SpotARLHybridPPORunnerCfg
         from quadruped_locomotion.tasks.locomotion.mdp.terrains import OBSTACLE_FOCUS_TERRAINS_CFG
-        env_cfg = SpotMasonHybridEnvCfg()
+        env_cfg = SpotARLHybridEnvCfg()
         # Swap terrain to obstacle-heavy config
         env_cfg.scene.terrain.terrain_generator = OBSTACLE_FOCUS_TERRAINS_CFG
         # Obstacle traversal weights: high clearance, dynamic movement, flexible joints
         env_cfg.rewards.foot_clearance.weight = 2.0   # up from 0.5 — incentivize high stepping
         env_cfg.rewards.joint_pos.weight = -0.3        # loosened from -0.7 — allow extreme knee bends
         env_cfg.rewards.action_smoothness.weight = -1.0  # loosened from -1.3 — allow explosive step-ups
-        return env_cfg, SpotMasonHybridPPORunnerCfg(), "Locomotion-MasonHybrid-Spot-v0"
+        return env_cfg, SpotARLHybridPPORunnerCfg(), "Locomotion-ARLHybrid-Spot-v0"
     elif robot == "spot" and phase == "mason_hybrid":
-        from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
-        from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import SpotMasonHybridPPORunnerCfg
-        return SpotMasonHybridEnvCfg(), SpotMasonHybridPPORunnerCfg(), "Locomotion-MasonHybrid-Spot-v0"
+        from configs.arl_hybrid_env_cfg import SpotARLHybridEnvCfg
+        from configs.agents.rsl_rl_arl_hybrid_cfg import SpotARLHybridPPORunnerCfg
+        return SpotARLHybridEnvCfg(), SpotARLHybridPPORunnerCfg(), "Locomotion-ARLHybrid-Spot-v0"
     elif robot == "spot":
         from quadruped_locomotion.tasks.locomotion.config.spot.env_cfg import SpotLocomotionEnvCfg
         from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_ppo_cfg import SpotPPORunnerCfg

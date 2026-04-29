@@ -450,7 +450,7 @@ class HybridSceneCfg(InteractiveSceneCfg):
 # =============================================================================
 
 @configclass
-class SpotMasonHybridEnvCfg(LocomotionVelocityRoughEnvCfg):
+class SpotARLHybridEnvCfg(LocomotionVelocityRoughEnvCfg):
     """Mason's proven rewards + our robust terrain + AI Coach ready.
 
     Network: [512, 256, 128] (Mason's — 3x smaller, trains faster)
@@ -492,7 +492,7 @@ class SpotMasonHybridEnvCfg(LocomotionVelocityRoughEnvCfg):
 
 
 @configclass
-class SpotMasonHybridEnvCfg_PLAY(SpotMasonHybridEnvCfg):
+class SpotARLHybridEnvCfg_PLAY(SpotARLHybridEnvCfg):
     """Reduced-size variant for visual testing."""
 
     def __post_init__(self):

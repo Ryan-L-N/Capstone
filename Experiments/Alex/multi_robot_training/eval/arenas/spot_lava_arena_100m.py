@@ -91,8 +91,8 @@ import isaaclab_tasks  # noqa: F401
 import quadruped_locomotion  # noqa: F401  — registers gym envs
 from quadruped_locomotion.tasks.locomotion.config.spot.env_cfg import SpotLocomotionEnvCfg
 from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_ppo_cfg import SpotPPORunnerCfg
-from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import SpotMasonHybridEnvCfg
-from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import SpotMasonHybridPPORunnerCfg
+from configs.arl_hybrid_env_cfg import SpotARLHybridEnvCfg
+from configs.agents.rsl_rl_arl_hybrid_cfg import SpotARLHybridPPORunnerCfg
 
 # ── 3. Optional pygame for Xbox controller ──────────────────────────────
 HAS_PYGAME = False
@@ -1057,7 +1057,7 @@ class SpotLavaArenaEnvCfg(SpotLocomotionEnvCfg):
         self.curriculum = None
 
 
-class SpotMasonLavaArenaEnvCfg(SpotMasonHybridEnvCfg):
+class SpotARLLavaArenaEnvCfg(SpotARLHybridEnvCfg):
     """Mason's env config adapted for lava arena (obs order: height_scan first)."""
 
     def __post_init__(self):
@@ -1552,8 +1552,8 @@ def main():
     # ── Environment + Agent config ───────────────────────────────────
     if args_cli.mason:
         # Use Mason's env config (obs order: height_scan first) + smaller network
-        env_cfg = SpotMasonLavaArenaEnvCfg()
-        agent_cfg = SpotMasonHybridPPORunnerCfg()
+        env_cfg = SpotARLLavaArenaEnvCfg()
+        agent_cfg = SpotARLHybridPPORunnerCfg()
         print("[INFO] Mason mode: HybridObservationsCfg (scan-first) + [512,256,128] network")
     else:
         env_cfg = SpotLavaArenaEnvCfg()

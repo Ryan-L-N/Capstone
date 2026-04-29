@@ -17,7 +17,7 @@ from isaaclab_rl.rsl_rl import (
 
 
 @configclass
-class SpotMasonHybridPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+class SpotARLHybridPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     """Mason's proven PPO config — smaller network, adaptive LR."""
 
     num_steps_per_env = 24       # Mason's (ours was 32)

@@ -70,8 +70,20 @@ simulation_app = app_launcher.app
 
 # ── 1. Imports (AFTER SimulationApp) ────────────────────────────────────
 import os
+import sys
 import time
 from datetime import datetime
+
+# Path setup so `from configs...` (this Loco_Policy_2) and
+# `from quadruped_locomotion...` (Loco_Shared) both resolve cleanly.
+_LOCO2_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO2_ROOT, ".."))
+for _p in (
+    _LOCO2_ROOT,
+    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import gymnasium as gym
 import torch
@@ -82,7 +94,7 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 # Trigger gym registrations
 import isaaclab_tasks  # noqa: F401
-import quadruped_locomotion  # noqa: F401
+import configs  # noqa: F401  — registers Loco_Policy_2 (ARL Hybrid) gym envs
 
 from isaaclab_tasks.utils import get_checkpoint_path
 from quadruped_locomotion.utils.training_utils import (
@@ -98,14 +110,10 @@ configure_tf32()
 # ── 2. Config Loading ──────────────────────────────────────────────────
 
 def load_configs():
-    """Load Mason Hybrid env and agent configs."""
-    from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import (
-        SpotMasonHybridEnvCfg,
-    )
-    from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import (
-        SpotMasonHybridPPORunnerCfg,
-    )
-    return SpotMasonHybridEnvCfg(), SpotMasonHybridPPORunnerCfg(), "Locomotion-MasonHybrid-Spot-v0"
+    """Load ARL Hybrid env and agent configs."""
+    from configs.arl_hybrid_env_cfg import SpotARLHybridEnvCfg
+    from configs.agents.rsl_rl_arl_hybrid_cfg import SpotARLHybridPPORunnerCfg
+    return SpotARLHybridEnvCfg(), SpotARLHybridPPORunnerCfg(), "Locomotion-ARLHybrid-Spot-v0"
 
 
 # ── 3. Main ─────────────────────────────────────────────────────────────
