@@ -153,6 +153,31 @@ and not part of the deliverable.
    - Re-eval 4-env battery + Cole quarter to confirm the speed bump
      doesn't regress stair-zone-5 alive depth or Cole performance.
 
+0c. **TODO (c): Push stairs to 2.0 m/s through zone 2 + reach ≥31m
+   (1m past zone 3).** Stair zones are 10m each with riser heights
+   ramping by zone (zone 1: 3cm baby steps, zone 2: 7-10cm, zone 3:
+   ~17cm — historically the V14-V19 project wall, zone 4: ~20cm,
+   zone 5: 23cm max). Project record on stair-heavy terrain
+   (Phase-FW-Plus 22100): zone-5 ALIVE TIMEOUT 41.1m / 240s. On the
+   standard 4-env stairs eval (lower-density stair config), reaching
+   ≥31m is an open question — needs the local rendered smoke result
+   that's still running.
+   Target: **sustained 2.0 m/s through zones 1-2** (3-10cm baby risers
+   should be fast) and **reach ≥31m at the boundary into zone 4.**
+   To get there:
+   - Same recipe as friction/boulder: widen `lin_vel_x` cmd range
+     1.5 → 3.0 m/s, fine-tune from 22100 with Bug #25/#29 stack at
+     `lr_max=3e-5`.
+   - **Critical:** retain `--zone_slowdown_cap` for zones 3+ (17cm+
+     risers). Speed-induced flips on tall risers are the dominant
+     failure mode here — Phase-9 lock was 0.67 m/s past x≥20m for
+     boulder, and stairs likely needs an even tighter cap (0.5 m/s)
+     past x≥20m to avoid the 17cm-riser tip-over.
+   - Add stair-zone-aware reward shaping during the fine-tune: bonus
+     for landing both forefeet on a tread surface (anti-foot-drop
+     into riser-gap), preserve the existing terrain_relative_height
+     anti-belly-crawl penalty.
+
 0b. **TODO (b): Push boulder to 2.0 m/s through zone 2 + 1m past zone 3.**
    Boulder zones are 10m each (zone 1: 0-10m, zone 2: 10-20m, zone 3:
    20-30m, zone 4: 30-40m). Project record (Phase-9 22100 with
