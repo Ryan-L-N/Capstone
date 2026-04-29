@@ -104,12 +104,22 @@ from isaaclab.utils.io import dump_yaml
 from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 import isaaclab_tasks  # noqa: F401
-import quadruped_locomotion  # noqa: F401
 
-# Local modules
-_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-if _THIS_DIR not in sys.path:
-    sys.path.insert(0, _THIS_DIR)
+# Path setup for the reorganized layout: Loco_Shared (quadruped_locomotion
+# package) + Loco_Policy_2_ARL_Hybrid/configs (parent SpotARLHybridEnvCfg)
+# + this Loco_Policy_4 root (for expert_router + distillation_loss).
+_LOCO4_ROOT = os.path.dirname(os.path.abspath(__file__))
+_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO4_ROOT, ".."))
+for _p in (
+    _LOCO4_ROOT,
+    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
+    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs", "agents"),
+    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+):
+    if os.path.isdir(_p) and _p not in sys.path:
+        sys.path.insert(0, _p)
+
+import quadruped_locomotion  # noqa: F401
 
 from expert_router import ExpertRouter
 from distillation_loss import DistillationLoss
@@ -122,21 +132,17 @@ torch.backends.cudnn.allow_tf32 = True
 # -- 2. Main -----------------------------------------------------------------
 
 def main():
-    # -- Load configs --
-    from quadruped_locomotion.tasks.locomotion.config.spot.mason_hybrid_env_cfg import (
-        SpotMasonHybridEnvCfg,
-    )
-    from quadruped_locomotion.tasks.locomotion.config.spot.agents.rsl_rl_mason_hybrid_cfg import (
-        SpotMasonHybridPPORunnerCfg,
-    )
+    # -- Load configs (path setup done at module load) --
+    from arl_hybrid_env_cfg import SpotARLHybridEnvCfg
+    from rsl_rl_arl_hybrid_cfg import SpotARLHybridPPORunnerCfg
 
-    env_cfg = SpotMasonHybridEnvCfg()
+    env_cfg = SpotARLHybridEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs
     env_cfg.seed = args_cli.seed
     # Bug #22: disable body_height_tracking on rough terrain
     env_cfg.rewards.body_height_tracking.weight = 0.0
 
-    agent_cfg = SpotMasonHybridPPORunnerCfg()
+    agent_cfg = SpotARLHybridPPORunnerCfg()
     agent_cfg.max_iterations = args_cli.max_iterations
     agent_cfg.seed = args_cli.seed
     agent_cfg.save_interval = args_cli.save_interval
@@ -166,7 +172,7 @@ def main():
     print(f"{'='*70}\n", flush=True)
 
     # -- Create environment --
-    env = gym.make("Locomotion-MasonHybrid-Spot-v0", cfg=env_cfg)
+    env = gym.make("Locomotion-ARLHybrid-Spot-v0", cfg=env_cfg)
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     # -- Create student runner --
