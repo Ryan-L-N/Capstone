@@ -23,12 +23,12 @@ Our specific goal of this repository is to use one of Isaac Sim's built-in quadr
 ## Anticipated Tasks
 
 - [x] Set up Isaac Sim Environment
-- [ ] Create testing sim environment
-- [ ] Create training sim environment
-- [ ] Train initial RL policy
-- [ ] Evaluate Baseline models
-- [ ] Evaluate RL model
-- [ ] Refine training
+- [x] Create testing sim environment
+- [x] Create training sim environment
+- [x] Train initial RL policy
+- [x] Evaluate Baseline models
+- [x] Evaluate RL model
+- [x] Refine training
 
 ## Capacity Gaps
 
