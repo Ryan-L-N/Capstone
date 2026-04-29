@@ -86,24 +86,20 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 import isaaclab_tasks  # noqa: F401
 
-# Add multi_robot_training to path (pip-installed on H100, fallback paths for local)
-for _p in [
-    os.path.join(os.path.dirname(__file__), "..", "..", "multi_robot_training",
-                 "source", "quadruped_locomotion"),
-    os.path.join(os.path.dirname(__file__), "..", "..", "multi_robot_training",
-                 "multi_robot_training", "source", "quadruped_locomotion"),
-    os.path.expanduser("~/multi_robot_training_new/source/quadruped_locomotion"),
-]:
-    _p = os.path.abspath(_p)
+# Path setup for the reorganized layout: this Loco_Policy_3 root +
+# Loco_Policy_2_ARL_Hybrid/configs (parent of SpotARLHybridEnvCfg) +
+# Loco_Shared (the quadruped_locomotion shared package).
+_LOCO3_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_ALEX_ROOT = os.path.abspath(os.path.join(_LOCO3_ROOT, ".."))
+for _p in (
+    _LOCO3_ROOT,
+    os.path.join(_ALEX_ROOT, "Loco_Policy_2_ARL_Hybrid", "configs"),
+    os.path.join(_ALEX_ROOT, "Loco_Shared"),
+):
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)
 
 import quadruped_locomotion  # noqa: F401
-
-# S2R imports
-_S2R_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if _S2R_ROOT not in sys.path:
-    sys.path.insert(0, _S2R_ROOT)
 
 from quadruped_locomotion.utils.lr_schedule import cosine_annealing_lr, set_learning_rate
 from quadruped_locomotion.utils.training_utils import configure_tf32, clamp_noise_std, register_std_safety_clamp
