@@ -79,7 +79,7 @@ FRICTION_LEVELS = [
     {"level": 2, "mu_static": 0.70, "mu_dynamic": 0.60, "label": "Dry rubber"},
     {"level": 3, "mu_static": 0.50, "mu_dynamic": 0.40, "label": "Wet concrete"},
     {"level": 4, "mu_static": 0.35, "mu_dynamic": 0.25, "label": "Wet ice"},
-    {"level": 5, "mu_static": 0.20, "mu_dynamic": 0.12, "label": "Oil on steel"},
+    {"level": 5, "mu_static": 0.30, "mu_dynamic": 0.20, "label": "Oil on steel"},
 ]
 
 GRASS_LEVELS = [

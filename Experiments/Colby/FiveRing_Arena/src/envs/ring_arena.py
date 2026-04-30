@@ -45,7 +45,7 @@ def _create_material(stage, name, mu_s, mu_d):
     phys_mat.CreateRestitutionAttr(0.01)
 
     physx_mat = PhysxSchema.PhysxMaterialAPI.Apply(prim)
-    physx_mat.CreateFrictionCombineModeAttr().Set("multiply")
+    physx_mat.CreateFrictionCombineModeAttr().Set("average")
     physx_mat.CreateRestitutionCombineModeAttr().Set("min")
 
     return mat_path
