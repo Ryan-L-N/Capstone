@@ -269,6 +269,7 @@ def main() -> None:
         vy_max=MPPI_VY_MAX,
         omega_min=MPPI_OMEGA_MIN,
         omega_max=MPPI_OMEGA_MAX,
+        arena_radius=55.0,  # 50m arena + 5m margin; default 25.0 was blocking ring 3+
     )
     print("MPPI navigator ready.", flush=True)
 
@@ -374,11 +375,9 @@ def main() -> None:
             if r >= 2.0 * LEVEL_WIDTH:
                 cmd[0] = min(cmd[0], 1.5)
 
-            # Friction quadrant: low-mu surface requires slow, straight movement
-            # Cap omega too — spinning in place on ice causes falls
+            # Friction quadrant: slow forward speed, allow normal turning
             if _in_friction_quadrant(float(pos_np[0]), float(pos_np[1])) and r >= 2.0 * LEVEL_WIDTH:
                 cmd[0] = min(cmd[0], 0.6)
-                cmd[2] = np.clip(cmd[2], -0.5, 0.5)
 
             spot.forward(PHYSICS_DT, cmd)
             world.step(render=not headless)
