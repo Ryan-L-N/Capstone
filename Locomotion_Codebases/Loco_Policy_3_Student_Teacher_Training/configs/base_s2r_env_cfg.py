@@ -234,7 +234,12 @@ class S2RTerminationsCfg:
     )
     terrain_out_of_bounds = DoneTerm(
         func=mdp.terrain_out_of_bounds,
-        params={"asset_cfg": SceneEntityCfg("robot"), "distance_buffer": 3.0},
+        # Phase-FW-Plus-2: 3.0 -> 1.5. The 3.0m buffer let the policy walk
+        # around FW stairs (observed +14.6m sideways drift in teleop on
+        # SM_Staircase_02). 1.5m forces engage-or-fail on stair patches:
+        # enough margin for normal step correction (~2x tread width),
+        # insufficient for a full bypass.
+        params={"asset_cfg": SceneEntityCfg("robot"), "distance_buffer": 1.5},
         time_out=True,
     )
 

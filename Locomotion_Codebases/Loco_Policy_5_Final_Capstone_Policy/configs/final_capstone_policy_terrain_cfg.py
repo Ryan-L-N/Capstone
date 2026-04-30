@@ -49,7 +49,11 @@ _COMMON = dict(
 # - Adds INVERTED PYRAMID stairs (Isaac Lab built-in) — for descent
 # - Drops the Phase-10/10b open-riser PYRAMID (insufficient — pyramid
 #   topology has implicit walls in 4 directions, doesn't teach the right skills)
-_STAIR_RISER_RANGE = (0.05, 0.42)        # KEEP — solid pyramid stairs
+_STAIR_RISER_RANGE = (0.10, 0.25)        # Phase-FW-Plus-2: tightened from
+                                          # (0.05, 0.42). Drop trivial 5cm
+                                          # floor + cap at FW-realistic 0.25m.
+                                          # Concentrates curriculum on the
+                                          # 0.10-0.20m band where FW USDs sit.
 # Phase-Final-B: cap open-riser at 0.20m (was 0.25m). Phase-Final collapsed
 # at iter 1200 when curriculum promoted envs to level 3 open-riser at
 # 0.18-0.25m risers — too much hard geometry, too fast. Cap at 0.20 keeps
@@ -68,11 +72,13 @@ FINAL_CAPSTONE_POLICY_TERRAINS_CFG = TerrainGeneratorCfg(
         # (40cm). Total stair proportion 30% (same as Phase-4+), spread across
         # 6 sub-terrains so the policy sees diverse stair geometry.
         # =====================================================================
-        # ===== Phase-FW-Plus stair stack (50% total) =====
-        # Solid pyramid_stairs at 12% (was 17%) — preserved baseline,
-        # 4% per width variant.
+        # ===== Phase-FW-Plus-2 stair stack (35% total, narrow-tread heavy) =====
+        # Rebalanced toward FW-realistic geometry (step_width=0.25 = FW tread).
+        # narrow_pyramid bumped 4% -> 12%, narrow_hf bumped 4% -> 8%, totaling
+        # 20% narrow-tread exposure. Medium + wide variants reduced to free
+        # the budget. Keep slope_rough at 13% (donates 3% to stairs).
         "pyramid_stairs_narrow": terrain_gen.MeshPyramidStairsTerrainCfg(
-            proportion=0.04,
+            proportion=0.12,  # Phase-FW-Plus-2: 0.04 -> 0.12 (+8%, FW tread match)
             step_height_range=_STAIR_RISER_RANGE,
             step_width=0.25,
             platform_width=3.0,
@@ -80,7 +86,7 @@ FINAL_CAPSTONE_POLICY_TERRAINS_CFG = TerrainGeneratorCfg(
             holes=False,
         ),
         "pyramid_stairs_medium": terrain_gen.MeshPyramidStairsTerrainCfg(
-            proportion=0.08,  # Hail-Mary-4: +1% from open-riser removal
+            proportion=0.05,  # Phase-FW-Plus-2: 0.08 -> 0.05
             step_height_range=_STAIR_RISER_RANGE,
             step_width=0.30,
             platform_width=3.0,
@@ -88,28 +94,28 @@ FINAL_CAPSTONE_POLICY_TERRAINS_CFG = TerrainGeneratorCfg(
             holes=False,
         ),
         "pyramid_stairs_wide": terrain_gen.MeshPyramidStairsTerrainCfg(
-            proportion=0.04,
+            proportion=0.02,  # Phase-FW-Plus-2: 0.04 -> 0.02
             step_height_range=_STAIR_RISER_RANGE,
             step_width=0.40,
             platform_width=3.0,
             border_width=1.0,
             holes=False,
         ),
-        # Solid hf_stairs at 12% (was 18%) — preserved baseline.
+        # Solid hf_stairs — narrow heavy.
         "hf_stairs_narrow": terrain_gen.HfPyramidStairsTerrainCfg(
-            proportion=0.04,
+            proportion=0.08,  # Phase-FW-Plus-2: 0.04 -> 0.08 (+4%, FW tread match)
             step_height_range=_STAIR_RISER_RANGE,
             step_width=0.25,
             border_width=0.25,
         ),
         "hf_stairs_medium": terrain_gen.HfPyramidStairsTerrainCfg(
-            proportion=0.07,  # Phase-Final-B: 0.04 → 0.07 (+3% from open-riser cut)
+            proportion=0.05,  # Phase-FW-Plus-2: 0.07 -> 0.05
             step_height_range=_STAIR_RISER_RANGE,
             step_width=0.30,
             border_width=0.25,
         ),
         "hf_stairs_wide": terrain_gen.HfPyramidStairsTerrainCfg(
-            proportion=0.04,
+            proportion=0.02,  # Phase-FW-Plus-2: 0.04 -> 0.02
             step_height_range=_STAIR_RISER_RANGE,
             step_width=0.40,
             border_width=0.25,
@@ -173,7 +179,7 @@ FINAL_CAPSTONE_POLICY_TERRAINS_CFG = TerrainGeneratorCfg(
             border_width=0.25,
         ),
         "slope_rough": terrain_gen.HfRandomUniformTerrainCfg(
-            proportion=0.13,  # Phase-Final-B: 0.10 → 0.13 (+3% from open-riser cut)
+            proportion=0.10,  # Phase-FW-Plus-2: 0.13 -> 0.10 (-3%, donates to stairs)
             noise_range=(0.02, 0.15),
             noise_step=0.02,
             border_width=0.25,
