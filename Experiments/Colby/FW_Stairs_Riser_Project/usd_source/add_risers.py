@@ -31,6 +31,7 @@ TARGETS = [
 
 HORIZONTAL_THRESHOLD = 0.85   # |normal_z| must exceed this to count as a tread face
 MIN_FACE_AREA        = 50.0   # cm² — skip tiny faces (rivets, edge artefacts)
+MIN_TREAD_SPAN       = 15.0   # cm — skip tread faces narrow in either dimension (structural beams)
 Z_GROUP_TOL          = 1.5    # cm — merge tread faces within this Z range
 MIN_RISER_HEIGHT     = 8.0    # cm — skip tread pairs closer than this (structural noise)
 MAX_RISER_HEIGHT     = 35.0   # cm — skip tread pairs taller than this (landing transitions)
@@ -65,6 +66,10 @@ def get_tread_faces(pts, fc, fi):
             continue
         if abs(n[2]) < HORIZONTAL_THRESHOLD:
             continue
+        x_span = float(verts[:, 0].max() - verts[:, 0].min())
+        y_span = float(verts[:, 1].max() - verts[:, 1].min())
+        if min(x_span, y_span) < MIN_TREAD_SPAN:
+            continue
         treads.append({
             "z":  float(verts[:, 2].mean()),
             "x0": float(verts[:, 0].min()), "x1": float(verts[:, 0].max()),
@@ -95,7 +100,7 @@ def group_tread_faces(faces, tol=Z_GROUP_TOL):
     for grp in groups:
         merged.append({
             "z":     float(np.mean([f["z"]  for f in grp])),
-            "z_max": float(max(f["z"]        for f in grp)),  # top surface of tread
+            "z_max": float(max(f["z"]        for f in grp)),
             "x0":    float(min(f["x0"] for f in grp)),
             "x1":    float(max(f["x1"] for f in grp)),
             "y0":    float(min(f["y0"] for f in grp)),
@@ -129,6 +134,21 @@ def process_usd(bak_path: Path, out_path: Path) -> bool:
     tread_faces  = get_tread_faces(pts, fc, fi)
     tread_groups = group_tread_faces(tread_faces)
     print(f"  horizontal faces: {len(tread_faces)}  →  tread levels: {len(tread_groups)}")
+    for i, g in enumerate(tread_groups):
+        print(f"    G{i:02d} z={g['z']:7.1f} z_max={g['z_max']:7.1f}  "
+              f"cx={g['cx']:7.1f} cy={g['cy']:7.1f}  "
+              f"x=[{g['x0']:7.1f},{g['x1']:7.1f}]  y=[{g['y0']:7.1f},{g['y1']:7.1f}]")
+
+    # Prepend a virtual floor group so the bottom riser gets generated
+    if tread_groups:
+        first = tread_groups[0]
+        floor_z = float(pts[:, 2].min())
+        tread_groups = [{
+            "z": floor_z, "z_max": floor_z,
+            "x0": first["x0"], "x1": first["x1"],
+            "y0": first["y0"], "y1": first["y1"],
+            "cx": first["cx"] + 1.0, "cy": first["cy"],
+        }] + tread_groups
 
     new_pts = pts.tolist()
     riser_count = 0
@@ -147,27 +167,33 @@ def process_usd(bak_path: Path, out_path: Path) -> bool:
         dx = hi["cx"] - lo["cx"]
         dy = hi["cy"] - lo["cy"]
 
+        # Use tread top surfaces for Z
+        z_lo = lo["z_max"]
+        z_hi = hi["z_max"]
+
         if abs(dx) >= abs(dy):
-            # Use back edge of upper tread — avoids structural elements on lower tread
+            # Riser at the front face of the upper tread
             x_r  = hi["x1"] if dx < 0 else hi["x0"]
             y_lo = max(lo["y0"], hi["y0"])
             y_hi = min(lo["y1"], hi["y1"])
             if (y_hi - y_lo) < MIN_RISER_SPAN:
                 skipped += 1
                 continue
+            print(f"    riser {riser_count+1:2d}: z=[{z_lo:.1f},{z_hi:.1f}] x={x_r:.1f} y=[{y_lo:.1f},{y_hi:.1f}]")
             b = len(new_pts)
             new_pts += [
                 [x_r, y_lo, z_lo], [x_r, y_hi, z_lo],
                 [x_r, y_hi, z_hi], [x_r, y_lo, z_hi],
             ]
         else:
-            # Use back edge of upper tread
+            # Riser at the front face of the upper tread
             y_r  = hi["y1"] if dy < 0 else hi["y0"]
             x_lo = max(lo["x0"], hi["x0"])
             x_hi = min(lo["x1"], hi["x1"])
             if (x_hi - x_lo) < MIN_RISER_SPAN:
                 skipped += 1
                 continue
+            print(f"    riser {riser_count+1:2d}: z=[{z_lo:.1f},{z_hi:.1f}] y={y_r:.1f} x=[{x_lo:.1f},{x_hi:.1f}]")
             b = len(new_pts)
             new_pts += [
                 [x_lo, y_r, z_lo], [x_hi, y_r, z_lo],
