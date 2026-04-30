@@ -150,9 +150,20 @@ def create_polyhedron(stage, path, shape_name, edge_length, position, rotation):
     xf.AddTranslateOp().Set(Gf.Vec3d(*position))
     xf.AddRotateXYZOp().Set(Gf.Vec3f(*rotation))
 
-    # Display color — grey-brown rock colors
-    grey = 0.4 + np.random.uniform(-0.1, 0.1)
-    mesh.GetDisplayColorAttr().Set([Gf.Vec3f(grey, grey * 0.9, grey * 0.8)])
+    # Display color — varied rock palettes: granite, sandstone, basalt, mossy
+    _palettes = [
+        (0.30, 0.29, 0.31),  # dark granite
+        (0.62, 0.52, 0.38),  # sandstone / tan
+        (0.22, 0.24, 0.22),  # basalt / dark
+        (0.38, 0.44, 0.30),  # mossy rock
+    ]
+    base = _palettes[int(np.random.randint(4))]
+    jitter = np.random.uniform(-0.04, 0.04)
+    mesh.GetDisplayColorAttr().Set([Gf.Vec3f(
+        float(np.clip(base[0] + jitter, 0.0, 1.0)),
+        float(np.clip(base[1] + jitter, 0.0, 1.0)),
+        float(np.clip(base[2] + jitter, 0.0, 1.0)),
+    )])
 
     # Physics: kinematic rigid body with convex hull collision
     prim = mesh.GetPrim()

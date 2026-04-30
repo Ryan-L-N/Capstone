@@ -76,10 +76,10 @@ QUADRANT_DEFS = [
 # =============================================================================
 FRICTION_LEVELS = [
     {"level": 1, "mu_static": 0.90, "mu_dynamic": 0.80, "label": "60-grit sandpaper"},
-    {"level": 2, "mu_static": 0.60, "mu_dynamic": 0.50, "label": "Dry rubber"},
-    {"level": 3, "mu_static": 0.35, "mu_dynamic": 0.25, "label": "Wet concrete"},
-    {"level": 4, "mu_static": 0.15, "mu_dynamic": 0.08, "label": "Wet ice"},
-    {"level": 5, "mu_static": 0.05, "mu_dynamic": 0.02, "label": "Oil on steel"},
+    {"level": 2, "mu_static": 0.70, "mu_dynamic": 0.60, "label": "Dry rubber"},
+    {"level": 3, "mu_static": 0.50, "mu_dynamic": 0.40, "label": "Wet concrete"},
+    {"level": 4, "mu_static": 0.35, "mu_dynamic": 0.25, "label": "Wet ice"},
+    {"level": 5, "mu_static": 0.20, "mu_dynamic": 0.12, "label": "Oil on steel"},
 ]
 
 GRASS_LEVELS = [

@@ -107,11 +107,16 @@ def _build_friction_quadrant(stage, rng):
     root = f"/World/Arena/{qdef['name']}"
     UsdGeom.Xform.Define(stage, root)
 
+    # L1 dry concrete → L5 blue-white ice
+    _friction_colors = [
+        (0.78, 0.74, 0.68),  # L1 sandpaper — warm dry concrete
+        (0.62, 0.60, 0.58),  # L2 rubber — mid gray
+        (0.52, 0.55, 0.60),  # L3 wet concrete — cool gray
+        (0.68, 0.80, 0.92),  # L4 wet ice — pale blue
+        (0.88, 0.94, 1.00),  # L5 oil/ice — bright icy white-blue
+    ]
     for lvl_idx, lvl in enumerate(FRICTION_LEVELS):
-        # Color varies with friction — bluer = more slippery
-        blue_frac = 1.0 - (lvl["mu_static"] / 0.90)
-        color = (0.5 - blue_frac * 0.3, 0.5 - blue_frac * 0.2, 0.5 + blue_frac * 0.4)
-
+        color = _friction_colors[lvl_idx]
         mat_path = _create_material(stage, f"FrictionMat_L{lvl_idx+1}",
                                     lvl["mu_static"], lvl["mu_dynamic"])
         _create_sector_ground(stage, quad_idx, lvl_idx, mat_path, color)
@@ -129,10 +134,17 @@ def _build_grass_quadrant(stage, rng):
     total_stalks = 0
     mat_path = _create_material(stage, "GrassMat", 0.70, 0.60)
 
+    # Ground beneath grass: earthy soil tones, darkening toward jungle
+    _grass_ground_colors = [
+        (0.28, 0.38, 0.16),  # L1 thin grass — light earthy green
+        (0.22, 0.32, 0.13),  # L2 medium lawn
+        (0.17, 0.27, 0.10),  # L3 thick grass — darker soil
+        (0.13, 0.22, 0.08),  # L4 dense brush — deep forest floor
+        (0.09, 0.16, 0.06),  # L5 jungle — near black undergrowth
+    ]
     for lvl_idx, lvl in enumerate(GRASS_LEVELS):
         r_inner, r_outer = level_radius_range(lvl_idx)
-        green = 0.6 - lvl_idx * 0.08
-        color = (0.15, max(0.2, green), 0.10)
+        color = _grass_ground_colors[lvl_idx]
 
         _create_sector_ground(stage, quad_idx, lvl_idx, mat_path, color)
 
