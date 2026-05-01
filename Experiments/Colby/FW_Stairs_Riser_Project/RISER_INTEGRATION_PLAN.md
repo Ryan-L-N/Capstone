@@ -231,3 +231,65 @@ Alex/Gabriel — this unblocks the entire FW deployment story.
 Ping me with anything that doesn't make sense.
 
 — Gabriel
+
+---
+
+## Results addendum — Apr 30 (post-Colby's `add_risers.py`)
+
+Colby shipped `add_risers.py` (development commit `fbdf7d2`). The script
+detects horizontal tread faces by normal (`|nz| > 0.85`), groups them by
+Z level, and inserts vertical riser quads at the front edge of each
+upper tread — exactly Path A from §"Three implementation paths". Files
+patched in `usd_source/` and (on Colby's machine) propagated to
+`Collected_Final_World/SubUSDs/`.
+
+### What works
+
+The riser geometry **prevents falls**. On rendered teleop with each of
+4 policies tested against `SM_Staircase_02` with Colby's risered USD:
+`fell=False` in every test. The Apr 28 failure modes (foot-in-gap,
+body-wedge, side-drift) are all addressed by the risers.
+
+### What didn't work (the new finding)
+
+Phase-9 (18500), 22100 (ship), 20850 (pre-ship) all **walk AROUND the
+staircase** rather than climbing it. Observed on `SM_Staircase_02`
+rendered teleop: 22100 ended at `(-11.24, +14.6, 0.51)` after 18m -X
+forward + 14.6m -Y sideways drift. The policy treats the staircase as
+an obstacle to navigate AROUND, not terrain to climb.
+
+This is **behavioral, not capability**. The policies climb procedural
+pyramid stairs in training; they choose to bypass FW geometry because
+the training reward stack does not penalize sideways drift up to 3m
+(the `terrain_out_of_bounds` distance buffer).
+
+Per question #2 above ("if verification with Phase-9 still doesn't pass
+after adding risers, that's important data") — yes, important data:
+the issue is NOT geometric. Risers solve falls but do not induce
+engagement.
+
+### Final closure — May 1 2026
+
+Three retrain attempts (rev1 with curriculum + termination tighten;
+rev2 with proportion bump only; v3 with reward-weight revert + 10K
+from-scratch) **all collapsed at "stuck-at-level-0 reward hack"**.
+Eight consecutive failed retrains total (5 Apr 29 + rev1 + rev2 + v3).
+
+**The fine-tune pipeline is broken in a way deeper than any single
+config edit.** The level-0 trap is robust to resume-vs-scratch,
+reward-weight choices, termination tightening, riser-range changes,
+and curriculum proportion shifts. Diagnosis is queued in
+`Locomotion_Codebases/Loco_Policy_5_Final_Capstone_Policy/docs/FUTURE_WORK.md`
+Priority 2 (compare Apr 27 working pipeline to Apr 29 broken state).
+
+**Project answer for FW stair climbing:** ship 22100 as-is + apply
+geometric softening to the FW staircase USDs. Scale X-run by ~1.7×
+to drop slope from ~50° to ~35°, which is *inside* 22100's trained
+distribution. Single Xform op per USD, deterministic, no risk to the
+policy.
+
+See `FUTURE_WORK.md` Priority 1 for the Xform recipe.
+
+See `Locomotion_Codebases/Loco_Policy_5_Final_Capstone_Policy/docs/SHIP_DECISION.md`
+"Apr 30 / May 1 update" section for the retrain spec + kill-switch
+criteria.
