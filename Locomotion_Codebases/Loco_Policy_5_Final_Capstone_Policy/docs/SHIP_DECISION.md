@@ -423,10 +423,60 @@ straight. Killed at iter 4641.
 H100 collapsed log: `~/phase_v3_final_collapsed.log`. Branch:
 `origin/phase-v3-from-scratch` (commit `efa5150`).
 
+### Phase-v4 — action_scale 0.3→0.5 + noise floor 0.3→0.1 (May 1 19:17 UTC)
+
+User-directed scale bump (0.5 for stronger climbing authority on FW
+USDs) combined with the noise-floor fix from Phase-v3 forensics. Resume
+from 22100 with reward weight compensation per Phase-Final's tuning
+(action_smoothness=-2.0, joint_torques=-1.5e-3).
+
+**Critic exploded immediately.** vf_loss trajectory:
+- iter 22168: 1.25e24
+- iter 22169: 11.18e24
+- iter 22170: 98.84e24
+- iter 22171: 290.26e24
+
+10× growth per iter. Watchdog couldn't keep up — it halves LR per spike
+but spikes were faster than LR drops. Actor metrics still looked OK
+(terrain_levels 3.24, body_flip 6.4%) at the moment of kill, but the
+critic was unrecoverable.
+
+**Diagnosis:** the resume-with-scale-jump puts the actor outputs at
+~67% larger joint deltas than the critic was trained to predict. V(s)
+target distribution shifts, critic can't fit the new returns,
+exponential blowup. This is the documented Phase-Final Bug #25 slow-
+bleed in fast-forward.
+
+Killed at iter 22171. Log: `~/phase_v4_critic_blowup.log`.
+
+### Phase-v4b — isolated noise-floor test (May 1 19:29 UTC)
+
+To isolate the noise-floor hypothesis from the scale change, ran a
+clean resume from 22100 with **only `min_noise_std` 0.3 → 0.1
+changed**. Action scale, smoothness/torques weights, and reward stack
+all reverted to 22100's training conditions.
+
+**Result: collapsed identically to v3 / rev1 / rev2.** At iter 22388
+(288 iters past resume):
+
+| Metric | v4b @ 22388 | Baseline 22100 |
+|---|---|---|
+| Mean reward | 15-18 | 168 |
+| terrain_levels | 0.0034 | 3.67 |
+| body_flip_over | 80% | ~0% |
+| noise_std | 0.10 (new floor confirmed applied) | — |
+| vf_loss | 0.77 | — |
+
+**The noise-floor hypothesis is disproven.** Lowering min_noise_std to
+0.1 with all else preserved still produces the level-0 trap.
+
+Log: `~/phase_v4b.log` (preserved on H100).
+
 ### Final verdict — 22100 ships; geometric softening is the path forward
 
-**Eight consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3) all
-hit the "stuck-at-level-0 reward hack". The level-0 trap is robust to:
+**Nine consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3 +
+v4 + v4b) all hit the "stuck-at-level-0 reward hack" or related
+collapse modes. The level-0 trap is robust to:
 
 - Resume vs from-scratch
 - Original (5/10/5) vs rebalanced (10/3/2) reward weights
@@ -435,6 +485,8 @@ hit the "stuck-at-level-0 reward hack". The level-0 trap is robust to:
 - Curriculum proportion bumps (narrow-tread variants)
 - Wide vs narrow LR
 - Symmetric backward gait
+- **Lowered min_noise_std (0.3 → 0.1)** — disproven by Phase-v4b
+- **action_scale jump 0.3 → 0.5 on resume** — caused critic blowup (v4)
 
 **The regression is deeper than any single config edit.** Suspects
 that remain untested:
