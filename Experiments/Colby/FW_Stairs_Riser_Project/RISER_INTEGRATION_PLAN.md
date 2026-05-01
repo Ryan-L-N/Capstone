@@ -231,3 +231,56 @@ Alex/Gabriel — this unblocks the entire FW deployment story.
 Ping me with anything that doesn't make sense.
 
 — Gabriel
+
+---
+
+## Results addendum — Apr 30 (post-Colby's `add_risers.py`)
+
+Colby shipped `add_risers.py` (development commit `fbdf7d2`). The script
+detects horizontal tread faces by normal (`|nz| > 0.85`), groups them by
+Z level, and inserts vertical riser quads at the front edge of each
+upper tread — exactly Path A from §"Three implementation paths". Files
+patched in `usd_source/` and (on Colby's machine) propagated to
+`Collected_Final_World/SubUSDs/`.
+
+### What works
+
+The riser geometry **prevents falls**. On rendered teleop with each of
+4 policies tested against `SM_Staircase_02` with Colby's risered USD:
+`fell=False` in every test. The Apr 28 failure modes (foot-in-gap,
+body-wedge, side-drift) are all addressed by the risers.
+
+### What didn't work (the new finding)
+
+Phase-9 (18500), 22100 (ship), 20850 (pre-ship) all **walk AROUND the
+staircase** rather than climbing it. Observed on `SM_Staircase_02`
+rendered teleop: 22100 ended at `(-11.24, +14.6, 0.51)` after 18m -X
+forward + 14.6m -Y sideways drift. The policy treats the staircase as
+an obstacle to navigate AROUND, not terrain to climb.
+
+This is **behavioral, not capability**. The policies climb procedural
+pyramid stairs in training; they choose to bypass FW geometry because
+the training reward stack does not penalize sideways drift up to 3m
+(the `terrain_out_of_bounds` distance buffer).
+
+Per question #2 above ("if verification with Phase-9 still doesn't pass
+after adding risers, that's important data") — yes, important data:
+the issue is NOT geometric. Risers solve falls but do not induce
+engagement.
+
+### Next move (in progress May 1)
+
+Phase-FW-Plus-2 retrain: +2000 iters from 22100 with two changes:
+1. Stair curriculum rebalance toward FW-realistic geometry
+   (`pyramid_stairs_narrow` 4%→12%, `_STAIR_RISER_RANGE` (0.05, 0.42) →
+   (0.10, 0.25))
+2. Tighten `terrain_out_of_bounds.distance_buffer` 3.0m → 1.5m to
+   penalize bypass
+
+If this works, the next ship will climb FW stairs. If not, fallback is
+geometric softening (extend stair runs, lower slope) on top of Colby's
+riser fix.
+
+See `Locomotion_Codebases/Loco_Policy_5_Final_Capstone_Policy/docs/SHIP_DECISION.md`
+"Apr 30 / May 1 update" section for the retrain spec + kill-switch
+criteria.
