@@ -26,6 +26,21 @@ _LOCO5_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _LOCO5_ROOT not in sys.path:
     sys.path.insert(0, _LOCO5_ROOT)
 from terrains import MeshOpenRiserStairsTerrainCfg  # noqa: E402, F401  # historical, retained for compatibility
+from terrains import FwUsdStairTerrainCfg  # noqa: E402  # Phase-v5: FW USD stairs as training terrain
+
+# Phase-v5: Colby's risered FW staircase USDs as training terrain.
+# These ARE the deployment geometry — training the policy directly on
+# them should produce engagement on the deployment scene's stairs.
+_FW_USD_DIR = os.path.abspath(os.path.join(
+    _LOCO5_ROOT, "..", "..",
+    "Experiments", "Colby", "FW_Stairs_Riser_Project", "usd_source"
+))
+_FW_USD_PATHS = [
+    os.path.join(_FW_USD_DIR, "SM_StaircaseHalf_02.usd"),  # 0.00 — small switchback (easiest)
+    os.path.join(_FW_USD_DIR, "SM_StaircaseHalf_01.usd"),  # 0.33 — half wide straight
+    os.path.join(_FW_USD_DIR, "SM_Staircase_02.usd"),       # 0.66 — full straight 5.3m
+    os.path.join(_FW_USD_DIR, "SM_Staircase_01.usd"),       # 1.00 — full switchback (hardest)
+]
 
 
 _COMMON = dict(
@@ -195,7 +210,7 @@ FINAL_CAPSTONE_POLICY_TERRAINS_CFG = TerrainGeneratorCfg(
         # navigate around them. Width range 0.2-0.8m spans Cole's box/cone/
         # cylinder/pillar size envelope; heights ramp from pebbles to waist.
         "flat_clutter": terrain_gen.HfDiscreteObstaclesTerrainCfg(
-            proportion=0.20,  # Hail-Mary-4: +2% from open-riser removal
+            proportion=0.12,  # Phase-v5: 0.20 -> 0.12 (-8%, donates to fw_usd_stair)
             obstacle_height_mode="choice",
             obstacle_height_range=(0.05, 0.45),
             obstacle_width_range=(0.20, 0.80),
@@ -216,6 +231,17 @@ FINAL_CAPSTONE_POLICY_TERRAINS_CFG = TerrainGeneratorCfg(
         "flat": terrain_gen.MeshPlaneTerrainCfg(
             proportion=0.06,  # Hail-Mary-4: 0.0 → 0.06 (low-variance anchor for stable
                                # critic warmup; absorbs 6% of the 9% open-riser cut).
+        ),
+
+        # ===== Phase-v5: FW USD stairs as training terrain =====
+        # Colby's risered SM_Staircase_*.usd files (commit fbdf7d2 on
+        # development). 8% proportion (donates from slope_rough 10%->8%
+        # AND flat_clutter 20%->14% net). Curriculum maps difficulty to
+        # the 4 USDs (small switchback -> full switchback). The policy
+        # sees the EXACT deployment geometry during training.
+        "fw_usd_stair": FwUsdStairTerrainCfg(
+            proportion=0.08,
+            usd_paths=_FW_USD_PATHS,
         ),
     },
 )

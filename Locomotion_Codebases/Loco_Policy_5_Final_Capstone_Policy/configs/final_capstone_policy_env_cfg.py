@@ -188,16 +188,15 @@ class FinalCapstonePolicyRewardsCfg(S2RRewardsCfg):
         if hasattr(self, "directional_progress"):
             self.directional_progress.weight = 0.0
 
-        # Final Capstone Policy revert: action_scale 0.5 → 0.3, so action_smoothness
-        # weight returns to the Phase-9/FW-Plus value (-1.5). Phase-Final's
-        # -2.0 was a compensation for the bigger 0.5 action delta; not needed
-        # at 0.3.
-        self.action_smoothness.weight = -1.5
+        # Phase-v5: linear interp for 0.4 scale between Phase-9's
+        # (action_smoothness=-1.5 at 0.3) and Phase-Final's
+        # (action_smoothness=-2.0 at 0.5). For 0.4: -1.75.
+        self.action_smoothness.weight = -1.75
 
-        # Final Capstone Policy revert: joint_torques weight back to S2R baseline (-1e-3).
-        # Phase-Final tightened to -1.5e-3 to compensate for action_scale=0.5
-        # + cmd_vx 4.0 — both reverted, so penalty returns to baseline.
-        self.joint_torques.weight = -1.0e-3
+        # Phase-v5: linear interp for 0.4 scale between Phase-9's
+        # (joint_torques=-1.0e-3 at 0.3) and Phase-Final's
+        # (joint_torques=-1.5e-3 at 0.5). For 0.4: -1.25e-3.
+        self.joint_torques.weight = -1.25e-3
 
         # Keep orientation penalty mild — stairs require body pitch.
         self.base_pitch.weight = -0.25
@@ -253,14 +252,20 @@ class FinalCapstonePolicyEnvCfg(SpotS2RBaseEnvCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        # --- Final Capstone Policy: action_scale = 0.3 (Phase-9/FW-Plus baseline) ---
-        # Phase-Final tried 0.5 (Cheng 2024 default for ANYmal); the from-
-        # scratch run collapsed under Bug #25 slow bleed. The 22100 ckpt
-        # (project speed record + zone-5 stair survival) was trained at 0.3,
-        # and 0.3 is also the eval-script default + Cole-compatible setting.
-        # Drop-in compatible with the 22100 / Phase-9 spec sheet.
+        # --- Phase-v4: action_scale = 0.5 (was 0.3) ---
+        # User-directed bump for stronger climbing authority on FW USD
+        # stairs. Phase-Final tried 0.5 from-scratch and collapsed; this
+        # attempt resumes from 22100 (already-converged gait) and
+        # combines with the noise-floor fix (min_noise_std 0.3 -> 0.1)
+        # diagnosed from Phase-v3 forensics: the 0.3 noise floor with
+        # action_scale 0.3 destabilized the converged gait at iter 450
+        # via 0.09 rad floor perturbation. With the lower noise floor,
+        # 0.5 scale produces the same 0.05 rad floor perturbation that
+        # Phase-9 had at 0.3 / 0.3.
+        # Action-smoothness and joint-torques weights compensate for
+        # the bigger delta (Phase-Final's documented values).
         if hasattr(self.actions, "joint_pos") and hasattr(self.actions.joint_pos, "scale"):
-            self.actions.joint_pos.scale = 0.3
+            self.actions.joint_pos.scale = 0.4  # Phase-v5: split between 22100's 0.3 + Phase-Final's 0.5
 
         # --- Swap terrain to unified parkour curriculum ---
         from configs.final_capstone_policy_terrain_cfg import FINAL_CAPSTONE_POLICY_TERRAINS_CFG
