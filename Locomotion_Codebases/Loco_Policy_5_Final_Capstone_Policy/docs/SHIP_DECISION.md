@@ -472,10 +472,56 @@ all reverted to 22100's training conditions.
 
 Log: `~/phase_v4b.log` (preserved on H100).
 
+### Phase-v5 — FW USDs as training terrain + action_scale 0.4 + Phase-3 recipe (May 1 21:03 UTC)
+
+The most informed retrain attempt of the project. Combined every
+diagnostic insight from the prior failures into one clean experiment:
+
+- **From-scratch** (Phase-3 succeeded from-scratch with this recipe)
+- **`lr_max=3e-4`** (Phase-3 baseline, 3× lower than v3's 1e-3)
+- **`action_scale=0.4`** (user-directed; midpoint between 22100's
+  proven 0.3 and Phase-Final's collapsed 0.5)
+- **Reward weight compensation for 0.4 scale**:
+  `action_smoothness=-1.75`, `joint_torques=-1.25e-3` (linear interp)
+- **NEW custom sub-terrain `FwUsdStairTerrainCfg`** loading Colby's
+  risered SM_Staircase_*.usd files at 8% proportion. The first time
+  any retrain attempt has put the deployment geometry in the training
+  distribution.
+- All other params at 22100's training conditions (5/10/5 reward
+  weights, 0.05-0.42 riser range, 3.0m distance_buffer)
+
+**Smoke test passed** (50 iters at 1024 envs, 6 min wall): USD loader
+worked, terrain gen succeeded, terrain_levels at 0.56 with body_flip
+trending down 90% → 72%. Promising enough to launch full 10K.
+
+**Full run collapsed identically to v3.** Trajectory:
+
+| iter | reward | terrain_levels | body_flip |
+|---|---|---|---|
+| 50 | 0.5 | 0.495 | 80% |
+| 100 | 50 | 0.184 | 23% |
+| 150 | 83 | 0.074 | 9% |
+| 200 | 95 | 0.024 | 8% |
+| 250 | 101 | 0.009 | 8% |
+| 300 | 107 | 0.005 | 8% |
+| 350 | 119 | 0.002 | 7% |
+| **384 (killed)** | **113** | **0.0007** | **7.4%** |
+
+**The policy excels at the level-0 equilibrium** — reward 113 (highest
+of any failed retrain), body_flip 7% (excellent stability), noise_std
+collapsed to floor (deterministic gait). But terrain_levels demoted
+monotonically to functional zero.
+
+**The FW USDs in training did NOT break the trap.** This rules out
+"policy needs to see deployment geometry" as a hypothesis.
+
+H100 collapsed log: `~/phase_v5_collapsed.log`. Branch:
+`origin/phase-v5-fw-usd-training` (commit `0ba2d4a`).
+
 ### Final verdict — 22100 ships; geometric softening is the path forward
 
-**Nine consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3 +
-v4 + v4b) all hit the "stuck-at-level-0 reward hack" or related
+**Ten consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3 +
+v4 + v4b + v5) all hit the "stuck-at-level-0 reward hack" or related
 collapse modes. The level-0 trap is robust to:
 
 - Resume vs from-scratch
@@ -487,6 +533,22 @@ collapse modes. The level-0 trap is robust to:
 - Symmetric backward gait
 - **Lowered min_noise_std (0.3 → 0.1)** — disproven by Phase-v4b
 - **action_scale jump 0.3 → 0.5 on resume** — caused critic blowup (v4)
+- **action_scale=0.4 (midpoint) + FW USDs in training + Phase-3 recipe** — disproven by Phase-v5
+
+The trap is **independent of:**
+- Reward landscape (5/10/5 vs 10/3/2 weights, both fail)
+- Action authority (0.3, 0.4, 0.5 all fail)
+- Termination strictness (1.5m vs 3.0m distance, both fail)
+- Curriculum easy mode availability ((0.05, 0.42) vs (0.10, 0.25), both fail)
+- Curriculum proportion mix (procedural-only vs FW-USD-included, both fail)
+- Initial std and noise floor (0.5/0.3 vs 0.5/0.1, both fail)
+- LR magnitude (1e-3, 3e-4, both fail)
+- Initialization (resume from 22100 vs from-scratch, both fail)
+
+**This rules out everything in the user-config space.** The regression
+must be in the curriculum mdp logic itself (`terrain_levels_vel`
+implementation in Isaac Lab) or in some Isaac Lab framework code that
+changed between Apr 27 and Apr 29.
 
 **The regression is deeper than any single config edit.** Suspects
 that remain untested:
