@@ -234,12 +234,14 @@ class S2RTerminationsCfg:
     )
     terrain_out_of_bounds = DoneTerm(
         func=mdp.terrain_out_of_bounds,
-        # Phase-FW-Plus-2: 3.0 -> 1.5. The 3.0m buffer let the policy walk
-        # around FW stairs (observed +14.6m sideways drift in teleop on
-        # SM_Staircase_02). 1.5m forces engage-or-fail on stair patches:
-        # enough margin for normal step correction (~2x tread width),
-        # insufficient for a full bypass.
-        params={"asset_cfg": SceneEntityCfg("robot"), "distance_buffer": 1.5},
+        # Phase-FW-Plus-2-rev2: kept at 3.0. The Phase-FW-Plus-2 attempt to
+        # tighten 3.0 -> 1.5 collapsed training in <400 iters (combined with
+        # tightened riser range it created an "everywhere is hard" regime
+        # the curriculum couldn't escape — body_flip 13% -> 81%, terrain
+        # demoted to 0.001). rev2 keeps 3.0 to preserve the proven curriculum
+        # behavior; the FW-stair-bypass problem is addressed by curriculum
+        # rebalance only.
+        params={"asset_cfg": SceneEntityCfg("robot"), "distance_buffer": 3.0},
         time_out=True,
     )
 

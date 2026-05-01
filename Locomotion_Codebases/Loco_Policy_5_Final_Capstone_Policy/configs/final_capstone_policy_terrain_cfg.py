@@ -49,11 +49,14 @@ _COMMON = dict(
 # - Adds INVERTED PYRAMID stairs (Isaac Lab built-in) — for descent
 # - Drops the Phase-10/10b open-riser PYRAMID (insufficient — pyramid
 #   topology has implicit walls in 4 directions, doesn't teach the right skills)
-_STAIR_RISER_RANGE = (0.10, 0.25)        # Phase-FW-Plus-2: tightened from
-                                          # (0.05, 0.42). Drop trivial 5cm
-                                          # floor + cap at FW-realistic 0.25m.
-                                          # Concentrates curriculum on the
-                                          # 0.10-0.20m band where FW USDs sit.
+_STAIR_RISER_RANGE = (0.05, 0.42)        # Phase-FW-Plus-2-rev2: reverted from
+                                          # (0.10, 0.25). The tighter range
+                                          # collapsed training in <400 iters
+                                          # (terrain_levels 3.46 -> 0.001,
+                                          # body_flip 13% -> 81%) because
+                                          # level 0 became 10cm risers — no
+                                          # easy mode for the curriculum to
+                                          # demote into.
 # Phase-Final-B: cap open-riser at 0.20m (was 0.25m). Phase-Final collapsed
 # at iter 1200 when curriculum promoted envs to level 3 open-riser at
 # 0.18-0.25m risers — too much hard geometry, too fast. Cap at 0.20 keeps
