@@ -314,11 +314,64 @@ layout). Backups at `*.pre_fw_plus_2.bak`.
 - vf_loss spikes >5× in any 100 iters → abort (mode collapse signature)
 - mean_reward drops >50% from baseline 168 → abort
 
+### rev1 — COLLAPSED (May 1 01:35 UTC, killed at iter 22452)
+
+The two changes combined were **stronger together than modeled**.
+Reward kill-switch fired in <400 iters:
+
+| Metric | iter 22114 | iter 22452 | Baseline | Direction |
+|---|---|---|---|---|
+| Mean reward | 87.6 | 16-20 | 168 | -90% (KILL) |
+| terrain_levels | 3.46 | 0.0012 | 3.67 | floored |
+| body_flip_over | 12.8% | 81.6% | — | 6× regression |
+| vf_loss | 0.75 | 0.80 | — | technically fine |
+| noise_std | 0.30 | 0.30 | — | floor (not collapsing) |
+
+Failure mode = "Stuck-at-level-0 reward hack" (exact match to the Apr 29
+attempts above). Combined effect:
+- `_STAIR_RISER_RANGE` (0.05, 0.42)→(0.10, 0.25) made level 0 stairs 10cm
+  minimum risers (was 5cm). Curriculum had **no easy mode to demote to**.
+- `distance_buffer` 3.0→1.5 terminated stair drift quickly.
+- → Too many flips → curriculum demoted → still hard at level 0 →
+  equilibrium at "flip in place" at terrain_levels=0.001.
+
+vf_loss stayed below watchdog threshold (0.80) ONLY because the policy
+was sitting in a near-zero-reward equilibrium — not actively trying
+hard things. The watchdog wouldn't catch this; only the reward-drop kill
+switch did.
+
+H100 collapsed log preserved: `~/phase_fw_plus_2_collapsed.log`. The
+22200/22300/22400 checkpoints captured the descent into the level-0
+trap; useful as case-study artifacts but not deployable.
+
+### rev2 — narrow-tread proportion bump only (May 1 01:34 UTC, in progress)
+
+Reverted both the riser range tightening AND the distance_buffer change.
+Kept ONLY the additive narrow-tread proportion bump — pure exposure
+increase, no harder geometry, no tighter termination:
+
+| Change | rev1 | rev2 |
+|---|---|---|
+| `pyramid_stairs_narrow` 4% → 12% | KEPT | **KEPT** |
+| `hf_stairs_narrow` 4% → 8% | KEPT | **KEPT** |
+| `_STAIR_RISER_RANGE` | (0.10, 0.25) | **(0.05, 0.42)** reverted |
+| `distance_buffer` | 1.5 | **3.0** reverted |
+
+Hypothesis: pure additive exposure to FW-shaped stairs (without making
+level 0 harder or terminating drift faster) won't trigger the level-0
+demotion trap. Tests whether more reps on narrow-tread stairs alone is
+enough to shift the policy's "go around" preference toward "go up".
+
+Branch state on `origin/phase-fw-plus-2`:
+- `9e8e161` - original Phase-FW-Plus-2 changes (collapsed)
+- `42a7910` - documentation update
+- `48de017` - rev2 revert (currently training)
+
+If rev2 also collapses, fall back to geometric softening on Colby's USDs.
+
 If candidate beats 22100 on FW stair engagement (Spot z >1.5m within
 30s of W input on rendered teleop) without regressing 4-env baseline
->5%, promote as `parkour_phasefwplus2_NNNN.pt`. Otherwise revert to 22100
-and document as "+2000 iter retrain didn't add FW stair capability —
-fallback is geometric softening on Colby's USDs."
+>5%, promote as `parkour_phasefwplus2_NNNN.pt`. Otherwise revert to 22100.
 
 ---
 
