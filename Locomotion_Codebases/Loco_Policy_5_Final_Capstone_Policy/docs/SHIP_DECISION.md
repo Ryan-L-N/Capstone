@@ -387,15 +387,79 @@ and slope_rough) is enough to demote terrain_levels to floor.
 
 H100 collapsed log: `~/phase_fw_plus_2_rev2.log` (preserved).
 
-### Final verdict — fall back to geometric softening
+### Phase-v3 — FROM-SCRATCH 10K with reward revert (May 1 02:56 UTC)
 
-Two consecutive Phase-FW-Plus-2 attempts (rev1 and rev2) both collapsed
-in the same way. Combined with the 5 Apr 29 attempts that all hit
-"stuck-at-level-0 reward hack" as well, the conclusion is firm:
+After rev2 collapsed, the diagnosis pointed at the **Apr 29 reward
+rebalance** (commit `f537601` 12:41 UTC) that flipped weights from
+(`base_lin_vel=5, gait=10, air_time=5`) to (`10, 3, 2`) AFTER 22100 had
+been trained. All 7 prior retrains used the rebalanced weights but
+22100 itself never trained under them — the curriculum tuning didn't
+match.
 
-**The 22100 → fine-tune pipeline is fragile to any curriculum
-perturbation.** Policy-side intervention to add FW stair capability via
-resume-based fine-tune is not viable under the current training stack.
+Phase-v3 launched **from-scratch** with reward weights reverted to
+`(5/10/5)` plus symmetric backward gait `lin_vel_x=(-1.5, 1.5)`. Goal:
+test whether the reward weights alone explain the regression.
+
+**Result: collapse delayed but not prevented.**
+
+| iter | Mean reward | terrain_levels | body_flip | Notes |
+|---|---|---|---|---|
+| 50 | 6.9 | 0.36 | 70% | random init |
+| 200 | 80.9 | 0.13 | 30% | learning gait |
+| 350 | 109.3 | 0.04 | 22% | working policy |
+| **450** | **125.7** ← PEAK | 0.02 | 19% | best moment |
+| 500 | 118.2 | 0.01 | 19% | starting to crash |
+| **550** | **18.5** ← CRASH | 0.0 | 80% | level-0 trap engaged |
+| 1000 | 11.6 | 0.0 | 80% | stuck |
+| 3673 | 7-15 | 0.0 | 80% | stuck for 3000+ iters |
+| 4641 (killed) | — | 0.0 | — | stable level-0 trap |
+
+The reward weight revert delayed the collapse by ~500 iters (vs Apr 29
+attempts collapsing immediately) but did **not prevent it**. Once
+terrain_levels hit 0.0 the policy converged to the documented
+"flip-in-place at level 0" equilibrium and held it for 3000+ iters
+straight. Killed at iter 4641.
+
+H100 collapsed log: `~/phase_v3_final_collapsed.log`. Branch:
+`origin/phase-v3-from-scratch` (commit `efa5150`).
+
+### Final verdict — 22100 ships; geometric softening is the path forward
+
+**Eight consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3) all
+hit the "stuck-at-level-0 reward hack". The level-0 trap is robust to:
+
+- Resume vs from-scratch
+- Original (5/10/5) vs rebalanced (10/3/2) reward weights
+- Tighter vs original `terrain_out_of_bounds`
+- Tighter vs original `_STAIR_RISER_RANGE`
+- Curriculum proportion bumps (narrow-tread variants)
+- Wide vs narrow LR
+- Symmetric backward gait
+
+**The regression is deeper than any single config edit.** Suspects
+that remain untested:
+- Isaac Lab version drift between Apr 27 (Phase-FW-Plus succeeded)
+  and Apr 29 (everything broke)
+- A subtle change in the curriculum threshold tuning of
+  `terrain_levels_vel`
+- Interaction between the value-loss watchdog and PPO update dynamics
+- An untracked edit to the cmd_vel resampling or the privileged-obs
+  pipeline
+
+**22100 is shipped. No v3 successor.** Project policy story closes here.
+
+The remaining FW-stair limitation is **geometric, not policy-side**.
+22100 climbs procedural pyramid stairs in training; it bypasses FW
+USD stairs because the FW geometry is outside its trained slope/depth
+distribution. Fix: Colby applies geometric softening to the FW USDs —
+scale X-run by ~1.7× to drop slope from ~50° to ~35°. Single Xform op
+per USD, deterministic, doesn't risk the policy.
+
+For everything else 22100 is ship-quality:
+- Friction zone-5 ice 96% complete (project speed record)
+- Grass zone-5 75% complete with 0 falls
+- Boulder zone-3 0 falls (timeout-only, robot stays upright)
+- Stairs: known 51% fall rate at zone 2-3 — known limitation
 
 **Path forward (geometry-side):** ask Colby to apply geometric softening
 to the FW staircase USDs:

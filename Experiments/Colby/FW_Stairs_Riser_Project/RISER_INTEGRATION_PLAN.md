@@ -268,18 +268,27 @@ after adding risers, that's important data") — yes, important data:
 the issue is NOT geometric. Risers solve falls but do not induce
 engagement.
 
-### Next move (in progress May 1)
+### Final closure — May 1 2026
 
-Phase-FW-Plus-2 retrain: +2000 iters from 22100 with two changes:
-1. Stair curriculum rebalance toward FW-realistic geometry
-   (`pyramid_stairs_narrow` 4%→12%, `_STAIR_RISER_RANGE` (0.05, 0.42) →
-   (0.10, 0.25))
-2. Tighten `terrain_out_of_bounds.distance_buffer` 3.0m → 1.5m to
-   penalize bypass
+Three retrain attempts (rev1 with curriculum + termination tighten;
+rev2 with proportion bump only; v3 with reward-weight revert + 10K
+from-scratch) **all collapsed at "stuck-at-level-0 reward hack"**.
+Eight consecutive failed retrains total (5 Apr 29 + rev1 + rev2 + v3).
 
-If this works, the next ship will climb FW stairs. If not, fallback is
-geometric softening (extend stair runs, lower slope) on top of Colby's
-riser fix.
+**The fine-tune pipeline is broken in a way deeper than any single
+config edit.** The level-0 trap is robust to resume-vs-scratch,
+reward-weight choices, termination tightening, riser-range changes,
+and curriculum proportion shifts. Diagnosis is queued in
+`Locomotion_Codebases/Loco_Policy_5_Final_Capstone_Policy/docs/FUTURE_WORK.md`
+Priority 2 (compare Apr 27 working pipeline to Apr 29 broken state).
+
+**Project answer for FW stair climbing:** ship 22100 as-is + apply
+geometric softening to the FW staircase USDs. Scale X-run by ~1.7×
+to drop slope from ~50° to ~35°, which is *inside* 22100's trained
+distribution. Single Xform op per USD, deterministic, no risk to the
+policy.
+
+See `FUTURE_WORK.md` Priority 1 for the Xform recipe.
 
 See `Locomotion_Codebases/Loco_Policy_5_Final_Capstone_Policy/docs/SHIP_DECISION.md`
 "Apr 30 / May 1 update" section for the retrain spec + kill-switch

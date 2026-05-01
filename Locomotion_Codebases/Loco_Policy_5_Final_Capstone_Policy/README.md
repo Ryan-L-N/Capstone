@@ -10,7 +10,26 @@ Unified locomotion + navigation policy for Boston Dynamics Spot.
 Miki 2022 (Science Robotics) teacher-student, Cheng 2024 (ICRA) Extreme Parkour
 curriculum, legged_gym DR ranges. Sim2real baked in from iteration 0.
 
-**Status:** SCAFFOLD — no training launched. See `docs/design.md` for the plan.
+**Status:** **SHIPPED May 1 2026.** Canonical checkpoint
+`parkour_phasefwplus_22100.pt`. The Phase-2 student distillation never
+ran; this ships as the asymmetric-critic teacher.
+
+- **Headline numbers (100-ep canonical eval, May 1):** friction 96%
+  COMPLETE / grass 75% COMPLETE / boulder 0% (0 falls, z3 wedge) /
+  stairs 0% (51 fell at z2-z3).
+- **What works:** friction zone-5 ice traversal, grass zone-5,
+  procedural pyramid stair climbing, wide DR robustness.
+- **What doesn't:** boulder dense z3 push, stair fall reduction, FW
+  USD staircase climb. Plus: any retrain from 22100 collapses to the
+  level-0 trap (8 consecutive failed attempts documented).
+
+**Read these docs in order:**
+1. `docs/SHIP_DECISION.md` — what shipped, why, and the failed retrain
+   archaeology
+2. `docs/KNOWN_LIMITATIONS.md` — what 22100 can't do (concrete
+   workarounds where they exist)
+3. `docs/FUTURE_WORK.md` — research agenda for whoever picks this up
+4. `docs/FINAL_CAPSTONE_POLICY_EXPLAINED.md` — project narrative
 
 ## Directory
 
