@@ -203,15 +203,22 @@ class FinalCapstonePolicyRewardsCfg(S2RRewardsCfg):
         self.base_pitch.weight = -0.25
         self.base_roll.weight = -3.0
 
-        # Close the Option 6 reward-hacking exploit. With base S2R weights,
-        # gait(10) + air_time(5) + ang_vel(5) + foot_clearance(0.5) = 20.5
-        # of *unconditional* positive reward — a policy can earn +200 by
-        # standing still with a pretty cadence (observed: vel_xy_err=3,
-        # terrain_levels=0.0, reward=+228). Rebalance so forward velocity
-        # dominates the positive stack.
-        self.base_linear_velocity.weight = 10.0   # was 5.0 — dominate stack
-        self.gait.weight                 =  3.0   # was 10 — neuter jiggle bonus
-        self.air_time.weight             =  2.0   # was 5  — same
+        # Phase-v3 (May 1): REVERT the Apr 29 reward rebalance. The
+        # original (5/10/5) weights are what 22100 was trained under —
+        # the rebalance to (10/3/2) was committed Apr 29 12:41 (f537601)
+        # and broke all 7 subsequent retrains (5 Apr 29 attempts + rev1
+        # + rev2 May 1) at "stuck-at-level-0 reward hack". Curriculum
+        # never escapes level 0 because the rebalanced stack lacks the
+        # unconditional gait/air_time bonuses needed to bootstrap
+        # exploration from random init at terrain_level 0.
+        # The "Option 6 standing-still exploit" is real but the
+        # curriculum tuning that produced 22100 already accommodates it
+        # — proven by Phase-FW-Plus reaching terrain_level 5.99 at iter
+        # 9600 with these weights. Restoring (5/10/5) to match 22100's
+        # training conditions.
+        self.base_linear_velocity.weight = 5.0    # Phase-v3: 10.0 -> 5.0 (revert)
+        self.gait.weight                 = 10.0   # Phase-v3: 3.0 -> 10.0 (revert)
+        self.air_time.weight             = 5.0    # Phase-v3: 2.0 -> 5.0 (revert)
 
 
 # =============================================================================
@@ -286,7 +293,10 @@ class FinalCapstonePolicyEnvCfg(SpotS2RBaseEnvCfg):
         # record 22100 policy. terrain_levels_vel still self-regulates the
         # promote bar at the operating range.
         if hasattr(self.commands, "base_velocity"):
-            self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.5)
+            # Phase-v3: lin_vel_x symmetric backward (-1.5 was -1.0).
+            # Match the +1.5 forward ceiling so backward gait gets equal
+            # exposure during training.
+            self.commands.base_velocity.ranges.lin_vel_x = (-1.5, 1.5)
             self.commands.base_velocity.ranges.lin_vel_y = (-0.8, 0.8)
             self.commands.base_velocity.ranges.ang_vel_z = (-2.0, 2.0)
             self.commands.base_velocity.resampling_time_range = (4.0, 6.0)
