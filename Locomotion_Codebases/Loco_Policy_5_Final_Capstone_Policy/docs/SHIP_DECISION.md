@@ -367,11 +367,56 @@ Branch state on `origin/phase-fw-plus-2`:
 - `42a7910` - documentation update
 - `48de017` - rev2 revert (currently training)
 
-If rev2 also collapses, fall back to geometric softening on Colby's USDs.
+### rev2 — ALSO COLLAPSED (May 1 02:17 UTC, killed at iter 22394)
 
-If candidate beats 22100 on FW stair engagement (Spot z >1.5m within
-30s of W input on rendered teleop) without regressing 4-env baseline
->5%, promote as `parkour_phasefwplus2_NNNN.pt`. Otherwise revert to 22100.
+Identical collapse trajectory to rev1, despite reverting both the riser
+range AND the distance_buffer changes:
+
+| Metric | rev1 @ iter 22452 | rev2 @ iter 22394 | Baseline |
+|---|---|---|---|
+| Mean reward | 16-20 | **13-21** | 168 |
+| terrain_levels | 0.0012 | **0.0034** | 3.67 |
+| body_flip_over | 81.6% | **81.3%** | — |
+| vf_loss | 0.80 | 0.81 | — |
+| noise_std | 0.30 | 0.30 | — |
+
+**The narrow-tread proportion bump ALONE triggers the collapse.** No
+harder geometry, no tighter termination — pure +8% pyramid_stairs_narrow
++ +4% hf_stairs_narrow (offset by reductions in medium/wide variants
+and slope_rough) is enough to demote terrain_levels to floor.
+
+H100 collapsed log: `~/phase_fw_plus_2_rev2.log` (preserved).
+
+### Final verdict — fall back to geometric softening
+
+Two consecutive Phase-FW-Plus-2 attempts (rev1 and rev2) both collapsed
+in the same way. Combined with the 5 Apr 29 attempts that all hit
+"stuck-at-level-0 reward hack" as well, the conclusion is firm:
+
+**The 22100 → fine-tune pipeline is fragile to any curriculum
+perturbation.** Policy-side intervention to add FW stair capability via
+resume-based fine-tune is not viable under the current training stack.
+
+**Path forward (geometry-side):** ask Colby to apply geometric softening
+to the FW staircase USDs:
+- Current `SM_Staircase_02` slope: ~50° (5.3m rise / 4.4m run)
+- Target slope: ~30-35° (matches procedural pyramid stairs the policy
+  was trained on, where 22100 succeeds)
+- Fix: scale the X-run by ~1.7× (4.4m → 7.5m run) — drops slope to ~35°
+  while preserving rise. Single Xform op on each SM_Staircase USD.
+
+22100 should climb 35° solid-riser stairs out of the box (it already
+climbs procedural pyramid stairs at similar slopes per the canonical
+4-env eval headline data — `Episode_Reward/terrain_relative_height` ≈ 0
+on stair_eval episodes that COMPLETE).
+
+If geometric softening is not acceptable for the deployment scene, the
+remaining option is a from-scratch retrain with a corrected pipeline —
+but that's a multi-day effort and the Apr 29 attempts suggest the
+underlying regression in the training pipeline (open since SHIP_DECISION
+was written) needs to be diagnosed first.
+
+22100 remains the canonical ship.
 
 ---
 
