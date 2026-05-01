@@ -520,9 +520,44 @@ H100 collapsed log: `~/phase_v5_collapsed.log`. Branch:
 
 ### Final verdict — 22100 ships; geometric softening is the path forward
 
-**Ten consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3 +
-v4 + v4b + v5) all hit the "stuck-at-level-0 reward hack" or related
-collapse modes. The level-0 trap is robust to:
+### Phase-v6 — curriculum-tied action_scale (May 1 22:25 UTC)
+
+User-directed: instead of fixed action_scale, ramp it linearly with
+`mean(terrain_levels)` — start at 22100's trained 0.30, climb to 0.50
+as curriculum advances. Reward weights (`action_smoothness`,
+`joint_torques`) ramp linearly to match. New helper module
+`curriculum_action_scale.py` reads terrain_levels each iter and
+updates the env's action term + reward manager cfg. Resume from 22100.
+
+**Callback worked mechanically.** `[CUR-SCALE]` log lines confirmed
+the callback firing — `action_scale` varied 0.34–0.42 as
+`mean_terrain` varied 1.0–3.0 over the first 70 iters.
+
+**Trap fired anyway, with a new self-reinforcing twist.** Trajectory:
+
+| iter past resume | mean_terrain | action_scale | reward | body_flip |
+|---|---|---|---|---|
+| 22 | 3.0 | 0.42 | — | — |
+| 50 | 1.85 | 0.37 | — | — |
+| 62 | 1.55 | 0.36 | — | — |
+| 69 | 1.01 | 0.34 | — | — |
+| **72 (killed)** | **0.90** | **0.34** | **3-10** | **80%** |
+
+**Key insight:** the coupling itself creates a *downward spiral*. As
+the curriculum demotes, action_scale shrinks → policy has less
+authority → more failures → more demotion. The very mechanism intended
+to give the policy more authority on stairs *removed* it as the
+trap engaged. From 22100's baseline of terrain=3.67/reward=168, the
+policy crashed to terrain=0.90/reward=10 in 72 iters.
+
+H100 collapsed log: `~/phase_v6.log` (preserved). Branch:
+`origin/phase-v6-curriculum-action-scale`.
+
+### Eleven retrains, eleven failures — the trap is in framework code
+
+**Eleven consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3 +
+v4 + v4b + v5 + v6) all hit the "stuck-at-level-0 reward hack" or
+related collapse modes. The level-0 trap is robust to:
 
 - Resume vs from-scratch
 - Original (5/10/5) vs rebalanced (10/3/2) reward weights
@@ -534,6 +569,7 @@ collapse modes. The level-0 trap is robust to:
 - **Lowered min_noise_std (0.3 → 0.1)** — disproven by Phase-v4b
 - **action_scale jump 0.3 → 0.5 on resume** — caused critic blowup (v4)
 - **action_scale=0.4 (midpoint) + FW USDs in training + Phase-3 recipe** — disproven by Phase-v5
+- **Curriculum-tied action_scale (0.3→0.5 ramp on terrain_levels)** — disproven by Phase-v6 (and worse: the coupling self-reinforces the downward spiral)
 
 The trap is **independent of:**
 - Reward landscape (5/10/5 vs 10/3/2 weights, both fail)
