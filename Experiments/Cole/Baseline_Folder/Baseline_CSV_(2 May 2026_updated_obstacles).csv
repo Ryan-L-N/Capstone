@@ -1,0 +1,109 @@
+# AGGREGATE STATISTICS (Updated after each episode)
+Metric,Value
+Average_Waypoints_Reached,0.65
+Max_Waypoints_Reached,3
+Failure_Rate_Fell_Over,9.00%
+Failure_Rate_Ran_Out_of_Points,91.00%
+Completion_Rate,0.00%
+
+Episode,Waypoints_Reached,Failure_Reason,Final_Score
+1,0,Ran Out of Points,-0.00
+2,0,Ran Out of Points,-0.00
+3,3,Ran Out of Points,-0.00
+4,0,Ran Out of Points,-0.00
+5,0,Ran Out of Points,-0.00
+6,3,Ran Out of Points,-0.00
+7,1,Ran Out of Points,-0.00
+8,0,Ran Out of Points,-0.00
+9,0,Ran Out of Points,-0.00
+10,1,Ran Out of Points,-0.00
+11,0,Ran Out of Points,-0.00
+12,1,Ran Out of Points,-0.00
+13,1,Ran Out of Points,-0.00
+14,0,Ran Out of Points,-0.00
+15,0,Ran Out of Points,-0.00
+16,0,Ran Out of Points,-0.00
+17,1,Ran Out of Points,-0.00
+18,1,Ran Out of Points,-0.00
+19,0,Ran Out of Points,-0.00
+20,0,Ran Out of Points,-0.00
+21,0,Ran Out of Points,-0.00
+22,1,Ran Out of Points,-0.00
+23,0,Ran Out of Points,-0.00
+24,0,Ran Out of Points,-0.00
+25,2,Ran Out of Points,-0.00
+26,2,Ran Out of Points,-0.00
+27,0,Fell Over,0.00
+28,0,Fell Over,0.00
+29,0,Fell Over,0.00
+30,1,Fell Over,0.00
+31,0,Ran Out of Points,-0.00
+32,0,Ran Out of Points,-0.00
+33,0,Ran Out of Points,-0.00
+34,2,Ran Out of Points,-0.00
+35,0,Ran Out of Points,-0.00
+36,3,Ran Out of Points,-0.00
+37,0,Ran Out of Points,-0.00
+38,0,Fell Over,0.00
+39,1,Ran Out of Points,-0.00
+40,0,Ran Out of Points,-0.00
+41,0,Ran Out of Points,-0.00
+42,1,Ran Out of Points,-0.00
+43,2,Ran Out of Points,-0.00
+44,2,Ran Out of Points,-0.00
+45,1,Ran Out of Points,-0.00
+46,0,Ran Out of Points,-0.00
+47,1,Ran Out of Points,-0.00
+48,0,Ran Out of Points,-0.00
+49,1,Ran Out of Points,-0.00
+50,2,Ran Out of Points,-0.00
+51,2,Ran Out of Points,-0.00
+52,0,Ran Out of Points,-0.00
+53,0,Ran Out of Points,-0.00
+54,0,Ran Out of Points,-0.00
+55,2,Ran Out of Points,-0.00
+56,0,Ran Out of Points,-0.00
+57,1,Ran Out of Points,-0.00
+58,0,Ran Out of Points,-0.00
+59,1,Ran Out of Points,-0.00
+60,3,Ran Out of Points,-0.00
+61,0,Ran Out of Points,-0.00
+62,1,Ran Out of Points,-0.00
+63,1,Ran Out of Points,-0.00
+64,1,Ran Out of Points,-0.00
+65,0,Ran Out of Points,-0.00
+66,0,Fell Over,0.00
+67,0,Ran Out of Points,-0.00
+68,0,Ran Out of Points,-0.00
+69,0,Ran Out of Points,-0.00
+70,0,Ran Out of Points,-0.00
+71,1,Ran Out of Points,-0.00
+72,0,Ran Out of Points,-0.00
+73,0,Ran Out of Points,-0.00
+74,1,Ran Out of Points,-0.00
+75,0,Ran Out of Points,-0.00
+76,0,Ran Out of Points,-0.00
+77,1,Ran Out of Points,-0.00
+78,0,Ran Out of Points,-0.00
+79,1,Ran Out of Points,-0.00
+80,1,Ran Out of Points,-0.00
+81,0,Ran Out of Points,-0.00
+82,3,Ran Out of Points,-0.00
+83,2,Ran Out of Points,-0.00
+84,1,Ran Out of Points,-0.00
+85,0,Ran Out of Points,-0.00
+86,1,Ran Out of Points,-0.00
+87,2,Ran Out of Points,-0.00
+88,1,Fell Over,0.00
+89,1,Ran Out of Points,-0.00
+90,0,Ran Out of Points,-0.00
+91,0,Ran Out of Points,-0.00
+92,1,Ran Out of Points,-0.00
+93,0,Fell Over,0.00
+94,0,Fell Over,0.00
+95,0,Ran Out of Points,-0.00
+96,0,Ran Out of Points,-0.00
+97,1,Ran Out of Points,-0.00
+98,0,Ran Out of Points,-0.00
+99,0,Ran Out of Points,-0.00
+100,1,Ran Out of Points,-0.00

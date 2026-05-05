@@ -421,15 +421,37 @@ class ObstacleManager:
         self.obstacles = []  # list of {path, pos, dims, mass}
         self.small_obstacles = []  # list of small static obstacles {path, pos, size, shape}
 
-    def spawn_one(self, idx: int, margin: float = 1.5, min_spawn_clearance: float = 2.0) -> None:
+    def calculate_footprint_area(self, shape: str, dims: tuple) -> float:
+        if shape == "rectangle":
+            return dims[0] * dims[1]
+        elif shape == "square":
+            return dims[0] * dims[1]
+        elif shape == "trapezoid":
+            return dims[0] * dims[1]
+        elif shape == "sphere":
+            r = dims[0] / 2
+            return math.pi * r * r
+        elif shape == "oval":
+            r_major = dims[0] / 2
+            r_minor = dims[1] / 2
+            return math.pi * r_major * r_minor
+        elif shape == "cylinder":
+            r = dims[0] / 2
+            return math.pi * r * r
+        elif shape == "diamond":
+            return dims[0] * dims[1] / 2
+        else:
+            return dims[0] * dims[1]
+
+    def spawn_one(self, idx: int, margin: float = 1.5, min_spawn_clearance: float = 2.0,
+                  force_weight_class: str = None) -> None:
         """
         Spawn a single random obstacle inside the arena.
         Enforces buffer zone around starting position and clearance from other obstacles.
-        
+
         Weight Categories:
-        - Light (< 0.45 kg):   Easily pushable, dynamic rigid body, low friction
-        - Medium (0.45-32.7):  Pushable with effort, dynamic but higher friction
-        - Heavy (> 32.7 kg):   Immovable, static rigid body, Spot must avoid
+        - Moveable (≤ OBSTACLE_MEDIUM_MAX kg): Dynamic rigid body, pushable by Spot
+        - Non-moveable (> OBSTACLE_MEDIUM_MAX kg): Static rigid body, Spot must avoid
         """
         shape = self.rng.choice(self.SHAPES)
         
@@ -456,17 +478,23 @@ class ObstacleManager:
             return  # Skip this obstacle
         
         mass = self.rng.uniform(OBSTACLE_MIN_MASS, OBSTACLE_MAX_MASS)
-        
-        # Categorize obstacle by weight
-        if mass <= OBSTACLE_LIGHT_MAX:
-            weight_class = "light"
+
+        # Categorize obstacle by weight class (moveable = orange, non_moveable = steel blue)
+        if force_weight_class == "moveable":
+            mass = self.rng.uniform(OBSTACLE_MIN_MASS, OBSTACLE_MEDIUM_MAX)
+            weight_class = "moveable"
             color = COLOR_LIGHT_OBSTACLE
-        elif mass <= OBSTACLE_MEDIUM_MAX:
-            weight_class = "medium"
-            color = Gf.Vec3f(0.8, 0.6, 0.2)  # Bronze/tan for medium weight
-        else:
-            weight_class = "heavy"
+        elif force_weight_class == "non_moveable":
+            mass = self.rng.uniform(OBSTACLE_MEDIUM_MAX + 0.1, OBSTACLE_MAX_MASS)
+            weight_class = "non_moveable"
             color = COLOR_HEAVY_OBSTACLE
+        else:
+            if mass <= OBSTACLE_MEDIUM_MAX:
+                weight_class = "moveable"
+                color = COLOR_LIGHT_OBSTACLE
+            else:
+                weight_class = "non_moveable"
+                color = COLOR_HEAVY_OBSTACLE
 
         path = f"/World/Obstacles/Obst_{idx:03d}"
         rot_deg = self.rng.uniform(0, 360)
@@ -576,30 +604,19 @@ class ObstacleManager:
         xform.AddTranslateOp().Set(Gf.Vec3d(pos_2d[0], pos_2d[1], z))
         xform.AddRotateXYZOp().Set(Gf.Vec3d(0, 0, rot_deg))
 
-        # Apply physics properties based on weight class and shape
-        if weight_class == "light":
-            # Light obstacles: low friction, easily pushable
-            friction = 0.4 if shape in ["sphere", "cylinder", "oval"] else 0.5
+        # Apply physics properties based on weight class (moveable=dynamic, non_moveable=static)
+        if weight_class == "moveable":
+            friction = 0.5 if shape in ["sphere", "cylinder", "oval"] else 0.6
             apply_rigid_body_physics(self.stage, path, mass, friction)
             rigid = UsdPhysics.RigidBodyAPI.Get(self.stage, path)
             if rigid:
-                rigid.CreateRigidBodyEnabledAttr(True)  # Dynamic/pushable
-        
-        elif weight_class == "medium":
-            # Medium obstacles: moderate friction, pushable with effort
-            friction = 0.6 if shape in ["sphere", "cylinder", "oval"] else 0.7
-            apply_rigid_body_physics(self.stage, path, mass, friction)
-            rigid = UsdPhysics.RigidBodyAPI.Get(self.stage, path)
-            if rigid:
-                rigid.CreateRigidBodyEnabledAttr(True)  # Dynamic but harder to push
-        
-        else:  # heavy
-            # Heavy obstacles: high friction, immovable (static)
+                rigid.CreateRigidBodyEnabledAttr(True)
+        else:  # non_moveable
             friction = 0.9
             apply_rigid_body_physics(self.stage, path, mass, friction)
             rigid = UsdPhysics.RigidBodyAPI.Get(self.stage, path)
             if rigid:
-                rigid.CreateRigidBodyEnabledAttr(False)  # Static/immovable
+                rigid.CreateRigidBodyEnabledAttr(False)
 
         self.obstacles.append({
             "path": path,
@@ -610,41 +627,59 @@ class ObstacleManager:
             "shape": shape
         })
 
-    def populate(self, target_coverage_pct: float = OBSTACLE_AREA_FRAC * 100,
+    def populate(self, moveable_coverage_pct: float = 10.0, non_moveable_coverage_pct: float = 10.0,
                  min_spawn_clearance: float = 2.0) -> None:
         """
-        Populate arena with obstacles until target coverage is met.
-        Enforces 2m×2m buffer zone around starting position (0,0).
-        
-        Obstacles are categorized by weight:
-        - Light: < 0.45 kg (easily pushable)
-        - Medium: 0.45-32.7 kg (pushable with effort)
-        - Heavy: > 32.7 kg (immovable)
+        Populate arena with obstacles with separate targets for moveable and non-moveable.
+        Two-phase spawning: Phase 1 = orange moveable, Phase 2 = blue non-moveable.
+        Uses geometric footprint area (matches Testing_Environment_MPPI.py).
         """
         arena_area = math.pi * (ARENA_RADIUS - 1.5) ** 2
-        target_area = arena_area * target_coverage_pct / 100.0
-        total_area = 0.0
+
+        moveable_target_area     = arena_area * moveable_coverage_pct / 100.0
+        non_moveable_target_area = arena_area * non_moveable_coverage_pct / 100.0
+
+        moveable_area     = 0.0
+        non_moveable_area = 0.0
         idx = 0
-        
-        # Track weight distribution
-        weight_counts = {"light": 0, "medium": 0, "heavy": 0}
+        weight_counts = {"moveable": 0, "non_moveable": 0}
 
-        print(f"[INFO] Spawning obstacles (target {target_coverage_pct}% coverage = {target_area:.1f} m²)")
-        print(f"[INFO] Starting zone buffer: {STARTING_ZONE_BUFFER}m radius around (0,0)")
+        print(f"[INFO] Spawning obstacles:")
+        print(f"[INFO]   - Moveable target: {moveable_coverage_pct}% = {moveable_target_area:.1f} m²")
+        print(f"[INFO]   - Non-moveable target: {non_moveable_coverage_pct}% = {non_moveable_target_area:.1f} m²")
 
-        while total_area < target_area and idx < 200:
+        print(f"[INFO] Phase 1: Spawning ORANGE moveable obstacles...")
+        phase1_idx = 0
+        while moveable_area < moveable_target_area and phase1_idx < 1000:
             old_count = len(self.obstacles)
-            self.spawn_one(idx, margin=1.5, min_spawn_clearance=min_spawn_clearance)
-            
+            self.spawn_one(idx, margin=1.5, min_spawn_clearance=2.0, force_weight_class="moveable")
             if len(self.obstacles) > old_count:
-                dims = self.obstacles[-1]["dims"]
-                total_area += dims[0] * dims[1]
-                weight_counts[self.obstacles[-1]["weight_class"]] += 1
-            
+                obs = self.obstacles[-1]
+                footprint_area = self.calculate_footprint_area(obs["shape"], obs["dims"])
+                moveable_area += footprint_area
+                weight_counts["moveable"] += 1
             idx += 1
+            phase1_idx += 1
 
-        print(f"[OK] {len(self.obstacles)} obstacles spawned (coverage {total_area:.1f} m², {100 * total_area / arena_area:.1f}%)")
-        print(f"[INFO] Weight distribution: {weight_counts['light']} light, {weight_counts['medium']} medium, {weight_counts['heavy']} heavy")
+        print(f"[INFO] Phase 1 complete: {weight_counts['moveable']} moveable, {moveable_area:.1f}m²")
+
+        print(f"[INFO] Phase 2: Spawning BLUE non-moveable obstacles...")
+        phase2_idx = 0
+        while non_moveable_area < non_moveable_target_area and phase2_idx < 1000:
+            old_count = len(self.obstacles)
+            self.spawn_one(idx, margin=1.5, min_spawn_clearance=1.5, force_weight_class="non_moveable")
+            if len(self.obstacles) > old_count:
+                obs = self.obstacles[-1]
+                footprint_area = self.calculate_footprint_area(obs["shape"], obs["dims"])
+                non_moveable_area += footprint_area
+                weight_counts["non_moveable"] += 1
+            idx += 1
+            phase2_idx += 1
+
+        total_area = moveable_area + non_moveable_area
+        total_coverage_pct = (total_area / arena_area) * 100.0
+        print(f"[OK] {len(self.obstacles)} obstacles spawned (total {total_area:.1f} m², {total_coverage_pct:.1f}%)")
+        print(f"[INFO] Weight distribution: {weight_counts['moveable']} moveable, {weight_counts['non_moveable']} non-moveable")
 
     def nearest_obstacle_distance(self, x: float, y: float) -> float:
         """Return the distance to the nearest obstacle center."""
@@ -1005,12 +1040,10 @@ class CircularWaypointEnv:
             self.current_marker_paths.extend(paths)
             print(f"[INFO] Current target: Waypoint {wp['label']} at ({wp['pos'][0]:.1f}, {wp['pos'][1]:.1f})")
 
-        # Populate obstacles
-        self.obstacle_mgr.populate(target_coverage_pct=OBSTACLE_AREA_FRAC * 100,
+        # Large obstacles only (no small static) — 15% moveable + 15% non-moveable
+        self.obstacle_mgr.populate(moveable_coverage_pct=15.0, non_moveable_coverage_pct=15.0,
                                     min_spawn_clearance=2.0)
-        
-        # Spawn small static obstacles
-        self.obstacle_mgr.spawn_small_static(target_coverage_pct=SMALL_OBSTACLE_COVERAGE * 100)
+        # self.obstacle_mgr.spawn_small_static(target_coverage_pct=SMALL_OBSTACLE_COVERAGE * 100)  # disabled
 
         # Reset Spot position
         if self.spot is not None:

@@ -1438,8 +1438,8 @@ class CircularWaypointEnv:
             self.current_marker_paths.extend(paths)
             print(f"[INFO] Current target: Waypoint {wp['label']} at ({wp['pos'][0]:.1f}, {wp['pos'][1]:.1f})")
 
-        # Large obstacles only (1% fill) — small static disabled
-        self.obstacle_mgr.populate(moveable_coverage_pct=1.0, non_moveable_coverage_pct=1.0,
+        # Large obstacles only (15%+15% fill) — small static disabled
+        self.obstacle_mgr.populate(moveable_coverage_pct=15.0, non_moveable_coverage_pct=15.0,
                                     min_spawn_clearance=2.0)
         # self.obstacle_mgr.spawn_small_static(target_coverage_pct=1.0)
         print(f"[DEBUG] obstacle_mgr registered: {len(self.obstacle_mgr.obstacles)} large, {len(self.obstacle_mgr.small_obstacles)} small obstacles")

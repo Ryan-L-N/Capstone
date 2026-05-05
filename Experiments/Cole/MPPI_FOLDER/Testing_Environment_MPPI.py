@@ -954,13 +954,12 @@ class CircularWaypointEnv:
         remove_waypoint_markers(self.stage, self.current_marker_paths)
         self.current_marker_paths.clear()
 
-        # Large + small static obstacles spawned FIRST so waypoints can avoid them
-        self.obstacle_mgr.populate(moveable_coverage_pct=10.0, non_moveable_coverage_pct=10.0,
+        # Large obstacles spawned FIRST so waypoints can avoid them (small static disabled)
+        self.obstacle_mgr.populate(moveable_coverage_pct=15.0, non_moveable_coverage_pct=15.0,
                                    min_spawn_clearance=2.0)
-        self.obstacle_mgr.spawn_small_static(target_coverage_pct=10.0)
 
         # Generate new waypoints with obstacle clearance
-        all_obs = list(self.obstacle_mgr.obstacles) + list(self.obstacle_mgr.small_obstacles)
+        all_obs = list(self.obstacle_mgr.obstacles)
         self.waypoints = generate_waypoints(self.rng, all_obstacles=all_obs)
 
         # Spawn only the first waypoint marker (sequential spawning)

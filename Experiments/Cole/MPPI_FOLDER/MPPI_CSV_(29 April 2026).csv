@@ -1,0 +1,109 @@
+# AGGREGATE STATISTICS (Updated after each episode)
+Metric,Value
+Average_Waypoints_Reached,6.63
+Max_Waypoints_Reached,16
+Failure_Rate_Fell_Over,71.00%
+Failure_Rate_Ran_Out_of_Points,29.00%
+Completion_Rate,0.00%
+
+Episode,Waypoints_Reached,Failure_Reason,Final_Score
+1,3,Fell Over,262.38
+2,14,Ran Out of Points,-0.00
+3,9,Fell Over,104.26
+4,5,Ran Out of Points,-0.00
+5,4,Fell Over,209.05
+6,0,Fell Over,299.65
+7,12,Ran Out of Points,-0.00
+8,6,Fell Over,160.79
+9,0,Fell Over,299.41
+10,0,Fell Over,299.51
+11,0,Fell Over,299.50
+12,0,Fell Over,299.60
+13,0,Fell Over,299.52
+14,0,Fell Over,299.50
+15,2,Fell Over,261.23
+16,0,Fell Over,286.66
+17,7,Fell Over,126.10
+18,2,Fell Over,258.43
+19,10,Fell Over,73.04
+20,13,Ran Out of Points,-0.00
+21,7,Fell Over,153.08
+22,8,Ran Out of Points,-0.00
+23,8,Fell Over,131.35
+24,1,Fell Over,279.35
+25,1,Fell Over,269.74
+26,8,Fell Over,139.50
+27,2,Fell Over,274.59
+28,13,Ran Out of Points,-0.00
+29,6,Fell Over,188.43
+30,3,Fell Over,212.39
+31,7,Fell Over,186.96
+32,0,Fell Over,299.60
+33,0,Fell Over,299.60
+34,1,Fell Over,300.20
+35,10,Fell Over,77.83
+36,9,Fell Over,108.85
+37,12,Ran Out of Points,-0.00
+38,12,Ran Out of Points,-0.00
+39,4,Fell Over,238.08
+40,13,Ran Out of Points,-0.00
+41,10,Fell Over,137.20
+42,6,Fell Over,133.05
+43,1,Fell Over,287.11
+44,4,Fell Over,170.65
+45,14,Ran Out of Points,-0.00
+46,3,Fell Over,197.80
+47,0,Fell Over,299.72
+48,11,Ran Out of Points,-0.00
+49,14,Ran Out of Points,-0.00
+50,14,Ran Out of Points,-0.00
+51,4,Fell Over,238.54
+52,6,Fell Over,143.17
+53,15,Ran Out of Points,-0.00
+54,11,Ran Out of Points,-0.00
+55,14,Ran Out of Points,-0.00
+56,1,Fell Over,269.25
+57,0,Fell Over,299.43
+58,5,Fell Over,213.86
+59,1,Fell Over,275.58
+60,15,Ran Out of Points,-0.00
+61,9,Ran Out of Points,-0.00
+62,14,Ran Out of Points,-0.00
+63,11,Fell Over,88.04
+64,12,Ran Out of Points,-0.00
+65,8,Fell Over,143.06
+66,15,Ran Out of Points,-0.00
+67,7,Fell Over,161.46
+68,12,Ran Out of Points,-0.00
+69,5,Fell Over,166.07
+70,14,Fell Over,10.68
+71,0,Fell Over,294.19
+72,0,Fell Over,299.53
+73,0,Fell Over,299.64
+74,5,Fell Over,156.46
+75,16,Ran Out of Points,-0.00
+76,2,Fell Over,282.71
+77,1,Fell Over,269.42
+78,7,Fell Over,132.64
+79,0,Fell Over,299.67
+80,6,Ran Out of Points,-0.00
+81,11,Fell Over,54.44
+82,9,Fell Over,189.52
+83,4,Fell Over,196.19
+84,15,Ran Out of Points,-0.00
+85,15,Ran Out of Points,-0.00
+86,5,Fell Over,189.70
+87,10,Ran Out of Points,-0.00
+88,10,Ran Out of Points,-0.00
+89,5,Fell Over,187.98
+90,5,Fell Over,218.81
+91,15,Fell Over,26.98
+92,0,Fell Over,299.63
+93,15,Fell Over,78.30
+94,11,Ran Out of Points,-0.00
+95,3,Fell Over,166.96
+96,2,Fell Over,231.05
+97,4,Fell Over,199.31
+98,6,Fell Over,190.57
+99,9,Fell Over,126.39
+100,4,Fell Over,243.91
