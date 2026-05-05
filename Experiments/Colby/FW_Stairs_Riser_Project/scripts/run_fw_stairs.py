@@ -58,6 +58,13 @@ parser.add_argument("--fall_height", type=float, default=0.15,
 parser.add_argument("--output_dir", type=str,
                     default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                          "..", "results"))
+parser.add_argument("--usd_root", type=str, default=None,
+                    help="Override USD source dir (default: deployment Collected_Final_World/SubUSDs/). "
+                         "Use to test against locally-modified USDs in usd_source/.")
+parser.add_argument("--teleop_speed", type=float, default=0.6,
+                    help="Linear/strafe command magnitude in teleop mode (m/s).")
+parser.add_argument("--teleop_yaw_rate", type=float, default=1.0,
+                    help="Yaw command magnitude in teleop mode (rad/s).")
 
 args = parser.parse_args()
 headless = args.headless and not args.rendered
@@ -84,8 +91,22 @@ from omni.isaac.quadruped.robots import SpotFlatTerrainPolicy
 from pxr import UsdGeom, UsdLux, UsdPhysics, Gf, Usd, Sdf
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_ALEX_ROOT = os.path.abspath(os.path.join(_THIS_DIR, "..", ".."))
-sys.path.insert(0, os.path.join(_ALEX_ROOT, "4_env_test", "src"))
+# Locate spot_rough_terrain_policy.py — try post-reorg location first, fall back to legacy
+_TEST_ROOT = os.path.dirname(_THIS_DIR)
+_CAPSTONE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_TEST_ROOT)))
+_rough_candidates = [
+    os.path.join(_CAPSTONE_ROOT, "Locomotion_Codebases", "4_env_test", "src"),
+    os.path.join(_CAPSTONE_ROOT, "Experiments", "Alex", "4_env_test", "src"),
+]
+for _cand in _rough_candidates:
+    if os.path.isfile(os.path.join(_cand, "spot_rough_terrain_policy.py")):
+        sys.path.insert(0, _cand)
+        break
+else:
+    raise RuntimeError(
+        "Could not locate spot_rough_terrain_policy.py — tried:\n  "
+        + "\n  ".join(_rough_candidates)
+    )
 
 from spot_rough_terrain_policy import SpotRoughTerrainPolicy
 
@@ -93,7 +114,7 @@ from spot_rough_terrain_policy import SpotRoughTerrainPolicy
 PHYSICS_DT = 1.0 / 500.0
 RENDERING_DT = 10.0 / 500.0
 
-FW_STAIRS_ROOT = r"C:\Users\Gabriel Santiago\OneDrive\Desktop\Collected_Final_World\SubUSDs"
+FW_STAIRS_ROOT = args.usd_root or r"C:\Users\Gabriel Santiago\OneDrive\Desktop\Collected_Final_World\SubUSDs"
 ALL_STAIRS = {
     "01": "SM_Staircase_01.usd",
     "02": "SM_Staircase_02.usd",
@@ -243,18 +264,25 @@ def run_stair_test(world, stage, stair_key, usd_filename, results_log):
     # NEW APPROACH (post-ultrathink): trust the post-reference bbox in MY
     # scene, not the source-USD bbox. Reference first with just scale, then
     # measure the actual world bbox, then apply corrective translate.
+    # Scale on the CHILD (with the reference). Translate on the PARENT
+    # (holder) so the correction isn't shadowed by the reference's own
+    # xformOps. The original script comment about "PARENT/CHILD STRUCTURE
+    # — fixes xform composition bug" was correct but the code put both ops
+    # on the child — that's why correction didn't take.
     stair_xform.AddScaleOp().Set(Gf.Vec3d(scale, scale, scale))
-    # Placeholder translate — will be set correctly after first measurement
-    translate_op = stair_xform.AddTranslateOp()
+    translate_op = holder_xform.AddTranslateOp()
     translate_op.Set(Gf.Vec3d(0.0, 0.0, 0.0))
 
     # Force USD composition so the reference takes effect, then measure
     # where the stair ACTUALLY landed in MY scene.
     world.reset()
     world.step(render=False)
-    measure_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(),
-                                       [UsdGeom.Tokens.default_])
     stair_prim = stage.GetPrimAtPath(stair_path)
+    # Fresh BBoxCache + useExtentsHint=False — extents hints can be stale
+    # after the AddReference call.
+    measure_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(),
+                                       [UsdGeom.Tokens.default_],
+                                       useExtentsHint=False)
     measured = measure_cache.ComputeWorldBound(stair_prim).ComputeAlignedRange()
     m_min = (float(measured.GetMin()[0]), float(measured.GetMin()[1]),
              float(measured.GetMin()[2]))
@@ -266,13 +294,19 @@ def run_stair_test(world, stage, stair_key, usd_filename, results_log):
     print(f"    z: [{m_min[2]:.2f}, {m_max[2]:.2f}] m", flush=True)
 
     # Apply CORRECTIVE translate so post-everything bbox.min = (0, 0, 0).
-    # This is in WORLD frame and applied AFTER all internal transforms.
-    corrective = Gf.Vec3d(-m_min[0], -m_min[1], -m_min[2])
+    # Lift z slightly (+1cm) so the stair base sits just above any default
+    # ground plane.
+    corrective = Gf.Vec3d(-m_min[0], -m_min[1], -m_min[2] + 0.01)
     translate_op.Set(corrective)
     world.step(render=False)
 
-    # Re-measure to verify
-    measured2 = measure_cache.ComputeWorldBound(stair_prim).ComputeAlignedRange()
+    # Re-measure with a fresh cache to verify (stale cache is the other
+    # half of why the original script's "AFTER CORRECTION" reported the
+    # same numbers as before).
+    measure_cache2 = UsdGeom.BBoxCache(Usd.TimeCode.Default(),
+                                        [UsdGeom.Tokens.default_],
+                                        useExtentsHint=False)
+    measured2 = measure_cache2.ComputeWorldBound(stair_prim).ComputeAlignedRange()
     f_min = (float(measured2.GetMin()[0]), float(measured2.GetMin()[1]),
              float(measured2.GetMin()[2]))
     f_max = (float(measured2.GetMax()[0]), float(measured2.GetMax()[1]),
@@ -309,8 +343,8 @@ def run_stair_test(world, stage, stair_key, usd_filename, results_log):
     policy = SpotRoughTerrainPolicy(
         flat_policy=flat_policy,
         checkpoint_path=os.path.abspath(args.checkpoint),
-        arl_baseline=True,
-        action_scale=args.action_scale,
+        mason_baseline=True,
+        action_scale_override=args.action_scale,
     )
     policy.initialize()
     policy.apply_gains()
@@ -341,29 +375,74 @@ def run_stair_test(world, stage, stair_key, usd_filename, results_log):
     print(f"  initial z = {z0:.3f}, spawn_pos={spawn_pos}, top_xy=({top_x:.2f},{top_y:.2f})",
           flush=True)
 
-    # Teleop mode: skip auto-walk, hand control to user via keyboard
+    # Teleop mode: hand control to user via keyboard.
+    # Uses the carb.input subscription pattern from run_capstone_teleop.py.
     if args.teleop:
         print(f"\n  [TELEOP MODE] keyboard active.\n"
-              f"    WASD = drive (forward / strafe)\n"
-              f"    Q/E  = turn left/right\n"
-              f"    G    = toggle FLAT/ROUGH gait\n"
+              f"    W/S  = forward / backward\n"
+              f"    A/D  = strafe left / right\n"
+              f"    Q/E  = turn left / right\n"
               f"    R    = reset robot to spawn\n"
+              f"    SPACE= e-stop (cmd=0)\n"
               f"    ESC  = exit\n", flush=True)
         import carb.input  # type: ignore
-        ki = carb.input.acquire_input_interface()
-        keyboard = ki.get_keyboard(0) if hasattr(ki, "get_keyboard") else None
-        # Simple polling — uses Isaac Sim's input interface
-        # Just runs forever stepping the policy until robot falls or user kills it
-        from omni.kit.app import get_app
-        app_iface = get_app()
-        cmd = np.zeros(3, dtype=np.float64)
+
+        key_state = {
+            "forward": False, "backward": False,
+            "left": False, "right": False,
+            "yaw_left": False, "yaw_right": False,
+            "reset": False, "estop": False, "exit": False,
+        }
+        input_iface = carb.input.acquire_input_interface()
+        keyboard = omni.appwindow.get_default_app_window().get_keyboard()
+
+        def on_key_event(event, *_a, **_k):
+            pressed = event.type == carb.input.KeyboardEventType.KEY_PRESS
+            released = event.type == carb.input.KeyboardEventType.KEY_RELEASE
+            if not pressed and not released:
+                return True
+            k = event.input
+            if k == carb.input.KeyboardInput.W: key_state["forward"] = pressed
+            elif k == carb.input.KeyboardInput.S: key_state["backward"] = pressed
+            elif k == carb.input.KeyboardInput.A: key_state["left"] = pressed
+            elif k == carb.input.KeyboardInput.D: key_state["right"] = pressed
+            elif k == carb.input.KeyboardInput.Q: key_state["yaw_left"] = pressed
+            elif k == carb.input.KeyboardInput.E: key_state["yaw_right"] = pressed
+            elif k == carb.input.KeyboardInput.R and pressed: key_state["reset"] = True
+            elif k == carb.input.KeyboardInput.SPACE and pressed:
+                key_state["estop"] = not key_state["estop"]
+                print(f"[E-STOP] {'ENGAGED' if key_state['estop'] else 'RELEASED'}", flush=True)
+            elif k == carb.input.KeyboardInput.ESCAPE and pressed:
+                key_state["exit"] = True
+            return True
+
+        input_iface.subscribe_to_keyboard_events(keyboard, on_key_event)
+
         run_step = 0
+        v = float(args.teleop_speed)
+        w = float(args.teleop_yaw_rate)
         while True:
+            if key_state["exit"]:
+                print("  [TELEOP] ESC pressed — exiting.", flush=True)
+                break
+
+            # Build cmd from key state
+            if key_state["estop"]:
+                cmd = np.zeros(3, dtype=np.float64)
+            else:
+                vx = (v if key_state["forward"] else 0.0) - (v if key_state["backward"] else 0.0)
+                vy = (v if key_state["left"] else 0.0) - (v if key_state["right"] else 0.0)
+                wz = (w if key_state["yaw_left"] else 0.0) - (w if key_state["yaw_right"] else 0.0)
+                cmd = np.array([vx, vy, wz], dtype=np.float64)
+
             pos, quat = policy.robot.get_world_pose()
             pos_np = np.array(pos, dtype=np.float64)
-            if pos_np[2] < args.fall_height or body_is_flipped(np.array(quat, dtype=np.float64)):
-                print(f"  [TELEOP] FELL/FLIP at pos=({pos_np[0]:+.2f},"
-                      f"{pos_np[1]:+.2f},{pos_np[2]:+.2f}) — resetting", flush=True)
+            quat_np = np.array(quat, dtype=np.float64)
+
+            # Manual reset
+            if key_state["reset"]:
+                key_state["reset"] = False
+                print(f"  [TELEOP] R pressed — resetting to spawn", flush=True)
                 policy.robot.set_world_pose(position=spawn_pos, orientation=SPAWN_QUAT)
                 policy.robot.set_joint_positions(SPOT_DEFAULT_TYPE_GROUPED, np.arange(12))
                 policy.robot.set_joint_velocities(np.zeros(12), np.arange(12))
@@ -373,20 +452,30 @@ def run_stair_test(world, stage, stair_key, usd_filename, results_log):
                 if hasattr(policy, "post_reset"):
                     policy.post_reset()
                 continue
-            # Read keyboard via Isaac Sim's carb interface
-            # Simpler: just walk forward continuously and let user observe.
-            # For real teleop they should use run_capstone_teleop.py — this
-            # mode is just "spawn + sit + observe" so user can SEE where the
-            # stair actually is.
-            policy.forward(PHYSICS_DT, np.array([0.0, 0.0, 0.0]))
+
+            # Auto-reset on fall/flip
+            if pos_np[2] < args.fall_height or body_is_flipped(quat_np):
+                print(f"  [TELEOP] FELL/FLIP at pos=({pos_np[0]:+.2f},"
+                      f"{pos_np[1]:+.2f},{pos_np[2]:+.2f}) — auto-reset", flush=True)
+                policy.robot.set_world_pose(position=spawn_pos, orientation=SPAWN_QUAT)
+                policy.robot.set_joint_positions(SPOT_DEFAULT_TYPE_GROUPED, np.arange(12))
+                policy.robot.set_joint_velocities(np.zeros(12), np.arange(12))
+                policy.robot.set_linear_velocity(np.zeros(3))
+                policy.robot.set_angular_velocity(np.zeros(3))
+                world.step(render=False)
+                if hasattr(policy, "post_reset"):
+                    policy.post_reset()
+                continue
+
+            policy.forward(PHYSICS_DT, cmd)
             world.step(render=not headless)
             run_step += 1
-            if run_step % 200 == 0:
+            if run_step % 100 == 0:
                 print(f"  [TELEOP] t={run_step/50:.1f}s  pos=({pos_np[0]:+.2f},"
                       f"{pos_np[1]:+.2f},{pos_np[2]:+.2f})  "
-                      f"(stair bbox: x=[0,{stair_length:.1f}] y=[0,?] z=[?,?])",
+                      f"cmd=[{cmd[0]:+.2f},{cmd[1]:+.2f},{cmd[2]:+.2f}]",
                       flush=True)
-        # Won't reach here, but for safety
+
         results_log.append({"stair": stair_key, "teleop": True})
         return True
 

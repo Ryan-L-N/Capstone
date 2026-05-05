@@ -32,6 +32,9 @@ parser.add_argument("--mason", action="store_true", default=True)
 parser.add_argument("--direction", type=str, default="ascend",
                     choices=["ascend", "descend", "both"],
                     help="ascend = walk up; descend = spawn at top, walk down; both = run ascend then descend.")
+parser.add_argument("--usd_root", type=str, default=None,
+                    help="Override the USD source dir (default: deployment SubUSDs path). "
+                         "Use this to test against local cheat-baked USDs in usd_source/.")
 args = parser.parse_args()
 
 headless = args.headless and not args.rendered
@@ -46,14 +49,27 @@ from pxr import Gf, UsdGeom, UsdLux, UsdPhysics  # noqa: E402
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_ROOT = os.path.dirname(THIS_DIR)
-ALEX_ROOT = os.path.dirname(TEST_ROOT)
 CONFIG_PATH = os.path.join(TEST_ROOT, "data", "fw_stair_eval_config.json")
-USD_ROOT = r"C:\Users\Gabriel Santiago\OneDrive\Desktop\Collected_Final_World\SubUSDs"
+USD_ROOT = args.usd_root or r"C:\Users\Gabriel Santiago\OneDrive\Desktop\Collected_Final_World\SubUSDs"
 RESULTS_DIR = os.path.join(TEST_ROOT, "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-# Add 4_env_test src to path for rough policy
-sys.path.insert(0, os.path.join(ALEX_ROOT, "4_env_test", "src"))
+# Locate spot_rough_terrain_policy.py — try the new (post-reorg) location first,
+# then the old Experiments/Alex/4_env_test/ location for backwards compat.
+CAPSTONE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(TEST_ROOT)))
+_rough_candidates = [
+    os.path.join(CAPSTONE_ROOT, "Locomotion_Codebases", "4_env_test", "src"),
+    os.path.join(CAPSTONE_ROOT, "Experiments", "Alex", "4_env_test", "src"),
+]
+for _cand in _rough_candidates:
+    if os.path.isfile(os.path.join(_cand, "spot_rough_terrain_policy.py")):
+        sys.path.insert(0, _cand)
+        break
+else:
+    raise RuntimeError(
+        "Could not locate spot_rough_terrain_policy.py — tried:\n  "
+        + "\n  ".join(_rough_candidates)
+    )
 from spot_rough_terrain_policy import SpotRoughTerrainPolicy  # noqa: E402
 
 with open(CONFIG_PATH) as f:
@@ -288,8 +304,8 @@ flat_policy.post_reset()
 robot_policy = SpotRoughTerrainPolicy(
     flat_policy=flat_policy,
     checkpoint_path=os.path.abspath(args.checkpoint),
-    arl_baseline=args.mason,
-    action_scale=args.action_scale,
+    mason_baseline=args.mason,
+    action_scale_override=args.action_scale,
 )
 robot_policy.initialize()
 robot_policy.apply_gains()

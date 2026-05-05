@@ -225,6 +225,103 @@ and not part of the deliverable.
    `Loco_Policy_3_Student_Teacher_Training/scripts/train_distill_s2r.py`,
    targeting a 235-dim non-asymmetric student.
 
+## Apr 30 / May 1 update — eval data + FW stair findings + Phase-FW-Plus-2 retrain
+
+### Canonical 4-env 100-ep eval (the ship matrix)
+
+Headless run on H100, 100 episodes per arena, completed Apr 30 17:44 UTC
+(~23h wall). JSONL dump for Ryan: `Experiments/Ryan/22100 Final Eval 100/`.
+
+| Env | n | COMPLETE | FELL | TIMEOUT | Median time | Max reach |
+|---|---|---|---|---|---|---|
+| friction | 100 | **96 (96%)** | 3 | 1 | 365s | 49.5m (96 z5) |
+| grass | 100 | **75 (75%)** | 0 | 25 | 315s | 49.5m (93 z5) |
+| boulder | 100 | 0 (0%) | **0** | 100 | — | 31.4m (z3 wedge) |
+| stairs | 100 | 0 (0%) | **51** | 49 | — | 25.0m (z2-z3) |
+
+Friction + grass are ship-quality. Boulder stays alive (0 falls) but
+wedges at the dense zone-3 boulder field. Stairs splits roughly 50/50
+between fall-in-zone-2 and timeout-in-zone-3.
+
+### FW stair USD findings (Colby's risers + 22100)
+
+Colby shipped `add_risers.py` (development branch, commit `fbdf7d2`) that
+bakes solid riser triangles into the SM_Staircase_* USDs by detecting
+horizontal tread faces by normal and inserting vertical riser quads at
+the front edge of each upper tread. Real Path-A riser geometry, not a
+buried-ramp cheat.
+
+Tested 4 policies on rendered teleop against Colby's risered
+`SM_Staircase_02` USD:
+
+| Policy | Behavior | fell |
+|---|---|---|
+| `parkour_phase9_18500` (stair specialist) | bypasses on +Y/-Y side | False |
+| `parkour_phasefwplus_22100` (ship) | bypasses, ends at (-11.24, +14.6, 0.51) | False |
+| `parkour_phasefwplus_20850` (pre-ship) | similar bypass | False |
+| `parkour_phasefwplus_23499` (over-train) | **mode collapse**, no command response | — |
+
+**Diagnosis: behavioral, not capability.** All three intact policies
+treat the FW staircase as an obstacle to navigate around rather than
+terrain to climb. The 9600 ckpt (pulled from H100 for diagnostic) has
+peak terrain_level (5.99) and reaches z4 on procedural boulders but
+**FLIPS at spawn** on friction (DR was narrower at iter 9600). Confirms
+22100 was the right ship — it traded raw climbing for DR robustness.
+
+The training reward did not penalize bypass: `terrain_out_of_bounds`
+fired only at 3.0m drift, so 0-3m of sideways-around-the-stair was
+inside the reward envelope.
+
+Updates to TODO #2 (originally "expected 2-4/4 PASS with Colby's risers"):
+**0/4 PASS observed**. Colby's risers solve falls (`fell=False` in all
+tests) but the policy still doesn't climb. The fix is **policy-side**
+(retrain to engage), not geometry-side. Phase-FW-Plus-2 below.
+
+### Phase-FW-Plus-2 retrain (in progress, May 1)
+
+Launched H100 screen `phase_fw_plus_2` on May 1 00:36 UTC. +2000 iters
+from `parkour_phasefwplus_22100.pt` → target iter 24100.
+
+**Two changes** (committed on `phase-fw-plus-2` branch, `9e8e161`):
+
+1. `final_capstone_policy_terrain_cfg.py` — narrow-tread stair
+   variants bumped (`pyramid_stairs_narrow` 4%→12%, `hf_stairs_narrow`
+   4%→8%). Net stair proportion 39%→42%, narrow-tread (FW match) 8%→20%.
+   `_STAIR_RISER_RANGE` tightened (0.05, 0.42)→(0.10, 0.25) to
+   concentrate curriculum on FW-realistic 0.10-0.20m band.
+
+2. `base_s2r_env_cfg.py` — `terrain_out_of_bounds.distance_buffer`
+   3.0m → 1.5m. Forces engage-or-fail: enough margin for normal step
+   correction (~2× tread width), insufficient for full bypass.
+
+No reward weight changes (V19 destabilization warning preserved).
+
+**H100 sync:** SCP'd `parkour_nav_terrain_cfg.py` directly + sed-patched
+`base_s2r_env_cfg.py` (avoided full-file SCP because the post-reorg file
+imports `arl_hybrid_env_cfg` which doesn't exist on H100's legacy
+layout). Backups at `*.pre_fw_plus_2.bak`.
+
+**Initial metrics (iter 22114, ~14 iters past resume):**
+- vf_loss = 0.75 (watchdog floor 100, well clear)
+- noise_std = 0.30 (lower bound, healthy)
+- terrain_levels = 3.46 (near 22100's 3.67 baseline)
+- Mean reward = 87.6 (vs 22100's 168.45 — expected drop from tighter
+  termination; should recover as policy adapts)
+- body_flip_over = 12.8% (elevated; will track as kill-switch metric)
+
+**Pre-committed kill switches:**
+- friction COMPLETE rate <80% on smoke-eval gate → abort
+- vf_loss spikes >5× in any 100 iters → abort (mode collapse signature)
+- mean_reward drops >50% from baseline 168 → abort
+
+If candidate beats 22100 on FW stair engagement (Spot z >1.5m within
+30s of W input on rendered teleop) without regressing 4-env baseline
+>5%, promote as `parkour_phasefwplus2_NNNN.pt`. Otherwise revert to 22100
+and document as "+2000 iter retrain didn't add FW stair capability —
+fallback is geometric softening on Colby's USDs."
+
+---
+
 ## What lives where (post-ship pointer map)
 
 | Artifact | Path |
@@ -238,3 +335,7 @@ and not part of the deliverable.
 | Top-level deliverable mirror | `Final Policies/Locomotion Policies/` (Ryan's existing main-branch ship dir) |
 | Project narrative | `Locomotion_Codebases/Loco_Policy_5_Final_Capstone_Policy/docs/FINAL_CAPSTONE_POLICY_EXPLAINED.md` |
 | RAWDOG bug compendium | `Locomotion_Codebases/docs/HOW_TO_TRAIN_YOUR_RAWDOG.md` |
+| **100-ep canonical eval data** (Apr 30) | `Experiments/Ryan/22100 Final Eval 100/` (4 JSONLs + SUMMARY.md) |
+| **Colby's FW riser-baked USDs** (Apr 30) | `Experiments/Colby/FW_Stairs_Riser_Project/usd_source/SM_Staircase_*.usd` (commit `fbdf7d2` on `development`) |
+| **Phase-FW-Plus-2 retrain branch** | `origin/phase-fw-plus-2` (commit `9e8e161`) — narrow-tread bump + tighter termination |
+| H100 in-flight training screen | `phase_fw_plus_2` on `t2user@172.24.254.24` (May 1 00:36 UTC, ETA iter 24100 ~12h) |

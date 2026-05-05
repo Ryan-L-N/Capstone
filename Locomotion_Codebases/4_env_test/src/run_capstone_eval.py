@@ -87,6 +87,12 @@ parser.add_argument("--seed", type=int, default=42,
                     help="Random seed for reproducibility")
 parser.add_argument("--max_episode_time", type=float, default=0,
                     help="Max seconds per episode (0 = no limit)")
+parser.add_argument("--target_vx", type=float, default=None,
+                    help="Forward velocity command issued by the waypoint follower (m/s). "
+                         "Default = waypoint_follower.TARGET_VX (1.0). Bump to 2.0 or 3.0 "
+                         "to push speed (paired with --zone_slowdown_cap as a per-zone safety net). "
+                         "22100 training cmd_vel range was (-1.0, 1.5); values past 1.5 are "
+                         "extrapolation — may flip at zone-4/5 low-friction.")
 parser.add_argument("--zone_slowdown_cap", type=float, default=1.0,
                     help="Cap forward velocity (m/s) when robot enters zone 3+. "
                          "Phase-9 boulder operating point: 0.67. Default 1.0 = no cap. "
@@ -95,7 +101,12 @@ parser.add_argument("--zone_slowdown_cap", type=float, default=1.0,
 parser.add_argument("--no_zone_slowdown", action="store_true", default=False,
                     help="Disable zone-aware velocity capping entirely (overrides --zone_slowdown_cap).")
 parser.add_argument("--mason", action="store_true", default=False,
-                    help="Use Mason obs order (height_scan first) + action_scale=0.2")
+                    help="Use Mason obs order (height_scan first) + (default) action_scale=0.2")
+parser.add_argument("--action_scale", type=float, default=None,
+                    help="Override action_scale (overrides whatever --mason selects). "
+                         "Use 0.3 for parkour_phasefwplus_22100 (Final Capstone Policy ship). "
+                         "Default None = use the policy's natural scale (0.2 for --mason, "
+                         "0.2 for non-mason rough).")
 
 args, remaining = parser.parse_known_args()
 
@@ -245,6 +256,7 @@ def main():
                 checkpoint_path=args.checkpoint,
                 ground_height_fn=ground_fn_scanner,
                 mason_baseline=args.mason,
+                action_scale_override=args.action_scale,
             )
             robot_policy.initialize()
             robot_policy.apply_gains()
@@ -306,7 +318,7 @@ def main():
     print(f"{robot.upper()} loaded and initialized.", flush=True)
 
     # ── 7. Create navigation and metrics ────────────────────────────────
-    waypoint_follower = WaypointFollower()
+    waypoint_follower = WaypointFollower(target_vx=args.target_vx)
     metrics_collector = MetricsCollector(
         args.output_dir, args.env, args.policy,
         ground_height_fn=ground_fn_metrics,
@@ -451,13 +463,17 @@ def main():
 
             # Zone-aware velocity slowdown (Phase-9 boulder fix).
             # Some policy + terrain combinations have gait-specific failure modes
-            # at certain zones (e.g. mason_hybrid + parkour_phase9 hits a zone-3
-            # wall on boulder at full speed). Capping forward velocity past x=20m
-            # (zone 3 onwards) lets these gaits clear deeper without flipping.
-            #   --zone_slowdown_cap 1.0 (default) = no effective cap
-            #   --zone_slowdown_cap 0.67          = Phase-9 boulder operating point
-            #   --no_zone_slowdown                = disabled (full eval rigor)
-            if not args.no_zone_slowdown and args.zone_slowdown_cap < 1.0 and pos_np[0] >= 20.0:
+            # at certain zones. Capping forward velocity past x=20m (zone 3
+            # onwards) lets these gaits clear deeper without flipping.
+            #   --zone_slowdown_cap 0.67  = Phase-9 boulder operating point
+            #   --zone_slowdown_cap 1.5   = stair operating point (1.5 m/s past z2)
+            #   --zone_slowdown_cap 2.0   = friction zone-3+ icy-zone safety
+            #   --no_zone_slowdown        = disabled (full eval rigor)
+            # Cap always applies past x>=20m unless --no_zone_slowdown is set.
+            # The waypoint-follower's natural cmd[0] varies by env, so a cap of
+            # e.g. 1.5 may have no effect on grass (where cmd is naturally 1.0)
+            # but matters on boulder (where cmd can exceed 1.5 in zone-clear bursts).
+            if not args.no_zone_slowdown and pos_np[0] >= 20.0:
                 if cmd[0] > args.zone_slowdown_cap:
                     cmd[0] = args.zone_slowdown_cap
 

@@ -29,7 +29,7 @@ WAYPOINTS = np.array([
 ], dtype=np.float64)
 
 KP_YAW = 2.0
-TARGET_VX = 1.0
+TARGET_VX = 1.0          # default forward velocity command (m/s) — overridable via WaypointFollower(target_vx=...)
 WAYPOINT_THRESHOLD = 0.5
 
 
@@ -39,9 +39,15 @@ class WaypointFollower:
     Designed for standalone mode (single robot, numpy arrays).
     """
 
-    def __init__(self):
+    def __init__(self, target_vx=None):
+        """target_vx: forward velocity command (m/s). Default = TARGET_VX module
+        constant (1.0). Override via CLI --target_vx 3.0 to push for higher
+        speeds (waypoint clip is [-2.0, 3.0], policy command range during
+        training was (-1.0, 1.5) for 22100 — going past 1.5 is extrapolation
+        and may fail at low-friction zones)."""
         self._current_wp = 0
         self._waypoints = WAYPOINTS.copy()
+        self._target_vx = TARGET_VX if target_vx is None else float(target_vx)
 
     def reset(self):
         """Reset to first waypoint."""
@@ -79,7 +85,7 @@ class WaypointFollower:
         yaw_err = np.arctan2(np.sin(yaw_err), np.cos(yaw_err))
 
         # Velocity commands
-        vx = TARGET_VX
+        vx = self._target_vx
         vy = 0.0
         omega_z = KP_YAW * yaw_err
 
