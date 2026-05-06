@@ -289,6 +289,18 @@ distribution. Single Xform op per USD, deterministic, no risk to the
 policy.
 
 See `FUTURE_WORK.md` Priority 1 for the Xform recipe.
+### Next move (in progress May 1)
+
+Phase-FW-Plus-2 retrain: +2000 iters from 22100 with two changes:
+1. Stair curriculum rebalance toward FW-realistic geometry
+   (`pyramid_stairs_narrow` 4%→12%, `_STAIR_RISER_RANGE` (0.05, 0.42) →
+   (0.10, 0.25))
+2. Tighten `terrain_out_of_bounds.distance_buffer` 3.0m → 1.5m to
+   penalize bypass
+
+If this works, the next ship will climb FW stairs. If not, fallback is
+geometric softening (extend stair runs, lower slope) on top of Colby's
+riser fix.
 
 See `Locomotion_Codebases/Loco_Policy_5_Final_Capstone_Policy/docs/SHIP_DECISION.md`
 "Apr 30 / May 1 update" section for the retrain spec + kill-switch

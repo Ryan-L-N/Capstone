@@ -533,6 +533,11 @@ underlying regression in the training pipeline (open since SHIP_DECISION
 was written) needs to be diagnosed first.
 
 22100 remains the canonical ship.
+If candidate beats 22100 on FW stair engagement (Spot z >1.5m within
+30s of W input on rendered teleop) without regressing 4-env baseline
+>5%, promote as `parkour_phasefwplus2_NNNN.pt`. Otherwise revert to 22100
+and document as "+2000 iter retrain didn't add FW stair capability —
+fallback is geometric softening on Colby's USDs."
 
 ---
 

@@ -157,19 +157,14 @@ class SpotRoughTerrainPolicy:
     # Construction
     # ------------------------------------------------------------------
     def __init__(self, flat_policy, checkpoint_path=None, ground_height_fn=None,
-                 mason_baseline=False):
+                 mason_baseline=False, action_scale_override=None):
         """
         Args:
-            flat_policy:       Initialised SpotFlatTerrainPolicy whose .robot
-                               articulation is shared.
-            checkpoint_path:   Path to RSL-RL checkpoint (.pt).
-                               Defaults to the 48h 30k-iteration rough model.
-            ground_height_fn:  Optional callable(x_pos) -> ground_z.
-                               When provided, enables analytical height scanning
-                               so the policy can "see" terrain (e.g. stairs).
-                               When None, height scan is filled with 0.0 (flat).
-            mason_baseline:    If True, use Mason's obs order (height_scan first)
-                               and action_scale=0.2.
+            flat_policy, checkpoint_path, ground_height_fn, mason_baseline:
+                see 4_env_test/src/spot_rough_terrain_policy.py
+            action_scale_override: If not None, overrides whatever mason_baseline
+                                   selects. Use 0.3 for parkour_phasefwplus_22100
+                                   (Final Capstone Policy ship).
         """
         self._mason_baseline = mason_baseline
 
@@ -181,7 +176,10 @@ class SpotRoughTerrainPolicy:
         self._actor = self._build_actor(ckpt)
 
         # Internal bookkeeping
-        self._action_scale    = ACTION_SCALE_MASON if mason_baseline else ACTION_SCALE
+        if action_scale_override is not None:
+            self._action_scale = float(action_scale_override)
+        else:
+            self._action_scale = ACTION_SCALE_MASON if mason_baseline else ACTION_SCALE
         self._decimation      = DECIMATION
         self._previous_action = np.zeros(ACT_DIM)
         self._policy_counter  = 0

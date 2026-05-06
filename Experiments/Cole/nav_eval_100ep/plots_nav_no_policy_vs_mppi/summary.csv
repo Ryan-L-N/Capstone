@@ -1,0 +1,3 @@
+environment,policy,num_episodes,completion_rate,fall_rate,stall_rate,mean_waypoints,std_waypoints,median_waypoints,max_waypoints,mean_final_score,mean_completed_score,seg_1_count,seg_2_count,seg_3_count,seg_4_count,seg_5_count
+flat,no_policy,100,0.0,0.09,0.91,0.65,0.857,0.0,3,0.0,0.0,100,0,0,0,0
+flat,mppi,100,0.52,0.25,0.23,19.52,8.877,25.0,25,81.919,58.297,15,3,1,7,74

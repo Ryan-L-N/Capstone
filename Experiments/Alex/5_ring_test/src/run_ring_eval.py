@@ -63,6 +63,9 @@ parser.add_argument("--seed", type=int, default=42,
                     help="Random seed for reproducibility")
 parser.add_argument("--mason", action="store_true", default=False,
                     help="Use Mason obs order (height_scan first)")
+parser.add_argument("--action_scale", type=float, default=None,
+                    help="Override action_scale. Use 0.3 for parkour_phasefwplus_22100 "
+                         "(Final Capstone Policy ship). Default None = mason→0.2 / non-mason→0.2.")
 
 args, remaining = parser.parse_known_args()
 
@@ -225,6 +228,7 @@ def main():
             checkpoint_path=args.checkpoint,
             ground_height_fn=None,  # PhysX raycasting for all terrain
             mason_baseline=args.mason,
+            action_scale_override=args.action_scale,
         )
         robot_policy.initialize()
         robot_policy.apply_gains()

@@ -1,0 +1,5 @@
+environment,progress_t_stat,progress_p_value,progress_cohens_d,completion_z_stat,completion_p_value,fall_z_stat,fall_p_value,progress_22100_minus_flat,completion_22100_minus_flat,fall_22100_minus_flat
+friction,9.79978,0.0,1.385898,13.587324,0.0,-2.217096,0.026617,9.24773,0.96,-0.08
+grass,26.50282,0.0,3.748065,10.954451,0.0,-4.026936,5.7e-05,21.27219,0.75,-0.15
+boulder,25.626357,0.0,3.624114,0.0,1.0,-9.479192,0.0,12.51948,0.0,-0.62
+stairs,22.554641,0.0,3.189708,0.0,1.0,-7.838367,0.0,13.9067,0.0,-0.48

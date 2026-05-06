@@ -157,7 +157,7 @@ class SpotRoughTerrainPolicy:
     # Construction
     # ------------------------------------------------------------------
     def __init__(self, flat_policy, checkpoint_path=None, ground_height_fn=None,
-                 mason_baseline=False):
+                 mason_baseline=False, action_scale_override=None):
         """
         Args:
             flat_policy:       Initialised SpotFlatTerrainPolicy whose .robot
@@ -169,7 +169,11 @@ class SpotRoughTerrainPolicy:
                                so the policy can "see" terrain (e.g. stairs).
                                When None, height scan is filled with 0.0 (flat).
             mason_baseline:    If True, use Mason's obs order (height_scan first)
-                               and action_scale=0.2.
+                               and (default) action_scale=0.2.
+            action_scale_override: If not None, overrides whatever the mason_baseline
+                                   flag selects. Use this for policies trained at a
+                                   non-default scale, e.g. parkour_phasefwplus_22100
+                                   was trained at action_scale=0.3.
         """
         self._mason_baseline = mason_baseline
 
@@ -181,7 +185,10 @@ class SpotRoughTerrainPolicy:
         self._actor = self._build_actor(ckpt)
 
         # Internal bookkeeping
-        self._action_scale    = ACTION_SCALE_MASON if mason_baseline else ACTION_SCALE
+        if action_scale_override is not None:
+            self._action_scale = float(action_scale_override)
+        else:
+            self._action_scale = ACTION_SCALE_MASON if mason_baseline else ACTION_SCALE
         self._decimation      = DECIMATION
         self._previous_action = np.zeros(ACT_DIM)
         self._policy_counter  = 0
