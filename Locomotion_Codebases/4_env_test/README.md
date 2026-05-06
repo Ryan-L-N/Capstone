@@ -27,7 +27,7 @@ Comparative evaluation of Boston Dynamics Spot locomotion policies across 4 test
 
 ```bash
 # 1. Clone and navigate
-cd Experiments/Alex/4_env_test/
+cd Locomotion_Codebases/4_env_test/
 
 # 2. Place checkpoints
 cp /path/to/model_29999.pt checkpoints/
@@ -118,8 +118,8 @@ Generates `results/summary.csv` and plots in `results/plots/`.
 | File | Location |
 |------|----------|
 | Master test plan | `capstone_test.md` |
-| Rough env config | `../ARL_DELIVERY/05_Training_Package/isaac_lab_spot_configs/rough_env_cfg.py` |
-| Grass physics | `../ARL_DELIVERY/04_Teleop_System/grass_physics_config.py` |
-| Obstacle course | `../ARL_DELIVERY/02_Obstacle_Course/spot_obstacle_course.py` |
-| Teleop system | `../ARL_DELIVERY/04_Teleop_System/spot_teleop.py` |
-| Prior lessons | `../ARL_DELIVERY/08_Lessons_Learned/` |
+| Rough env config | `../../Experiments/Alex/ARL_DELIVERY/05_Training_Package/isaac_lab_spot_configs/rough_env_cfg.py` |
+| Grass physics | `../../Experiments/Alex/ARL_DELIVERY/04_Teleop_System/grass_physics_config.py` |
+| Obstacle course | `../../Experiments/Alex/ARL_DELIVERY/02_Obstacle_Course/spot_obstacle_course.py` |
+| Teleop system | `../../Experiments/Alex/ARL_DELIVERY/04_Teleop_System/spot_teleop.py` |
+| Prior lessons | `../../Experiments/Alex/ARL_DELIVERY/08_Lessons_Learned/` |
