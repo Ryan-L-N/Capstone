@@ -314,6 +314,225 @@ layout). Backups at `*.pre_fw_plus_2.bak`.
 - vf_loss spikes >5× in any 100 iters → abort (mode collapse signature)
 - mean_reward drops >50% from baseline 168 → abort
 
+### rev1 — COLLAPSED (May 1 01:35 UTC, killed at iter 22452)
+
+The two changes combined were **stronger together than modeled**.
+Reward kill-switch fired in <400 iters:
+
+| Metric | iter 22114 | iter 22452 | Baseline | Direction |
+|---|---|---|---|---|
+| Mean reward | 87.6 | 16-20 | 168 | -90% (KILL) |
+| terrain_levels | 3.46 | 0.0012 | 3.67 | floored |
+| body_flip_over | 12.8% | 81.6% | — | 6× regression |
+| vf_loss | 0.75 | 0.80 | — | technically fine |
+| noise_std | 0.30 | 0.30 | — | floor (not collapsing) |
+
+Failure mode = "Stuck-at-level-0 reward hack" (exact match to the Apr 29
+attempts above). Combined effect:
+- `_STAIR_RISER_RANGE` (0.05, 0.42)→(0.10, 0.25) made level 0 stairs 10cm
+  minimum risers (was 5cm). Curriculum had **no easy mode to demote to**.
+- `distance_buffer` 3.0→1.5 terminated stair drift quickly.
+- → Too many flips → curriculum demoted → still hard at level 0 →
+  equilibrium at "flip in place" at terrain_levels=0.001.
+
+vf_loss stayed below watchdog threshold (0.80) ONLY because the policy
+was sitting in a near-zero-reward equilibrium — not actively trying
+hard things. The watchdog wouldn't catch this; only the reward-drop kill
+switch did.
+
+H100 collapsed log preserved: `~/phase_fw_plus_2_collapsed.log`. The
+22200/22300/22400 checkpoints captured the descent into the level-0
+trap; useful as case-study artifacts but not deployable.
+
+### rev2 — narrow-tread proportion bump only (May 1 01:34 UTC, in progress)
+
+Reverted both the riser range tightening AND the distance_buffer change.
+Kept ONLY the additive narrow-tread proportion bump — pure exposure
+increase, no harder geometry, no tighter termination:
+
+| Change | rev1 | rev2 |
+|---|---|---|
+| `pyramid_stairs_narrow` 4% → 12% | KEPT | **KEPT** |
+| `hf_stairs_narrow` 4% → 8% | KEPT | **KEPT** |
+| `_STAIR_RISER_RANGE` | (0.10, 0.25) | **(0.05, 0.42)** reverted |
+| `distance_buffer` | 1.5 | **3.0** reverted |
+
+Hypothesis: pure additive exposure to FW-shaped stairs (without making
+level 0 harder or terminating drift faster) won't trigger the level-0
+demotion trap. Tests whether more reps on narrow-tread stairs alone is
+enough to shift the policy's "go around" preference toward "go up".
+
+Branch state on `origin/phase-fw-plus-2`:
+- `9e8e161` - original Phase-FW-Plus-2 changes (collapsed)
+- `42a7910` - documentation update
+- `48de017` - rev2 revert (currently training)
+
+### rev2 — ALSO COLLAPSED (May 1 02:17 UTC, killed at iter 22394)
+
+Identical collapse trajectory to rev1, despite reverting both the riser
+range AND the distance_buffer changes:
+
+| Metric | rev1 @ iter 22452 | rev2 @ iter 22394 | Baseline |
+|---|---|---|---|
+| Mean reward | 16-20 | **13-21** | 168 |
+| terrain_levels | 0.0012 | **0.0034** | 3.67 |
+| body_flip_over | 81.6% | **81.3%** | — |
+| vf_loss | 0.80 | 0.81 | — |
+| noise_std | 0.30 | 0.30 | — |
+
+**The narrow-tread proportion bump ALONE triggers the collapse.** No
+harder geometry, no tighter termination — pure +8% pyramid_stairs_narrow
++ +4% hf_stairs_narrow (offset by reductions in medium/wide variants
+and slope_rough) is enough to demote terrain_levels to floor.
+
+H100 collapsed log: `~/phase_fw_plus_2_rev2.log` (preserved).
+
+### Phase-v3 — FROM-SCRATCH 10K with reward revert (May 1 02:56 UTC)
+
+After rev2 collapsed, the diagnosis pointed at the **Apr 29 reward
+rebalance** (commit `f537601` 12:41 UTC) that flipped weights from
+(`base_lin_vel=5, gait=10, air_time=5`) to (`10, 3, 2`) AFTER 22100 had
+been trained. All 7 prior retrains used the rebalanced weights but
+22100 itself never trained under them — the curriculum tuning didn't
+match.
+
+Phase-v3 launched **from-scratch** with reward weights reverted to
+`(5/10/5)` plus symmetric backward gait `lin_vel_x=(-1.5, 1.5)`. Goal:
+test whether the reward weights alone explain the regression.
+
+**Result: collapse delayed but not prevented.**
+
+| iter | Mean reward | terrain_levels | body_flip | Notes |
+|---|---|---|---|---|
+| 50 | 6.9 | 0.36 | 70% | random init |
+| 200 | 80.9 | 0.13 | 30% | learning gait |
+| 350 | 109.3 | 0.04 | 22% | working policy |
+| **450** | **125.7** ← PEAK | 0.02 | 19% | best moment |
+| 500 | 118.2 | 0.01 | 19% | starting to crash |
+| **550** | **18.5** ← CRASH | 0.0 | 80% | level-0 trap engaged |
+| 1000 | 11.6 | 0.0 | 80% | stuck |
+| 3673 | 7-15 | 0.0 | 80% | stuck for 3000+ iters |
+| 4641 (killed) | — | 0.0 | — | stable level-0 trap |
+
+The reward weight revert delayed the collapse by ~500 iters (vs Apr 29
+attempts collapsing immediately) but did **not prevent it**. Once
+terrain_levels hit 0.0 the policy converged to the documented
+"flip-in-place at level 0" equilibrium and held it for 3000+ iters
+straight. Killed at iter 4641.
+
+H100 collapsed log: `~/phase_v3_final_collapsed.log`. Branch:
+`origin/phase-v3-from-scratch` (commit `efa5150`).
+
+### Phase-v4 — action_scale 0.3→0.5 + noise floor 0.3→0.1 (May 1 19:17 UTC)
+
+User-directed scale bump (0.5 for stronger climbing authority on FW
+USDs) combined with the noise-floor fix from Phase-v3 forensics. Resume
+from 22100 with reward weight compensation per Phase-Final's tuning
+(action_smoothness=-2.0, joint_torques=-1.5e-3).
+
+**Critic exploded immediately.** vf_loss trajectory:
+- iter 22168: 1.25e24
+- iter 22169: 11.18e24
+- iter 22170: 98.84e24
+- iter 22171: 290.26e24
+
+10× growth per iter. Watchdog couldn't keep up — it halves LR per spike
+but spikes were faster than LR drops. Actor metrics still looked OK
+(terrain_levels 3.24, body_flip 6.4%) at the moment of kill, but the
+critic was unrecoverable.
+
+**Diagnosis:** the resume-with-scale-jump puts the actor outputs at
+~67% larger joint deltas than the critic was trained to predict. V(s)
+target distribution shifts, critic can't fit the new returns,
+exponential blowup. This is the documented Phase-Final Bug #25 slow-
+bleed in fast-forward.
+
+Killed at iter 22171. Log: `~/phase_v4_critic_blowup.log`.
+
+### Phase-v4b — isolated noise-floor test (May 1 19:29 UTC)
+
+To isolate the noise-floor hypothesis from the scale change, ran a
+clean resume from 22100 with **only `min_noise_std` 0.3 → 0.1
+changed**. Action scale, smoothness/torques weights, and reward stack
+all reverted to 22100's training conditions.
+
+**Result: collapsed identically to v3 / rev1 / rev2.** At iter 22388
+(288 iters past resume):
+
+| Metric | v4b @ 22388 | Baseline 22100 |
+|---|---|---|
+| Mean reward | 15-18 | 168 |
+| terrain_levels | 0.0034 | 3.67 |
+| body_flip_over | 80% | ~0% |
+| noise_std | 0.10 (new floor confirmed applied) | — |
+| vf_loss | 0.77 | — |
+
+**The noise-floor hypothesis is disproven.** Lowering min_noise_std to
+0.1 with all else preserved still produces the level-0 trap.
+
+Log: `~/phase_v4b.log` (preserved on H100).
+
+### Final verdict — 22100 ships; geometric softening is the path forward
+
+**Nine consecutive failed retrains** (5 Apr 29 + rev1 + rev2 + v3 +
+v4 + v4b) all hit the "stuck-at-level-0 reward hack" or related
+collapse modes. The level-0 trap is robust to:
+
+- Resume vs from-scratch
+- Original (5/10/5) vs rebalanced (10/3/2) reward weights
+- Tighter vs original `terrain_out_of_bounds`
+- Tighter vs original `_STAIR_RISER_RANGE`
+- Curriculum proportion bumps (narrow-tread variants)
+- Wide vs narrow LR
+- Symmetric backward gait
+- **Lowered min_noise_std (0.3 → 0.1)** — disproven by Phase-v4b
+- **action_scale jump 0.3 → 0.5 on resume** — caused critic blowup (v4)
+
+**The regression is deeper than any single config edit.** Suspects
+that remain untested:
+- Isaac Lab version drift between Apr 27 (Phase-FW-Plus succeeded)
+  and Apr 29 (everything broke)
+- A subtle change in the curriculum threshold tuning of
+  `terrain_levels_vel`
+- Interaction between the value-loss watchdog and PPO update dynamics
+- An untracked edit to the cmd_vel resampling or the privileged-obs
+  pipeline
+
+**22100 is shipped. No v3 successor.** Project policy story closes here.
+
+The remaining FW-stair limitation is **geometric, not policy-side**.
+22100 climbs procedural pyramid stairs in training; it bypasses FW
+USD stairs because the FW geometry is outside its trained slope/depth
+distribution. Fix: Colby applies geometric softening to the FW USDs —
+scale X-run by ~1.7× to drop slope from ~50° to ~35°. Single Xform op
+per USD, deterministic, doesn't risk the policy.
+
+For everything else 22100 is ship-quality:
+- Friction zone-5 ice 96% complete (project speed record)
+- Grass zone-5 75% complete with 0 falls
+- Boulder zone-3 0 falls (timeout-only, robot stays upright)
+- Stairs: known 51% fall rate at zone 2-3 — known limitation
+
+**Path forward (geometry-side):** ask Colby to apply geometric softening
+to the FW staircase USDs:
+- Current `SM_Staircase_02` slope: ~50° (5.3m rise / 4.4m run)
+- Target slope: ~30-35° (matches procedural pyramid stairs the policy
+  was trained on, where 22100 succeeds)
+- Fix: scale the X-run by ~1.7× (4.4m → 7.5m run) — drops slope to ~35°
+  while preserving rise. Single Xform op on each SM_Staircase USD.
+
+22100 should climb 35° solid-riser stairs out of the box (it already
+climbs procedural pyramid stairs at similar slopes per the canonical
+4-env eval headline data — `Episode_Reward/terrain_relative_height` ≈ 0
+on stair_eval episodes that COMPLETE).
+
+If geometric softening is not acceptable for the deployment scene, the
+remaining option is a from-scratch retrain with a corrected pipeline —
+but that's a multi-day effort and the Apr 29 attempts suggest the
+underlying regression in the training pipeline (open since SHIP_DECISION
+was written) needs to be diagnosed first.
+
+22100 remains the canonical ship.
 If candidate beats 22100 on FW stair engagement (Spot z >1.5m within
 30s of W input on rendered teleop) without regressing 4-env baseline
 >5%, promote as `parkour_phasefwplus2_NNNN.pt`. Otherwise revert to 22100
