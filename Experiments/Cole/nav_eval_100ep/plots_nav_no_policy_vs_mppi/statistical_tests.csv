@@ -1,0 +1,2 @@
+environment,waypoints_t_stat,waypoints_p_value,waypoints_cohens_d,completion_z_stat,completion_p_value,fall_z_stat,fall_p_value,waypoints_mppi_minus_nopolicy,completion_mppi_minus_nopolicy,fall_mppi_minus_nopolicy
+flat,21.159227,0.0,2.992367,8.382736,0.0,3.011906,0.002596,18.87,0.52,0.16

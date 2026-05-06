@@ -1,0 +1,109 @@
+# AGGREGATE STATISTICS (n=100 episodes, flat terrain, MPPI navigation policy)
+Metric,Value
+Average_Waypoints_Reached,19.52
+Max_Waypoints_Reached,25
+Failure_Rate_Fell_Over,25.00%
+Failure_Rate_Ran_Out_of_Points,23.00%
+Completion_Rate,52.00%
+
+Episode,Waypoints_Reached,Failure_Reason,Final_Score
+1,25,Completed All Waypoints,43.70
+2,25,Completed All Waypoints,52.33
+3,25,Completed All Waypoints,28.56
+4,25,Completed All Waypoints,94.23
+5,25,Completed All Waypoints,58.60
+6,1,Fell Over,266.11
+7,16,Fell Over,131.81
+8,19,Ran Out of Points,-0.00
+9,0,Ran Out of Points,-0.00
+10,23,Ran Out of Points,-0.00
+11,23,Ran Out of Points,-0.00
+12,25,Completed All Waypoints,90.56
+13,25,Completed All Waypoints,84.36
+14,21,Fell Over,111.04
+15,25,Completed All Waypoints,51.48
+16,25,Completed All Waypoints,99.04
+17,23,Ran Out of Points,-0.00
+18,25,Completed All Waypoints,107.44
+19,25,Completed All Waypoints,63.13
+20,24,Ran Out of Points,-0.00
+21,23,Fell Over,82.96
+22,25,Completed All Waypoints,40.89
+23,25,Completed All Waypoints,52.13
+24,25,Completed All Waypoints,58.17
+25,25,Completed All Waypoints,64.54
+26,25,Completed All Waypoints,44.45
+27,17,Fell Over,74.53
+28,0,Fell Over,299.64
+29,0,Fell Over,299.62
+30,0,Fell Over,299.72
+31,0,Fell Over,299.35
+32,25,Completed All Waypoints,51.39
+33,22,Ran Out of Points,-0.00
+34,25,Completed All Waypoints,61.00
+35,25,Completed All Waypoints,70.37
+36,25,Completed All Waypoints,99.96
+37,2,Ran Out of Points,-0.00
+38,13,Fell Over,161.25
+39,25,Completed All Waypoints,45.66
+40,25,Completed All Waypoints,15.20
+41,25,Completed All Waypoints,58.01
+42,25,Completed All Waypoints,62.82
+43,19,Ran Out of Points,-0.00
+44,25,Completed All Waypoints,33.99
+45,23,Fell Over,25.15
+46,22,Ran Out of Points,-0.00
+47,22,Ran Out of Points,-0.00
+48,18,Ran Out of Points,-0.00
+49,25,Completed All Waypoints,69.05
+50,25,Completed All Waypoints,83.93
+51,25,Completed All Waypoints,44.91
+52,25,Completed All Waypoints,76.16
+53,20,Ran Out of Points,-0.00
+54,25,Completed All Waypoints,24.92
+55,25,Completed All Waypoints,35.07
+56,5,Fell Over,267.60
+57,25,Completed All Waypoints,47.86
+58,24,Ran Out of Points,-0.00
+59,25,Completed All Waypoints,67.01
+60,25,Completed All Waypoints,27.44
+61,21,Ran Out of Points,-0.00
+62,25,Completed All Waypoints,55.28
+63,25,Completed All Waypoints,76.08
+64,2,Ran Out of Points,-0.00
+65,25,Completed All Waypoints,51.58
+66,25,Completed All Waypoints,48.05
+67,2,Fell Over,282.20
+68,25,Completed All Waypoints,75.05
+69,22,Ran Out of Points,-0.00
+70,21,Ran Out of Points,-0.00
+71,25,Completed All Waypoints,47.37
+72,23,Ran Out of Points,-0.00
+73,25,Completed All Waypoints,103.96
+74,20,Fell Over,112.92
+75,25,Completed All Waypoints,53.37
+76,25,Completed All Waypoints,54.65
+77,18,Fell Over,135.25
+78,25,Completed All Waypoints,17.09
+79,25,Completed All Waypoints,48.44
+80,23,Ran Out of Points,-0.00
+81,25,Completed All Waypoints,33.69
+82,25,Completed All Waypoints,80.21
+83,25,Completed All Waypoints,63.02
+84,23,Ran Out of Points,-0.00
+85,25,Completed All Waypoints,40.41
+86,18,Ran Out of Points,-0.00
+87,25,Completed All Waypoints,87.87
+88,25,Completed All Waypoints,47.55
+89,21,Fell Over,95.06
+90,25,Completed All Waypoints,39.43
+91,20,Ran Out of Points,-0.00
+92,24,Fell Over,9.36
+93,7,Fell Over,225.61
+94,0,Fell Over,299.61
+95,0,Fell Over,299.70
+96,0,Fell Over,299.85
+97,0,Fell Over,299.83
+98,0,Fell Over,299.85
+99,0,Fell Over,299.88
+100,7,Fell Over,182.52
