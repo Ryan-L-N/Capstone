@@ -59,10 +59,10 @@
 
 ### Network Configuration
 - **Interface in use:** eno1
-- **MAC Address:** `3c:ec:ef:e3:14:ae`
+- **MAC Address:** `***`
 - ~~**Status:** Interface is UP, but no network connectivity (MAC not whitelisted yet)~~
-- **Status:** ✅ Network is UP and fully connected. IP assigned: `172.24.254.24`
-- **Additional interface:** eno2 (MAC: `3c:ec:ef:e3:14:af`)
+- **Status:** ✅ Network is UP and fully connected. IP assigned: `***.***.***.***`
+- **Additional interface:** eno2 (MAC: `***`)
 
 ### Software Status
 - ~~**OS:** Ubuntu 20.04.1 LTS (GNU/Linux 5.4.0-42-generic x86_64)~~
@@ -97,7 +97,7 @@
 - ~~⏳ **MAC address whitelisting:** Submitted to Justin Whitten (2026-02-09)~~
 - ✅ **MAC address whitelisted** — Completed
 - ~~⏳ **Static IP assignment:** Waiting for IT to provide IP address~~
-- ✅ **IP assigned:** `172.24.254.24`
+- ✅ **IP assigned:** `***.***.***.***`
 - ~~⏳ **NVIDIA driver upgrade:** 580.126.09 → 580.126.16 (DKMS rebuild in progress as of Feb 11)~~
 - ~~✅ **NVIDIA driver upgrade:** 580.126.16 packages installed, DKMS modules built & signed. `nvidia-persistenced` had systemd warnings (non-critical). **Server needs reboot.**~~
 - ✅ **NVIDIA driver upgrade:** 580.126.16 verified working after reboot (Feb 12)
@@ -185,7 +185,7 @@
 
 > ✅ **COMPLETED (Feb 11, 2026):** OpenSSH server was pre-installed with Ubuntu 22.04.  
 > SSH key auth configured from Windows laptop. Password auth also enabled for team access.  
-> Access via: `ssh t2user@172.24.254.24` with password `!QAZ@WSX3edc4rfv`
+> Access via: `ssh t2user@***.***.***.***` with password `***`
 
 **Test SSH access** (from another machine on CMU network or VPN):
 ```bash
@@ -474,11 +474,11 @@ tail -f training.log  # if you're logging to file
 - Version control all training code and configs
 
 ### Network Access
-- **On campus:** Direct access via ~~172.24.254.XX~~ `172.24.254.24`
+- **On campus:** Direct access via ~~172.24.254.XX~~ `***.***.***.***`
 - **From home:** Must be on CMU VPN first, then SSH
-- **Switch location:** 172.24.254.23 (dedicated switch with available ports)
-- **SSH command:** `ssh t2user@172.24.254.24`
-- **Password:** `!QAZ@WSX3edc4rfv`
+- **Switch location:** ***.***.***.*** (dedicated switch with available ports)
+- **SSH command:** `ssh t2user@***.***.***.***`
+- **Password:** `***`
 
 ### Training Data Storage
 - **OS Drive:** 960GB (keep this for OS and software only)
@@ -501,7 +501,7 @@ tail -f training.log  # if you're logging to file
 
 **IT Support:**
 - Justin Whitten (CW3 USARMY AFC AI2C)
-- Switch IP: 172.24.254.23
+- Switch IP: ***.***.***.***
 
 **Team Members:**
 - User account: t2user
@@ -584,7 +584,7 @@ Current progress:
 - [x] System boots successfully
 - [x] MAC address identified and submitted for whitelisting
 - [x] MAC address whitelisted by IT ✅
-- [x] ~~Static IP assigned and configured~~ IP: `172.24.254.24` ✅
+- [x] ~~Static IP assigned and configured~~ IP: `***.***.***.***` ✅
 - [x] Network connectivity verified ✅
 - [x] OpenSSH server installed ✅ (pre-installed with 22.04)
 - [x] SSH access working remotely ✅ (password + key auth)
@@ -681,5 +681,5 @@ isaacsim
 ### SSH Stability (Feb 12, 2026)
 - **CRITICAL: Only ONE SSH session at a time.** Running multiple parallel SSH sessions (or SSH + paramiko)
   has caused the server to become completely unresponsive, requiring physical hard reboots.
-- Use `ssh t2user@172.24.254.24` with single commands, or use the paramiko-based `h100_run.py` script
+- Use `ssh t2user@***.***.***.***` with single commands, or use the paramiko-based `h100_run.py` script
   from the Capstone Project directory for reliable single-session execution.
