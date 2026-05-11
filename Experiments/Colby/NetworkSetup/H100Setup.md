@@ -3,7 +3,7 @@
 **Date:** February 9, 2026  
 **Updated:** February 12, 2026  
 **System:** H100 Training Server  
-**Hostname:** ai2ct2  
+**Hostname:** ***  
 ~~**Current OS:** Ubuntu 20.04.1 LTS (Legacy Server)~~  
 **Current OS:** Ubuntu 22.04.5 LTS (Fresh Install - Feb 11, 2026)
 
