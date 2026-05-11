@@ -4,55 +4,86 @@
 
 ## The Core Idea
 
-Instead of training one giant policy to handle everything at once, you split the problem into two specialized layers — one that handles **how to move**, and one that handles **where to go**. Each brain solves a much simpler problem than the combined one would be.
+Instead of training one giant policy to handle everything at once, split the problem into two specialized layers — one that handles **how to move**, one that handles **where to go**.
 
 ---
 
 ## The Two Layers
 
 ### Low-level (Body) — Locomotion
-- Runs fast, controls raw actuators
-- Only needs to answer: *"given a direction command, how do I physically execute that?"*
-- Trained once, then frozen — never changes again
+- Controls 12 joints at **50 Hz**
+- Input: proprioception (235-dim) + velocity command
+- Trained by Ryan, **frozen forever** — 286,604 parameters, never updated again
+- Only answers: *"given a direction, how do I physically execute it?"*
 
 ### High-level (Eyes) — Navigation
-- Runs slower, uses perception (camera, sensors)
-- Only needs to answer: *"given what I see, what direction should I go?"*
-- This is the layer being actively trained
+- Reads a **64×64 depth camera** + 12-dim proprioception = 4,108 inputs
+- Runs at **10 Hz** — outputs just 3 numbers: [vx, vy, ωz]
+- **489,799 parameters** being actively trained
+- Only answers: *"given what I see, where should I go?"*
 
 ---
 
-## Why Train Them This Way vs. End-to-End
+## Why Not One Big Policy?
 
-| Training one big policy | Dual-brain approach |
+| End-to-End | Dual-Brain |
 |---|---|
-| Must learn actuator control AND perception simultaneously | Each layer solves one problem |
-| Enormous search space — millions of parameters fighting each other | Navigation only learns 3 output values |
-| Any task change means retraining everything from scratch | Swap only the layer relevant to the new task |
-| Hard to diagnose failures — is it perception or control? | Failures are isolated to one brain |
+| Learns actuator physics AND perception simultaneously | Each layer solves one problem |
+| Enormous, unstable search space | Nav policy outputs only **3 values** |
+| Change the task → retrain everything | Swap only the layer relevant to the new task |
+| Can't tell if failure is perception or control | Failures isolate to one brain |
+
+---
+
+## What the Smoke Test Proved
+
+- **489,799-parameter CNN policy** trained through 100 iterations without NaN or crashes
+- Value loss stable at ~13.7 (expected — random policy, no learned behavior yet)
+- **92% of episodes ended in bad orientation** — expected at iteration 0 with a random nav policy
+- Episode length: 7.5 steps — Spot falls fast with random velocity commands
+- Full pipeline validated: Isaac Sim → depth camera → CNN → frozen loco → joints → physics
+
+---
+
+## Key Architecture Numbers
+
+| Component | Detail |
+|---|---|
+| Depth image | 64×64 = 4,096 pixels, flattened |
+| Proprioception | 12-dim (lin_vel, ang_vel, gravity, prev_action) |
+| CNN encoder | 3 conv layers → 128-dim feature vector |
+| Actor MLP | [256, 128] → 3-dim velocity command |
+| Critic MLP | [256, 128] → 1-dim value estimate |
+| Frozen loco | [512, 256, 128] MLP, 286K params, Ryan's checkpoint |
+| Nav policy | CNN + MLP, 490K params, being trained |
+| Physics rate | 500 Hz |
+| Loco rate | 50 Hz (5 physics steps per loco step) |
+| Nav rate | 10 Hz (5 loco steps per nav step) |
+
+---
+
+## The Signal Chain
+
+```
+64×64 depth image  +  proprioception (12)
+           ↓
+     CNN encoder  →  128-dim features
+           ↓
+     Actor MLP    →  [vx, vy, ωz]   ← 3 numbers
+           ↓
+  Frozen Loco MLP →  12 joint targets
+           ↓
+     Spot moves
+```
+
+Two layers, two timescales, one robot.
 
 ---
 
 ## Key Benefits
 
-- **Training efficiency** — The lower layer is frozen, so the upper layer's training signal is clean and stable. It isn't fighting a moving target at the bottom.
-- **Modularity** — A better lower-layer policy can be dropped in without retraining the upper layer, and vice versa.
-- **Faster iteration** — You can run many navigation experiments cheaply because you never touch the expensive, already-trained locomotion layer.
-- **Cleaner reward signal** — The navigation policy only has to learn high-level behavior. It doesn't have to figure out joint physics at the same time.
-- **Reusability** — The locomotion layer is task-agnostic. The same frozen weights can serve a waypoint-following nav policy, an obstacle-avoidance nav policy, or anything else you put on top.
-
----
-
-## The Hierarchy in Practice
-
-```
-Perception (camera/sensors)
-        ↓
-High-level policy  →  outputs a direction command
-        ↓
-Low-level policy   →  translates command to physical actions
-        ↓
-Robot moves
-```
-
-The two layers run at different rates — high-level thinks slowly (uses perception), low-level reacts quickly (uses proprioception). This mirrors how biological motor control works.
+- **Clean training signal** — frozen locomotion layer means the nav policy isn't fighting a moving target below it
+- **Fast iteration** — nav experiments are cheap because the expensive loco layer is never retouched
+- **Modularity** — drop in a better loco checkpoint without retraining nav, and vice versa
+- **Reusability** — same frozen loco weights can serve waypoint-following, obstacle-avoidance, or any other nav policy you put on top
+- **Biological parallel** — mirrors how the brain separates high-level intent (cortex) from low-level motor execution (cerebellum/spinal cord)
