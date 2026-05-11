@@ -1,8 +1,8 @@
 # Running Isaac Sim & Isaac Lab on the H-100 Server
 
 **Date:** February 12, 2026  
-**Server:** `172.24.254.24` (hostname: `ai2ct2`)  
-**Login:** `ssh t2user@172.24.254.24` — Password: `!QAZ@WSX3edc4rfv`
+**Server:** `***.***.***.***` (hostname: `***`)  
+**Login:** `ssh t2user@***.***.***.***` — Password: `***`
 
 ---
 
@@ -23,7 +23,7 @@
 
 ```bash
 # From CMU network or VPN
-ssh t2user@172.24.254.24
+ssh t2user@***.***.***.***
 ```
 
 > **CRITICAL: Only ONE SSH session at a time.**  
@@ -188,7 +188,7 @@ cd ~/IsaacLab
 
 **Reconnecting later:**
 ```bash
-ssh t2user@172.24.254.24
+ssh t2user@***.***.***.***
 screen -r training
 ```
 
@@ -242,7 +242,7 @@ tensorboard --logdir ~/IsaacLab/logs/ --port 6006 --bind_all
 
 Then from your local machine (on CMU network/VPN), open in browser:
 ```
-http://172.24.254.24:6006
+http://***.***.***.***:6006
 ```
 
 ---
@@ -319,7 +319,7 @@ The first time you run Isaac Sim, it downloads and caches extensions from the re
 ## Environment Summary
 
 ```
-Server:     172.24.254.24 (ai2ct2)
+Server:     ***.***.***.*** (***)
 OS:         Ubuntu 22.04.5 LTS
 GPU:        NVIDIA H100 NVL (95830 MiB)
 Driver:     580.126.16

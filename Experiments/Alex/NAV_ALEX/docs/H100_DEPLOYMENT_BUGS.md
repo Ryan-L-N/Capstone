@@ -1,7 +1,7 @@
 # H100 Deployment Bugs — NAV_ALEX Phase C
 
 **Date:** 2026-03-18
-**Server:** H100 NVL (ai2ct2), Isaac Lab 0.x, RSL-RL (pip)
+**Server:** H100 NVL (***), Isaac Lab 0.x, RSL-RL (pip)
 **Issue:** NAV_ALEX was developed against a newer local Isaac Lab version. The H100 has an older version with different APIs. These are all API compatibility issues, not logic bugs.
 
 ---
@@ -198,7 +198,7 @@
 
 - **Config:** 2048 envs, 30K iters, save every 100, AI coach every 250
 - **GPU:** 38% utilization, 50.5 GB / 96 GB VRAM
-- **TensorBoard:** http://172.24.254.24:6006
+- **TensorBoard:** http://***.***.***.***:6006
 - **Panels:** `Curriculum/terrain_level`, `Nav/*`, `AI_Coach/*`, `Reward_Weights/*`, `Weight_Changes/*`
 - **Coach:** Working — first consultation at iter 250, logs to `spot_nav_explore_ppo/coach_decisions.jsonl`
 - **Total bugs fixed:** 22 (N-1 through N-22)
